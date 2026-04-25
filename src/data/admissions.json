@@ -1,0 +1,1116 @@
+{
+  "A": {
+    "train": [
+      {
+        "scores": [
+          7,
+          7,
+          9,
+          8
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          8,
+          8,
+          7,
+          4
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          8,
+          8,
+          6,
+          5
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          4,
+          9,
+          9,
+          9
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          8,
+          10,
+          9,
+          4
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          7,
+          8,
+          5,
+          7
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          3,
+          4,
+          10,
+          5
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          4,
+          3,
+          4,
+          5
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          6,
+          6,
+          5,
+          3
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          5,
+          4,
+          6,
+          5
+        ],
+        "passed": false
+      }
+    ],
+    "extra": [
+      {
+        "scores": [
+          9,
+          4,
+          9,
+          5
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          8,
+          7,
+          4,
+          8
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          10,
+          4,
+          7,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          9,
+          9,
+          6,
+          5
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          4,
+          8,
+          9,
+          10
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          5,
+          8,
+          8,
+          5
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          10,
+          9,
+          3,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          8,
+          9,
+          7,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          10,
+          10,
+          5,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          6,
+          9,
+          5,
+          10
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          5,
+          8,
+          5,
+          8
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          6,
+          5,
+          7,
+          10
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          9,
+          10,
+          10,
+          5
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          6,
+          5,
+          7,
+          9
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          5,
+          4,
+          7,
+          3
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          3,
+          6,
+          7,
+          4
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          3,
+          3,
+          8,
+          4
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          8,
+          10,
+          7,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          3,
+          9,
+          4,
+          3
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          3,
+          10,
+          4,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          4,
+          5,
+          3,
+          5
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          4,
+          5,
+          3,
+          5
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          6,
+          4,
+          5,
+          4
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          5,
+          3,
+          6,
+          3
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          4,
+          5,
+          3,
+          6
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          4,
+          7,
+          5,
+          4
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          5,
+          5,
+          6,
+          3
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          5,
+          4,
+          5,
+          5
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          5,
+          4,
+          4,
+          5
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          3,
+          6,
+          4,
+          3
+        ],
+        "passed": false
+      }
+    ],
+    "test": [
+      {
+        "scores": [
+          7,
+          8,
+          7,
+          9
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          7,
+          8,
+          7,
+          8
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          10,
+          4,
+          9,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          9,
+          3,
+          7,
+          8
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          7,
+          8,
+          6,
+          4
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          3,
+          8,
+          4,
+          9
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          8,
+          8,
+          8,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          6,
+          8,
+          7,
+          9
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          7,
+          5,
+          6,
+          10
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          6,
+          7,
+          3,
+          9
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          9,
+          6,
+          3,
+          8
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          6,
+          4,
+          8,
+          4
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          3,
+          7,
+          8,
+          4
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          7,
+          3,
+          5,
+          4
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          4,
+          5,
+          5,
+          4
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          5,
+          3,
+          6,
+          4
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          4,
+          7,
+          3,
+          4
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          3,
+          5,
+          6,
+          5
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          4,
+          4,
+          3,
+          5
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          5,
+          5,
+          4,
+          4
+        ],
+        "passed": false
+      }
+    ],
+    "truth": {
+      "trueW": [
+        0.3,
+        0.3,
+        0.1,
+        0.3
+      ],
+      "trueCutoff": 5.5
+    }
+  },
+  "B": {
+    "train": [
+      {
+        "scores": [
+          7,
+          7,
+          9,
+          8
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          8,
+          8,
+          7,
+          4
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          3,
+          5,
+          5,
+          10
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          8,
+          8,
+          6,
+          5
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          4,
+          9,
+          9,
+          9
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          8,
+          10,
+          9,
+          4
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          5,
+          8,
+          3,
+          5
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          7,
+          8,
+          5,
+          7
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          3,
+          7,
+          7,
+          8
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          3,
+          4,
+          10,
+          5
+        ],
+        "passed": false
+      }
+    ],
+    "extra": [
+      {
+        "scores": [
+          9,
+          4,
+          9,
+          5
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          8,
+          7,
+          4,
+          8
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          10,
+          4,
+          7,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          9,
+          9,
+          6,
+          5
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          4,
+          8,
+          9,
+          10
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          5,
+          8,
+          8,
+          5
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          10,
+          9,
+          3,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          8,
+          9,
+          7,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          10,
+          10,
+          5,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          6,
+          9,
+          5,
+          10
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          9,
+          10,
+          10,
+          5
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          5,
+          4,
+          7,
+          3
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          3,
+          6,
+          7,
+          4
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          3,
+          3,
+          8,
+          4
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          4,
+          6,
+          4,
+          7
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          8,
+          10,
+          7,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          3,
+          9,
+          4,
+          3
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          9,
+          4,
+          10,
+          5
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          9,
+          8,
+          4,
+          5
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          7,
+          9,
+          9,
+          5
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          5,
+          3,
+          9,
+          8
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          9,
+          7,
+          7,
+          3
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          4,
+          5,
+          3,
+          5
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          4,
+          5,
+          3,
+          5
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          4,
+          3,
+          6,
+          10
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          6,
+          4,
+          5,
+          4
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          3,
+          4,
+          10,
+          7
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          5,
+          4,
+          6,
+          8
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          5,
+          3,
+          6,
+          3
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          3,
+          8,
+          6,
+          5
+        ],
+        "passed": false
+      }
+    ],
+    "test": [
+      {
+        "scores": [
+          5,
+          4,
+          4,
+          8
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          7,
+          8,
+          7,
+          9
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          7,
+          8,
+          7,
+          8
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          10,
+          4,
+          9,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          4,
+          5,
+          5,
+          9
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          9,
+          3,
+          7,
+          8
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          7,
+          8,
+          6,
+          4
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          3,
+          8,
+          4,
+          9
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          8,
+          8,
+          8,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          5,
+          6,
+          5,
+          6
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          5,
+          5,
+          4,
+          7
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          6,
+          8,
+          7,
+          9
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          7,
+          5,
+          6,
+          10
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          9,
+          6,
+          3,
+          8
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          10,
+          3,
+          7,
+          7
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          6,
+          8,
+          6,
+          6
+        ],
+        "passed": true
+      },
+      {
+        "scores": [
+          4,
+          5,
+          3,
+          7
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          3,
+          7,
+          8,
+          4
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          7,
+          3,
+          5,
+          4
+        ],
+        "passed": false
+      },
+      {
+        "scores": [
+          4,
+          5,
+          5,
+          4
+        ],
+        "passed": false
+      }
+    ],
+    "truth": {
+      "trueW": [
+        0.4,
+        0.3,
+        0.2,
+        0.1
+      ],
+      "trueCutoff": 6
+    }
+  }
+}
