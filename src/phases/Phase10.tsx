@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../store';
+import { PRESET_DATASETS } from '../data/dotPresets';
 
 const SIZE = 8;
 const PIXELS = SIZE * SIZE;
@@ -11,11 +12,7 @@ interface Drawing {
 
 type Tab = 'draw' | 'train' | 'test' | 'share';
 
-const PRESET_LABELS = [
-  ['🐱 고양이', '🐶 강아지'],
-  ['🍎 사과', '🍌 바나나'],
-  ['⭐ 별', '❤️ 하트'],
-] as const;
+const PRESET_LABELS = PRESET_DATASETS.map((p) => p.labels) as readonly (readonly [string, string])[];
 
 export function Phase10() {
   const [tab, setTab] = useState<Tab>('draw');
@@ -96,6 +93,22 @@ function DrawTab({
     setCurrent(new Array(PIXELS).fill(0));
   };
 
+  const loadPreset = () => {
+    const set = PRESET_DATASETS.find((p) => p.labels[0] === labels[0] && p.labels[1] === labels[1]);
+    if (!set) return;
+    const additions: Drawing[] = set.patterns.map((p) => ({ pixels: p.pixels, label: p.label }));
+    // 기존 동일 라벨의 프리셋 중복은 제거 (픽셀 동일성으로 비교)
+    const existing = new Set(drawings.map((d) => `${d.label}|${d.pixels.join('')}`));
+    const fresh = additions.filter((a) => !existing.has(`${a.label}|${a.pixels.join('')}`));
+    setDrawings([...drawings, ...fresh]);
+  };
+
+  const clearAll = () => {
+    if (drawings.length === 0) return;
+    if (!confirm(`모은 그림 ${drawings.length}장을 모두 지울까요?`)) return;
+    setDrawings([]);
+  };
+
   return (
     <div className="mt-6">
       <h2>분류할 두 가지를 정해요</h2>
@@ -113,7 +126,25 @@ function DrawTab({
         ))}
       </div>
 
-      <h2>그림 그리기</h2>
+      <div className="aside-tip mt-4">
+        <div className="font-medium text-sm">📦 프리셋 데이터셋이 준비돼 있어요</div>
+        <p className="text-sm mt-1">
+          위에서 고른 짝마다 미리 그려둔 8×8 도트가 각 라벨 5장씩, 총 10장 있어요.
+          이걸 불러와서 바로 학습해보거나, 직접 그린 그림을 섞어 데이터를 키울 수도 있어요.
+        </p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <button onClick={loadPreset} className="btn-primary text-xs">
+            📦 "{labels[0]} / {labels[1]}" 프리셋 10장 불러오기
+          </button>
+          {drawings.length > 0 && (
+            <button onClick={clearAll} className="btn-ghost text-xs">
+              모은 그림 모두 지우기
+            </button>
+          )}
+        </div>
+      </div>
+
+      <h2>그림 그리기 (직접 추가)</h2>
       <div className="grid lg:grid-cols-[auto_1fr] gap-6 items-start mt-2">
         <div>
           <div className="flex gap-2 mb-3">
