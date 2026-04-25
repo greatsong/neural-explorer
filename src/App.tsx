@@ -12,6 +12,11 @@ import { Phase4 } from './phases/Phase4';
 import { Phase5 } from './phases/Phase5';
 import { Phase6 } from './phases/Phase6';
 import { Phase7 } from './phases/Phase7';
+import { Phase8 } from './phases/Phase8';
+import { Phase9 } from './phases/Phase9';
+import { Phase10 } from './phases/Phase10';
+import { Phase11 } from './phases/Phase11';
+import { Phase12 } from './phases/Phase12';
 import { Stub } from './phases/Stub';
 
 const PHASE_IDS = new Set(PHASES.map((p) => p.id));
@@ -52,7 +57,7 @@ export default function App() {
 }
 
 function isWide(id: PhaseId) {
-  return id === 'p6' || id === 'p7';
+  return ['p6', 'p7', 'p9', 'p10', 'p11', 'p12'].includes(id);
 }
 
 function renderPhase(id: PhaseId) {
@@ -64,6 +69,11 @@ function renderPhase(id: PhaseId) {
     case 'p5': return <Phase5 />;
     case 'p6': return <Phase6 />;
     case 'p7': return <Phase7 />;
+    case 'p8': return <Phase8 />;
+    case 'p9': return <Phase9 />;
+    case 'p10': return <Phase10 />;
+    case 'p11': return <Phase11 />;
+    case 'p12': return <Phase12 />;
     default:   return <Stub id={id} />;
   }
 }
