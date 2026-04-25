@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApp } from '../store';
 import { SCENARIO_A, SCENARIO_B, type Scenario, type Student } from '../data/scenarios';
 import { useAdmissions } from '../adminStore';
+
+type Tab = 'review' | 'retune' | 'predict';
 
 export function Phase7() {
   const sel = useAdmissions((s) => s.selected);
@@ -12,7 +14,7 @@ export function Phase7() {
       <article>
         <div className="text-xs font-mono text-muted">PHASE 7</div>
         <h1>데이터 추가 후 재학습</h1>
-        <p className="text-muted mt-2">먼저 시나리오를 선택해주세요.</p>
+        <p className="text-muted mt-2">먼저 시나리오를 선택해주세요. (페이즈 6에서 골랐던 것 그대로 추천)</p>
         <div className="grid sm:grid-cols-2 gap-4 mt-6">
           {[SCENARIO_A, SCENARIO_B].map((s) => (
             <button key={s.id} onClick={() => setSel(s.id)} className="card p-6 text-left hover:border-accent">
@@ -33,22 +35,22 @@ function Workbench({ scenario }: { scenario: Scenario }) {
   const setSel = useAdmissions((s) => s.setSelected);
   const stored = useAdmissions((s) => s.weights[scenario.id]);
   const setWeights = useAdmissions((s) => s.setWeights);
-
+  const [tab, setTab] = useState<Tab>('review');
   const [w, setW] = useState<[number, number, number, number]>(stored?.w ?? [0.25, 0.25, 0.25, 0.25]);
   const [cutoff, setCutoff] = useState(stored?.cutoff ?? 5);
   const markCompleted = useApp((s) => s.markCompleted);
 
-  // 페이즈 6의 결과(10명만 본 가중치)를 보여주기 위해 별도 저장
-  const [phase6Result] = useState(() => {
-    const initialW = stored?.w ?? [0.25, 0.25, 0.25, 0.25];
-    const initialCutoff = stored?.cutoff ?? 5;
-    return computeMetrics(scenario, initialW, initialCutoff);
-  });
+  // 페이즈 6 시점의 결과 — 처음 진입했을 때 한 번만 캡처
+  const [phase6Snapshot] = useState(() => ({
+    w: stored?.w ?? [0.25, 0.25, 0.25, 0.25] as [number, number, number, number],
+    cutoff: stored?.cutoff ?? 5,
+  }));
+  const phase6Train = scenario.train.filter((s) => predict(s, phase6Snapshot.w, phase6Snapshot.cutoff) === s.passed).length / scenario.train.length;
+  const phase6Test = scenario.test.filter((s) => predict(s, phase6Snapshot.w, phase6Snapshot.cutoff) === s.passed).length / scenario.test.length;
 
   const updateW = (i: number, v: number) => {
     const next = [...w] as typeof w;
-    next[i] = v;
-    setW(next);
+    next[i] = v; setW(next);
     setWeights(scenario.id, { w: next, cutoff });
   };
   const updateCutoff = (v: number) => {
@@ -60,106 +62,199 @@ function Workbench({ scenario }: { scenario: Scenario }) {
   const trainAcc = all40.filter((s) => predict(s, w, cutoff) === s.passed).length / all40.length;
   const testAcc = scenario.test.filter((s) => predict(s, w, cutoff) === s.passed).length / scenario.test.length;
 
-  if (testAcc >= 0.85) markCompleted('p7');
+  useEffect(() => {
+    if (testAcc >= 0.85) markCompleted('p7');
+  }, [testAcc, markCompleted]);
 
   return (
     <article>
       <div className="text-xs font-mono text-muted">PHASE 7 · 시나리오 {scenario.emoji} {scenario.name}</div>
-      <h1>데이터 추가 후 재학습 (40명)</h1>
+      <h1>데이터 추가 후 재학습</h1>
       <button onClick={() => setSel(null)} className="text-xs text-muted underline mt-1">
         ← 시나리오 다시 선택
       </button>
 
-      <p className="text-muted mt-3">
-        다른 학교 합격생까지 모아서 30명을 추가했어요. 이제 40명을 보고 가중치를 다시 조정해보세요.
-        <strong> 시험 데이터 20명</strong>은 학습에 쓰이지 않은 별도 데이터예요.
+      <div className="flex gap-1 mt-6 border-b border-border">
+        <TabButton active={tab === 'review'} onClick={() => setTab('review')}>① 새 데이터 받기</TabButton>
+        <TabButton active={tab === 'retune'} onClick={() => setTab('retune')}>② 다시 가중치 조정</TabButton>
+        <TabButton active={tab === 'predict'} onClick={() => setTab('predict')}>③ 가상 인물 예측</TabButton>
+      </div>
+
+      {tab === 'review' && (
+        <ReviewTab scenario={scenario} phase6Train={phase6Train} phase6Test={phase6Test} onNext={() => setTab('retune')} />
+      )}
+      {tab === 'retune' && (
+        <RetuneTab
+          scenario={scenario} all40={all40} w={w} cutoff={cutoff} updateW={updateW} updateCutoff={updateCutoff}
+          trainAcc={trainAcc} testAcc={testAcc} phase6Test={phase6Test} onNext={() => setTab('predict')}
+        />
+      )}
+      {tab === 'predict' && <PredictTab scenario={scenario} w={w} cutoff={cutoff} />}
+    </article>
+  );
+}
+
+function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 text-sm border-b-2 -mb-px transition ${
+        active ? 'border-accent text-accent font-medium' : 'border-transparent text-muted hover:text-text'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ──────── 탭 1 ────────
+function ReviewTab({
+  scenario, phase6Train, phase6Test, onNext,
+}: { scenario: Scenario; phase6Train: number; phase6Test: number; onNext: () => void }) {
+  return (
+    <div className="mt-6">
+      <h2>📨 30명의 새 데이터가 도착했어요</h2>
+      <p>
+        다른 학교 합격생 명단까지 모았더니 <strong>30명을 추가</strong>로 받을 수 있게 됐어요.
+        이제 학습 데이터가 <strong>40명</strong>이에요.
       </p>
 
-      <h2>비교 표</h2>
+      <div className="card p-4 mt-4">
+        <div className="text-sm font-medium">페이즈 6에서 만든 모델 성적표</div>
+        <div className="grid grid-cols-2 gap-3 mt-3 text-sm font-mono">
+          <div>
+            <div className="text-xs text-muted">학습 (10명)</div>
+            <div className="text-lg">{(phase6Train * 100).toFixed(0)}%</div>
+          </div>
+          <div>
+            <div className="text-xs text-muted">시험 (20명)</div>
+            <div className="text-lg">{(phase6Test * 100).toFixed(0)}%</div>
+          </div>
+        </div>
+        <p className="text-xs text-muted mt-2">
+          {phase6Test >= 0.85
+            ? '시험 정확도가 이미 높네요. 데이터를 더 받으면 더 안정적으로 만들 수 있어요.'
+            : '시험 정확도가 아쉬워요. 데이터가 더 많아지면 진짜 비율이 또렷이 보일 거예요.'}
+        </p>
+      </div>
+
+      <h2>새로 추가된 30명 살펴보기</h2>
+      <details className="card p-3 mt-2 text-sm">
+        <summary className="cursor-pointer text-muted">학생 30명 펼쳐보기</summary>
+        <div className="grid sm:grid-cols-2 gap-2 mt-3">
+          {scenario.extra.map((s, i) => (
+            <div key={i} className="p-2 rounded border border-border text-xs">
+              <span className="font-medium">{scenario.studentNames[10 + 20 + i] ?? `학생${i + 1}`}</span>
+              <span className="text-muted font-mono ml-2">[{s.scores.join(', ')}]</span>
+              <span className={`ml-2 ${s.passed ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {s.passed ? '합격' : '불합격'}
+              </span>
+            </div>
+          ))}
+        </div>
+      </details>
+
+      <div className="aside-tip mt-6">
+        <div className="font-medium">왜 데이터를 더 받으면 좋을까?</div>
+        <p className="text-sm mt-1">
+          10명만 보면 우연히 어떤 가중치 조합도 맞아 떨어질 수 있어요.
+          하지만 40명이 모두 같은 패턴을 따른다면, 그 패턴은 <strong>진짜</strong>일 가능성이 훨씬 커요.
+          머신러닝이 데이터를 갈구하는 이유예요.
+        </p>
+      </div>
+
+      <button onClick={onNext} className="btn-primary mt-6">② 가중치 다시 조정하기 →</button>
+    </div>
+  );
+}
+
+// ──────── 탭 2 ────────
+function RetuneTab({
+  scenario, all40, w, cutoff, updateW, updateCutoff, trainAcc, testAcc, phase6Test, onNext,
+}: {
+  scenario: Scenario; all40: Student[]; w: [number, number, number, number]; cutoff: number;
+  updateW: (i: number, v: number) => void; updateCutoff: (v: number) => void;
+  trainAcc: number; testAcc: number; phase6Test: number; onNext: () => void;
+}) {
+  return (
+    <div className="mt-6">
+      <p>
+        페이즈 6에서 쓰던 슬라이더 그대로예요. 40명을 보면서 미세하게 조정해보세요.
+        <strong> 시험 정확도가 페이즈 6보다 얼마나 올랐는지</strong>가 진짜 성과예요.
+      </p>
+
+      <div className="grid sm:grid-cols-2 gap-4 mt-4">
+        {scenario.variableNames.map((vn, i) => (
+          <Slider key={i} label={`w${i + 1} · ${vn}`} value={w[i]}
+            setValue={(v) => updateW(i, v)} min={0} max={0.6} step={0.05} />
+        ))}
+      </div>
+      <div className="mt-4 max-w-md">
+        <Slider label="합격 컷" value={cutoff} setValue={updateCutoff} min={2} max={8} step={0.25} />
+      </div>
+
+      <h2>비교 표 — 10명만 봤을 때 vs 40명 봤을 때</h2>
       <table className="w-full text-sm font-mono mt-2">
         <thead>
           <tr className="text-muted text-xs">
             <th className="text-left py-2"></th>
-            <th>10명 학습 (페이즈 6)</th>
-            <th>40명 학습 (지금)</th>
+            <th>페이즈 6 (10명)</th>
+            <th>지금 (40명)</th>
           </tr>
         </thead>
         <tbody className="border-t border-border">
           <tr className="border-b border-border">
-            <td className="py-2 text-xs text-muted">학습 정답률</td>
-            <td className="text-center">{(phase6Result.trainAcc * 100).toFixed(0)}%</td>
-            <td className="text-center text-accent">{(trainAcc * 100).toFixed(0)}%</td>
-          </tr>
-          <tr>
-            <td className="py-2 text-xs text-muted">시험 정답률</td>
-            <td className="text-center">{(phase6Result.testAcc * 100).toFixed(0)}%</td>
-            <td className={`text-center ${testAcc >= 0.85 ? 'text-accent font-semibold' : ''}`}>
+            <td className="py-2 text-xs text-muted">시험 데이터 정확도</td>
+            <td className="text-center">{(phase6Test * 100).toFixed(0)}%</td>
+            <td className={`text-center ${testAcc - phase6Test > 0.01 ? 'text-emerald-600 font-semibold' : ''}`}>
               {(testAcc * 100).toFixed(0)}%
-              {testAcc - phase6Result.testAcc > 0.01 && (
-                <span className="text-xs text-emerald-600 ml-1">+{((testAcc - phase6Result.testAcc) * 100).toFixed(0)}%p</span>
+              {testAcc - phase6Test > 0.01 && (
+                <span className="text-xs ml-1">+{((testAcc - phase6Test) * 100).toFixed(0)}%p</span>
               )}
             </td>
           </tr>
         </tbody>
       </table>
 
-      <h2>학습 데이터 40명 — 슬라이더로 가중치 조정</h2>
-      <div className="grid sm:grid-cols-2 gap-4 mt-2">
-        {scenario.variableNames.map((vn, i) => (
-          <Slider key={i} label={`w${i + 1} · ${vn}`} value={w[i]}
-            setValue={(v) => updateW(i, v)} min={0} max={0.5} step={0.05} />
-        ))}
-      </div>
-      <div className="mt-4 max-w-md">
-        <Slider label="합격 컷" value={cutoff} setValue={updateCutoff} min={2} max={8} step={0.5} />
+      <div className={`mt-4 p-4 rounded-md border ${trainAcc >= 0.85 ? 'border-accent bg-accent-bg' : 'border-border bg-surface/40'}`}>
+        <div className="text-xs text-muted">학습 데이터 (40명) 정답률</div>
+        <div className="text-2xl font-mono">{(trainAcc * 100).toFixed(0)}% <span className="text-sm text-muted">({Math.round(trainAcc * all40.length)}/{all40.length})</span></div>
       </div>
 
-      <details className="card p-3 mt-4 text-sm">
-        <summary className="cursor-pointer text-muted">학생 카드 40명 펼쳐보기</summary>
-        <div className="grid sm:grid-cols-2 gap-2 mt-3">
-          {all40.map((s, i) => {
-            const right = predict(s, w, cutoff) === s.passed;
-            return (
-              <div key={i} className={`p-2 rounded border text-xs ${right ? 'border-emerald-500/30' : 'border-rose-500/30'}`}>
-                <span className="font-medium">{scenario.studentNames[i]}</span>
-                <span className="text-muted font-mono ml-2">[{s.scores.join(', ')}]</span>
-                <span className={`ml-2 ${right ? 'text-emerald-600' : 'text-rose-600'}`}>
-                  {right ? '✓' : '✗'} {s.passed ? '합격' : '불합'}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </details>
-
-      {testAcc >= 0.85 && (
-        <div className="aside-tip mt-6">
-          <strong>관찰</strong> — 데이터가 많아질수록 진짜 가중치 비율이 또렷이 보여요.
-          같은 슬라이더 조작이라도 더 정확한 답을 찾을 수 있게 됩니다. 이게 ML이 데이터를 갈구하는 이유.
+      {testAcc >= 0.85 && testAcc - phase6Test > 0.05 && (
+        <div className="aside-tip mt-4">
+          <strong>관찰</strong> — 데이터가 많아지니 시험 정확도가 {((testAcc - phase6Test) * 100).toFixed(0)}%p 올라갔어요.
+          같은 사람이 같은 슬라이더로 했는데도, 40명을 보고 나니 진짜 비율을 더 정확히 찾을 수 있게 된 거예요.
         </div>
       )}
 
-      <h2>가상 인물 합불 예측 — SNS 통지서</h2>
-      <p className="text-sm text-muted">
-        지금 만든 모델로 새 학생을 평가해봐요. 점수를 직접 입력하면 통지서가 발급돼요.
-      </p>
+      <button onClick={onNext} className="btn-primary mt-6">③ 가상 인물에게 적용해보기 →</button>
+    </div>
+  );
+}
+
+// ──────── 탭 3 ────────
+function PredictTab({ scenario, w, cutoff }: { scenario: Scenario; w: number[]; cutoff: number }) {
+  return (
+    <div className="mt-6">
+      <h2>🎯 가상 인물 합불 예측</h2>
+      <p>지금 만든 모델로 새 학생을 평가해봐요. 점수를 직접 입력하면 SNS 통지서가 발급돼요.</p>
       <Predictor scenario={scenario} w={w} cutoff={cutoff} />
-    </article>
+      <div className="aside-note mt-6">
+        <div className="font-medium text-sm">💡 한계 짚기</div>
+        <p className="text-sm mt-1">
+          이 모델은 점수만 보고 판단해요. 실제 입시는 자기소개서, 면접 분위기, 학과별 특성 등 더 많은 요소가 작용합니다.
+          AI 모델은 강력한 도구지만 만능은 아니에요.
+        </p>
+      </div>
+    </div>
   );
 }
 
 const predict = (s: Student, w: number[], cutoff: number) =>
-  s.scores.reduce((acc, x, i) => acc + x * w[i], 0) > cutoff;
+  s.scores.reduce((a, x, i) => a + x * w[i], 0) > cutoff;
 
-function computeMetrics(scenario: Scenario, w: number[], cutoff: number) {
-  const trainAcc = scenario.train.filter((s) => predict(s, w, cutoff) === s.passed).length / scenario.train.length;
-  const testAcc = scenario.test.filter((s) => predict(s, w, cutoff) === s.passed).length / scenario.test.length;
-  return { trainAcc, testAcc };
-}
-
-function Predictor({
-  scenario, w, cutoff,
-}: { scenario: Scenario; w: number[]; cutoff: number }) {
+function Predictor({ scenario, w, cutoff }: { scenario: Scenario; w: number[]; cutoff: number }) {
   const [name, setName] = useState('');
   const [scores, setScores] = useState<string[]>(['', '', '', '']);
   const [result, setResult] = useState<null | { name: string; scores: number[]; score: number; status: 'pass' | 'reserve' | 'fail' }>(null);
@@ -206,15 +301,10 @@ function Predictor({
       </div>
       <button onClick={submit} className="btn-primary">통지서 발급 →</button>
 
-      {result && <SnsCard {...result} cutoff={cutoff} w={w} variableNames={scenario.variableNames} showCalc={showCalc} setShowCalc={setShowCalc} />}
-
-      <div className="aside-note">
-        <div className="font-medium text-sm">💡 한계 짚기</div>
-        <p className="text-sm mt-1">
-          이 모델은 점수만 보고 판단해요. 실제 입시는 자기소개서, 면접 분위기, 학과별 특성 등 더 많은 요소가 작용합니다.
-          AI 모델은 강력한 도구지만 만능이 아니에요.
-        </p>
-      </div>
+      {result && (
+        <SnsCard {...result} cutoff={cutoff} w={w} variableNames={scenario.variableNames}
+          showCalc={showCalc} setShowCalc={setShowCalc} />
+      )}
     </div>
   );
 }
@@ -267,9 +357,7 @@ function SnsCard({
         <div className="mt-4 font-mono text-sm space-y-0.5">
           <div>▶ 종합점수 <span className="text-accent">{score.toFixed(2)}</span></div>
           <div>▶ 합격 컷 {cutoff.toFixed(1)}</div>
-          <div>
-            ▶ 결과 {status === 'pass' ? '🎉 합격' : status === 'reserve' ? '⚡ 예비' : '다음 기회에'}
-          </div>
+          <div>▶ 결과 {status === 'pass' ? '🎉 합격' : status === 'reserve' ? '⚡ 예비' : '다음 기회에'}</div>
         </div>
         <div className="mt-4 text-xs text-blue-500">{s.tags}</div>
         <div className="mt-4 flex gap-4 text-xs text-muted">
