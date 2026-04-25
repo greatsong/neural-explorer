@@ -1,14 +1,15 @@
 export type PhaseId =
   | 'p1' | 'p2' | 'p3' | 'p4' | 'p5'
   | 'p6' | 'p7' | 'p8' | 'p9'
-  | 'p10' | 'p11' | 'p12';
+  | 'p10' | 'p11' | 'p12'
+  | 'p13' | 'p14';
 
 export interface PhaseMeta {
   id: PhaseId;
   num: string;
   title: string;
   subtitle: string;
-  group: '1부 — 뉴런의 기초' | '2부 — 분류와 평가' | '3부 — 직접 만들기' | '4부 — 깊은 학습';
+  group: '1부 — 뉴런의 기초' | '2부 — 분류와 평가' | '3부 — 직접 만들기' | '4부 — 깊은 학습' | '5부 — 분류를 넘어 생성으로';
 }
 
 export const PHASES: PhaseMeta[] = [
@@ -24,6 +25,8 @@ export const PHASES: PhaseMeta[] = [
   { id: 'p10', num: '10', title: '도트 그림 학습',          subtitle: '직접 그리고 공유하기',    group: '3부 — 직접 만들기' },
   { id: 'p11', num: '11', title: '신경망 설계',             subtitle: '복잡도와 신경망 크기',    group: '4부 — 깊은 학습' },
   { id: 'p12', num: '12', title: 'MNIST 도전',              subtitle: '진짜 손글씨 분류',        group: '4부 — 깊은 학습' },
+  { id: 'p13', num: '13', title: '평균과 분포',              subtitle: '가장 단순한 생성 모델',   group: '5부 — 분류를 넘어 생성으로' },
+  { id: 'p14', num: '14', title: '오토인코더',               subtitle: '잠재 공간으로 그림 만들기', group: '5부 — 분류를 넘어 생성으로' },
 ];
 
 export const PHASE_GROUPS = Array.from(

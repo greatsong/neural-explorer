@@ -57,6 +57,8 @@ function PreviewContent({ id }: { id: PhaseId }) {
       '학생이 직접 손으로 그린 숫자 테스트',
       'ChatGPT/뇌 시냅스 규모와 비교',
     ],
+    p13: [],
+    p14: [],
   };
   return (
     <ul className="list-disc pl-5 space-y-1 text-muted">
