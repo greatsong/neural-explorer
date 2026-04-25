@@ -1,0 +1,119 @@
+import { useEffect, useState } from 'react';
+import { useApp } from '../store';
+
+// y = 2x + 1 데이터
+const DATA: [number, number][] = [
+  [1, 3], [2, 5], [3, 7], [4, 9], [5, 11],
+];
+
+export function Phase4() {
+  const [w, setW] = useState(0);
+  const [b, setB] = useState(0);
+  const markCompleted = useApp((s) => s.markCompleted);
+
+  const total = DATA.reduce((acc, [x, y]) => {
+    const pred = w * x + b;
+    return acc + (pred - y) ** 2;
+  }, 0);
+
+  useEffect(() => {
+    if (total < 1) markCompleted('p4');
+  }, [total, markCompleted]);
+
+  const W = 360, H = 260;
+  const sx = (x: number) => 30 + ((x - 0) / 6) * (W - 40);
+  const sy = (y: number) => H - 30 - ((y - 0) / 14) * (H - 50);
+
+  const linePts: [number, number][] = [
+    [0, w * 0 + b],
+    [6, w * 6 + b],
+  ];
+
+  return (
+    <article>
+      <div className="text-xs font-mono text-muted">PHASE 4</div>
+      <h1>수동 학습</h1>
+      <p className="text-muted mt-2">
+        데이터에 가장 잘 맞는 직선을 손으로 찾아봅시다. 가중치 <code>w</code>와 편향 <code>b</code>를 조절해서
+        <strong> 총 오차</strong>를 가장 작게 만드는 게 목표예요.
+      </p>
+
+      <div className="grid md:grid-cols-2 gap-6 mt-6">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full border border-border rounded-md bg-surface/40">
+          {/* axes */}
+          <line x1={30} y1={H - 30} x2={W - 10} y2={H - 30} stroke="rgb(var(--color-border))" />
+          <line x1={30} y1={10} x2={30} y2={H - 30} stroke="rgb(var(--color-border))" />
+          {/* data */}
+          {DATA.map(([x, y]) => {
+            const pred = w * x + b;
+            return (
+              <g key={x}>
+                <line x1={sx(x)} y1={sy(y)} x2={sx(x)} y2={sy(pred)} stroke="rgb(var(--color-accent))" strokeOpacity={0.3} strokeWidth={1.5} />
+                <circle cx={sx(x)} cy={sy(y)} r={5} fill="rgb(var(--color-text))" />
+              </g>
+            );
+          })}
+          {/* line */}
+          <line
+            x1={sx(linePts[0][0])} y1={sy(linePts[0][1])}
+            x2={sx(linePts[1][0])} y2={sy(linePts[1][1])}
+            stroke="rgb(var(--color-accent))" strokeWidth={2}
+          />
+          <text x={W / 2} y={H - 8} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">x</text>
+          <text x={10} y={20} fontSize={11} fill="rgb(var(--color-muted))">y</text>
+        </svg>
+
+        <div className="space-y-4">
+          <Slider label="w (가중치)" value={w} setValue={setW} min={-3} max={5} step={0.1} />
+          <Slider label="b (편향)" value={b} setValue={setB} min={-5} max={5} step={0.1} />
+
+          <div className="card p-4">
+            <div className="text-xs text-muted mb-2">총 오차 (모든 데이터 손실 합)</div>
+            <div className={`font-mono text-2xl ${total < 1 ? 'text-accent' : ''}`}>
+              {total.toFixed(2)}
+            </div>
+            {total < 1 && (
+              <div className="text-sm text-accent mt-2">
+                훌륭해요! 이게 바로 "학습"이에요. (정답: w=2, b=1)
+              </div>
+            )}
+          </div>
+
+          <table className="w-full text-xs font-mono">
+            <thead className="text-muted">
+              <tr><th className="text-left">x</th><th>실제</th><th>예측</th><th>오차²</th></tr>
+            </thead>
+            <tbody>
+              {DATA.map(([x, y]) => {
+                const pred = w * x + b;
+                return (
+                  <tr key={x}>
+                    <td>{x}</td>
+                    <td className="text-center">{y}</td>
+                    <td className="text-center">{pred.toFixed(2)}</td>
+                    <td className="text-center text-muted">{((pred - y) ** 2).toFixed(2)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function Slider({
+  label, value, setValue, min, max, step,
+}: { label: string; value: number; setValue: (v: number) => void; min: number; max: number; step: number }) {
+  return (
+    <label className="block">
+      <div className="flex justify-between text-sm mb-1">
+        <span>{label}</span>
+        <span className="font-mono text-accent">{value.toFixed(1)}</span>
+      </div>
+      <input type="range" min={min} max={max} step={step} value={value}
+        onChange={(e) => setValue(parseFloat(e.target.value))} className="w-full" />
+    </label>
+  );
+}

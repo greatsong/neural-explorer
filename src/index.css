@@ -1,0 +1,58 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg: 255 255 255;
+    --color-surface: 246 247 249;
+    --color-border: 230 232 235;
+    --color-text: 28 30 33;
+    --color-muted: 92 96 102;
+    --color-accent: 107 70 255;
+    --color-accent-bg: 238 234 255;
+  }
+
+  .dark {
+    --color-bg: 23 25 30;
+    --color-surface: 31 34 40;
+    --color-border: 46 50 58;
+    --color-text: 232 234 237;
+    --color-muted: 154 160 166;
+    --color-accent: 167 139 250;
+    --color-accent-bg: 42 31 80;
+  }
+
+  html, body, #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-bg text-text font-sans antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  h1 { @apply text-3xl font-semibold tracking-tight text-text; }
+  h2 { @apply text-2xl font-semibold tracking-tight text-text mt-8 mb-3; }
+  h3 { @apply text-lg font-semibold text-text mt-6 mb-2; }
+  p  { @apply leading-7; }
+
+  code {
+    @apply font-mono text-[0.92em] bg-surface px-1.5 py-0.5 rounded border border-border;
+  }
+}
+
+@layer components {
+  .aside-tip   { @apply border-l-4 border-accent bg-accent-bg/40 px-4 py-3 rounded-r-md my-4; }
+  .aside-note  { @apply border-l-4 border-blue-400 bg-blue-50 dark:bg-blue-950/30 px-4 py-3 rounded-r-md my-4; }
+  .aside-warn  { @apply border-l-4 border-amber-400 bg-amber-50 dark:bg-amber-950/30 px-4 py-3 rounded-r-md my-4; }
+
+  .btn-primary { @apply inline-flex items-center gap-2 px-4 py-2 rounded-md bg-accent text-white text-sm font-medium hover:opacity-90 transition; }
+  .btn-ghost   { @apply inline-flex items-center gap-2 px-4 py-2 rounded-md border border-border text-sm font-medium hover:bg-surface transition; }
+
+  .card { @apply border border-border rounded-lg bg-bg; }
+}
+
