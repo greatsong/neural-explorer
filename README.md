@@ -30,7 +30,7 @@
 
 ```bash
 npm install
-npm run dev      # http://localhost:4033
+npm run dev      # http://localhost:4035
 npm run build
 ```
 
