@@ -178,55 +178,91 @@ function RetuneTab({
 }) {
   return (
     <div className="mt-6">
-      <p>
-        페이즈 6에서 쓰던 슬라이더 그대로예요. 40명을 보면서 미세하게 조정해보세요.
-        <strong> 시험 정확도가 페이즈 6보다 얼마나 올랐는지</strong>가 진짜 성과예요.
+      <p className="text-sm text-muted">
+        페이즈 6 슬라이더 그대로예요. 40명 + 시험 20명을 동시에 보면서 미세 조정.
+        <strong className="text-text"> 시험 정확도가 페이즈 6보다 얼마나 올랐는지</strong>가 진짜 성과예요.
       </p>
 
-      <div className="grid sm:grid-cols-2 gap-4 mt-4">
-        {scenario.variableNames.map((vn, i) => (
-          <Slider key={i} label={`w${i + 1} · ${vn}`} value={w[i]}
-            setValue={(v) => updateW(i, v)} min={0} max={0.6} step={0.05} />
-        ))}
-      </div>
-      <div className="mt-4 max-w-md">
-        <Slider label="합격 컷" value={cutoff} setValue={updateCutoff} min={2} max={8} step={0.25} />
-      </div>
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-6 mt-4 items-start">
+        {/* 좌측: 슬라이더 + 비교 표 (sticky) */}
+        <div className="lg:sticky lg:top-20 space-y-4">
+          <div className="card p-4 space-y-3">
+            {scenario.variableNames.map((vn, i) => (
+              <Slider key={i} label={`w${i + 1} · ${vn}`} value={w[i]}
+                setValue={(v) => updateW(i, v)} min={0} max={0.6} step={0.05} />
+            ))}
+            <div className="border-t border-border pt-3">
+              <Slider label="합격 컷" value={cutoff} setValue={updateCutoff} min={2} max={8} step={0.25} />
+            </div>
+          </div>
 
-      <h2>비교 표 — 10명만 봤을 때 vs 40명 봤을 때</h2>
-      <table className="w-full text-sm font-mono mt-2">
-        <thead>
-          <tr className="text-muted text-xs">
-            <th className="text-left py-2"></th>
-            <th>페이즈 6 (10명)</th>
-            <th>지금 (40명)</th>
-          </tr>
-        </thead>
-        <tbody className="border-t border-border">
-          <tr className="border-b border-border">
-            <td className="py-2 text-xs text-muted">시험 데이터 정확도</td>
-            <td className="text-center">{(phase6Test * 100).toFixed(0)}%</td>
-            <td className={`text-center ${testAcc - phase6Test > 0.01 ? 'text-emerald-600 font-semibold' : ''}`}>
-              {(testAcc * 100).toFixed(0)}%
-              {testAcc - phase6Test > 0.01 && (
-                <span className="text-xs ml-1">+{((testAcc - phase6Test) * 100).toFixed(0)}%p</span>
-              )}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+          <table className="w-full text-sm font-mono">
+            <thead>
+              <tr className="text-muted text-xs">
+                <th className="text-left py-2"></th>
+                <th>페이즈 6</th>
+                <th>지금</th>
+              </tr>
+            </thead>
+            <tbody className="border-t border-border">
+              <tr className="border-b border-border">
+                <td className="py-2 text-xs text-muted">시험 정확도</td>
+                <td className="text-center">{(phase6Test * 100).toFixed(0)}%</td>
+                <td className={`text-center ${testAcc - phase6Test > 0.01 ? 'text-emerald-600 font-semibold' : ''}`}>
+                  {(testAcc * 100).toFixed(0)}%
+                  {testAcc - phase6Test > 0.01 && (
+                    <span className="text-xs ml-1">+{((testAcc - phase6Test) * 100).toFixed(0)}%p</span>
+                  )}
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-      <div className={`mt-4 p-4 rounded-md border ${trainAcc >= 0.85 ? 'border-accent bg-accent-bg' : 'border-border bg-surface/40'}`}>
-        <div className="text-xs text-muted">학습 데이터 (40명) 정답률</div>
-        <div className="text-2xl font-mono">{(trainAcc * 100).toFixed(0)}% <span className="text-sm text-muted">({Math.round(trainAcc * all40.length)}/{all40.length})</span></div>
-      </div>
+          <div className={`p-4 rounded-md border ${trainAcc >= 0.85 ? 'border-accent bg-accent-bg' : 'border-border bg-surface/40'}`}>
+            <div className="text-xs text-muted">학습 (40명)</div>
+            <div className="text-2xl font-mono">{(trainAcc * 100).toFixed(0)}% <span className="text-sm text-muted">({Math.round(trainAcc * all40.length)}/{all40.length})</span></div>
+          </div>
 
-      {testAcc >= 0.85 && testAcc - phase6Test > 0.05 && (
-        <div className="aside-tip mt-4">
-          <strong>관찰</strong> — 데이터가 많아지니 시험 정확도가 {((testAcc - phase6Test) * 100).toFixed(0)}%p 올라갔어요.
-          같은 사람이 같은 슬라이더로 했는데도, 40명을 보고 나니 진짜 비율을 더 정확히 찾을 수 있게 된 거예요.
+          {testAcc >= 0.85 && testAcc - phase6Test > 0.05 && (
+            <div className="aside-tip text-sm">
+              <strong>관찰</strong> — 시험 정확도가 {((testAcc - phase6Test) * 100).toFixed(0)}%p 올랐어요.
+              데이터가 많을수록 진짜 비율이 또렷이 보이는 거예요.
+            </div>
+          )}
         </div>
-      )}
+
+        {/* 우측: 학습 40명 펼쳐보기 */}
+        <div>
+          <div className="text-sm font-medium mb-2">학습 데이터 40명 — 실시간 갱신</div>
+          <div className="grid sm:grid-cols-2 gap-2 max-h-[640px] overflow-y-auto pr-2">
+            {all40.map((s, i) => {
+              const sc = s.scores.reduce((a, x, j) => a + x * w[j], 0);
+              const pred = sc > cutoff;
+              const right = pred === s.passed;
+              return (
+                <div key={i}
+                  className={`p-2 rounded border text-xs ${
+                    right
+                      ? 'border-emerald-500/40 bg-emerald-50/40 dark:bg-emerald-950/20'
+                      : 'border-rose-500/40 bg-rose-50/40 dark:bg-rose-950/20'
+                  }`}
+                >
+                  <div className="flex justify-between">
+                    <span className="font-medium">{scenario.studentNames[i] ?? `학생${i + 1}`}</span>
+                    <span className={`text-[10px] ${s.passed ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
+                      실 {s.passed ? '합' : '불'}
+                    </span>
+                  </div>
+                  <div className="font-mono text-[10px] text-muted mt-0.5">[{s.scores.join(', ')}]</div>
+                  <div className="font-mono text-[11px] mt-1">
+                    {sc.toFixed(2)} → 예측 <strong>{pred ? '합' : '불'}</strong> {right ? '✓' : '✗'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
       <button onClick={onNext} className="btn-primary mt-6">③ 가상 인물에게 적용해보기 →</button>
     </div>

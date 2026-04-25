@@ -186,76 +186,80 @@ function TuneTab({
 
   return (
     <div className="mt-6">
-      <p className="text-muted">
-        슬라이더를 움직이면 학생 카드 색이 실시간으로 바뀌어요.
-        <strong className="text-text"> 정답률 {correct}/{total}</strong>이 가능한 한 높아지도록 가중치를 조정해보세요.
+      <p className="text-muted text-sm">
+        슬라이더를 움직이면 오른쪽 학생 카드 색이 실시간으로 바뀝니다.
+        <strong className="text-text"> 정답률을 가능한 한 높이세요.</strong>
       </p>
 
-      <div className="grid sm:grid-cols-2 gap-4 mt-4">
-        {scenario.variableNames.map((vn, i) => (
-          <Slider key={i} label={`w${i + 1} · ${vn}`} value={w[i]}
-            setValue={(v) => updateW(i, v)} min={0} max={0.6} step={0.05} />
-        ))}
-      </div>
-      <div className="mt-4 max-w-md">
-        <Slider label="합격 컷 (편향)" value={cutoff} setValue={updateCutoff} min={2} max={8} step={0.25} />
-      </div>
-
-      <div className={`mt-4 p-4 rounded-md border ${trainAcc >= 0.8 ? 'border-accent bg-accent-bg' : 'border-border bg-surface/40'}`}>
-        <div className="text-xs text-muted">학습 데이터 정답률</div>
-        <div className={`text-3xl font-mono ${trainAcc >= 0.8 ? 'text-accent' : ''}`}>
-          {correct} / {total}
-          <span className="text-base text-muted ml-2">({(trainAcc * 100).toFixed(0)}%)</span>
-        </div>
-      </div>
-
-      <h2>학생 카드 (실시간 갱신)</h2>
-      <div className="grid sm:grid-cols-2 gap-3 mt-2">
-        {scenario.train.map((s, i) => {
-          const sc = s.scores.reduce((a, x, j) => a + x * w[j], 0);
-          const pred = sc > cutoff;
-          const right = pred === s.passed;
-          return (
-            <div key={i}
-              className={`card p-3 transition ${
-                right
-                  ? 'border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-950/20'
-                  : 'border-rose-500/50 bg-rose-50/50 dark:bg-rose-950/20'
-              }`}
-            >
-              <div className="flex justify-between items-center text-sm">
-                <span className="font-medium">{scenario.studentNames[i]}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                  s.passed
-                    ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                    : 'bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                }`}>
-                  실제 {s.passed ? '합격' : '불합'}
-                </span>
-              </div>
-              <div className="grid grid-cols-4 gap-1 mt-2 text-xs font-mono text-muted">
-                {scenario.variableNames.map((vn, j) => (
-                  <div key={j}>
-                    <div>{vn}</div>
-                    <div className="text-text">{s.scores[j]}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="text-xs font-mono mt-2">
-                점수 <span className="text-accent">{sc.toFixed(2)}</span> {sc > cutoff ? '>' : '≤'} {cutoff.toFixed(1)} → 예측 <strong>{pred ? '합격' : '불합'}</strong>
-                {right ? ' ✓' : ' ✗'}
-              </div>
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-6 mt-4 items-start">
+        {/* 좌측: 슬라이더 + 정답률 (sticky) */}
+        <div className="lg:sticky lg:top-20 space-y-4">
+          <div className="card p-4 space-y-3">
+            {scenario.variableNames.map((vn, i) => (
+              <Slider key={i} label={`w${i + 1} · ${vn}`} value={w[i]}
+                setValue={(v) => updateW(i, v)} min={0} max={0.6} step={0.05} />
+            ))}
+            <div className="border-t border-border pt-3">
+              <Slider label="합격 컷 (편향)" value={cutoff} setValue={updateCutoff} min={2} max={8} step={0.25} />
             </div>
-          );
-        })}
-      </div>
+          </div>
 
-      <div className="aside-note mt-6">
-        <div className="font-medium text-sm">💡 힌트</div>
-        <p className="text-sm mt-1">
-          모든 항목을 똑같이 0.25로 두면 평범해 보이지만 실제론 정답률이 안 올라요.
-          어떤 항목 가중치를 높이고 어떤 걸 낮춰야 할지, 데이터에서 단서를 찾아보세요.
-        </p>
+          <div className={`p-4 rounded-md border ${trainAcc >= 0.8 ? 'border-accent bg-accent-bg' : 'border-border bg-surface/40'}`}>
+            <div className="text-xs text-muted">학습 데이터 정답률</div>
+            <div className={`text-3xl font-mono ${trainAcc >= 0.8 ? 'text-accent' : ''}`}>
+              {correct} / {total}
+              <span className="text-base text-muted ml-2">({(trainAcc * 100).toFixed(0)}%)</span>
+            </div>
+          </div>
+
+          <div className="aside-note text-sm">
+            <div className="font-medium">💡 힌트</div>
+            <p className="mt-1">
+              모든 항목을 똑같이 두면 정답률이 안 올라요. 데이터에서 어떤 항목이 결정적인지 단서를 찾아보세요.
+            </p>
+          </div>
+        </div>
+
+        {/* 우측: 학생 카드 그리드 */}
+        <div className="grid sm:grid-cols-2 gap-3">
+          {scenario.train.map((s, i) => {
+            const sc = s.scores.reduce((a, x, j) => a + x * w[j], 0);
+            const pred = sc > cutoff;
+            const right = pred === s.passed;
+            return (
+              <div key={i}
+                className={`card p-3 transition ${
+                  right
+                    ? 'border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-950/20'
+                    : 'border-rose-500/50 bg-rose-50/50 dark:bg-rose-950/20'
+                }`}
+              >
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-medium">{scenario.studentNames[i]}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                    s.passed
+                      ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                      : 'bg-rose-500/20 text-rose-700 dark:text-rose-300'
+                  }`}>
+                    실제 {s.passed ? '합격' : '불합'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-1 mt-2 text-[11px] font-mono text-muted">
+                  {scenario.variableNames.map((vn, j) => (
+                    <div key={j}>
+                      <div>{vn}</div>
+                      <div className="text-text">{s.scores[j]}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-[11px] font-mono mt-2">
+                  {sc.toFixed(2)} {sc > cutoff ? '>' : '≤'} {cutoff.toFixed(1)} → <strong>{pred ? '합' : '불'}</strong>
+                  {right ? ' ✓' : ' ✗'}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <button onClick={onNext} className="btn-primary mt-6">③ 시험 데이터로 평가하기 →</button>

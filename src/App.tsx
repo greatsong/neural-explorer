@@ -41,7 +41,7 @@ export default function App() {
       <div className="flex-1 flex">
         <Sidebar />
         <main className="flex-1 px-8 py-10">
-          <div className="max-w-prose mx-auto">
+          <div className={`${isWide(current) ? 'max-w-6xl' : 'max-w-prose'} mx-auto`}>
             {renderPhase(current)}
             <PageNav />
           </div>
@@ -49,6 +49,10 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+function isWide(id: PhaseId) {
+  return id === 'p6' || id === 'p7';
 }
 
 function renderPhase(id: PhaseId) {
