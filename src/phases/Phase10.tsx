@@ -129,12 +129,12 @@ function DrawTab({
       <div className="aside-tip mt-4">
         <div className="font-medium text-sm">📦 프리셋 데이터셋이 준비돼 있어요</div>
         <p className="text-sm mt-1">
-          위에서 고른 짝마다 미리 그려둔 8×8 도트가 각 라벨 5장씩, 총 10장 있어요.
+          위에서 고른 짝마다 미리 그려둔 8×8 도트가 각 라벨 12장씩, 총 24장 있어요.
           이걸 불러와서 바로 학습해보거나, 직접 그린 그림을 섞어 데이터를 키울 수도 있어요.
         </p>
         <div className="flex flex-wrap gap-2 mt-3">
           <button onClick={loadPreset} className="btn-primary text-xs">
-            📦 "{labels[0]} / {labels[1]}" 프리셋 10장 불러오기
+            📦 "{labels[0]} / {labels[1]}" 프리셋 24장 불러오기
           </button>
           {drawings.length > 0 && (
             <button onClick={clearAll} className="btn-ghost text-xs">
