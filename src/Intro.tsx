@@ -21,8 +21,8 @@ export function Intro() {
         <div className="inline-flex items-center gap-3 mb-6">
           <Logo size={56} />
         </div>
-        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight">아티피셜 뉴럴넷 익스플로러</h1>
-        <div className="text-sm text-muted mt-2 font-mono">Artificial Neural Net Explorer</div>
+        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight">Artificial Neural Net Explorer</h1>
+        <div className="text-sm text-muted mt-2">아티피셜 뉴럴넷 익스플로러</div>
         <p className="text-lg sm:text-xl text-muted mt-4 max-w-2xl mx-auto leading-relaxed">
           코드 한 줄도 쓰지 않고, 슬라이더와 그림판으로<br className="hidden sm:inline" />
           신경망의 원리를 손끝으로 배우는 14단계 인터랙티브 학습 앱
