@@ -71,19 +71,20 @@ export function Phase1() {
         )}
       </div>
 
-      <div className="mt-6 card p-4 font-mono text-sm">
+      <div className="mt-6 card p-4 font-mono text-sm space-y-1">
         <div className="text-muted text-xs mb-2">계산 과정</div>
         <div>
-          y = w₁·x₁ + w₂·x₂ {sub >= 2 && '+ b'}{' '}
-          {sub >= 3 && '→ ReLU'}
+          z = w₁·x₁ + w₂·x₂{sub >= 2 && ' + b'}
         </div>
-        <div className="mt-1">
-          y = {w1.toFixed(1)}·{x1} + {w2.toFixed(1)}·{x2}
+        <div>
+          z = {w1.toFixed(1)}·{x1} + {w2.toFixed(1)}·{x2}
           {sub >= 2 && ` + ${b.toFixed(1)}`} = <span className="text-accent">{sum.toFixed(2)}</span>
-          {sub >= 3 && (
-            <>
-              {' '}→ ReLU = <span className="text-accent">{out.toFixed(2)}</span>
-            </>
+        </div>
+        <div className="pt-1">
+          {sub >= 3 ? (
+            <>y = ReLU(z) = <span className="text-accent">{out.toFixed(2)}</span></>
+          ) : (
+            <>y = z = <span className="text-accent">{out.toFixed(2)}</span></>
           )}
         </div>
       </div>
@@ -128,7 +129,6 @@ function NeuronDiagram({
         {/* sum node */}
         <circle cx={260} cy={110} r={28} fill="rgb(var(--color-accent-bg))" stroke="rgb(var(--color-accent))" />
         <text x={260} y={114} textAnchor="middle" fill="rgb(var(--color-accent))" fontSize={14} fontWeight={600}>Σ</text>
-        <text x={260} y={158} textAnchor="middle" fill="rgb(var(--color-muted))">{sum.toFixed(1)}</text>
         {/* bias */}
         {Math.abs(b) > 0.001 && (
           <>
@@ -148,10 +148,35 @@ function NeuronDiagram({
         {!showRelu && (
           <line x1={288} y1={110} x2={440} y2={110} stroke="rgb(var(--color-muted))" strokeWidth={2} strokeOpacity={0.7} strokeLinecap="round" />
         )}
+        {/* z 값 배지 — Σ 직후 연결선 위 */}
+        <ValueBadge cx={showRelu ? 309 : 364} cy={94} label={`z = ${sum.toFixed(1)}`} />
         {/* output */}
         <Node cx={460} cy={110} label={`y=${out.toFixed(1)}`} accent />
       </g>
     </svg>
+  );
+}
+
+function ValueBadge({ cx, cy, label }: { cx: number; cy: number; label: string }) {
+  const w = label.length * 6.4 + 10;
+  const h = 16;
+  return (
+    <g>
+      <rect
+        x={cx - w / 2}
+        y={cy - h / 2}
+        width={w}
+        height={h}
+        rx={4}
+        fill="rgb(var(--color-bg))"
+        stroke="rgb(var(--color-accent))"
+        strokeOpacity={0.55}
+        strokeWidth={0.8}
+      />
+      <text x={cx} y={cy + 4} textAnchor="middle" fill="rgb(var(--color-accent))" fontSize={11} fontWeight={600}>
+        {label}
+      </text>
+    </g>
   );
 }
 
