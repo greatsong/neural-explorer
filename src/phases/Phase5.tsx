@@ -538,7 +538,15 @@ function ChainBox({ title, formula, value, desc, accent = 'muted' }: { title: st
 
 // w → e(예측−실제) → 손실 흐름을 박스+화살표로
 function ChainFlow({ x, e, dInner, dOuter }: { x: number; e: number; dInner: number; dOuter: number }) {
-  const W = 460, H = 110;
+  const W = 540, H = 150;
+  const rowY = 60;
+  // 박스 정의: 중심 x, 반폭(half-width)
+  const boxes = [
+    { cx: 60, hw: 36, label: 'w', sub: '가중치', color: 'rgb(96,165,250)' },
+    { cx: 270, hw: 78, label: `e = ${e.toFixed(2)}`, sub: '예측−실제 (안층)', color: 'rgb(251,146,60)' },
+    { cx: 480, hw: 60, label: 'L = ½e²', sub: '손실 (겉층)', color: 'rgb(16,185,129)' },
+  ];
+  const gap = 6; // 박스와 화살표 사이 여백
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-2">
       <defs>
@@ -546,28 +554,47 @@ function ChainFlow({ x, e, dInner, dOuter }: { x: number; e: number; dInner: num
           <path d="M0,0 L8,4 L0,8 z" fill="rgb(var(--color-muted))" />
         </marker>
       </defs>
-      <FlowBox cx={70} cy={H/2} label="w" sub="가중치" color="rgb(96,165,250)" />
-      <FlowBox cx={230} cy={H/2} label={`e = ${e.toFixed(2)}`} sub="예측−실제 (안층)" color="rgb(251,146,60)" wide />
-      <FlowBox cx={400} cy={H/2} label="L = ½e²" sub="손실 (겉층)" color="rgb(16,185,129)" wide />
-      <line x1={108} y1={H/2} x2={180} y2={H/2} stroke="rgb(var(--color-muted))" strokeWidth={1.5} markerEnd="url(#cf-arrow)" />
-      <text x={144} y={H/2 - 8} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">×{dInner} (= x)</text>
-      <line x1={290} y1={H/2} x2={350} y2={H/2} stroke="rgb(var(--color-muted))" strokeWidth={1.5} markerEnd="url(#cf-arrow)" />
-      <text x={320} y={H/2 - 8} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">×{dOuter.toFixed(2)} (= e)</text>
-      <text x={W/2} y={H - 6} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">
+      {boxes.map((b) => (
+        <FlowBox key={b.label} cx={b.cx} cy={rowY} hw={b.hw} label={b.label} sub={b.sub} color={b.color} />
+      ))}
+      {/* 화살표 1: w → e */}
+      {(() => {
+        const x1 = boxes[0].cx + boxes[0].hw + gap;
+        const x2 = boxes[1].cx - boxes[1].hw - gap;
+        const mid = (x1 + x2) / 2;
+        return (
+          <g>
+            <line x1={x1} y1={rowY} x2={x2} y2={rowY} stroke="rgb(var(--color-muted))" strokeWidth={1.5} markerEnd="url(#cf-arrow)" />
+            <text x={mid} y={rowY - 10} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">×{dInner} (= x)</text>
+          </g>
+        );
+      })()}
+      {/* 화살표 2: e → L */}
+      {(() => {
+        const x1 = boxes[1].cx + boxes[1].hw + gap;
+        const x2 = boxes[2].cx - boxes[2].hw - gap;
+        const mid = (x1 + x2) / 2;
+        return (
+          <g>
+            <line x1={x1} y1={rowY} x2={x2} y2={rowY} stroke="rgb(var(--color-muted))" strokeWidth={1.5} markerEnd="url(#cf-arrow)" />
+            <text x={mid} y={rowY - 10} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">×{dOuter.toFixed(2)} (= e)</text>
+          </g>
+        );
+      })()}
+      <text x={W/2} y={H - 10} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">
         w가 1만큼 → e는 {x}만큼 → L은 {(dInner * dOuter).toFixed(2)}만큼 변한다
       </text>
     </svg>
   );
 }
 
-function FlowBox({ cx, cy, label, sub, color, wide }: { cx: number; cy: number; label: string; sub: string; color: string; wide?: boolean }) {
-  const w = wide ? 70 : 38;
-  const h = 30;
+function FlowBox({ cx, cy, hw, label, sub, color }: { cx: number; cy: number; hw: number; label: string; sub: string; color: string }) {
+  const h = 32;
   return (
     <g>
-      <rect x={cx - w} y={cy - h/2} width={w * 2} height={h} rx={6} fill={color} fillOpacity={0.18} stroke={color} />
+      <rect x={cx - hw} y={cy - h/2} width={hw * 2} height={h} rx={6} fill={color} fillOpacity={0.18} stroke={color} />
       <text x={cx} y={cy + 4} textAnchor="middle" fontSize={12} fill="rgb(var(--color-text))" fontFamily="JetBrains Mono">{label}</text>
-      <text x={cx} y={cy + 28} textAnchor="middle" fontSize={10} fill="rgb(var(--color-muted))">{sub}</text>
+      <text x={cx} y={cy + h/2 + 14} textAnchor="middle" fontSize={10} fill="rgb(var(--color-muted))">{sub}</text>
     </g>
   );
 }
