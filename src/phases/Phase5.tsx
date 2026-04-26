@@ -167,7 +167,7 @@ export function Phase5() {
               ½ × 2 = 1이 되어 ½의 효과가 여기서 정확히 상쇄됩니다.
             </p>
             <div className="font-mono text-xs mt-2 p-2 bg-surface/60 border border-border rounded">
-              ∂L/∂e = e
+              e의 변화량 → L의 변화량 = e
             </div>
           </Step>
 
@@ -178,17 +178,17 @@ export function Phase5() {
               같은 방식으로 <code>b</code>가 1만큼 변하면 <code>e</code>는 1만큼 변합니다.
             </p>
             <div className="font-mono text-xs mt-2 p-2 bg-surface/60 border border-border rounded">
-              ∂e/∂w = x,   ∂e/∂b = 1
+              w의 변화량 → e의 변화량 = x,   b의 변화량 → e의 변화량 = 1
             </div>
           </Step>
 
           <Step n="5" title="두 층 기울기를 곱한다 (연쇄 법칙)">
             <p>
-              <code>w → e → L</code>로 변화가 흐를 때 각 층의 기울기를 <strong>곱하면</strong> 전체 기울기가 됩니다.
+              변화가 <code>w → e → L</code>로 흐를 때 각 층의 변화율을 <strong>그대로 곱하면</strong> 전체 변화율이 됩니다.
             </p>
             <div className="font-mono text-xs mt-2 p-2 bg-surface/60 border border-border rounded">
-              ∂L/∂w = (∂L/∂e) × (∂e/∂w) = e × x<br />
-              ∂L/∂b = (∂L/∂e) × (∂e/∂b) = e × 1 = e
+              w의 변화량 → L의 변화량 = (w→e의 변화율) × (e→L의 변화율) = x × e<br />
+              b의 변화량 → L의 변화량 = 1 × e = e
             </div>
           </Step>
 
@@ -205,14 +205,16 @@ export function Phase5() {
         </div>
       </details>
       <div className="card p-4 mt-3 font-mono text-sm space-y-2">
-        <div className="text-xs text-muted">w의 기울기 dw — 점마다 오차 × x의 평균:</div>
+        <div className="text-xs text-muted">w의 기울기 dw — 점마다 (오차 × x)를 더한 뒤 점 개수로 나눈 값:</div>
         <div className="flex flex-wrap items-center gap-1">
+          <span className="text-muted">[</span>
           {perPoint.map((p, i) => (
             <span key={p.x} className="inline-flex items-center gap-1">
-              <span className="text-muted">({p.e.toFixed(2)})×{p.x}</span>
+              <span className="text-muted">({p.e.toFixed(2)} × {p.x})</span>
               {i < perPoint.length - 1 && <span className="text-muted">+</span>}
             </span>
           ))}
+          <span className="text-muted">]</span>
           <span className="text-muted">÷ {DATA.length}</span>
         </div>
         <div>
@@ -220,7 +222,18 @@ export function Phase5() {
           {' '}
           {Math.abs(dw) < 0.01 ? '(0에 근접 — 도착)' : dw > 0 ? '(+ → w 감소 방향)' : '(− → w 증가 방향)'}
         </div>
-        <div className="border-t border-border pt-2 mt-2 text-xs text-muted">b의 기울기 db — 점마다 오차의 평균:</div>
+        <div className="border-t border-border pt-2 mt-2 text-xs text-muted">b의 기울기 db — 점마다 오차를 더한 뒤 점 개수로 나눈 값:</div>
+        <div className="flex flex-wrap items-center gap-1">
+          <span className="text-muted">[</span>
+          {perPoint.map((p, i) => (
+            <span key={p.x} className="inline-flex items-center gap-1">
+              <span className="text-muted">({p.e.toFixed(2)})</span>
+              {i < perPoint.length - 1 && <span className="text-muted">+</span>}
+            </span>
+          ))}
+          <span className="text-muted">]</span>
+          <span className="text-muted">÷ {DATA.length}</span>
+        </div>
         <div>
           db = <span className="text-accent">{db.toFixed(3)}</span>
           {' '}
@@ -231,12 +244,11 @@ export function Phase5() {
       <h2>손실 풍경</h2>
       <p className="text-muted text-sm">
         손실은 <code>w</code>·<code>b</code> 두 축 위에 펼쳐진 그릇 모양 곡면입니다.
-        아래 세 그림은 같은 손실을 (1) 한 축 단면, (2) 3차원 곡면, (3) 학습 진행에 따른 시간축으로 본 것입니다.
+        아래 두 그림은 같은 곡면을 (1) 한 축만 잘라본 단면, (2) 비스듬히 본 3차원 곡면으로 보여줍니다.
       </p>
-      <div className="grid lg:grid-cols-3 gap-4 mt-4">
+      <div className="grid md:grid-cols-2 gap-4 mt-4">
         <SlicePlot w={w} b={b} dw={dw} db={db} lr={lr} prev={prev} />
         <GradientBoard w={w} b={b} dw={dw} db={db} history={history} prev={prev} />
-        <LossCurve history={history} />
       </div>
 
       <h2>③ 수정</h2>
@@ -277,6 +289,15 @@ export function Phase5() {
         </div>
       </details>
 
+      <h2>학습 진행</h2>
+      <p className="text-muted text-sm">
+        ①②③ 한 묶음을 도는 한 step을 머신러닝에서는 <strong>1 에포크(epoch)</strong>라고도 부릅니다(데이터 전체를 한 번 훑었다는 뜻).
+        매 step마다 가로축 step · 세로축 손실 위에 점이 하나씩 누적되며, 곡선이 0에 가까워지면 학습이 거의 끝난 상태입니다.
+      </p>
+      <div className="mt-3">
+        <LossCurve history={history} />
+      </div>
+
       <div className="sticky bottom-2 z-20 mt-6 rounded-lg border border-border bg-bg/85 backdrop-blur-md shadow-lg p-3">
         <div className="grid sm:grid-cols-3 gap-2 font-mono text-sm">
           <Stat label="현재 w" value={w.toFixed(3)} />
@@ -292,8 +313,8 @@ export function Phase5() {
             onChange={(e) => setLr(parseFloat(e.target.value))} className="w-full" />
         </label>
         <div className="flex flex-wrap gap-2 mt-3">
-          <button onClick={step} className="btn-primary" disabled={loss < 0.001}>한 단계 진행</button>
-          <button onClick={step20} className="btn-ghost" disabled={loss < 0.001}>20단계 반복</button>
+          <button onClick={step} className="btn-primary">한 단계 진행 (1 에포크)</button>
+          <button onClick={step20} className="btn-ghost">20단계 반복 (20 에포크)</button>
           <button onClick={reset} className="btn-ghost">초기화</button>
         </div>
       </div>
@@ -329,84 +350,106 @@ function NeuronView({ w, b, pulseKey }: { w: number; b: number; pulseKey: number
   const pred = w * x + b;
   const e = pred - y;
 
-  const W = 640, H = 260;
-  const cy = 100;
-  const xCx = 60, sumCx = 250, predCx = 430, yCx = 580;
+  const W = 640, H = 360;
+  // 위쪽 영역(순전파): y=90 라인. 아래쪽 영역(역전파): y=240~330.
+  const fwdY = 95;
+  const xCx = 70, sumCx = 260, predCx = 450;
+  const yCy = 215; // 정답 y 노드는 ŷ 바로 아래
 
+  // 가중치 선의 두께·색 (|w| 비례)
   const aw = Math.min(Math.abs(w), 2);
-  const wStrokeW = 0.8 + aw * 2.6;
+  const wStrokeW = 1.2 + aw * 2.6;
   const wColor = Math.abs(w) < 0.05
     ? 'rgb(var(--color-muted))'
-    : w >= 0
-      ? 'rgb(var(--color-accent))'
-      : 'rgb(239, 68, 68)';
-  const wOpacity = Math.abs(w) < 0.05 ? 0.5 : 0.85;
+    : w >= 0 ? 'rgb(var(--color-accent))' : 'rgb(190, 18, 60)';
+  const wOpacity = Math.abs(w) < 0.05 ? 0.5 : 0.9;
 
-  // 역전파 곡선 경로 (예측 노드 → 합산 노드 아래 → 입력 노드 아래)
-  const backPath = `M ${predCx} ${cy + 28} Q ${(predCx + xCx) / 2} ${cy + 110} ${xCx} ${cy + 28}`;
+  // 역전파 선의 두께·색·불투명도 (|e| 비례)
+  // 오차가 클수록 굵고 진하게, 작으면 가늘고 옅게 — "오차가 클수록 큰 갱신"을 시각화
+  const eAbs = Math.abs(e);
+  const eRatio = Math.min(eAbs / 4, 1); // 0(오차0) ~ 1(오차4 이상)
+  const backStrokeW = 1.2 + eRatio * 4.5;        // 1.2 ~ 5.7
+  const backOpacity = 0.2 + eRatio * 0.7;        // 0.2 ~ 0.9
+  const backColor = 'rgb(190, 18, 60)';
+
+  // 한 점이 dw, db에 기여하는 양 (라벨 표시용)
+  const dwOnePoint = e * x;
+  const dbOnePoint = e;
+
+  // 역전파 곡선: ŷ 노드 아래에서 시작 → Σ 아래 → x 노드 아래로
+  const backPath = `M ${predCx} ${fwdY + 28} Q ${(predCx + xCx) / 2} 320 ${xCx} ${fwdY + 28}`;
 
   return (
     <div className="card p-4 mt-3">
       <style>{`
         @keyframes nv-backflow {
           0%   { stroke-opacity: 0;    stroke-dashoffset: 0; }
-          15%  { stroke-opacity: 0.95; }
-          70%  { stroke-opacity: 0.95; }
-          100% { stroke-opacity: 0;    stroke-dashoffset: -120; }
+          15%  { stroke-opacity: 1; }
+          70%  { stroke-opacity: 1; }
+          100% { stroke-opacity: 0;    stroke-dashoffset: -180; }
         }
       `}</style>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet">
         <defs>
-          <marker id="nv-arr" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-            <path d="M0,0 L8,4 L0,8 z" fill="rgb(var(--color-muted))" />
+          <marker id="nv-arr" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto">
+            <path d="M0,0 L5,2.5 L0,5 z" fill="rgb(var(--color-muted))" />
           </marker>
-          <marker id="nv-back" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto">
-            <path d="M0,0 L9,4.5 L0,9 z" fill="rgb(239, 68, 68)" />
+          <marker id="nv-back" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto">
+            <path d="M0,0 L5,2.5 L0,5 z" fill={backColor} fillOpacity={backOpacity} />
           </marker>
         </defs>
         <g fontFamily="JetBrains Mono">
-          {/* x → Σ : 가중치 w (두께·색이 |w|·부호에 따라 변함) */}
-          <line x1={xCx + 22} y1={cy} x2={sumCx - 30} y2={cy}
+          {/* ────── 순전파 (위쪽 가로 흐름) ────── */}
+
+          {/* x → Σ : 가중치 선 (두께·색이 |w|·부호에 따라 변함) */}
+          <line x1={xCx + 24} y1={fwdY} x2={sumCx - 30} y2={fwdY}
             stroke={wColor} strokeWidth={wStrokeW} strokeOpacity={wOpacity} strokeLinecap="round" />
-          <ValueBadge2 cx={(xCx + sumCx) / 2} cy={cy} label={`w = ${w.toFixed(2)}`} color={wColor} />
+          <ValueBadge2 cx={(xCx + sumCx) / 2} cy={fwdY - 22} label={`× w (= ${w.toFixed(2)})`} color={wColor} />
 
           {/* Σ → ŷ */}
-          <line x1={sumCx + 30} y1={cy} x2={predCx - 22} y2={cy}
-            stroke="rgb(var(--color-muted))" strokeWidth={1.8} strokeOpacity={0.7}
+          <line x1={sumCx + 30} y1={fwdY} x2={predCx - 24} y2={fwdY}
+            stroke="rgb(var(--color-muted))" strokeWidth={1.8} strokeOpacity={0.75}
             strokeLinecap="round" markerEnd="url(#nv-arr)" />
+          <ValueBadge2 cx={(sumCx + predCx) / 2} cy={fwdY - 22} label={`+ b (= ${b.toFixed(2)})`} color="rgb(var(--color-muted))" />
 
-          {/* ŷ vs y 비교 (오차 시각화) */}
-          <line x1={predCx + 22} y1={cy} x2={yCx - 22} y2={cy}
-            stroke="rgb(239, 68, 68)" strokeOpacity={0.6} strokeWidth={1.6} strokeDasharray="5 4" />
-          <ValueBadge2 cx={(predCx + yCx) / 2} cy={cy - 22} label={`e = ŷ − y = ${e.toFixed(2)}`} color="rgb(239, 68, 68)" />
+          {/* ŷ ↕ y : 세로 점선 (오차 시각화) */}
+          <line x1={predCx} y1={fwdY + 26} x2={predCx} y2={yCy - 26}
+            stroke={backColor} strokeOpacity={0.7} strokeWidth={1.8} strokeDasharray="5 4" />
+          <ValueBadge2 cx={predCx + 92} cy={(fwdY + yCy) / 2} label={`e = ŷ − y = ${e.toFixed(2)}`} color={backColor} />
 
-          {/* 입력 노드 */}
-          <Node2 cx={xCx} cy={cy} label="x" />
-          {/* Σ + b 노드 */}
-          <circle cx={sumCx} cy={cy} r={28} fill="rgb(var(--color-accent-bg))" stroke="rgb(var(--color-accent))" strokeWidth={1.5} />
-          <text x={sumCx} y={cy + 6} textAnchor="middle" fill="rgb(var(--color-accent))" fontSize={18} fontWeight={700}>Σ</text>
-          <text x={sumCx} y={cy - 42} textAnchor="middle" fontSize={14} fill="rgb(var(--color-muted))">b = {b.toFixed(2)}</text>
-          <line x1={sumCx} y1={cy - 36} x2={sumCx} y2={cy - 28} stroke="rgb(var(--color-muted))" strokeWidth={1.4} />
-          {/* 예측 ŷ 노드 (강조) */}
-          <Node2 cx={predCx} cy={cy} label="ŷ" accent />
-          {/* 정답 y 노드 */}
-          <Node2 cx={yCx} cy={cy} label="y" />
+          {/* 노드들 */}
+          <Node2 cx={xCx} cy={fwdY} label="x" />
+          {/* Σ 노드 */}
+          <circle cx={sumCx} cy={fwdY} r={28} fill="rgb(var(--color-accent-bg))" stroke="rgb(var(--color-accent))" strokeWidth={1.5} />
+          <text x={sumCx} y={fwdY + 7} textAnchor="middle" fill="rgb(var(--color-accent))" fontSize={20} fontWeight={700}>Σ</text>
+          <Node2 cx={predCx} cy={fwdY} label="ŷ" accent />
+          <Node2 cx={predCx} cy={yCy} label="y" />
 
-          {/* 노드 아래 값 배지 */}
-          <ValueBadge2 cx={xCx} cy={cy + 42} label={`x = ${x}`} color="rgb(var(--color-text))" />
-          <ValueBadge2 cx={predCx} cy={cy + 42} label={`ŷ = ${pred.toFixed(2)}`} color="rgb(var(--color-accent))" />
-          <ValueBadge2 cx={yCx} cy={cy + 42} label={`y = ${y}`} color="rgb(var(--color-text))" />
+          {/* 노드 옆 값 배지 */}
+          <ValueBadge2 cx={xCx} cy={fwdY - 42} label={`x = ${x}`} color="rgb(var(--color-text))" />
+          <ValueBadge2 cx={predCx + 80} cy={fwdY} label={`ŷ = ${pred.toFixed(2)}`} color="rgb(var(--color-accent))" />
+          <ValueBadge2 cx={predCx + 80} cy={yCy} label={`y = ${y}`} color="rgb(var(--color-text))" />
 
-          {/* 역전파 채널 (항상 옅게 표시) */}
-          <path d={backPath} fill="none" stroke="rgb(239, 68, 68)" strokeOpacity={0.18} strokeWidth={1.6} strokeDasharray="6 4" />
-          <text x={(predCx + xCx) / 2} y={cy + 132} textAnchor="middle" fontSize={13} fill="rgb(239, 68, 68)" fillOpacity={0.75}>
-            역전파 — 오차가 거꾸로 흘러 w·b를 갱신
+          {/* ────── 역전파 (아래쪽 곡선) ────── */}
+
+          <path d={backPath} fill="none"
+            stroke={backColor} strokeOpacity={backOpacity}
+            strokeWidth={backStrokeW} strokeDasharray="7 5" strokeLinecap="round"
+            markerEnd="url(#nv-back)" />
+
+          {/* 두 라벨: 곡선 위쪽 (각 노드 아래) */}
+          <ValueBadge2 cx={(predCx + sumCx) / 2} cy={250}
+            label={`b 변화량 = e = ${dbOnePoint.toFixed(2)}`} color={backColor} />
+          <ValueBadge2 cx={(sumCx + xCx) / 2} cy={250}
+            label={`w 변화량 = e × x = ${dwOnePoint.toFixed(2)}`} color={backColor} />
+          <text x={W / 2} y={350} textAnchor="middle" fontSize={11.5} fill="rgb(var(--color-muted))">
+            아래 빨간 곡선 = 역전파. <tspan fill={backColor} fillOpacity={0.85}>오차 |e|가 클수록 곡선이 굵고 진해집니다.</tspan>
           </text>
 
-          {/* 학습 단계 실행 시 역전파 펄스 — pulseKey가 바뀌면 path가 리마운트되어 CSS animation 재생 */}
+          {/* 학습 단계 실행 시 펄스 — pulseKey가 바뀌면 path 리마운트로 CSS animation 재생 */}
           {pulseKey > 0 && (
-            <path key={pulseKey} d={backPath} fill="none" stroke="rgb(239, 68, 68)"
-              strokeWidth={3} strokeDasharray="8 5" strokeLinecap="round"
+            <path key={pulseKey} d={backPath} fill="none" stroke={backColor}
+              strokeWidth={Math.max(backStrokeW + 1.5, 3)} strokeDasharray="10 6" strokeLinecap="round"
               markerEnd="url(#nv-back)"
               style={{ animation: 'nv-backflow 1.1s ease-out forwards' }} />
           )}
@@ -587,112 +630,46 @@ function ChainRule({ w, b }: { w: number; b: number }) {
 
       <div className="grid sm:grid-cols-3 gap-2 mt-4 text-sm">
         <ChainBox
-          title="① w가 1 변하면 e는?"
-          formula="안층의 기울기 ∂e/∂w = x"
+          title="① 안층 — w가 1 변하면 e는?"
+          formula="e의 변화량 = x"
           value={`= ${dInner}`}
-          desc="안쪽 식 e의 변화량"
+          why={`e = w·x + b − y 에서 b·x·y는 한 점에서 상수예요. w를 1 늘리면 w·x 항이 정확히 x 만큼 늘어나므로 e도 x 만큼 변합니다.`}
         />
         <ChainBox
-          title="② e가 1 변하면 L은?"
-          formula="겉층의 기울기 ∂L/∂e = e"
+          title="② 겉층 — e가 1 변하면 L은?"
+          formula="L의 변화량 = e"
           value={`= ${dOuter.toFixed(2)}`}
-          desc="½ × e² 에 ½ 트릭이 작용"
+          why={`위 워밍업에서 본 y = x² 의 기울기가 2x 였습니다. L = ½ × e² 은 거기에 ½ 이 더 붙은 형태라, 기울기는 ½ × 2 × e = e 로 깔끔히 떨어집니다.`}
           accent="amber"
         />
         <ChainBox
-          title="③ 두 기울기를 곱한다"
-          formula="∂L/∂w = e × x"
+          title="③ 곱 — 두 층의 기울기를 곱한다"
+          formula="w 변화량 → L의 변화량 = e × x"
           value={`= ${dOuter.toFixed(2)} × ${dInner} = ${dLdW.toFixed(2)}`}
-          desc="한 점이 dw에 기여하는 양"
+          why={`w가 1 변하면 e가 x 만큼 변하고(①), e가 그만큼 변하면 L은 (e × x) 만큼 변합니다(②). 두 단계의 변화율을 그대로 곱한 것이 한 점이 dw 에 기여하는 양입니다.`}
           accent="accent"
         />
       </div>
 
-      <div className="mt-4 text-sm">
-        <div className="font-medium">흐름 시각화</div>
-        <ChainFlow x={x} e={e} dInner={dInner} dOuter={dOuter} />
-      </div>
-
       <p className="text-xs text-muted mt-3">
-        <code>b</code>도 같은 방식으로: 안층 기울기 <code>∂e/∂b = 1</code>, 겉층 기울기 <code>∂L/∂e = e</code> ⇒
-        <code> ∂L/∂b = e × 1 = {e.toFixed(2)}</code>.
+        <code>b</code>도 같은 방식입니다. <code>e = w·x + b − y</code>에서 <code>b</code>가 1 변하면 <code>e</code>도 1만큼 변하므로(안층 기울기 = 1),
+        곱하면 <code>b 변화량 → L의 변화량 = e × 1 = {e.toFixed(2)}</code>.
       </p>
     </div>
   );
 }
 
-function ChainBox({ title, formula, value, desc, accent = 'muted' }: { title: string; formula: string; value: string; desc: string; accent?: 'muted' | 'amber' | 'accent' }) {
+function ChainBox({ title, formula, value, why, accent = 'muted' }: { title: string; formula: string; value: string; why: string; accent?: 'muted' | 'amber' | 'accent' }) {
   const color = accent === 'amber' ? 'text-amber-500' : accent === 'accent' ? 'text-accent' : 'text-muted';
   return (
     <div className="border border-border rounded-md p-3 bg-surface/40">
       <div className="text-xs text-muted">{title}</div>
       <div className="font-mono text-xs mt-1">{formula}</div>
       <div className={`font-mono text-base mt-1 ${color}`}>{value}</div>
-      <div className="text-[10px] text-muted mt-1">{desc}</div>
+      <div className="text-[11px] text-muted mt-2 leading-relaxed">
+        <span className="font-medium text-text/80">왜? </span>{why}
+      </div>
     </div>
-  );
-}
-
-// w → e(예측−실제) → 손실 흐름을 박스+화살표로
-function ChainFlow({ x, e, dInner, dOuter }: { x: number; e: number; dInner: number; dOuter: number }) {
-  const W = 540, H = 150;
-  const rowY = 60;
-  // 박스 정의: 중심 x, 반폭(half-width)
-  const boxes = [
-    { cx: 60, hw: 36, label: 'w', sub: '가중치', color: 'rgb(96,165,250)' },
-    { cx: 270, hw: 78, label: `e = ${e.toFixed(2)}`, sub: '예측 − 실제 (안층)', color: 'rgb(251,146,60)' },
-    { cx: 480, hw: 60, label: 'L = ½e²', sub: '손실 (겉층)', color: 'rgb(16,185,129)' },
-  ];
-  const gap = 6; // 박스와 화살표 사이 여백
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-2">
-      <defs>
-        <marker id="cf-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-          <path d="M0,0 L8,4 L0,8 z" fill="rgb(var(--color-muted))" />
-        </marker>
-      </defs>
-      {boxes.map((b) => (
-        <FlowBox key={b.label} cx={b.cx} cy={rowY} hw={b.hw} label={b.label} sub={b.sub} color={b.color} />
-      ))}
-      {/* 화살표 1: w → e */}
-      {(() => {
-        const x1 = boxes[0].cx + boxes[0].hw + gap;
-        const x2 = boxes[1].cx - boxes[1].hw - gap;
-        const mid = (x1 + x2) / 2;
-        return (
-          <g>
-            <line x1={x1} y1={rowY} x2={x2} y2={rowY} stroke="rgb(var(--color-muted))" strokeWidth={1.5} markerEnd="url(#cf-arrow)" />
-            <text x={mid} y={rowY - 10} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">×{dInner} (= x)</text>
-          </g>
-        );
-      })()}
-      {/* 화살표 2: e → L */}
-      {(() => {
-        const x1 = boxes[1].cx + boxes[1].hw + gap;
-        const x2 = boxes[2].cx - boxes[2].hw - gap;
-        const mid = (x1 + x2) / 2;
-        return (
-          <g>
-            <line x1={x1} y1={rowY} x2={x2} y2={rowY} stroke="rgb(var(--color-muted))" strokeWidth={1.5} markerEnd="url(#cf-arrow)" />
-            <text x={mid} y={rowY - 10} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">×{dOuter.toFixed(2)} (= e)</text>
-          </g>
-        );
-      })()}
-      <text x={W / 2} y={H - 10} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">
-        w가 1만큼 → e는 {x}만큼 → L은 {(dInner * dOuter).toFixed(2)}만큼 변한다
-      </text>
-    </svg>
-  );
-}
-
-function FlowBox({ cx, cy, hw, label, sub, color }: { cx: number; cy: number; hw: number; label: string; sub: string; color: string }) {
-  const h = 32;
-  return (
-    <g>
-      <rect x={cx - hw} y={cy - h / 2} width={hw * 2} height={h} rx={6} fill={color} fillOpacity={0.18} stroke={color} />
-      <text x={cx} y={cy + 4} textAnchor="middle" fontSize={12} fill="rgb(var(--color-text))" fontFamily="JetBrains Mono">{label}</text>
-      <text x={cx} y={cy + h / 2 + 14} textAnchor="middle" fontSize={10} fill="rgb(var(--color-muted))">{sub}</text>
-    </g>
   );
 }
 
@@ -803,7 +780,7 @@ function Stat({ label, value, highlight }: { label: string; value: string; highl
 
 // 학습 진행에 따른 손실 곡선 — 가로축 step, 세로축 손실
 function LossCurve({ history }: { history: { w: number; b: number; loss: number }[] }) {
-  const W = 380, H = 240, padL = 40, padR = 14, padT = 14, padB = 28;
+  const W = 720, H = 260, padL = 48, padR = 18, padT = 16, padB = 32;
   const N = history.length;
   const lMax = Math.max(...history.map((h) => h.loss), 0.1);
   const lMin = 0;
