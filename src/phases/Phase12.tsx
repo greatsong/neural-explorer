@@ -164,6 +164,7 @@ function ProgressChart({ log }: { log: { epoch: number; loss: number; acc: numbe
 function DigitTester({ model }: { model: MLP }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
+  const lastPos = useRef<[number, number] | null>(null);
   const [pixels, setPixels] = useState<Float32Array>(new Float32Array(784));
   const [tick, setTick] = useState(0);
 
@@ -179,8 +180,8 @@ function DigitTester({ model }: { model: MLP }) {
     return [(cx - rect.left) * (canvas.width / rect.width), (cy - rect.top) * (canvas.height / rect.height)];
   };
 
-  const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!drawing.current) return;
+  const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
+    drawing.current = true;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const pos = getPos(e, canvas);
@@ -190,7 +191,40 @@ function DigitTester({ model }: { model: MLP }) {
     ctx.beginPath();
     ctx.arc(pos[0], pos[1], 14, 0, Math.PI * 2);
     ctx.fill();
+    lastPos.current = pos;
     syncPixels();
+  };
+
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!drawing.current) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const pos = getPos(e, canvas);
+    if (!pos) return;
+    const ctx = canvas.getContext('2d')!;
+    ctx.strokeStyle = 'white';
+    ctx.fillStyle = 'white';
+    ctx.lineWidth = 28;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    if (lastPos.current) {
+      // 직전 위치와 현재 위치를 굵은 선으로 잇기 — 빠르게 드래그해도 끊김 없음
+      ctx.beginPath();
+      ctx.moveTo(lastPos.current[0], lastPos.current[1]);
+      ctx.lineTo(pos[0], pos[1]);
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.arc(pos[0], pos[1], 14, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    lastPos.current = pos;
+    syncPixels();
+  };
+
+  const stopDraw = () => {
+    drawing.current = false;
+    lastPos.current = null;
   };
 
   const syncPixels = () => {
@@ -233,13 +267,13 @@ function DigitTester({ model }: { model: MLP }) {
           width={280}
           height={280}
           className="border border-border rounded-md bg-black touch-none"
-          onMouseDown={(e) => { drawing.current = true; draw(e); }}
+          onMouseDown={startDraw}
           onMouseMove={draw}
-          onMouseUp={() => { drawing.current = false; }}
-          onMouseLeave={() => { drawing.current = false; }}
-          onTouchStart={(e) => { drawing.current = true; draw(e); }}
+          onMouseUp={stopDraw}
+          onMouseLeave={stopDraw}
+          onTouchStart={(e) => { startDraw(e); e.preventDefault(); }}
           onTouchMove={(e) => { draw(e); e.preventDefault(); }}
-          onTouchEnd={() => { drawing.current = false; }}
+          onTouchEnd={stopDraw}
         />
         <button onClick={clear} className="btn-ghost mt-3">지우기</button>
       </div>
