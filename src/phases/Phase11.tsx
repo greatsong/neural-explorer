@@ -154,7 +154,7 @@ function StageView({
         학습 데이터: {trainData.length}장 · 시험 데이터: {testData.length}장
       </div>
 
-      <h3 className="mt-4">🧠 신경망 구조 짜기</h3>
+      <h3 className="mt-4">신경망 구조 짜기</h3>
       <p className="text-muted text-sm">
         은닉층의 수와 각 층 뉴런 수를 자유롭게 정해보세요. 입력은 28×28 픽셀(784), 출력은 클래스 수({stage.labels.length})로 고정입니다.
       </p>

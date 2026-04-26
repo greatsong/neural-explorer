@@ -276,7 +276,7 @@ function TrainTab({
       </p>
 
       <details className="mt-4 card p-3">
-        <summary className="cursor-pointer text-sm font-medium">🧠 신경망 구조 보기 (이번 단계는 64 → 1로 고정)</summary>
+        <summary className="cursor-pointer text-sm font-medium">신경망 구조 보기 (이번 단계는 64 → 1로 고정)</summary>
         <div className="mt-3">
           <NetworkDiagram
             layers={[64, 1]}

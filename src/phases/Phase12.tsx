@@ -161,7 +161,7 @@ function Workbench({ samples }: { samples: Sample[] }) {
         ))}
       </div>
 
-      <h2>🧠 신경망 구조 짜기</h2>
+      <h2>신경망 구조 짜기</h2>
       <p className="text-muted text-sm">
         은닉층은 자유롭게 추가/삭제할 수 있어요. 입력(784, 픽셀)과 출력(10, 숫자 0~9)은 고정입니다.
       </p>
