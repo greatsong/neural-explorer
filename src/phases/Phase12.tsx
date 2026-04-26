@@ -21,6 +21,33 @@ export function Phase12() {
   return <Workbench samples={samples} />;
 }
 
+interface Taught { pixels: Float32Array; label: number; augmented: Float32Array[] }
+
+// 28×28 이미지에 작은 회전·이동·축소를 줘서 한 장에서 여러 장을 만들어 냄.
+// 손글씨가 가운데를 살짝 벗어나거나 기울어져도 같은 숫자라는 걸 모델이 익히게 하기 위함.
+function augmentImage(pixels: Float32Array): Float32Array {
+  const out = new Float32Array(784);
+  const dx = (Math.random() - 0.5) * 6;
+  const dy = (Math.random() - 0.5) * 6;
+  const angle = (Math.random() - 0.5) * 0.5; // ±~14°
+  const scale = 0.9 + Math.random() * 0.2;
+  const cos = Math.cos(angle) / scale;
+  const sin = Math.sin(angle) / scale;
+  const cx = 13.5, cy = 13.5;
+  for (let y = 0; y < 28; y++) {
+    for (let x = 0; x < 28; x++) {
+      // 출력 좌표를 원본으로 역매핑(역변환)
+      const sx = cos * (x - cx - dx) - sin * (y - cy - dy) + cx;
+      const sy = sin * (x - cx - dx) + cos * (y - cy - dy) + cy;
+      const ix = Math.round(sx), iy = Math.round(sy);
+      if (ix >= 0 && ix < 28 && iy >= 0 && iy < 28) {
+        out[y * 28 + x] = pixels[iy * 28 + ix];
+      }
+    }
+  }
+  return out;
+}
+
 function Workbench({ samples }: { samples: Sample[] }) {
   // 시작은 일부러 작게 — 정확도가 낮게 나오는 상태에서 출발
   const [hiddenLayers, setHiddenLayers] = useState<number[]>([4]);
@@ -30,6 +57,9 @@ function Workbench({ samples }: { samples: Sample[] }) {
   const [training, setTraining] = useState(false);
   const [progress, setProgress] = useState<{ epoch: number; loss: number; acc: number }[]>([]);
   const [final, setFinal] = useState<{ trainAcc: number; testAcc: number } | null>(null);
+  const [taught, setTaught] = useState<Taught[]>([]);
+  const [augmentN, setAugmentN] = useState(15);
+  const [retrainResult, setRetrainResult] = useState<{ before: number; after: number } | null>(null);
   const cancelRef = useRef(false);
   const markCompleted = useApp((s) => s.markCompleted);
 
@@ -39,32 +69,61 @@ function Workbench({ samples }: { samples: Sample[] }) {
 
   const layerSizes = [784, ...hiddenLayers, 10];
 
-  const startTrain = async () => {
+  const taughtAsTrain = (): TrainSample[] => {
+    const out: TrainSample[] = [];
+    for (const t of taught) {
+      out.push({ x: t.pixels, y: t.label });
+      for (const a of t.augmented) out.push({ x: a, y: t.label });
+    }
+    return out;
+  };
+
+  const runTraining = async (extra: TrainSample[], beforeAcc: number | null) => {
     cancelRef.current = false;
     setTraining(true);
     setProgress([]);
     setFinal(null);
+    if (beforeAcc === null) setRetrainResult(null);
+    const combined = [...train, ...extra];
     const m = createDeepMLP(layerSizes);
     const log: { epoch: number; loss: number; acc: number }[] = [];
     for (let ep = 0; ep < epochs; ep++) {
       if (cancelRef.current) break;
-      const batches = shuffle(train);
+      const batches = shuffle(combined);
       let lossSum = 0, n = 0;
       for (let i = 0; i < batches.length; i += 16) {
         lossSum += trainStep(m, batches.slice(i, i + 16), lr);
         n++;
       }
-      const acc = evaluate(m, train);
+      const acc = evaluate(m, combined);
       log.push({ epoch: ep + 1, loss: lossSum / n, acc });
       setProgress([...log]);
       await new Promise((r) => setTimeout(r, 0));
     }
-    const trainAcc = evaluate(m, train);
+    const trainAcc = evaluate(m, combined);
     const testAcc = evaluate(m, test);
     setModel(m);
     setFinal({ trainAcc, testAcc });
+    if (beforeAcc !== null) setRetrainResult({ before: beforeAcc, after: testAcc });
     setTraining(false);
     if (testAcc > 0.7) markCompleted('p12');
+  };
+
+  const startTrain = () => {
+    setTaught([]);
+    setRetrainResult(null);
+    void runTraining([], null);
+  };
+
+  const teachDigit = (pixels: Float32Array, label: number) => {
+    const augmented: Float32Array[] = [];
+    for (let i = 0; i < augmentN; i++) augmented.push(augmentImage(pixels));
+    setTaught((prev) => [...prev, { pixels: new Float32Array(pixels), label, augmented }]);
+  };
+
+  const retrainWithTaught = () => {
+    const before = final?.testAcc ?? 0;
+    void runTraining(taughtAsTrain(), before);
   };
 
   const params = paramCount({ layers: layerSizes });
@@ -161,7 +220,57 @@ function Workbench({ samples }: { samples: Sample[] }) {
         <>
           <h2>✏️ 직접 숫자 그리기</h2>
           <p className="text-muted text-sm">28×28 캔버스에 숫자 하나를 그려보세요. 모델이 어떤 숫자라고 추측할까요?</p>
-          <DigitTester model={model} />
+          <DigitTester model={model} onTeach={teachDigit} disabled={training} />
+
+          <details className="mt-4 card p-4 text-sm">
+            <summary className="cursor-pointer font-medium">🤔 왜 이렇게 자신 있게 틀릴까? — 분포 불일치 이야기</summary>
+            <div className="mt-3 space-y-3 leading-relaxed">
+              <div>
+                <div className="font-medium">1. 학습 데이터 ≠ 우리가 그린 그림</div>
+                <p className="text-muted mt-1">
+                  학습용 MNIST는 미국 우체국 손글씨를 28×28에 맞춰 <strong>가운데 정렬·크기 정규화·일정한 굵기</strong>로 다듬은 데이터예요.
+                  반면 우리 캔버스는 280×280에 굵은 펜으로 자유롭게 그린 뒤 28×28로 줄여요. 결과물의 위치·굵기·강도 분포가 학습 데이터와 다릅니다.
+                  모델이 "본 적 없는 모양"을 만나면, 비슷해 보이는 다른 숫자로 자신 있게 잘못 답해요.
+                </p>
+              </div>
+              <div>
+                <div className="font-medium">2. 학습 정확도 vs 시험 정확도 차이가 곧 "암기 정도"</div>
+                <p className="text-muted mt-1">
+                  학습 정확도가 100%인데 시험 정확도가 70%대라면, 모델이 학습 데이터를 <strong>외워버린</strong> 거예요(과적합).
+                  외운 건 잘 맞히지만 처음 보는 그림엔 약합니다.
+                </p>
+              </div>
+              <div>
+                <div className="font-medium">3. MLP는 위치를 그대로 기억해요</div>
+                <p className="text-muted mt-1">
+                  우리 모델은 단순 다층 퍼셉트론이라 픽셀 위치 자체가 특징이 됩니다. 같은 5라도 5픽셀 옆으로 옮겨 그리면 거의 다른 입력처럼 봐요.
+                  CNN(합성곱 신경망)을 쓰면 위치 변화에 강해지지만, 이번 단계에선 일부러 단순하게 두었어요.
+                </p>
+              </div>
+              <div>
+                <div className="font-medium">4. 확신도 50%대는 사실 "잘 모르겠다"</div>
+                <p className="text-muted mt-1">
+                  1: 57%, 2: 36%처럼 두 후보가 비등하면 모델이 헷갈리고 있다는 뜻입니다. 학습 분포에 없던 그림을 만났다는 또 다른 신호예요.
+                </p>
+              </div>
+            </div>
+          </details>
+
+          <h2>🧪 모델에게 직접 가르쳐 보기 — 데이터 증강과 재학습</h2>
+          <p className="text-muted text-sm">
+            틀린 그림을 정답 라벨과 함께 학습 데이터에 추가해서 다시 학습시켜 봅시다.
+            한 장만 추가하면 모델이 외워버리기 쉬우니, 그 그림을 살짝 회전·이동·확대축소해서 <strong>여러 장으로 늘리는 것</strong>이 데이터 증강이에요.
+          </p>
+          <Teacher
+            taught={taught}
+            setTaught={setTaught}
+            augmentN={augmentN}
+            setAugmentN={setAugmentN}
+            retrain={retrainWithTaught}
+            disabled={training || taught.length === 0}
+            retrainResult={retrainResult}
+            currentTestAcc={final?.testAcc ?? null}
+          />
 
           <h2>🖼 시험 데이터 결과 미리보기</h2>
           <SampleGallery samples={samples.slice(split, split + 24)} model={model} />
@@ -214,7 +323,7 @@ function ProgressChart({ log }: { log: { epoch: number; loss: number; acc: numbe
   );
 }
 
-function DigitTester({ model }: { model: MLP }) {
+function DigitTester({ model, onTeach, disabled }: { model: MLP; onTeach?: (pixels: Float32Array, label: number) => void; disabled?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const lastPos = useRef<[number, number] | null>(null);
@@ -347,9 +456,105 @@ function DigitTester({ model }: { model: MLP }) {
                 </div>
               ))}
             </div>
+            {onTeach && (
+              <div className="mt-5 pt-4 border-t border-border">
+                <div className="text-xs text-muted">정답을 알려주면 아래 "🧪 모델에게 가르쳐 보기" 섹션에 추가돼요.</div>
+                <div className="grid grid-cols-10 gap-1 mt-2">
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => onTeach(pixels, i)}
+                      disabled={disabled}
+                      className={`text-sm font-mono py-1 rounded border ${i === top ? 'border-accent text-accent' : 'border-border text-muted'} hover:bg-accent-bg disabled:opacity-50`}
+                      title={`이건 ${i}이라고 가르치기`}
+                    >
+                      {i}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function Teacher({
+  taught, setTaught, augmentN, setAugmentN, retrain, disabled, retrainResult, currentTestAcc,
+}: {
+  taught: Taught[];
+  setTaught: (t: Taught[]) => void;
+  augmentN: number;
+  setAugmentN: (n: number) => void;
+  retrain: () => void;
+  disabled: boolean;
+  retrainResult: { before: number; after: number } | null;
+  currentTestAcc: number | null;
+}) {
+  const total = taught.reduce((n, t) => n + 1 + t.augmented.length, 0);
+  return (
+    <div className="card p-4 mt-3 space-y-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="text-sm flex items-center gap-2">
+          <span>장당 증강 수</span>
+          <input
+            type="number" min={0} max={50} value={augmentN}
+            onChange={(e) => setAugmentN(Math.max(0, Math.min(50, parseInt(e.target.value || '0'))))}
+            className="w-16 px-2 py-1 bg-surface border border-border rounded font-mono text-sm"
+          />
+        </label>
+        <span className="text-xs text-muted">한 장 → 회전·이동·크기를 살짝 바꾼 사본 N장 추가</span>
+      </div>
+
+      {taught.length === 0 ? (
+        <div className="text-sm text-muted">
+          위 캔버스에서 그림을 그리고 "정답" 숫자 버튼을 눌러 추가해 보세요.
+        </div>
+      ) : (
+        <>
+          <div className="text-sm">
+            추가한 그림 <strong>{taught.length}장</strong> · 증강 포함 총 <strong>{total}장</strong>
+          </div>
+          <div className="grid grid-cols-6 sm:grid-cols-10 gap-2">
+            {taught.map((t, i) => (
+              <div key={i} className="card p-1 text-center">
+                <PixelView pixels={t.pixels} />
+                <div className="text-[10px] mt-1 font-mono">→ {t.label}</div>
+                <button
+                  onClick={() => setTaught(taught.filter((_, j) => j !== i))}
+                  className="text-[10px] text-muted hover:text-rose-500"
+                  disabled={disabled}
+                >지우기</button>
+              </div>
+            ))}
+          </div>
+          <button onClick={retrain} disabled={disabled} className="btn-primary">
+            추가한 데이터로 다시 학습
+          </button>
+        </>
+      )}
+
+      {retrainResult && (
+        <div className="aside-tip">
+          <div className="font-medium text-sm">📊 재학습 결과</div>
+          <div className="font-mono text-sm mt-2">
+            시험 정확도: {(retrainResult.before * 100).toFixed(1)}% → <span className="text-accent">{(retrainResult.after * 100).toFixed(1)}%</span>
+            {' '}
+            <span className="text-muted">
+              ({retrainResult.after > retrainResult.before ? '+' : ''}{((retrainResult.after - retrainResult.before) * 100).toFixed(1)}%p)
+            </span>
+          </div>
+          <p className="text-xs text-muted mt-2">
+            같은 그림을 다시 그려 보세요. 이번엔 모델이 어떻게 답할까요?
+            (전체 시험 데이터 정확도가 살짝 떨어질 수도 있어요 — 한 사용자의 글씨체에 모델이 적응하면, 다른 글씨체엔 약해지는 거죠.)
+          </p>
+        </div>
+      )}
+      {!retrainResult && currentTestAcc !== null && taught.length > 0 && (
+        <div className="text-xs text-muted">현재 시험 정확도: {(currentTestAcc * 100).toFixed(1)}% — 재학습 후 어떻게 바뀌는지 비교해 보세요.</div>
+      )}
     </div>
   );
 }

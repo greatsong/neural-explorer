@@ -127,11 +127,19 @@ function DrawTab({
         ))}
       </div>
 
-      <div className="aside-tip mt-4">
-        <div className="font-medium text-sm">📦 프리셋 데이터셋이 준비돼 있어요</div>
+      <h2>📦 데이터 수집 + 전처리</h2>
+      <p className="text-muted text-sm">
+        머신러닝에서 모델보다 먼저 만지는 게 <strong>데이터</strong>예요. 두 단계가 있어요.
+      </p>
+      <ul className="text-sm text-muted mt-2 list-disc pl-5 space-y-1">
+        <li><strong>수집(collection)</strong> — 라벨이 붙은 예시를 모아요. 여기선 "{labels[0]}"과 "{labels[1]}" 두 라벨이 있죠.</li>
+        <li><strong>전처리(preprocessing)</strong> — 모델이 먹기 좋게 다듬어요. 여기선 자유로운 그림을 8×8 도트로 줄이고, 검정/흰색만 쓰는 0/1 값으로 바꾸는 게 전처리에 해당합니다.</li>
+      </ul>
+      <div className="aside-tip mt-3">
+        <div className="font-medium text-sm">미리 다듬어 둔 데이터 불러오기</div>
         <p className="text-sm mt-1">
           위에서 고른 짝마다 미리 그려둔 8×8 도트가 각 라벨 12장씩, 총 24장 있어요.
-          이걸 불러와서 바로 학습해보거나, 직접 그린 그림을 섞어 데이터를 키울 수도 있어요.
+          이걸 시작 데이터로 쓰고, 직접 그린 그림을 더해서 키워도 좋아요.
         </p>
         <div className="flex flex-wrap gap-2 mt-3">
           <button onClick={loadPreset} className="btn-primary text-xs">
@@ -143,6 +151,21 @@ function DrawTab({
             </button>
           )}
         </div>
+      </div>
+      <div className="aside-warn mt-3">
+        <div className="font-medium text-sm">🧹 데이터 정제(data cleaning) — 학습 전에 꼭!</div>
+        <p className="text-sm mt-1">
+          모델은 우리가 보여준 그대로를 진실이라고 믿어요. 그래서 <strong>잘못 라벨링된 그림이나 두 라벨 어디에도 속하지 않는 모호한 그림은 학습 전에 빼야</strong> 합니다.
+          오른쪽 "모은 그림" 영역에서 어색하거나 헷갈리는 도트는 <strong>삭제</strong> 버튼으로 제거해 주세요.
+        </p>
+        <ul className="text-xs text-muted mt-2 list-disc pl-5 space-y-1">
+          <li>예: "네모"인데 픽셀 한두 칸만 찍혀 있다면 → 빼기</li>
+          <li>예: "동그라미"인데 네모처럼 보인다면 → 빼기</li>
+          <li>비어 있는 그림(픽셀 0개)은 자동으로 저장이 안 되지만, 이미 들어 있는 게 있다면 정리</li>
+        </ul>
+        <p className="text-xs text-muted mt-2">
+          <em>"쓰레기를 넣으면 쓰레기가 나온다(garbage in, garbage out)"</em> — 데이터의 질이 모델 성능을 결정합니다.
+        </p>
       </div>
 
       <h2>그림 그리기 (직접 추가)</h2>
