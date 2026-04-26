@@ -75,7 +75,7 @@ export function Phase5() {
       <div className="aside-tip">
         <div className="font-medium">아이디어</div>
         <p className="mt-1 text-sm">
-          기울기(gradient)는 "지금 위치에서 어느 방향으로 한 발짝 움직이면 손실이 줄어드는가"를 알려주는 화살표예요.
+          기울기는 "지금 위치에서 어느 방향으로 한 발짝 움직이면 손실이 줄어드는가"를 알려주는 화살표예요.
           그 반대 방향으로 학습률만큼 움직이면 끝입니다.
         </p>
       </div>
@@ -98,8 +98,8 @@ export function Phase5() {
 
       <h2>🧅 두 층의 기울기를 곱하기 — 양파를 까듯이</h2>
       <p className="text-muted text-sm">
-        손실은 그냥 <code>x²</code>이 아니라 <code>(wx + b − y)²</code>예요. <strong>안쪽에 또 다른 식</strong>이 들어 있는 합성함수.
-        이럴 땐 "겉층의 기울기"와 "안층의 기울기"를 따로따로 구한 뒤 <strong>곱하면</strong> 됩니다. 톱니바퀴 두 개를 맞물린 것과 같은 발상이에요.
+        손실은 그냥 <code>x²</code>이 아니라 <code>(wx + b − y)²</code>예요. <strong>괄호 안에 또 다른 식</strong>이 들어 있는 두 층 구조.
+        이럴 땐 "겉층의 기울기"와 "안층의 기울기"를 따로따로 구한 뒤 <strong>곱하면</strong> 전체 기울기가 됩니다. 톱니바퀴 두 개를 맞물린 것과 같은 발상이에요.
       </p>
       <ChainRule w={w} b={b} />
 
@@ -445,20 +445,20 @@ function ChainRule({ w, b }: { w: number; b: number }) {
           title="①  w가 1 늘면 e는?"
           formula="안층의 기울기 = x"
           value={`= ${dEdW}`}
-          desc="안에 있는 식 e의 변화"
+          desc="안쪽 식 e의 변화량"
         />
         <ChainBox
           title="②  e가 1 늘면 L은?"
           formula="겉층의 기울기 = 2e"
           value={`= ${dLdE.toFixed(2)}`}
-          desc="바깥 식 L의 변화"
+          desc="바깥쪽 식 L의 변화량"
           accent="amber"
         />
         <ChainBox
           title="③  두 기울기를 곱한다"
           formula="(겉층) × (안층)"
           value={`= ${dLdE.toFixed(2)} × ${dEdW} = ${dLdW.toFixed(2)}`}
-          desc="w가 1 늘 때 L이 변하는 양"
+          desc="w가 1 늘 때 L의 변화량"
           accent="accent"
         />
       </div>

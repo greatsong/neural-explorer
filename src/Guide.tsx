@@ -129,140 +129,6 @@ const GROUPS: GroupGuide[] = [
         goal: '실제 손글씨를 분류하는 신경망의 첫 경험.',
         steps: [{ src: SHOT('p12'), caption: 'MNIST + 손그림 테스트' }],
         todo: ['직접 그린 숫자로 모델 테스트', '학생 데이터를 모델이 어떻게 보는지'],
-        point: '여기까지 끝나면 1차 포털이 열립니다.',
-      },
-    ],
-  },
-  {
-    num: '5',
-    name: '분류를 넘어 생성으로 (히든)',
-    blurb: '4부를 통과한 학생만 발견하는 차원. 그림을 새로 만들어 내는 모델의 출발점.',
-    phases: [
-      {
-        id: 'p13', num: '13', title: '평균과 분포',
-        goal: '같은 라벨 그림의 픽셀 평균이 곧 가장 단순한 생성 모델임을 체감.',
-        steps: [
-          { src: SHOT('p13-1-mean'), caption: '시작 — 두 라벨의 평균 이미지' },
-          { src: SHOT('p13-2-blend'), caption: 'blend = 0.5', action: '혼합 슬라이더를 0.5로' },
-          { src: SHOT('p13-3-noise'), caption: 'noise를 더하면 그림마다 결과가 흔들림', action: 'noise 슬라이더 위로' },
-        ],
-        todo: ['blend 0 ↔ 1 옮기기', 'noise 올리고 시드 변경', '분산이 큰 픽셀 = 자주 흔들리는 자리'],
-      },
-      {
-        id: 'p14', num: '14', title: '오토인코더',
-        goal: '그림 → 짧은 코드(잠재 벡터) → 그림. 디코더가 곧 "코드 → 그림" 마법 함수.',
-        steps: [
-          { src: SHOT('p14-1-structure'), caption: '① 구조 — 64픽셀 → z(2D) → 64픽셀' },
-          { src: SHOT('p14-2-before'), caption: '② 학습 시작 직전' },
-          { src: SHOT('p14-3-after'), caption: '② 학습 완료 — 손실이 내려감' },
-          { src: SHOT('p14-4-explore'), caption: '③ z=(0,0) 부근 탐험' },
-          { src: SHOT('p14-5-edge'), caption: '③ z 모서리 — 학습 데이터가 없는 자리', action: 'z₁=z₂=1.5' },
-        ],
-        todo: ['② 학습 시작 후 손실 그래프 관찰', '③ z 슬라이더로 새 그림 만들기'],
-        point: '잠재 공간의 한 점 = 한 그림. Stable Diffusion·VAE의 출발점. 여기서 2차 포털이 열립니다.',
-      },
-    ],
-  },
-  {
-    num: '6',
-    name: '언어를 다루는 신경망 (히든)',
-    blurb: '5부를 통과한 학생만 발견하는 두 번째 차원. 글자가 숫자가 되어 GPT가 다음 토큰을 떠올리는 순간까지.',
-    phases: [
-      {
-        id: 'p15', num: '15', title: '텍스트가 숫자가 되기까지',
-        goal: '글자 → 코드포인트 → UTF-8 바이트 → 0과 1.',
-        steps: [
-          { src: SHOT('p15-1-codepoint'), caption: '① 글자 클릭만으로 코드포인트가 펼쳐짐' },
-          { src: SHOT('p15-2-input'), caption: '② 직접 입력 — 글자별 표가 즉시' },
-          { src: SHOT('p15-3-compare'), caption: '③ 영/한/한자/이모지 비교 (글자당 바이트 1.00 → 3.67)' },
-        ],
-        todo: ['이모지를 넣어 한 글자 = 4 바이트 확인', '본인 이름을 한·영으로 비교'],
-      },
-      {
-        id: 'p16', num: '16', title: '토큰',
-        goal: 'BPE는 "자주 함께 등장하는 두 토큰을 합치기"의 반복.',
-        steps: [
-          { src: SHOT('p16-1-tokenizer'), caption: '① GPT 스타일 토크나이저' },
-          { src: SHOT('p16-2-bpe-0'), caption: '② 시작 — 글자 단위' },
-          { src: SHOT('p16-3-bpe-3'), caption: '② 3 스텝 — \'er_\', \'low\' 합쳐짐', action: '다음 합치기 버튼 3번' },
-          { src: SHOT('p16-4-bpe-8'), caption: '② 8 스텝 — \'low_\', \'newer_\'가 통째로 한 토큰', action: '계속 클릭' },
-          { src: SHOT('p16-5-compare'), caption: '③ 한글이 영어보다 잘게 쪼개짐' },
-        ],
-        todo: ['② BPE를 처음부터 끝까지 클릭', '③ 같은 의미의 영/한 글자당 토큰 수 비교'],
-        point: '한글이 더 잘게 쪼개지는 이유 = GPT 사전이 영어 코퍼스로 학습됨.',
-      },
-      {
-        id: 'p17', num: '17', title: '원-핫에서 임베딩으로',
-        goal: '원-핫의 한계 → 학습되는 임베딩 벡터가 의미를 위치에 새김.',
-        steps: [
-          { src: SHOT('p17-1-onehot'), caption: '① 원-핫 표 — 모든 쌍의 cos = 0' },
-          { src: SHOT('p17-2-embed'), caption: '② 의미 기반 3D 임베딩 — 동물·과일·컴퓨터가 따로 모임' },
-          { src: SHOT('p17-3-play-default'), caption: '③ 기본 — cos 0.99' },
-          { src: SHOT('p17-4-play-far'), caption: '③ d1을 -1로 → cos -0.29', action: '단어 A의 d1 슬라이더를 -1로' },
-        ],
-        todo: ['② 3D를 드래그해서 클러스터 위치 확인', '③ 슬라이더로 한 단어 멀리 보내기'],
-      },
-      {
-        id: 'p18', num: '18', title: 'Word2Vec 미니',
-        goal: 'skip-gram으로 임베딩이 자동으로 자리잡는 과정 + 벡터 산수의 의미.',
-        steps: [
-          { src: SHOT('p18-1-before'), caption: '학습 전 — 코퍼스 보기' },
-          { src: SHOT('p18-2-trained'), caption: '학습 완료 — 손실 그래프' },
-          { src: SHOT('p18-3-space-en'), caption: '② PCA 3D 클러스터' },
-          { src: SHOT('p18-4-king'), caption: '③ king − man + woman ≈ queen', action: '검증된 페어 버튼' },
-          { src: SHOT('p18-5-boy'), caption: '③ boy − man + woman ≈ girl' },
-        ],
-        todo: ['EN 시드 7 / KO 시드 100 으로 학습', '검증 페어 4개 모두 클릭', '자유 입력으로 흔들리는 페어도 시도'],
-        point: '진짜 Word2Vec은 수십억 단어 — 데이터가 많을수록 의미의 위치가 또렷해진다.',
-      },
-      {
-        id: 'p19', num: '19', title: '시퀀스',
-        goal: '단어 가방의 한계 → RNN이 순서를 기억하는 직관.',
-        steps: [
-          { src: SHOT('p19-1-why'), caption: '① 같은 단어, 다른 순서, 다른 의미' },
-          { src: SHOT('p19-2-avg'), caption: '② 평균 임베딩은 두 문장이 같음' },
-          { src: SHOT('p19-3-rnn-c0'), caption: '③ carry=0 — 마지막 입력만 기억', action: 'carry 슬라이더 0' },
-          { src: SHOT('p19-4-rnn-c5'), caption: '③ carry=0.5 — 균형', action: '0.5' },
-          { src: SHOT('p19-5-rnn-c9'), caption: '③ carry=0.9 — 첫 입력만 기억', action: '0.9' },
-        ],
-        todo: ['carry를 끝에서 끝까지 옮기며 두 문장의 최종 기억 비교'],
-      },
-      {
-        id: 'p20', num: '20', title: '어텐션',
-        goal: '어텐션 = 점수 → softmax → 가중 합. 세 단계.',
-        steps: [
-          { src: SHOT('p20-1-idea'), caption: '① 핵심 식 softmax(QKᵀ)V' },
-          { src: SHOT('p20-2-default'), caption: '② 시작 — 봤다가 자기 자신을 봄' },
-          { src: SHOT('p20-3-modified'), caption: '② 봤다 → 쥐를로 시선 이동', action: '봤다 행의 쥐를 칸을 5로, 봤다 칸을 1로' },
-          { src: SHOT('p20-4-output'), caption: '③ 가중 합 결과 — 봤다\'에 고양이는 색이 묻어남' },
-        ],
-        todo: ['② 슬라이더로 누가 누구를 보는지 옮기기', '③ 입력 vs 출력 색 비교'],
-      },
-      {
-        id: 'p21', num: '21', title: '멀티헤드 트랜스포머',
-        goal: '한 헤드는 한 시선 → 여러 헤드 + 한 블록 + 깊이.',
-        steps: [
-          { src: SHOT('p21-1-heads'), caption: '① 4개 헤드가 같은 문장을 다르게 봄' },
-          { src: SHOT('p21-2-block'), caption: '② 블록 흐름 — Attn + FFN + 두 개의 잔차' },
-          { src: SHOT('p21-3-depth-1'), caption: '③ 1층 — 단순 관계', action: '층 슬라이더 1' },
-          { src: SHOT('p21-4-depth-6'), caption: '③ 6층 — 의미 관계', action: '6' },
-          { src: SHOT('p21-5-depth-12'), caption: '③ 12층 — 추상적 관계', action: '12 (GPT-2 small)' },
-        ],
-        todo: ['헤드별 시선이 어떻게 다른지 짝과 맞춰 보기'],
-      },
-      {
-        id: 'p22', num: '22', title: 'GPT의 다음 토큰',
-        goal: 'logit → softmax → temperature/top-k/top-p로 샘플링. 한 토큰씩 누적.',
-        steps: [
-          { src: SHOT('p22-1-logits'), caption: '① 어휘 분포 top-10' },
-          { src: SHOT('p22-2-temp-low'), caption: '② T=0.1 → 거의 결정적 (top-1 99.8%)', action: 'temperature 0.1' },
-          { src: SHOT('p22-3-temp-mid'), caption: '② T=1.0 → 자연스러운 분포 (top-1 38%)', action: '1.0' },
-          { src: SHOT('p22-4-temp-high'), caption: '② T=2.0 → 평탄, 거의 무작위 (top-1 17%)', action: '2.0' },
-          { src: SHOT('p22-5-gen-0'), caption: '③ 생성 시작 직전' },
-          { src: SHOT('p22-6-gen-4'), caption: '③ 4 토큰 누적', action: '한 토큰 더를 4번' },
-        ],
-        todo: ['T를 끝에서 끝까지 옮기며 분포 모양 변화', '③ 같은 시드 vs 새 시드 비교'],
-        point: '지금까지 본 모든 단계가 ChatGPT가 한 줄을 답할 때 한 토큰마다 한 번씩 통째로 돌아갑니다.',
       },
     ],
   },
@@ -314,7 +180,7 @@ export function Guide() {
           <div className="font-medium">📌 가이드를 읽는 법</div>
           <ul className="list-disc pl-5 mt-2 text-sm space-y-1">
             <li>각 카드는 학습 목표 → 단계별 캡처 → 해보세요 → 핵심 포인트 순서로 구성됩니다.</li>
-            <li>5부·6부 페이즈는 <strong>같은 화면이 슬라이더에 따라 어떻게 변하는지</strong>를 단계로 보여줍니다.</li>
+            <li>여러 단계가 있는 페이즈는 <strong>슬라이더를 만지기 전 → 만진 후</strong>를 캐러셀로 함께 보여줍니다.</li>
             <li>캡처 옆 <code className="font-mono text-xs">[행동]</code> 표시는 학생이 실제로 만져야 할 슬라이더·버튼을 안내합니다.</li>
             <li>모든 캡처는 <code className="font-mono text-xs">scripts/capture-walkthrough.mjs</code>로 자동 재생성됩니다.</li>
           </ul>
