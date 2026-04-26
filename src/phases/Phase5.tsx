@@ -584,89 +584,163 @@ function Stat({ label, value, highlight }: { label: string; value: string; highl
   );
 }
 
-// (w, b) 평면을 위에서 본 손실 풍경 — 실제 손실값 기반 heatmap + 등고선 + 그라디언트 화살표
+// 손실 풍경을 3D 와이어프레임으로 — w·b·L 세 축의 그릇 모양을 비스듬히 본 시점
 function GradientBoard({
   w, b, dw, db, history,
 }: { w: number; b: number; dw: number; db: number; history: { w: number; b: number; loss: number }[] }) {
-  const W = 380, H = 240, padL = 36, padR = 12, padT = 18, padB = 24;
-  const wMin = -1, wMax = 4, bMin = -2, bMax = 4;
-  const sx = (v: number) => padL + ((v - wMin) / (wMax - wMin)) * (W - padL - padR);
-  const sy = (v: number) => H - padB - ((v - bMin) / (bMax - bMin)) * (H - padT - padB);
+  const W = 380, H = 280;
+  const cx = W / 2, cy = H * 0.78;
 
-  // 손실 격자
-  const N = 28;
-  const cellW = (W - padL - padR) / N;
-  const cellH = (H - padT - padB) / N;
-  const grid: { wv: number; bv: number; L: number }[] = [];
-  let lMax = 0;
-  for (let j = 0; j < N; j++) {
-    for (let i = 0; i < N; i++) {
-      const wv = wMin + ((i + 0.5) / N) * (wMax - wMin);
-      const bv = bMin + ((j + 0.5) / N) * (bMax - bMin);
-      const L = lossFn(wv, bv);
-      grid.push({ wv, bv, L });
-      if (L > lMax) lMax = L;
-    }
+  const wMin = -1, wMax = 4, bMin = -2, bMax = 4;
+  const wMid = (wMin + wMax) / 2;
+  const bMid = (bMin + bMax) / 2;
+
+  // 손실 최대값 자동 추정(스케일링용)
+  let lMax = 0.1;
+  for (let i = 0; i <= 10; i++) for (let j = 0; j <= 10; j++) {
+    const wv = wMin + (i / 10) * (wMax - wMin);
+    const bv = bMin + (j / 10) * (bMax - bMin);
+    const L = lossFn(wv, bv);
+    if (L > lMax) lMax = L;
   }
-  // 시각적 강조용 로그 스케일
-  const colorOf = (L: number) => {
-    const t = Math.log(1 + L) / Math.log(1 + lMax);
-    // 보라(낮음) → 청록 → 노랑(높음)
-    const r = Math.round(40 + 215 * t);
-    const g = Math.round(60 + 140 * (1 - Math.abs(0.5 - t) * 2));
-    const bl = Math.round(150 - 130 * t);
-    return `rgba(${r}, ${g}, ${bl}, ${0.35 + 0.45 * t})`;
+
+  // 투영 파라미터: 살짝 회전 + 위에서 비스듬히 내려보는 시점
+  const azimuth = 0.55;     // z축(수직) 회전
+  const tilt = 0.62;        // 위에서 내려다보는 각도
+  const sW = 28, sB = 28;   // w·b 한 칸 픽셀
+  const sL = 0.55;          // 손실 1 단위당 픽셀
+  const cosA = Math.cos(azimuth), sinA = Math.sin(azimuth);
+  const cosT = Math.cos(tilt), sinT = Math.sin(tilt);
+
+  const project = (wv: number, bv: number, L: number) => {
+    const x0 = (wv - wMid) * sW;
+    const y0 = (bv - bMid) * sB;
+    const z0 = L * sL;
+    const xr = x0 * cosA + y0 * sinA;
+    const yr = -x0 * sinA + y0 * cosA;
+    return { sx: cx + xr, sy: cy - yr * sinT - z0 * cosT, depth: yr };
   };
 
-  const aLen = Math.min(40, Math.sqrt(dw * dw + db * db) * 6);
+  const N = 14;
+  type Line = { points: string; depth: number; color: string };
+  const meshLines: Line[] = [];
+
+  // w 방향 선 (b 고정)
+  for (let j = 0; j <= N; j++) {
+    const bv = bMin + (j / N) * (bMax - bMin);
+    const pts: string[] = [];
+    let depthSum = 0;
+    for (let i = 0; i <= N; i++) {
+      const wv = wMin + (i / N) * (wMax - wMin);
+      const L = lossFn(wv, bv);
+      const p = project(wv, bv, L);
+      pts.push(`${p.sx.toFixed(1)},${p.sy.toFixed(1)}`);
+      depthSum += p.depth;
+    }
+    meshLines.push({ points: pts.join(' '), depth: depthSum / (N + 1), color: 'rgb(96, 165, 250)' });
+  }
+  // b 방향 선 (w 고정)
+  for (let i = 0; i <= N; i++) {
+    const wv = wMin + (i / N) * (wMax - wMin);
+    const pts: string[] = [];
+    let depthSum = 0;
+    for (let j = 0; j <= N; j++) {
+      const bv = bMin + (j / N) * (bMax - bMin);
+      const L = lossFn(wv, bv);
+      const p = project(wv, bv, L);
+      pts.push(`${p.sx.toFixed(1)},${p.sy.toFixed(1)}`);
+      depthSum += p.depth;
+    }
+    meshLines.push({ points: pts.join(' '), depth: depthSum / (N + 1), color: 'rgb(168, 85, 247)' });
+  }
+  // 뒤쪽(depth가 큰)부터 앞쪽으로 그려서 가까운 선이 위에 오도록
+  meshLines.sort((a, b) => b.depth - a.depth);
+
+  const curL = lossFn(w, b);
+  const cur = project(w, b, curL);
+  const opt = project(2, 1, 0);
+
+  // 그라디언트 반대 방향으로 한 발짝 (지표 표시용)
   const norm = Math.sqrt(dw * dw + db * db) || 1;
-  const ax = sx(w) - (dw / norm) * aLen;
-  const ay = sy(b) + (db / norm) * aLen;
+  const stepLen = 0.6; // 시각용 보폭 (학습률과 다름)
+  const wTo = w - (dw / norm) * stepLen;
+  const bTo = b - (db / norm) * stepLen;
+  const lTo = lossFn(wTo, bTo);
+  const arr = project(wTo, bTo, lTo);
+
+  // 바닥 모서리 4개 (테두리 표시)
+  const corners = [
+    project(wMin, bMin, 0), project(wMax, bMin, 0),
+    project(wMax, bMax, 0), project(wMin, bMax, 0),
+  ];
+
+  // 축 라벨용 끝점
+  const wTipBase = project(wMax + 0.3, bMin, 0);
+  const wOriginBase = project(wMin, bMin, 0);
+  const bTipBase = project(wMin, bMax + 0.3, 0);
+  const bOriginBase = project(wMin, bMin, 0);
+  const lTip = project(wMin, bMin, lMax * 1.05);
+  const lOriginBase = project(wMin, bMin, 0);
 
   return (
     <div className="card p-3">
-      <div className="text-sm font-medium">위에서 본 풍경 — w·b 평면의 등고선</div>
-      <p className="text-xs text-muted mt-1">진한 골짜기가 정답 (2, 1). 화살표 방향이 한 발짝 갈 위치예요.</p>
+      <div className="text-sm font-medium">3D 손실 풍경 — w·b·손실 세 축의 그릇 모양</div>
+      <p className="text-xs text-muted mt-1">표면이 곧 손실. 골짜기 바닥이 정답 (2, 1). 화살표가 다음 한 발짝.</p>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-2">
-        {/* heatmap */}
-        {grid.map((g, k) => {
-          const i = k % N, j = Math.floor(k / N);
-          return (
-            <rect key={k}
-              x={padL + i * cellW}
-              y={padT + (N - 1 - j) * cellH}
-              width={cellW + 0.5}
-              height={cellH + 0.5}
-              fill={colorOf(g.L)}
-            />
-          );
-        })}
-        {/* axes */}
-        <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="rgb(var(--color-border))" />
-        <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="rgb(var(--color-border))" />
-        <text x={W - padR} y={H - 6} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">w</text>
-        <text x={padL + 4} y={padT + 10} fontSize={10} fill="rgb(var(--color-muted))">b</text>
-        {/* 정답 표시 */}
-        <circle cx={sx(2)} cy={sy(1)} r={4} fill="white" stroke="rgb(var(--color-text))" strokeWidth={1} />
-        <text x={sx(2) + 6} y={sy(1) + 3} fontSize={10} fill="rgb(var(--color-text))">정답</text>
-        {/* trail */}
+        {/* 바닥 사각형 (참고용) */}
+        <polygon
+          points={corners.map((p) => `${p.sx.toFixed(1)},${p.sy.toFixed(1)}`).join(' ')}
+          fill="rgba(120, 120, 160, 0.06)"
+          stroke="rgb(var(--color-border))"
+          strokeWidth={0.6}
+          strokeDasharray="3 3"
+        />
+        {/* 축 (바닥) */}
+        <line x1={wOriginBase.sx} y1={wOriginBase.sy} x2={wTipBase.sx} y2={wTipBase.sy}
+          stroke="rgb(var(--color-muted))" strokeWidth={0.8} />
+        <text x={wTipBase.sx + 4} y={wTipBase.sy + 4} fontSize={10} fill="rgb(var(--color-muted))">w</text>
+        <line x1={bOriginBase.sx} y1={bOriginBase.sy} x2={bTipBase.sx} y2={bTipBase.sy}
+          stroke="rgb(var(--color-muted))" strokeWidth={0.8} />
+        <text x={bTipBase.sx - 12} y={bTipBase.sy - 2} fontSize={10} fill="rgb(var(--color-muted))">b</text>
+        {/* L 축 (수직) */}
+        <line x1={lOriginBase.sx} y1={lOriginBase.sy} x2={lTip.sx} y2={lTip.sy}
+          stroke="rgb(var(--color-muted))" strokeWidth={0.8} />
+        <text x={lTip.sx - 10} y={lTip.sy - 4} fontSize={10} fill="rgb(var(--color-muted))">L</text>
+
+        {/* 와이어프레임 표면 */}
+        {meshLines.map((ln, i) => (
+          <polyline key={i} points={ln.points}
+            fill="none" stroke={ln.color}
+            strokeWidth={0.7} strokeOpacity={0.55} />
+        ))}
+
+        {/* 자취 */}
         {history.length > 1 && (
           <polyline
-            points={history.map((h) => `${sx(h.w)},${sy(h.b)}`).join(' ')}
-            fill="none" stroke="rgb(var(--color-accent))" strokeOpacity={0.45} strokeWidth={1.5}
+            points={history.map((h) => {
+              const p = project(h.w, h.b, h.loss);
+              return `${p.sx.toFixed(1)},${p.sy.toFixed(1)}`;
+            }).join(' ')}
+            fill="none" stroke="rgb(var(--color-accent))" strokeOpacity={0.7} strokeWidth={1.6}
           />
         )}
+
+        {/* 정답 마커(바닥) */}
+        <circle cx={opt.sx} cy={opt.sy} r={4} fill="white" stroke="rgb(var(--color-text))" strokeWidth={1} />
+        <text x={opt.sx + 6} y={opt.sy + 3} fontSize={10} fill="rgb(var(--color-text))">정답 (2, 1)</text>
+
         <defs>
           <marker id="arrow5" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
             <path d="M0,0 L8,4 L0,8 z" fill="rgb(var(--color-accent))" />
           </marker>
         </defs>
         {Math.sqrt(dw * dw + db * db) > 0.05 && (
-          <line x1={sx(w)} y1={sy(b)} x2={ax} y2={ay}
+          <line x1={cur.sx} y1={cur.sy} x2={arr.sx} y2={arr.sy}
             stroke="rgb(var(--color-accent))" strokeWidth={2} markerEnd="url(#arrow5)" />
         )}
-        <circle cx={sx(w)} cy={sy(b)} r={6} fill="rgb(var(--color-accent))" stroke="white" strokeWidth={2} />
-        <text x={sx(w) + 9} y={sy(b) - 9} fontSize={11} fill="rgb(var(--color-text))" fontFamily="JetBrains Mono">
+        {/* 현재 점 (표면 위) */}
+        <circle cx={cur.sx} cy={cur.sy} r={6} fill="rgb(var(--color-accent))" stroke="white" strokeWidth={2} />
+        <text x={cur.sx + 9} y={cur.sy - 9} fontSize={11} fill="rgb(var(--color-text))" fontFamily="JetBrains Mono">
           ({w.toFixed(2)}, {b.toFixed(2)})
         </text>
       </svg>
