@@ -141,12 +141,12 @@ function NeuronDiagram({
           <>
             <rect x={330} y={88} width={70} height={44} rx={6} fill="rgb(var(--color-accent-bg))" stroke="rgb(var(--color-accent))" />
             <text x={365} y={114} textAnchor="middle" fill="rgb(var(--color-accent))" fontSize={13} fontWeight={600}>ReLU</text>
-            <line x1={288} y1={110} x2={330} y2={110} stroke="rgb(var(--color-border))" strokeWidth={1.5} />
-            <line x1={400} y1={110} x2={440} y2={110} stroke="rgb(var(--color-border))" strokeWidth={1.5} />
+            <line x1={288} y1={110} x2={330} y2={110} stroke="rgb(var(--color-muted))" strokeWidth={2} strokeOpacity={0.7} strokeLinecap="round" />
+            <line x1={400} y1={110} x2={440} y2={110} stroke="rgb(var(--color-muted))" strokeWidth={2} strokeOpacity={0.7} strokeLinecap="round" />
           </>
         )}
         {!showRelu && (
-          <line x1={288} y1={110} x2={440} y2={110} stroke="rgb(var(--color-border))" strokeWidth={1.5} />
+          <line x1={288} y1={110} x2={440} y2={110} stroke="rgb(var(--color-muted))" strokeWidth={2} strokeOpacity={0.7} strokeLinecap="round" />
         )}
         {/* output */}
         <Node cx={460} cy={110} label={`y=${out.toFixed(1)}`} accent />
@@ -163,7 +163,8 @@ function Node({ cx, cy, label, accent }: { cx: number; cy: number; label: string
         cy={cy}
         r={20}
         fill={accent ? 'rgb(var(--color-accent))' : 'rgb(var(--color-surface))'}
-        stroke="rgb(var(--color-border))"
+        stroke={accent ? 'rgb(var(--color-accent))' : 'rgb(var(--color-muted))'}
+        strokeOpacity={accent ? 1 : 0.6}
       />
       <text x={cx} y={cy + 4} textAnchor="middle" fill={accent ? '#fff' : 'rgb(var(--color-text))'} fontSize={11}>
         {label}
