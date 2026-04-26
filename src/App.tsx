@@ -3,8 +3,9 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { PageNav } from './components/PageNav';
 import { useApp } from './store';
-import { PHASES } from './phases';
+import { PHASES, isBonusPhase } from './phases';
 import type { PhaseId } from './phases';
+import { Portal } from './components/Portal';
 import { Intro } from './Intro';
 import { Phase1 } from './phases/Phase1';
 import { Phase2 } from './phases/Phase2';
@@ -29,6 +30,7 @@ type View = { kind: 'intro' } | { kind: 'phase'; id: PhaseId };
 export default function App() {
   const setCurrent = useApp((s) => s.setCurrent);
   const theme = useApp((s) => s.theme);
+  const bonusUnlocked = useApp((s) => s.bonusUnlocked);
 
   const [view, setView] = useState<View>(() => readHash());
 
@@ -58,7 +60,9 @@ export default function App() {
           <div className={`${wide ? 'max-w-6xl' : 'max-w-prose'} mx-auto`}>
             {view.kind === 'intro' ? <Intro /> : (
               <>
-                {renderPhase(view.id)}
+                {isBonusPhase(view.id) && !bonusUnlocked
+                  ? <BonusLocked />
+                  : renderPhase(view.id)}
                 <PageNav />
               </>
             )}
@@ -77,6 +81,21 @@ function readHash(): View {
 
 function isWide(id: PhaseId) {
   return ['p6', 'p7', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14'].includes(id);
+}
+
+function BonusLocked() {
+  return (
+    <article>
+      <div className="text-xs font-mono text-purple-400 tracking-widest">??? · HIDDEN STAGE</div>
+      <h1>아직 균열이 닫혀 있어요</h1>
+      <p className="text-muted mt-3">
+        이 차원으로 들어오려면 4부(11·12)를 끝내고, MNIST 도전 페이지 끝에서 발견되는 <strong>포털</strong>을 통과해야 합니다.
+      </p>
+      <div className="mt-6">
+        <Portal />
+      </div>
+    </article>
+  );
 }
 
 function renderPhase(id: PhaseId) {

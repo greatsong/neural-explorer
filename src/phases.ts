@@ -36,3 +36,19 @@ export const PHASE_GROUPS = Array.from(
     return m;
   }, new Map<PhaseMeta['group'], PhaseMeta[]>())
 );
+
+// 5부(생성)는 4부(p11+p12)를 모두 끝내고 포털을 통해 들어와야 보이는 히든 스테이지
+export const BONUS_GROUP: PhaseMeta['group'] = '5부 — 분류를 넘어 생성으로';
+export const BONUS_PHASE_IDS: PhaseId[] = ['p13', 'p14'];
+
+export function isBonusGroup(group: PhaseMeta['group']) {
+  return group === BONUS_GROUP;
+}
+
+export function isBonusPhase(id: PhaseId) {
+  return BONUS_PHASE_IDS.includes(id);
+}
+
+export function isPart4Done(completed: Record<PhaseId, boolean>) {
+  return Boolean(completed.p11 && completed.p12);
+}

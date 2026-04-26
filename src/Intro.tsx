@@ -1,12 +1,14 @@
 import { Logo } from './components/Logo';
-import { PHASES, PHASE_GROUPS } from './phases';
+import { PHASES, PHASE_GROUPS, isBonusGroup, isPart4Done } from './phases';
 import type { PhaseId } from './phases';
 import { useApp } from './store';
 
 export function Intro() {
   const setCurrent = useApp((s) => s.setCurrent);
   const completed = useApp((s) => s.completed);
+  const bonusUnlocked = useApp((s) => s.bonusUnlocked);
   const completedCount = Object.values(completed).filter(Boolean).length;
+  const part4Done = isPart4Done(completed);
 
   const go = (id: PhaseId) => {
     setCurrent(id);
@@ -53,31 +55,55 @@ export function Intro() {
 
       {/* 5 parts */}
       <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-        {PHASE_GROUPS.map(([group, items], idx) => (
-          <div key={group} className="card p-5 hover:border-accent/50 transition">
-            <div className="text-xs font-mono text-accent mb-2">PART {idx + 1}</div>
-            <div className="font-semibold">{group.replace(/^\d+부 — /, '')}</div>
-            <div className="text-xs text-muted mt-1">페이즈 {items[0].num}~{items[items.length - 1].num}</div>
-            <ul className="mt-3 space-y-1.5 text-sm">
-              {items.map((p) => (
-                <li key={p.id}>
+        {PHASE_GROUPS.map(([group, items], idx) => {
+          const bonus = isBonusGroup(group);
+          if (bonus && !bonusUnlocked) {
+            return (
+              <div key={group} className="card p-5 border-dashed border-purple-400/40 bg-purple-500/5 flex flex-col justify-center min-h-[180px]">
+                <div className="text-xs font-mono text-purple-400 mb-2 tracking-widest">PART 5 · ???</div>
+                <div className="font-semibold">🔒 잠겨 있는 차원</div>
+                <div className="text-xs text-muted mt-1">
+                  {part4Done
+                    ? '4부를 통과했어요. MNIST 도전 페이지 끝에 포털이 열려 있습니다.'
+                    : '4부(11·12)를 모두 끝내면 무언가 나타날지도…'}
+                </div>
+                {part4Done && (
                   <button
-                    onClick={() => go(p.id)}
-                    className="text-left hover:text-accent transition w-full flex items-baseline gap-2"
+                    onClick={() => go('p12')}
+                    className="text-xs text-purple-400 underline mt-3 self-start"
                   >
-                    <span className="text-xs font-mono text-muted w-5 shrink-0">
-                      {completed[p.id] ? '✓' : p.num}
-                    </span>
-                    <span className="flex-1">
-                      {p.title}
-                      <span className="block text-xs text-muted">{p.subtitle}</span>
-                    </span>
+                    포털 보러 가기 →
                   </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+                )}
+              </div>
+            );
+          }
+          return (
+            <div key={group} className="card p-5 hover:border-accent/50 transition">
+              <div className="text-xs font-mono text-accent mb-2">PART {idx + 1}</div>
+              <div className="font-semibold">{group.replace(/^\d+부 — /, '')}</div>
+              <div className="text-xs text-muted mt-1">페이즈 {items[0].num}~{items[items.length - 1].num}</div>
+              <ul className="mt-3 space-y-1.5 text-sm">
+                {items.map((p) => (
+                  <li key={p.id}>
+                    <button
+                      onClick={() => go(p.id)}
+                      className="text-left hover:text-accent transition w-full flex items-baseline gap-2"
+                    >
+                      <span className="text-xs font-mono text-muted w-5 shrink-0">
+                        {completed[p.id] ? '✓' : p.num}
+                      </span>
+                      <span className="flex-1">
+                        {p.title}
+                        <span className="block text-xs text-muted">{p.subtitle}</span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
       </section>
 
       {/* Journey */}
