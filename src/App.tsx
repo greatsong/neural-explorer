@@ -23,6 +23,7 @@ import { Phase12 } from './phases/Phase12';
 import { Phase13 } from './phases/Phase13';
 import { Phase14 } from './phases/Phase14';
 import { Phase15 } from './phases/Phase15';
+import { Phase16 } from './phases/Phase16';
 import { Stub } from './phases/Stub';
 
 const PHASE_IDS = new Set(PHASES.map((p) => p.id));
@@ -135,6 +136,7 @@ function renderPhase(id: PhaseId) {
     case 'p13': return <Phase13 />;
     case 'p14': return <Phase14 />;
     case 'p15': return <Phase15 />;
+    case 'p16': return <Phase16 />;
     default:   return <Stub id={id} />;
   }
 }
