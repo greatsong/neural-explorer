@@ -8,6 +8,7 @@ import type { PhaseId } from './phases';
 import { Portal } from './components/Portal';
 import { PortalLanguage } from './components/PortalLanguage';
 import { Intro } from './Intro';
+import { Guide } from './Guide';
 import { Phase1 } from './phases/Phase1';
 import { Phase2 } from './phases/Phase2';
 import { Phase3 } from './phases/Phase3';
@@ -34,7 +35,7 @@ import { Stub } from './phases/Stub';
 
 const PHASE_IDS = new Set(PHASES.map((p) => p.id));
 
-type View = { kind: 'intro' } | { kind: 'phase'; id: PhaseId };
+type View = { kind: 'intro' } | { kind: 'guide' } | { kind: 'phase'; id: PhaseId };
 
 export default function App() {
   const setCurrent = useApp((s) => s.setCurrent);
@@ -59,7 +60,7 @@ export default function App() {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
-  const wide = view.kind === 'intro' ? true : isWide(view.id);
+  const wide = view.kind === 'phase' ? isWide(view.id) : true;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -68,7 +69,8 @@ export default function App() {
         {view.kind === 'phase' && <Sidebar />}
         <main className="flex-1 px-6 sm:px-8 py-10">
           <div className={`${wide ? 'max-w-6xl' : 'max-w-prose'} mx-auto`}>
-            {view.kind === 'intro' ? <Intro /> : (
+            {view.kind === 'intro' ? <Intro /> :
+             view.kind === 'guide' ? <Guide /> : (
               <>
                 {isBonusPhase(view.id) && !bonusUnlocked
                   ? <BonusLocked />
@@ -87,6 +89,7 @@ export default function App() {
 
 function readHash(): View {
   const raw = window.location.hash.replace('#/', '');
+  if (raw === 'guide') return { kind: 'guide' };
   if (raw && PHASE_IDS.has(raw as PhaseId)) return { kind: 'phase', id: raw as PhaseId };
   return { kind: 'intro' };
 }

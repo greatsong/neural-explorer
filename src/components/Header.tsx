@@ -15,6 +15,13 @@ export function Header() {
         코드 없이 만져보며 배우는 신경망
       </span>
       <div className="ml-auto flex items-center gap-2">
+        <a
+          href="#/guide"
+          className="px-3 py-1.5 rounded-md border border-border hover:bg-surface text-sm"
+          title="화면 캡처가 포함된 전체 학습 가이드"
+        >
+          📖 가이드
+        </a>
         <button
           onClick={toggle}
           aria-label="테마 전환"
