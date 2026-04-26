@@ -329,9 +329,9 @@ function NeuronView({ w, b, pulseKey }: { w: number; b: number; pulseKey: number
   const pred = w * x + b;
   const e = pred - y;
 
-  const W = 720, H = 240;
-  const cy = 92;
-  const xCx = 72, sumCx = 290, predCx = 484, yCx = 632;
+  const W = 640, H = 260;
+  const cy = 100;
+  const xCx = 60, sumCx = 250, predCx = 430, yCx = 580;
 
   const aw = Math.min(Math.abs(w), 2);
   const wStrokeW = 0.8 + aw * 2.6;
@@ -343,96 +343,97 @@ function NeuronView({ w, b, pulseKey }: { w: number; b: number; pulseKey: number
   const wOpacity = Math.abs(w) < 0.05 ? 0.5 : 0.85;
 
   // 역전파 곡선 경로 (예측 노드 → 합산 노드 아래 → 입력 노드 아래)
-  const backPath = `M ${predCx} ${cy + 26} Q ${(predCx + xCx) / 2} ${cy + 96} ${xCx} ${cy + 26}`;
+  const backPath = `M ${predCx} ${cy + 28} Q ${(predCx + xCx) / 2} ${cy + 110} ${xCx} ${cy + 28}`;
 
   return (
     <div className="card p-4 mt-3">
-      <div className="grid lg:grid-cols-[1fr_auto] gap-4 items-start">
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
-          <defs>
-            <marker id="nv-arr" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-              <path d="M0,0 L8,4 L0,8 z" fill="rgb(var(--color-muted))" />
-            </marker>
-            <marker id="nv-back" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-              <path d="M0,0 L8,4 L0,8 z" fill="rgb(239, 68, 68)" />
-            </marker>
-          </defs>
-          <g fontFamily="JetBrains Mono">
-            {/* x → Σ : 가중치 w (두께·색이 |w|·부호에 따라 변함) */}
-            <line x1={xCx + 22} y1={cy} x2={sumCx - 30} y2={cy}
-              stroke={wColor} strokeWidth={wStrokeW} strokeOpacity={wOpacity} strokeLinecap="round" />
-            <ValueBadge2 cx={(xCx + sumCx) / 2} cy={cy} label={`w = ${w.toFixed(2)}`} color={wColor} />
+      <style>{`
+        @keyframes nv-backflow {
+          0%   { stroke-opacity: 0;    stroke-dashoffset: 0; }
+          15%  { stroke-opacity: 0.95; }
+          70%  { stroke-opacity: 0.95; }
+          100% { stroke-opacity: 0;    stroke-dashoffset: -120; }
+        }
+      `}</style>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <marker id="nv-arr" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" fill="rgb(var(--color-muted))" />
+          </marker>
+          <marker id="nv-back" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="rgb(239, 68, 68)" />
+          </marker>
+        </defs>
+        <g fontFamily="JetBrains Mono">
+          {/* x → Σ : 가중치 w (두께·색이 |w|·부호에 따라 변함) */}
+          <line x1={xCx + 22} y1={cy} x2={sumCx - 30} y2={cy}
+            stroke={wColor} strokeWidth={wStrokeW} strokeOpacity={wOpacity} strokeLinecap="round" />
+          <ValueBadge2 cx={(xCx + sumCx) / 2} cy={cy} label={`w = ${w.toFixed(2)}`} color={wColor} />
 
-            {/* Σ → ŷ */}
-            <line x1={sumCx + 30} y1={cy} x2={predCx - 22} y2={cy}
-              stroke="rgb(var(--color-muted))" strokeWidth={1.6} strokeOpacity={0.7}
-              strokeLinecap="round" markerEnd="url(#nv-arr)" />
+          {/* Σ → ŷ */}
+          <line x1={sumCx + 30} y1={cy} x2={predCx - 22} y2={cy}
+            stroke="rgb(var(--color-muted))" strokeWidth={1.8} strokeOpacity={0.7}
+            strokeLinecap="round" markerEnd="url(#nv-arr)" />
 
-            {/* ŷ vs y 비교 (오차 시각화) */}
-            <line x1={predCx + 22} y1={cy} x2={yCx - 22} y2={cy}
-              stroke="rgb(239, 68, 68)" strokeOpacity={0.55} strokeWidth={1.5} strokeDasharray="4 3" />
-            <ValueBadge2 cx={(predCx + yCx) / 2} cy={cy - 18} label={`e = ŷ − y = ${e.toFixed(2)}`} color="rgb(239, 68, 68)" />
+          {/* ŷ vs y 비교 (오차 시각화) */}
+          <line x1={predCx + 22} y1={cy} x2={yCx - 22} y2={cy}
+            stroke="rgb(239, 68, 68)" strokeOpacity={0.6} strokeWidth={1.6} strokeDasharray="5 4" />
+          <ValueBadge2 cx={(predCx + yCx) / 2} cy={cy - 22} label={`e = ŷ − y = ${e.toFixed(2)}`} color="rgb(239, 68, 68)" />
 
-            {/* 입력 노드 */}
-            <Node2 cx={xCx} cy={cy} label="x" />
-            {/* Σ + b 노드 */}
-            <circle cx={sumCx} cy={cy} r={28} fill="rgb(var(--color-accent-bg))" stroke="rgb(var(--color-accent))" />
-            <text x={sumCx} y={cy + 5} textAnchor="middle" fill="rgb(var(--color-accent))" fontSize={14} fontWeight={600}>Σ</text>
-            <text x={sumCx} y={cy - 38} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">b = {b.toFixed(2)}</text>
-            <line x1={sumCx} y1={cy - 32} x2={sumCx} y2={cy - 28} stroke="rgb(var(--color-muted))" strokeWidth={1.2} />
-            {/* 예측 ŷ 노드 (강조) */}
-            <Node2 cx={predCx} cy={cy} label="ŷ" accent />
-            {/* 정답 y 노드 */}
-            <Node2 cx={yCx} cy={cy} label="y" />
+          {/* 입력 노드 */}
+          <Node2 cx={xCx} cy={cy} label="x" />
+          {/* Σ + b 노드 */}
+          <circle cx={sumCx} cy={cy} r={28} fill="rgb(var(--color-accent-bg))" stroke="rgb(var(--color-accent))" strokeWidth={1.5} />
+          <text x={sumCx} y={cy + 6} textAnchor="middle" fill="rgb(var(--color-accent))" fontSize={18} fontWeight={700}>Σ</text>
+          <text x={sumCx} y={cy - 42} textAnchor="middle" fontSize={14} fill="rgb(var(--color-muted))">b = {b.toFixed(2)}</text>
+          <line x1={sumCx} y1={cy - 36} x2={sumCx} y2={cy - 28} stroke="rgb(var(--color-muted))" strokeWidth={1.4} />
+          {/* 예측 ŷ 노드 (강조) */}
+          <Node2 cx={predCx} cy={cy} label="ŷ" accent />
+          {/* 정답 y 노드 */}
+          <Node2 cx={yCx} cy={cy} label="y" />
 
-            {/* 노드 아래 값 배지 */}
-            <ValueBadge2 cx={xCx} cy={cy + 36} label={`x = ${x}`} color="rgb(var(--color-text))" />
-            <ValueBadge2 cx={predCx} cy={cy + 36} label={`ŷ = ${pred.toFixed(2)}`} color="rgb(var(--color-accent))" />
-            <ValueBadge2 cx={yCx} cy={cy + 36} label={`y = ${y}`} color="rgb(var(--color-text))" />
+          {/* 노드 아래 값 배지 */}
+          <ValueBadge2 cx={xCx} cy={cy + 42} label={`x = ${x}`} color="rgb(var(--color-text))" />
+          <ValueBadge2 cx={predCx} cy={cy + 42} label={`ŷ = ${pred.toFixed(2)}`} color="rgb(var(--color-accent))" />
+          <ValueBadge2 cx={yCx} cy={cy + 42} label={`y = ${y}`} color="rgb(var(--color-text))" />
 
-            {/* 역전파 채널 (항상 옅게 표시) */}
-            <path d={backPath} fill="none" stroke="rgb(239, 68, 68)" strokeOpacity={0.16} strokeWidth={1.4} strokeDasharray="5 4" />
-            <text x={(predCx + xCx) / 2} y={cy + 116} textAnchor="middle" fontSize={10} fill="rgb(239, 68, 68)" fillOpacity={0.65}>
-              역전파 — 오차가 거꾸로 흘러 w·b를 갱신
-            </text>
+          {/* 역전파 채널 (항상 옅게 표시) */}
+          <path d={backPath} fill="none" stroke="rgb(239, 68, 68)" strokeOpacity={0.18} strokeWidth={1.6} strokeDasharray="6 4" />
+          <text x={(predCx + xCx) / 2} y={cy + 132} textAnchor="middle" fontSize={13} fill="rgb(239, 68, 68)" fillOpacity={0.75}>
+            역전파 — 오차가 거꾸로 흘러 w·b를 갱신
+          </text>
 
-            {/* 학습 단계 실행 시 역전파 펄스 */}
-            {pulseKey > 0 && (
-              <g key={pulseKey}>
-                <path d={backPath} fill="none" stroke="rgb(239, 68, 68)" strokeWidth={2.4}
-                  strokeDasharray="6 4" strokeOpacity={0} markerEnd="url(#nv-back)">
-                  <animate attributeName="stroke-opacity"
-                    values="0;0.95;0.95;0" keyTimes="0;0.2;0.75;1" dur="1s" repeatCount="1" fill="freeze" />
-                  <animate attributeName="stroke-dashoffset"
-                    from="0" to="-80" dur="1s" repeatCount="1" fill="freeze" />
-                </path>
-              </g>
-            )}
-          </g>
-        </svg>
+          {/* 학습 단계 실행 시 역전파 펄스 — pulseKey가 바뀌면 path가 리마운트되어 CSS animation 재생 */}
+          {pulseKey > 0 && (
+            <path key={pulseKey} d={backPath} fill="none" stroke="rgb(239, 68, 68)"
+              strokeWidth={3} strokeDasharray="8 5" strokeLinecap="round"
+              markerEnd="url(#nv-back)"
+              style={{ animation: 'nv-backflow 1.1s ease-out forwards' }} />
+          )}
+        </g>
+      </svg>
 
-        <div className="text-sm space-y-3 lg:max-w-[240px]">
-          <label className="block">
-            <div className="flex justify-between text-xs mb-1">
-              <span>입력 x를 1~5에서 선택</span>
-              <span className="font-mono text-accent">x = {x}</span>
-            </div>
-            <input type="range" min={1} max={5} step={1} value={pickX}
-              onChange={(ev) => setPickX(parseInt(ev.target.value))} className="w-full" />
-          </label>
-          <div className="font-mono text-xs space-y-1 p-2 rounded border border-border bg-surface/40">
+      <div className="grid sm:grid-cols-[auto_1fr] gap-3 mt-4 items-start">
+        <label className="block sm:max-w-[260px]">
+          <div className="flex justify-between text-xs mb-1">
+            <span>입력 x를 1~5에서 선택</span>
+            <span className="font-mono text-accent">x = {x}</span>
+          </div>
+          <input type="range" min={1} max={5} step={1} value={pickX}
+            onChange={(ev) => setPickX(parseInt(ev.target.value))} className="w-full" />
+          <div className="font-mono text-xs space-y-1 p-2 rounded border border-border bg-surface/40 mt-2">
             <div>예측 ŷ = w·x + b = <span className="text-accent">{pred.toFixed(2)}</span></div>
             <div>실제 y = <span>{y}</span></div>
             <div className={Math.abs(e) > 0.5 ? 'text-amber-500' : 'text-muted'}>
               오차 e = ŷ − y = {e.toFixed(2)}
             </div>
           </div>
-          <p className="text-xs text-muted leading-relaxed">
-            아래의 "한 단계 진행"을 누르면 오차 <code>e</code>가 역방향으로 흐르며
-            <code> w</code>, <code>b</code>가 갱신됩니다. 가중치 선의 두께·색과
-            <code> ŷ</code> 값이 함께 변하는지 확인해 보세요.
-          </p>
-        </div>
+        </label>
+        <p className="text-xs text-muted leading-relaxed">
+          아래의 <strong>한 단계 진행</strong>을 누르면 오차 <code>e</code>가 역방향(빨간 곡선)으로 흐르며
+          <code> w</code>, <code>b</code>가 갱신됩니다.
+          가중치 선의 두께·색, <code>Σ</code> 위의 <code>b</code> 값, 그리고 예측 <code>ŷ</code>가 정답 <code>y</code>에 가까워지는지 확인해 보세요.
+        </p>
       </div>
     </div>
   );
@@ -441,12 +442,13 @@ function NeuronView({ w, b, pulseKey }: { w: number; b: number; pulseKey: number
 function Node2({ cx, cy, label, accent }: { cx: number; cy: number; label: string; accent?: boolean }) {
   return (
     <g>
-      <circle cx={cx} cy={cy} r={22}
+      <circle cx={cx} cy={cy} r={26}
         fill={accent ? 'rgb(var(--color-accent))' : 'rgb(var(--color-surface))'}
         stroke={accent ? 'rgb(var(--color-accent))' : 'rgb(var(--color-muted))'}
+        strokeWidth={1.5}
         strokeOpacity={accent ? 1 : 0.6} />
-      <text x={cx} y={cy + 5} textAnchor="middle"
-        fill={accent ? '#fff' : 'rgb(var(--color-text))'} fontSize={14} fontWeight={600}>
+      <text x={cx} y={cy + 7} textAnchor="middle"
+        fill={accent ? '#fff' : 'rgb(var(--color-text))'} fontSize={20} fontWeight={700}>
         {label}
       </text>
     </g>
@@ -454,13 +456,13 @@ function Node2({ cx, cy, label, accent }: { cx: number; cy: number; label: strin
 }
 
 function ValueBadge2({ cx, cy, label, color }: { cx: number; cy: number; label: string; color: string }) {
-  const w = label.length * 6.6 + 12;
-  const h = 16;
+  const w = label.length * 7.6 + 14;
+  const h = 20;
   return (
     <g>
-      <rect x={cx - w / 2} y={cy - h / 2} width={w} height={h} rx={4}
-        fill="rgb(var(--color-bg))" stroke={color} strokeOpacity={0.55} strokeWidth={0.8} />
-      <text x={cx} y={cy + 4} textAnchor="middle" fill={color} fontSize={11} fontWeight={600}>
+      <rect x={cx - w / 2} y={cy - h / 2} width={w} height={h} rx={5}
+        fill="rgb(var(--color-bg))" stroke={color} strokeOpacity={0.6} strokeWidth={1} />
+      <text x={cx} y={cy + 5} textAnchor="middle" fill={color} fontSize={13} fontWeight={600}>
         {label}
       </text>
     </g>
