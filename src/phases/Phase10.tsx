@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../store';
 import { PRESET_DATASETS } from '../data/dotPresets';
+import { NetworkDiagram } from '../components/NetworkDiagram';
 
 const SIZE = 8;
 const PIXELS = SIZE * SIZE;
@@ -250,6 +251,18 @@ function TrainTab({
       <p className="text-muted">
         모은 그림으로 단일 뉴런을 학습시켜요. 64개 픽셀 → 1개 뉴런 → 0(첫 라벨) 또는 1(두 번째 라벨).
       </p>
+
+      <div className="mt-4">
+        <div className="text-sm font-medium mb-2">🧱 신경망 구조 (이번 단계는 고정)</div>
+        <NetworkDiagram
+          layers={[64, 1]}
+          labels={[`8×8 픽셀 (64)`, `시그모이드 (1)`]}
+          height={200}
+        />
+        <p className="text-xs text-muted mt-2">
+          페이즈 11부터는 은닉층 수와 뉴런 수를 직접 정해볼 수 있어요. 지금은 "픽셀 → 단일 뉴런"의 가장 간단한 형태입니다.
+        </p>
+      </div>
 
       {!ready && (
         <div className="aside-warn mt-4">

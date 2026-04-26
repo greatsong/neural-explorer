@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../store';
 import { loadMnist, type Sample } from '../lib/mnist';
-import { createMLP, evaluate, forward, paramCount, predict, shuffle, trainStep, type MLP, type TrainSample } from '../lib/nn';
+import { createDeepMLP, evaluate, forward, paramCount, predict, shuffle, trainStep, type MLP, type TrainSample } from '../lib/nn';
+import { NetworkDiagram, LayerEditor } from '../components/NetworkDiagram';
 
 export function Phase12() {
   const [samples, setSamples] = useState<Sample[] | null>(null);
@@ -21,8 +22,10 @@ export function Phase12() {
 }
 
 function Workbench({ samples }: { samples: Sample[] }) {
-  const [hidden, setHidden] = useState(32);
-  const [epochs, setEpochs] = useState(20);
+  // 시작은 일부러 작게 — 정확도가 낮게 나오는 상태에서 출발
+  const [hiddenLayers, setHiddenLayers] = useState<number[]>([4]);
+  const [epochs, setEpochs] = useState(3);
+  const [lr, setLr] = useState(0.05);
   const [model, setModel] = useState<MLP | null>(null);
   const [training, setTraining] = useState(false);
   const [progress, setProgress] = useState<{ epoch: number; loss: number; acc: number }[]>([]);
@@ -34,19 +37,21 @@ function Workbench({ samples }: { samples: Sample[] }) {
   const train: TrainSample[] = samples.slice(0, split).map((s) => ({ x: s.pixels, y: s.label }));
   const test: TrainSample[] = samples.slice(split).map((s) => ({ x: s.pixels, y: s.label }));
 
+  const layerSizes = [784, ...hiddenLayers, 10];
+
   const startTrain = async () => {
     cancelRef.current = false;
     setTraining(true);
     setProgress([]);
     setFinal(null);
-    const m = createMLP(784, hidden, 10);
+    const m = createDeepMLP(layerSizes);
     const log: { epoch: number; loss: number; acc: number }[] = [];
     for (let ep = 0; ep < epochs; ep++) {
       if (cancelRef.current) break;
       const batches = shuffle(train);
       let lossSum = 0, n = 0;
       for (let i = 0; i < batches.length; i += 16) {
-        lossSum += trainStep(m, batches.slice(i, i + 16), 0.05);
+        lossSum += trainStep(m, batches.slice(i, i + 16), lr);
         n++;
       }
       const acc = evaluate(m, train);
@@ -62,23 +67,60 @@ function Workbench({ samples }: { samples: Sample[] }) {
     if (testAcc > 0.7) markCompleted('p12');
   };
 
-  const params = paramCount({ inputSize: 784, hiddenSize: hidden, outputSize: 10 });
+  const params = paramCount({ layers: layerSizes });
+
+  // 빠른 프리셋
+  const presets: { label: string; layers: number[]; epochs: number; hint: string }[] = [
+    { label: '🐣 시작 (4뉴런·3에폭)', layers: [4], epochs: 3, hint: '거의 못 맞춤. 출발점 보기' },
+    { label: '🌱 작게 (8뉴런·8에폭)', layers: [8], epochs: 8, hint: '70%대 가능' },
+    { label: '🌳 보통 (32뉴런·15에폭)', layers: [32], epochs: 15, hint: '85%대' },
+    { label: '🚀 크게 (64·32 2층·25에폭)', layers: [64, 32], epochs: 25, hint: '90%대' },
+    { label: '👑 최강 (128·64 2층·30에폭)', layers: [128, 64], epochs: 30, hint: '95%+ 도전' },
+  ];
 
   return (
     <article>
       <div className="text-xs font-mono text-muted">PHASE 12</div>
       <h1>MNIST 도전 — 마지막 관문</h1>
       <p className="text-muted mt-2">
-        진짜 손글씨 숫자 0~9를 분류해봅시다. 학습 끝나면 여러분이 직접 그린 숫자도 테스트할 수 있어요.
+        진짜 손글씨 숫자 0~9를 분류해봅시다. 작게 시작해 정확도가 형편없는 상태를 본 뒤,
+        뉴런과 층을 키워가며 95% 이상까지 끌어올려 보세요.
       </p>
 
-      <h2>🛠 모델 설정 + 학습</h2>
+      <h2>🎚 빠른 프리셋</h2>
+      <div className="flex flex-wrap gap-2 mt-3">
+        {presets.map((p) => (
+          <button
+            key={p.label}
+            onClick={() => { setHiddenLayers(p.layers); setEpochs(p.epochs); }}
+            className="btn-ghost text-sm"
+            disabled={training}
+            title={p.hint}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      <h2>🧱 네트워크 구조 짜기</h2>
+      <p className="text-muted text-sm">
+        은닉층은 자유롭게 추가/삭제할 수 있어요. 입력(784, 픽셀)과 출력(10, 숫자 0~9)은 고정입니다.
+      </p>
+      <LayerEditor hiddenLayers={hiddenLayers} setHiddenLayers={setHiddenLayers} disabled={training} />
+
+      <div className="mt-4">
+        <NetworkDiagram layers={layerSizes} />
+      </div>
+
+      <h2>🛠 학습 설정</h2>
       <div className="grid lg:grid-cols-2 gap-6 items-start mt-3">
         <div className="space-y-4">
-          <Slider label="은닉 뉴런 수" value={hidden} setValue={setHidden} min={4} max={64} step={2} format={(v) => `${v}개`} />
-          <Slider label="에폭 수" value={epochs} setValue={setEpochs} min={5} max={40} step={5} format={(v) => `${v}회`} />
+          <Slider label="에폭 수" value={epochs} setValue={setEpochs} min={1} max={40} step={1} format={(v) => `${v}회`} />
+          <Slider label="학습률" value={lr} setValue={setLr} min={0.005} max={0.2} step={0.005} format={(v) => v.toFixed(3)} />
           <div className="card p-4 text-sm font-mono">
-            <div className="text-xs text-muted">파라미터 수</div>
+            <div className="text-xs text-muted">구조</div>
+            <div className="text-base text-accent">{layerSizes.join(' → ')}</div>
+            <div className="text-xs text-muted mt-2">파라미터 수</div>
             <div className="text-lg text-accent">{params.toLocaleString()}개</div>
           </div>
           <button onClick={startTrain} disabled={training} className="btn-primary">
@@ -96,10 +138,20 @@ function Workbench({ samples }: { samples: Sample[] }) {
                 <div className="text-xs text-muted">학습 정확도</div>
                 <div className="text-xl">{(final.trainAcc * 100).toFixed(1)}%</div>
               </div>
-              <div className="card p-3 border-accent bg-accent-bg">
+              <div className={`card p-3 ${final.testAcc >= 0.95 ? 'border-emerald-500/60 bg-emerald-500/10' : 'border-accent bg-accent-bg'}`}>
                 <div className="text-xs text-muted">시험 정확도</div>
                 <div className="text-xl text-accent">{(final.testAcc * 100).toFixed(1)}%</div>
               </div>
+            </div>
+          )}
+          {final && final.testAcc < 0.5 && (
+            <div className="aside-tip mt-3 text-sm">
+              아직 헤매고 있네요. 뉴런 수를 늘리거나 에폭을 더 돌려보세요.
+            </div>
+          )}
+          {final && final.testAcc >= 0.95 && (
+            <div className="aside-tip mt-3 text-sm">
+              🎉 95% 돌파! 사람 수준에 가깝게 손글씨를 읽고 있어요.
             </div>
           )}
         </div>
@@ -154,13 +206,14 @@ function ProgressChart({ log }: { log: { epoch: number; loss: number; acc: numbe
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full border border-border rounded-md bg-surface/40">
       <text x={20} y={14} fontSize={10} fill="rgb(var(--color-muted))">손실(주황) · 정확도(녹색)</text>
       <line x1={30} y1={H - 20} x2={W - 10} y2={H - 20} stroke="rgb(var(--color-border))" />
+      <line x1={30} y1={H - 20 - 0.95 * (H - 30)} x2={W - 10} y2={H - 20 - 0.95 * (H - 30)} stroke="rgb(16, 185, 129)" strokeDasharray="3 3" strokeWidth={0.6} />
+      <text x={W - 10} y={H - 20 - 0.95 * (H - 30) - 2} textAnchor="end" fontSize={9} fill="rgb(16, 185, 129)">95%</text>
       <path d={lossPath} stroke="rgb(251, 146, 60)" strokeWidth={2} fill="none" />
       <path d={accPath} stroke="rgb(16, 185, 129)" strokeWidth={2} fill="none" />
     </svg>
   );
 }
 
-// 28x28 캔버스로 숫자 그려서 모델에 입력
 function DigitTester({ model }: { model: MLP }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
@@ -208,7 +261,6 @@ function DigitTester({ model }: { model: MLP }) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     if (lastPos.current) {
-      // 직전 위치와 현재 위치를 굵은 선으로 잇기 — 빠르게 드래그해도 끊김 없음
       ctx.beginPath();
       ctx.moveTo(lastPos.current[0], lastPos.current[1]);
       ctx.lineTo(pos[0], pos[1]);
@@ -230,7 +282,6 @@ function DigitTester({ model }: { model: MLP }) {
   const syncPixels = () => {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext('2d')!;
-    // downsample to 28x28
     const tmp = document.createElement('canvas');
     tmp.width = 28; tmp.height = 28;
     const tctx = tmp.getContext('2d')!;
@@ -254,7 +305,7 @@ function DigitTester({ model }: { model: MLP }) {
 
   useEffect(() => { clear(); }, []);
 
-  void tick; // re-render trigger
+  void tick;
   const empty = pixels.every((v) => v < 0.05);
   const result = !empty ? forward(model, pixels) : null;
   const top = result ? predict(model, pixels) : null;

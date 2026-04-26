@@ -112,6 +112,50 @@ export function Phase5() {
         손실 = (오차)². 미분하면 다음과 같아요. 각 데이터의 <code>오차×입력</code>을 평균낸 게 <code>w</code>의 기울기,
         오차 평균이 <code>b</code>의 기울기입니다.
       </p>
+      <details className="mt-3 card p-4 text-sm">
+        <summary className="cursor-pointer font-medium">🤔 왜 이런 식이 나올까? (고1 수준 풀이)</summary>
+        <div className="mt-3 space-y-3 text-sm leading-relaxed">
+          <div>
+            <div className="font-medium">1단계 — 손실 = (오차)²로 두는 이유</div>
+            <p className="text-muted mt-1">
+              오차 = 예측 − 실제. 그냥 더하면 +3과 −3이 상쇄돼서 0이 됩니다(실제론 둘 다 틀린 건데!).
+              그래서 부호를 없애려고 <strong>제곱</strong>해요. 절댓값 대신 제곱을 쓰는 건, 제곱이 매끄러운 이차함수라
+              뾰족한 모서리가 없고 미분이 깔끔하게 떨어지기 때문이에요.
+            </p>
+          </div>
+          <div>
+            <div className="font-medium">2단계 — "기울기"가 뭔지 그림으로</div>
+            <p className="text-muted mt-1">
+              <code>w</code>를 가로축, 손실을 세로축에 두면 U자 모양 그래프가 나와요(이차함수니까요).
+              <strong>기울기(dw)</strong>는 그 곡선의 한 점에서 접선의 기울기입니다.
+              U자의 왼쪽 비탈에 있으면 접선이 왼쪽 아래로 향하니 기울기가 <strong>음수</strong>,
+              오른쪽 비탈에 있으면 <strong>양수</strong>예요. 골짜기 바닥에선 0.
+            </p>
+          </div>
+          <div>
+            <div className="font-medium">3단계 — 식 유도(연쇄법칙 살짝)</div>
+            <p className="text-muted mt-1">
+              한 점에서 손실을 <code>L = (wx + b − y)²</code>로 쓰면, 안쪽 식 <code>wx + b − y</code>를 <code>e</code>(오차)라고 부를게요.
+              합성함수 미분 규칙(고1 끝~고2 초): <code>(e²)' = 2e × e'</code>.
+              여기서 <code>w</code>로 미분하면 <code>e'</code>가 <code>x</code>가 돼서 <code>2e·x</code>,
+              <code>b</code>로 미분하면 <code>e'</code>가 <code>1</code>이라 <code>2e</code>가 돼요.
+              여러 점이면 평균을 내면 됩니다.
+            </p>
+            <div className="font-mono text-xs mt-2 p-2 bg-surface/60 border border-border rounded">
+              dw = (모든 점의 2 × 오차 × 입력) ÷ 데이터 수<br />
+              db = (모든 점의 2 × 오차) ÷ 데이터 수
+            </div>
+          </div>
+          <div>
+            <div className="font-medium">4단계 — 부호의 의미</div>
+            <p className="text-muted mt-1">
+              dw가 <strong>음수</strong>면 "여기서 w를 늘리면 손실이 줄어든다"는 뜻이고,
+              <strong>양수</strong>면 "여기서 w를 줄여야 한다"는 뜻이에요.
+              그래서 다음 단계에서 <strong>부호 반대 방향</strong>으로 움직입니다.
+            </p>
+          </div>
+        </div>
+      </details>
       <div className="card p-4 mt-3 font-mono text-sm space-y-2">
         <div className="text-xs text-muted">w의 기울기 (dw):</div>
         <div className="flex flex-wrap items-center gap-1">
@@ -141,6 +185,40 @@ export function Phase5() {
         <div>새 w = w − (학습률 × dw) = {w.toFixed(3)} − ({lr.toFixed(3)} × {dw.toFixed(3)}) = <span className="text-accent">{(w - lr * dw).toFixed(3)}</span></div>
         <div>새 b = b − (학습률 × db) = {b.toFixed(3)} − ({lr.toFixed(3)} × {db.toFixed(3)}) = <span className="text-accent">{(b - lr * db).toFixed(3)}</span></div>
       </div>
+      <details className="mt-3 card p-4 text-sm">
+        <summary className="cursor-pointer font-medium">🤔 왜 "빼기"이고, 학습률은 또 뭐지? (고1 수준 풀이)</summary>
+        <div className="mt-3 space-y-3 leading-relaxed">
+          <div>
+            <div className="font-medium">왜 빼기일까</div>
+            <p className="text-muted mt-1">
+              앞서 본 것처럼 기울기는 "손실이 늘어나는 방향"을 가리켜요.
+              우리가 원하는 건 손실이 <strong>줄어드는</strong> 방향이니까,
+              가리키는 반대 방향으로 가야 합니다. 그래서 부호를 바꿔주는 <strong>빼기</strong>를 써요.
+            </p>
+          </div>
+          <div>
+            <div className="font-medium">학습률(η, learning rate)은 "한 발짝 크기"</div>
+            <p className="text-muted mt-1">
+              기울기는 방향만 알려줄 뿐, 얼마나 멀리 갈지는 말해주지 않아요.
+              학습률은 0.05처럼 작은 수를 곱해서 한 번에 너무 멀리 가지 않게 막는 안전장치입니다.
+            </p>
+            <ul className="text-xs text-muted mt-2 list-disc pl-5 space-y-1">
+              <li>너무 크면 → 골짜기 반대편으로 튕겨 나가 발산</li>
+              <li>너무 작으면 → 거의 안 움직여서 학습이 답답할 만큼 느림</li>
+              <li>적당하면 → U자 곡선의 바닥으로 차근차근 굴러 내려감</li>
+            </ul>
+          </div>
+          <div>
+            <div className="font-medium">비유: 안개 낀 산에서 내려오기</div>
+            <p className="text-muted mt-1">
+              앞이 안 보이는 산에서 발 밑 경사(<strong>기울기</strong>)만 느낄 수 있다고 해봐요.
+              경사가 가장 가파르게 <em>올라가는</em> 방향의 반대로 한 발짝(<strong>학습률</strong>) 가고,
+              다시 발 밑을 느끼고 또 한 발짝 — 이걸 반복하면 골짜기에 도착해요.
+              이게 <strong>경사 하강법(gradient descent)</strong>입니다.
+            </p>
+          </div>
+        </div>
+      </details>
 
       <GradientBoard w={w} b={b} dw={dw} db={db} history={history} />
 

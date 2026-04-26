@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../store';
 import { loadMnist, filterByLabels, type Sample } from '../lib/mnist';
-import { createMLP, paramCount, evaluate, trainStep, shuffle, type MLP, type TrainSample } from '../lib/nn';
+import { createDeepMLP, paramCount, evaluate, trainStep, shuffle, type MLP, type TrainSample } from '../lib/nn';
+import { NetworkDiagram, LayerEditor } from '../components/NetworkDiagram';
 
 interface StageDef {
   id: 'A' | 'B' | 'C';
@@ -19,7 +20,7 @@ const STAGES: StageDef[] = [
 ];
 
 interface StageResult {
-  hidden: number;
+  hiddenLayers: number[];
   params: number;
   trainAcc: number;
   testAcc: number;
@@ -87,7 +88,7 @@ export function Phase11() {
 function StageView({
   stage, allSamples, onResult,
 }: { stage: StageDef; allSamples: Sample[]; onResult: (r: StageResult) => void }) {
-  const [hidden, setHidden] = useState(stage.defaultHidden);
+  const [hiddenLayers, setHiddenLayers] = useState<number[]>([stage.defaultHidden]);
   const [lr, setLr] = useState(0.05);
   const [epochs, setEpochs] = useState(15);
   const [training, setTraining] = useState(false);
@@ -97,19 +98,19 @@ function StageView({
 
   const labelToIdx = new Map(stage.labels.map((l, i) => [l, i]));
   const filtered = filterByLabels(allSamples, stage.labels);
-  // 70/30 split
   const split = Math.floor(filtered.length * 0.7);
   const trainData: TrainSample[] = filtered.slice(0, split).map((s) => ({ x: s.pixels, y: labelToIdx.get(s.label)! }));
   const testData: TrainSample[] = filtered.slice(split).map((s) => ({ x: s.pixels, y: labelToIdx.get(s.label)! }));
 
-  const params = paramCount({ inputSize: 784, hiddenSize: hidden, outputSize: stage.labels.length });
+  const layerSizes = [784, ...hiddenLayers, stage.labels.length];
+  const params = paramCount({ layers: layerSizes });
 
   const train = async () => {
     cancelRef.current = false;
     setTraining(true);
     setProgress([]);
     setFinal(null);
-    const m: MLP = createMLP(784, hidden, stage.labels.length);
+    const m: MLP = createDeepMLP(layerSizes);
     const log: { epoch: number; loss: number; acc: number }[] = [];
     const batchSize = 16;
 
@@ -131,7 +132,7 @@ function StageView({
     const trainAcc = evaluate(m, trainData);
     const testAcc = evaluate(m, testData);
     setFinal({ trainAcc, testAcc });
-    onResult({ hidden, params, trainAcc, testAcc });
+    onResult({ hiddenLayers: hiddenLayers.slice(), params, trainAcc, testAcc });
     setTraining(false);
   };
 
@@ -143,15 +144,19 @@ function StageView({
         학습 데이터: {trainData.length}장 · 시험 데이터: {testData.length}장
       </div>
 
-      <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 mt-4 items-start">
-        <div className="space-y-4">
-          <div>
-            <Slider label="🔧 은닉 뉴런 수 (메인)" value={hidden} setValue={setHidden}
-              min={1} max={64} step={1} format={(v) => `${v}개`} />
-          </div>
+      <h3 className="mt-4">🧱 신경망 구조 짜기</h3>
+      <p className="text-muted text-sm">
+        은닉층의 수와 각 층 뉴런 수를 자유롭게 정해보세요. 입력은 28×28 픽셀(784), 출력은 클래스 수({stage.labels.length})로 고정입니다.
+      </p>
+      <LayerEditor hiddenLayers={hiddenLayers} setHiddenLayers={setHiddenLayers} disabled={training} />
+      <div className="mt-4">
+        <NetworkDiagram layers={layerSizes} />
+      </div>
 
-          <details className="text-sm">
-            <summary className="cursor-pointer text-muted">서브 옵션 (학습률, 에폭) 펼쳐보기</summary>
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 mt-6 items-start">
+        <div className="space-y-4">
+          <details className="text-sm" open>
+            <summary className="cursor-pointer text-muted">학습 옵션 (학습률, 에폭)</summary>
             <div className="space-y-2 mt-3">
               <Slider label="학습률" value={lr} setValue={setLr} min={0.005} max={0.2} step={0.005} />
               <Slider label="에폭 수" value={epochs} setValue={setEpochs} min={5} max={40} step={5} format={(v) => `${v}회`} />
@@ -159,15 +164,10 @@ function StageView({
           </details>
 
           <div className="card p-4 font-mono text-sm">
-            <div className="text-xs text-muted mb-2">파라미터(가중치+편향) 수 계산</div>
-            <div className="text-xs">
-              = (입력 × 은닉) + 은닉 + (은닉 × 출력) + 출력
-            </div>
-            <div className="text-xs">
-              = (784 × {hidden}) + {hidden} + ({hidden} × {stage.labels.length}) + {stage.labels.length}
-            </div>
+            <div className="text-xs text-muted mb-2">파라미터(가중치+편향) 수</div>
+            <div className="text-xs text-muted">구조: {layerSizes.join(' → ')}</div>
             <div className="mt-2 text-lg text-accent">
-              = {params.toLocaleString()}개
+              {params.toLocaleString()}개
             </div>
           </div>
 
@@ -236,7 +236,7 @@ function ComparisonTable({ results }: { results: Record<string, StageResult> }) 
           <tr className="text-xs text-muted">
             <th className="text-left py-2">단계</th>
             <th>클래스 수</th>
-            <th>은닉 뉴런</th>
+            <th>은닉 구조</th>
             <th>파라미터</th>
             <th>시험 정확도</th>
           </tr>
@@ -249,7 +249,7 @@ function ComparisonTable({ results }: { results: Record<string, StageResult> }) 
               <tr key={id} className="border-t border-border">
                 <td className="py-2">{stage.emoji} {stage.id}</td>
                 <td className="text-center">{stage.labels.length}</td>
-                <td className="text-center">{r ? r.hidden : '—'}</td>
+                <td className="text-center">{r ? r.hiddenLayers.join('-') : '—'}</td>
                 <td className="text-center">{r ? r.params.toLocaleString() : '—'}</td>
                 <td className="text-center">{r ? `${(r.testAcc * 100).toFixed(1)}%` : '—'}</td>
               </tr>
