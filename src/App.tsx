@@ -26,6 +26,10 @@ import { Phase15 } from './phases/Phase15';
 import { Phase16 } from './phases/Phase16';
 import { Phase17 } from './phases/Phase17';
 import { Phase18 } from './phases/Phase18';
+import { Phase19 } from './phases/Phase19';
+import { Phase20 } from './phases/Phase20';
+import { Phase21 } from './phases/Phase21';
+import { Phase22 } from './phases/Phase22';
 import { Stub } from './phases/Stub';
 
 const PHASE_IDS = new Set(PHASES.map((p) => p.id));
@@ -141,6 +145,10 @@ function renderPhase(id: PhaseId) {
     case 'p16': return <Phase16 />;
     case 'p17': return <Phase17 />;
     case 'p18': return <Phase18 />;
+    case 'p19': return <Phase19 />;
+    case 'p20': return <Phase20 />;
+    case 'p21': return <Phase21 />;
+    case 'p22': return <Phase22 />;
     default:   return <Stub id={id} />;
   }
 }
