@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useApp } from '../store';
 
 const DATA: [number, number][] = [
@@ -274,10 +274,10 @@ export function Phase5() {
       <p className="text-muted text-sm">
         2D는 <code>w</code> 한 축 위의 포물선이지만, 우리 모델은 <code>w</code>·<code>b</code> 두 축이 있어요.
         그래서 손실은 두 축 위에 펼쳐진 <strong>그릇 모양 곡면</strong>이 됩니다(3D).
-        그 곡면을 위에서 내려다본 게 오른쪽 등고선이에요.
+        왼쪽 단면은 한 축씩 잘라본 모습, 오른쪽은 그 곡면을 비스듬히 본 3D 와이어프레임이에요.
       </p>
       <div className="grid lg:grid-cols-2 gap-4 mt-4">
-        <SliceWPlot w={w} b={b} dw={dw} lr={lr} />
+        <SlicePlot w={w} b={b} dw={dw} db={db} lr={lr} />
         <GradientBoard w={w} b={b} dw={dw} db={db} history={history} />
       </div>
 
@@ -599,50 +599,71 @@ function FlowBox({ cx, cy, hw, label, sub, color }: { cx: number; cy: number; hw
   );
 }
 
-// 1D 단면: b 고정, w 변화에 따른 손실 곡선
-function SliceWPlot({ w, b, dw, lr }: { w: number; b: number; dw: number; lr: number }) {
+// 1D 단면: 한 축(w 또는 b)을 따라 잘라본 손실 곡선
+function SlicePlot({ w, b, dw, db, lr }: { w: number; b: number; dw: number; db: number; lr: number }) {
+  const [axis, setAxis] = useState<'w' | 'b'>('w');
   const W = 380, H = 240, padL = 38, padR = 12, padT = 14, padB = 28;
-  const wMin = -1, wMax = 4;
-  // 손실 최대치 자동 추정
-  const samples: { w: number; L: number }[] = [];
+  const isW = axis === 'w';
+  const vMin = isW ? -1 : -2;
+  const vMax = isW ? 4 : 4;
+  const cur = isW ? w : b;
+  const grad = isW ? dw : db;
+  const fixedLabel = isW ? `b = ${b.toFixed(2)}` : `w = ${w.toFixed(2)}`;
+  const axisLabel = isW ? 'w' : 'b';
+
+  const lossAt = (v: number) => isW ? lossFn(v, b) : lossFn(w, v);
+
+  const samples: { v: number; L: number }[] = [];
   let lMax = 0.1;
   for (let i = 0; i <= 80; i++) {
-    const wv = wMin + (i / 80) * (wMax - wMin);
-    const L = lossFn(wv, b);
-    samples.push({ w: wv, L });
+    const vv = vMin + (i / 80) * (vMax - vMin);
+    const L = lossAt(vv);
+    samples.push({ v: vv, L });
     if (L > lMax) lMax = L;
   }
-  const sx = (v: number) => padL + ((v - wMin) / (wMax - wMin)) * (W - padL - padR);
+  const sx = (v: number) => padL + ((v - vMin) / (vMax - vMin)) * (W - padL - padR);
   const sy = (v: number) => H - padB - (v / lMax) * (H - padT - padB);
-  const path = samples.map((s, i) => `${i === 0 ? 'M' : 'L'}${sx(s.w)},${sy(s.L)}`).join(' ');
-  const Lhere = lossFn(w, b);
-  const Lnext = lossFn(w - lr * dw, b);
+  const path = samples.map((s, i) => `${i === 0 ? 'M' : 'L'}${sx(s.v)},${sy(s.L)}`).join(' ');
+  const Lhere = lossAt(cur);
+  const next = cur - lr * grad;
+  const Lnext = lossAt(next);
   // 접선
-  const tx1 = wMin, tx2 = wMax;
-  const ty1 = dw * (tx1 - w) + Lhere;
-  const ty2 = dw * (tx2 - w) + Lhere;
+  const ty1 = grad * (vMin - cur) + Lhere;
+  const ty2 = grad * (vMax - cur) + Lhere;
   return (
     <div className="card p-3">
-      <div className="text-sm font-medium">단면 — w축의 포물선 (b = {b.toFixed(2)} 고정)</div>
-      <p className="text-xs text-muted mt-1">접선의 기울기가 곧 dw. 다음 한 발짝(▲)이 어디에 떨어지는지 보세요.</p>
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-sm font-medium">단면 — {axisLabel}축의 포물선 ({fixedLabel} 고정)</div>
+        <div className="inline-flex rounded-md border border-border overflow-hidden text-xs">
+          <button
+            type="button"
+            onClick={() => setAxis('w')}
+            className={`px-2 py-1 ${isW ? 'bg-accent text-white' : 'bg-surface/40 text-muted'}`}
+          >w축</button>
+          <button
+            type="button"
+            onClick={() => setAxis('b')}
+            className={`px-2 py-1 ${!isW ? 'bg-accent text-white' : 'bg-surface/40 text-muted'}`}
+          >b축</button>
+        </div>
+      </div>
+      <p className="text-xs text-muted mt-1">
+        접선의 기울기가 곧 d{axisLabel}. 다음 한 발짝(▲)이 어디에 떨어지는지 보세요.
+      </p>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-2">
         <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="rgb(var(--color-border))" />
         <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="rgb(var(--color-border))" />
-        <text x={W - padR} y={H - 8} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">w</text>
+        <text x={W - padR} y={H - 8} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">{axisLabel}</text>
         <text x={padL + 4} y={padT + 10} fontSize={10} fill="rgb(var(--color-muted))">L</text>
-        {/* 곡선 */}
         <path d={path} fill="none" stroke="rgb(var(--color-text))" strokeOpacity={0.7} strokeWidth={1.5} />
-        {/* 접선 */}
-        <line x1={sx(tx1)} y1={sy(Math.max(0, Math.min(lMax, ty1)))} x2={sx(tx2)} y2={sy(Math.max(0, Math.min(lMax, ty2)))}
+        <line x1={sx(vMin)} y1={sy(Math.max(0, Math.min(lMax, ty1)))} x2={sx(vMax)} y2={sy(Math.max(0, Math.min(lMax, ty2)))}
           stroke="rgb(251, 146, 60)" strokeWidth={1.5} strokeOpacity={0.85} strokeDasharray="4 3" />
-        {/* 현재 점 */}
-        <circle cx={sx(w)} cy={sy(Lhere)} r={5} fill="rgb(var(--color-accent))" stroke="white" strokeWidth={1.5} />
-        {/* 다음 점 */}
-        <g transform={`translate(${sx(w - lr * dw)}, ${sy(Lnext)})`}>
+        <circle cx={sx(cur)} cy={sy(Lhere)} r={5} fill="rgb(var(--color-accent))" stroke="white" strokeWidth={1.5} />
+        <g transform={`translate(${sx(next)}, ${sy(Lnext)})`}>
           <polygon points="0,-6 5,3 -5,3" fill="rgb(16,185,129)" />
         </g>
-        <text x={sx(w) + 8} y={sy(Lhere) - 8} fontSize={10} fill="rgb(var(--color-text))" fontFamily="JetBrains Mono">
-          현재 w
+        <text x={sx(cur) + 8} y={sy(Lhere) - 8} fontSize={10} fill="rgb(var(--color-text))" fontFamily="JetBrains Mono">
+          현재 {axisLabel}
         </text>
       </svg>
     </div>
@@ -678,9 +699,25 @@ function GradientBoard({
     if (L > lMax) lMax = L;
   }
 
-  // 투영 파라미터: 살짝 회전 + 위에서 비스듬히 내려보는 시점
-  const azimuth = 0.55;     // z축(수직) 회전
-  const tilt = 0.62;        // 위에서 내려다보는 각도
+  // 시점(드래그/슬라이더로 변경 가능)
+  const [azimuth, setAzimuth] = useState(0.55); // z축 회전 (좌우)
+  const [tilt, setTilt] = useState(0.62);       // 위에서 내려다보는 각도
+  const dragRef = useRef<{ x: number; y: number; az: number; ti: number } | null>(null);
+  const onPointerDown = (ev: React.PointerEvent<SVGSVGElement>) => {
+    (ev.currentTarget as Element).setPointerCapture(ev.pointerId);
+    dragRef.current = { x: ev.clientX, y: ev.clientY, az: azimuth, ti: tilt };
+  };
+  const onPointerMove = (ev: React.PointerEvent<SVGSVGElement>) => {
+    if (!dragRef.current) return;
+    const dx = ev.clientX - dragRef.current.x;
+    const dy = ev.clientY - dragRef.current.y;
+    setAzimuth(dragRef.current.az + dx * 0.01);
+    setTilt(Math.max(0.1, Math.min(1.4, dragRef.current.ti + dy * 0.008)));
+  };
+  const onPointerUp = (ev: React.PointerEvent<SVGSVGElement>) => {
+    dragRef.current = null;
+    try { (ev.currentTarget as Element).releasePointerCapture(ev.pointerId); } catch { /* noop */ }
+  };
   const sW = 28, sB = 28;   // w·b 한 칸 픽셀
   const sL = 0.55;          // 손실 1 단위당 픽셀
   const cosA = Math.cos(azimuth), sinA = Math.sin(azimuth);
@@ -758,9 +795,23 @@ function GradientBoard({
 
   return (
     <div className="card p-3">
-      <div className="text-sm font-medium">3D 손실 풍경 — w·b·손실 세 축의 그릇 모양</div>
-      <p className="text-xs text-muted mt-1">표면이 곧 손실. 골짜기 바닥이 정답 (2, 1). 화살표가 다음 한 발짝.</p>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-sm font-medium">3D 손실 풍경 — w·b·손실 세 축의 그릇 모양</div>
+        <button
+          type="button"
+          onClick={() => { setAzimuth(0.55); setTilt(0.62); }}
+          className="text-[11px] px-2 py-1 rounded-md border border-border bg-surface/40 text-muted hover:text-text"
+        >시점 초기화</button>
+      </div>
+      <p className="text-xs text-muted mt-1">표면이 곧 손실. 골짜기 바닥이 정답 (2, 1). 화살표가 다음 한 발짝. <span className="text-accent">드래그</span>로 시점을 돌려보세요.</p>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="w-full mt-2 touch-none cursor-grab active:cursor-grabbing select-none"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+      >
         {/* 바닥 사각형 (참고용) */}
         <polygon
           points={corners.map((p) => `${p.sx.toFixed(1)},${p.sy.toFixed(1)}`).join(' ')}
