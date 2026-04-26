@@ -268,11 +268,6 @@ const GROUPS: GroupGuide[] = [
   },
 ];
 
-const PORTAL_NOTE = {
-  one: { src: SHOT('portal-1'), caption: '1차 포털 — 4부 끝(MNIST 페이지 하단)' },
-  two: { src: SHOT('portal-2'), caption: '2차 포털 — 5부 끝(오토인코더 페이지 하단)' },
-};
-
 export function Guide() {
   const setCurrent = useApp((s) => s.setCurrent);
   const bonusUnlocked = useApp((s) => s.bonusUnlocked);
@@ -296,27 +291,21 @@ export function Guide() {
       <Toc groups={GROUPS} />
 
       <section className="mt-12">
-        <h2>두 개의 포털</h2>
-        <p className="text-sm text-muted mb-4">
-          5부와 6부는 4부·5부를 끝낸 학생만 발견하는 히든 스테이지예요. 두 포털은 각각 다른 색과 모티프를 갖고 있습니다.
+        <h2>히든 스테이지</h2>
+        <p className="text-sm text-muted">
+          5부(생성 모델)와 6부(언어 모델)는 기본 메뉴에 표시되지 않는 히든 스테이지예요.
+          호기심 있는 학생만 URL로 직접 들어와 보도록 두었습니다.
         </p>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <PortalCard
-            label="1차 포털 · 보라/시안"
-            shot={PORTAL_NOTE.one.src}
-            sub="4부(11·12)를 끝내면 MNIST 페이지 끝에 균열이 나타납니다."
-            unlocked={bonusUnlocked}
-          />
-          <PortalCard
-            label="2차 포털 · 호박/분홍"
-            shot={PORTAL_NOTE.two.src}
-            sub="5부(13·14)를 끝내면 오토인코더 페이지 끝에 책의 균열이 보입니다."
-            unlocked={bonusUnlocked2}
-          />
-        </div>
+        <ul className="text-sm mt-3 space-y-1 font-mono">
+          <li>· <code>#/p13</code> ~ <code>#/p14</code> — 5부 분류를 넘어 생성으로 {bonusUnlocked && <span className="text-emerald-600">(해금됨)</span>}</li>
+          <li>· <code>#/p15</code> ~ <code>#/p22</code> — 6부 언어를 다루는 신경망 {bonusUnlocked2 && <span className="text-emerald-600">(해금됨)</span>}</li>
+        </ul>
+        <p className="text-xs text-muted mt-2">
+          한 번이라도 URL로 진입하면 그 다음부터는 사이드바와 인트로에 정상 표시됩니다.
+        </p>
       </section>
 
-      {GROUPS.map((g) => (
+{GROUPS.map((g) => (
         <GroupSection key={g.num} group={g} onGo={goPhase} />
       ))}
 
@@ -458,17 +447,3 @@ function Shot({ src, alt }: { src: string; alt: string }) {
   );
 }
 
-function PortalCard({ label, shot, sub, unlocked }: { label: string; shot: string; sub: string; unlocked: boolean }) {
-  return (
-    <div className="card p-3">
-      <div className="text-xs font-mono text-accent flex items-center gap-2">
-        {label}
-        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${unlocked ? 'bg-emerald-500/15 text-emerald-600' : 'bg-amber-500/15 text-amber-600'}`}>
-          {unlocked ? '발견됨' : '아직 잠김'}
-        </span>
-      </div>
-      <Shot src={shot} alt={label} />
-      <p className="text-xs text-muted mt-2">{sub}</p>
-    </div>
-  );
-}

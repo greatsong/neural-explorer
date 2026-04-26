@@ -5,8 +5,6 @@ import { PageNav } from './components/PageNav';
 import { useApp } from './store';
 import { PHASES, isBonusPhase, isBonus2Phase } from './phases';
 import type { PhaseId } from './phases';
-import { Portal } from './components/Portal';
-import { PortalLanguage } from './components/PortalLanguage';
 import { Intro } from './Intro';
 import { Guide } from './Guide';
 import { Phase1 } from './phases/Phase1';
@@ -40,8 +38,8 @@ type View = { kind: 'intro' } | { kind: 'guide' } | { kind: 'phase'; id: PhaseId
 export default function App() {
   const setCurrent = useApp((s) => s.setCurrent);
   const theme = useApp((s) => s.theme);
-  const bonusUnlocked = useApp((s) => s.bonusUnlocked);
-  const bonusUnlocked2 = useApp((s) => s.bonusUnlocked2);
+  const unlockBonus = useApp((s) => s.unlockBonus);
+  const unlockBonus2 = useApp((s) => s.unlockBonus2);
 
   const [view, setView] = useState<View>(() => readHash());
 
@@ -49,12 +47,17 @@ export default function App() {
     const sync = () => {
       const v = readHash();
       setView(v);
-      if (v.kind === 'phase') setCurrent(v.id);
+      if (v.kind === 'phase') {
+        setCurrent(v.id);
+        // 보너스 페이즈에 URL로 직접 진입하면 그 그룹을 자동 해금
+        if (isBonusPhase(v.id)) unlockBonus();
+        if (isBonus2Phase(v.id)) unlockBonus2();
+      }
     };
     sync();
     window.addEventListener('hashchange', sync);
     return () => window.removeEventListener('hashchange', sync);
-  }, [setCurrent]);
+  }, [setCurrent, unlockBonus, unlockBonus2]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -72,11 +75,7 @@ export default function App() {
             {view.kind === 'intro' ? <Intro /> :
              view.kind === 'guide' ? <Guide /> : (
               <>
-                {isBonusPhase(view.id) && !bonusUnlocked
-                  ? <BonusLocked />
-                  : isBonus2Phase(view.id) && !bonusUnlocked2
-                    ? <Bonus2Locked />
-                    : renderPhase(view.id)}
+                {renderPhase(view.id)}
                 <PageNav />
               </>
             )}
@@ -96,36 +95,6 @@ function readHash(): View {
 
 function isWide(id: PhaseId) {
   return ['p6', 'p7', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14', 'p15', 'p16', 'p17', 'p18', 'p19', 'p20', 'p21', 'p22'].includes(id);
-}
-
-function BonusLocked() {
-  return (
-    <article>
-      <div className="text-xs font-mono text-purple-400 tracking-widest">??? · HIDDEN STAGE</div>
-      <h1>아직 균열이 닫혀 있어요</h1>
-      <p className="text-muted mt-3">
-        이 차원으로 들어오려면 4부(11·12)를 끝내고, MNIST 도전 페이지 끝에서 발견되는 <strong>포털</strong>을 통과해야 합니다.
-      </p>
-      <div className="mt-6">
-        <Portal />
-      </div>
-    </article>
-  );
-}
-
-function Bonus2Locked() {
-  return (
-    <article>
-      <div className="text-xs font-mono text-amber-400 tracking-widest">??? · HIDDEN STAGE Ⅱ</div>
-      <h1>책의 균열은 아직 열려 있지 않아요</h1>
-      <p className="text-muted mt-3">
-        이 차원으로 들어오려면 5부(13·14)를 끝내고, 오토인코더 페이지 끝에서 발견되는 <strong>두 번째 포털</strong>을 통과해야 합니다.
-      </p>
-      <div className="mt-6">
-        <PortalLanguage />
-      </div>
-    </article>
-  );
 }
 
 function renderPhase(id: PhaseId) {

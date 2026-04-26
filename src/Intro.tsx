@@ -1,5 +1,5 @@
 import { Logo } from './components/Logo';
-import { PHASES, PHASE_GROUPS, isBonusGroup, isBonus2Group, isPart4Done, isPart5Done } from './phases';
+import { PHASES, PHASE_GROUPS, isBonusGroup, isBonus2Group } from './phases';
 import type { PhaseId } from './phases';
 import { useApp } from './store';
 
@@ -9,8 +9,6 @@ export function Intro() {
   const bonusUnlocked = useApp((s) => s.bonusUnlocked);
   const bonusUnlocked2 = useApp((s) => s.bonusUnlocked2);
   const completedCount = Object.values(completed).filter(Boolean).length;
-  const part4Done = isPart4Done(completed);
-  const part5Done = isPart5Done(completed);
 
   const go = (id: PhaseId) => {
     setCurrent(id);
@@ -58,50 +56,9 @@ export function Intro() {
       {/* 5 parts */}
       <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
         {PHASE_GROUPS.map(([group, items], idx) => {
-          const bonus = isBonusGroup(group);
-          const bonus2 = isBonus2Group(group);
-          if (bonus && !bonusUnlocked) {
-            return (
-              <div key={group} className="card p-5 border-dashed border-purple-400/40 bg-purple-500/5 flex flex-col justify-center min-h-[180px]">
-                <div className="text-xs font-mono text-purple-400 mb-2 tracking-widest">PART 5 · ???</div>
-                <div className="font-semibold">🔒 잠겨 있는 차원</div>
-                <div className="text-xs text-muted mt-1">
-                  {part4Done
-                    ? '4부를 통과했어요. MNIST 도전 페이지 끝에 포털이 열려 있습니다.'
-                    : '4부(11·12)를 모두 끝내면 무언가 나타날지도…'}
-                </div>
-                {part4Done && (
-                  <button
-                    onClick={() => go('p12')}
-                    className="text-xs text-purple-400 underline mt-3 self-start"
-                  >
-                    포털 보러 가기 →
-                  </button>
-                )}
-              </div>
-            );
-          }
-          if (bonus2 && !bonusUnlocked2) {
-            return (
-              <div key={group} className="card p-5 border-dashed border-amber-400/40 bg-amber-500/5 flex flex-col justify-center min-h-[180px]">
-                <div className="text-xs font-mono text-amber-400 mb-2 tracking-widest">PART 6 · ???</div>
-                <div className="font-semibold">📕 부서진 책 한 권</div>
-                <div className="text-xs text-muted mt-1">
-                  {part5Done
-                    ? '5부를 통과했어요. 오토인코더 페이지 끝에 두 번째 포털이 열려 있습니다.'
-                    : '5부(13·14)를 모두 끝내면 또 다른 균열이 보일지도…'}
-                </div>
-                {part5Done && (
-                  <button
-                    onClick={() => go('p14')}
-                    className="text-xs text-amber-400 underline mt-3 self-start"
-                  >
-                    두 번째 포털 보러 가기 →
-                  </button>
-                )}
-              </div>
-            );
-          }
+          // 5·6부는 해금된 경우에만 표시 (해금되지 않으면 카드 자체를 숨김)
+          if (isBonusGroup(group) && !bonusUnlocked) return null;
+          if (isBonus2Group(group) && !bonusUnlocked2) return null;
           return (
             <div key={group} className="card p-5 hover:border-accent/50 transition">
               <div className="text-xs font-mono text-accent mb-2">PART {idx + 1}</div>
