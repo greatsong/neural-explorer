@@ -123,8 +123,8 @@ function NeuronDiagram({
         <Node cx={50} cy={70} label={`x₁=${x1}`} />
         <Node cx={50} cy={150} label={`x₂=${x2}`} />
         {/* weights */}
-        <Edge x1={70} y1={70} x2={240} y2={110} label={`w₁=${w1.toFixed(1)}`} active={Math.abs(w1) > 0.05} />
-        <Edge x1={70} y1={150} x2={240} y2={110} label={`w₂=${w2.toFixed(1)}`} active={Math.abs(w2) > 0.05} />
+        <Edge x1={70} y1={70} x2={240} y2={110} label={`w₁=${w1.toFixed(1)}`} weight={w1} />
+        <Edge x1={70} y1={150} x2={240} y2={110} label={`w₂=${w2.toFixed(1)}`} weight={w2} />
         {/* sum node */}
         <circle cx={260} cy={110} r={28} fill="rgb(var(--color-accent-bg))" stroke="rgb(var(--color-accent))" />
         <text x={260} y={114} textAnchor="middle" fill="rgb(var(--color-accent))" fontSize={14} fontWeight={600}>Σ</text>
@@ -173,21 +173,38 @@ function Node({ cx, cy, label, accent }: { cx: number; cy: number; label: string
 }
 
 function Edge({
-  x1, y1, x2, y2, label, active,
-}: { x1: number; y1: number; x2: number; y2: number; label: string; active: boolean }) {
+  x1, y1, x2, y2, label, weight,
+}: { x1: number; y1: number; x2: number; y2: number; label: string; weight: number }) {
   const mx = (x1 + x2) / 2;
-  const my = (y1 + y2) / 2 - 8;
+  const my = (y1 + y2) / 2;
+  // |w|에 비례한 두께(0.8~6px), 부호에 따른 색
+  const aw = Math.min(Math.abs(weight), 2);
+  const sw = 0.8 + aw * 2.6;
+  const isPos = weight >= 0;
+  const stroke = Math.abs(weight) < 0.05
+    ? 'rgb(var(--color-muted))'
+    : isPos
+      ? 'rgb(var(--color-accent))'
+      : 'rgb(239, 68, 68)';
+  const opacity = Math.abs(weight) < 0.05 ? 0.5 : 0.85;
+  // 라벨은 배지 형태로 선 위에 올려서 가독성 확보
+  const labelW = label.length * 6.2 + 10;
+  const labelH = 14;
   return (
     <g>
-      <line
-        x1={x1}
-        y1={y1}
-        x2={x2}
-        y2={y2}
-        stroke={active ? 'rgb(var(--color-accent))' : 'rgb(var(--color-border))'}
-        strokeWidth={1.5}
+      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={stroke} strokeWidth={sw} strokeOpacity={opacity} strokeLinecap="round" />
+      <rect
+        x={mx - labelW / 2}
+        y={my - labelH / 2}
+        width={labelW}
+        height={labelH}
+        rx={3}
+        fill="rgb(var(--color-bg))"
+        stroke={stroke}
+        strokeOpacity={0.55}
+        strokeWidth={0.8}
       />
-      <text x={mx} y={my} textAnchor="middle" fill="rgb(var(--color-muted))">
+      <text x={mx} y={my + 3.5} textAnchor="middle" fill={stroke} fontSize={10} fontWeight={600}>
         {label}
       </text>
     </g>
