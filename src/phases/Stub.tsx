@@ -59,6 +59,39 @@ function PreviewContent({ id }: { id: PhaseId }) {
     ],
     p13: [],
     p14: [],
+    p15: [],
+    p16: [
+      'GPT 토크나이저 스타일로 문장 잘라보기',
+      'BPE: 자주 함께 등장하는 글자 쌍 합치기',
+      '한글이 영어보다 더 잘게 쪼개지는 이유',
+    ],
+    p17: [
+      '원-핫 표현의 한계 (큰 차원, 0 유사도)',
+      '학습되는 임베딩 행렬 직접 만지기',
+      'cos 유사도로 단어 거리 측정',
+    ],
+    p18: [
+      '작은 영/한 코퍼스로 skip-gram 학습',
+      'PCA로 2D 투영, 벡터 산수 인터랙션',
+    ],
+    p19: [
+      '"I love you" vs "you love I"',
+      '평균 임베딩의 한계와 RNN 직관',
+    ],
+    p20: [
+      'softmax(QKᵀ/√d)V를 슬라이더로 단순화',
+      '단어 간 어텐션 행렬 직접 만지기',
+    ],
+    p21: [
+      '4개 헤드의 attention map 비교',
+      '어텐션 + FFN + 잔차 + 정규화 흐름',
+      '1층 vs 6층 비교',
+    ],
+    p22: [
+      '어휘 분포 top-k 시각화',
+      'temperature / top-k / top-p 슬라이더',
+      '자기회귀 생성 한 토큰씩 진행',
+    ],
   };
   return (
     <ul className="list-disc pl-5 space-y-1 text-muted">

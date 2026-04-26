@@ -1,4 +1,4 @@
-import { PHASE_GROUPS, isBonusGroup } from '../phases';
+import { PHASE_GROUPS, isBonusGroup, isBonus2Group } from '../phases';
 import { useApp } from '../store';
 import type { PhaseId } from '../phases';
 
@@ -7,13 +7,18 @@ export function Sidebar() {
   const completed = useApp((s) => s.completed);
   const setCurrent = useApp((s) => s.setCurrent);
   const bonusUnlocked = useApp((s) => s.bonusUnlocked);
+  const bonusUnlocked2 = useApp((s) => s.bonusUnlocked2);
 
   const go = (id: PhaseId) => {
     setCurrent(id);
     window.location.hash = `#/${id}`;
   };
 
-  const visibleGroups = PHASE_GROUPS.filter(([group]) => !isBonusGroup(group) || bonusUnlocked);
+  const visibleGroups = PHASE_GROUPS.filter(([group]) => {
+    if (isBonusGroup(group)) return bonusUnlocked;
+    if (isBonus2Group(group)) return bonusUnlocked2;
+    return true;
+  });
 
   return (
     <aside className="w-64 shrink-0 border-r border-border bg-surface/40 px-4 py-6 overflow-y-auto sticky top-14 h-[calc(100vh-3.5rem)]">

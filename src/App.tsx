@@ -3,9 +3,10 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { PageNav } from './components/PageNav';
 import { useApp } from './store';
-import { PHASES, isBonusPhase } from './phases';
+import { PHASES, isBonusPhase, isBonus2Phase } from './phases';
 import type { PhaseId } from './phases';
 import { Portal } from './components/Portal';
+import { PortalLanguage } from './components/PortalLanguage';
 import { Intro } from './Intro';
 import { Phase1 } from './phases/Phase1';
 import { Phase2 } from './phases/Phase2';
@@ -21,6 +22,7 @@ import { Phase11 } from './phases/Phase11';
 import { Phase12 } from './phases/Phase12';
 import { Phase13 } from './phases/Phase13';
 import { Phase14 } from './phases/Phase14';
+import { Phase15 } from './phases/Phase15';
 import { Stub } from './phases/Stub';
 
 const PHASE_IDS = new Set(PHASES.map((p) => p.id));
@@ -31,6 +33,7 @@ export default function App() {
   const setCurrent = useApp((s) => s.setCurrent);
   const theme = useApp((s) => s.theme);
   const bonusUnlocked = useApp((s) => s.bonusUnlocked);
+  const bonusUnlocked2 = useApp((s) => s.bonusUnlocked2);
 
   const [view, setView] = useState<View>(() => readHash());
 
@@ -62,7 +65,9 @@ export default function App() {
               <>
                 {isBonusPhase(view.id) && !bonusUnlocked
                   ? <BonusLocked />
-                  : renderPhase(view.id)}
+                  : isBonus2Phase(view.id) && !bonusUnlocked2
+                    ? <Bonus2Locked />
+                    : renderPhase(view.id)}
                 <PageNav />
               </>
             )}
@@ -80,7 +85,7 @@ function readHash(): View {
 }
 
 function isWide(id: PhaseId) {
-  return ['p6', 'p7', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14'].includes(id);
+  return ['p6', 'p7', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14', 'p15', 'p16', 'p17', 'p18', 'p19', 'p20', 'p21', 'p22'].includes(id);
 }
 
 function BonusLocked() {
@@ -93,6 +98,21 @@ function BonusLocked() {
       </p>
       <div className="mt-6">
         <Portal />
+      </div>
+    </article>
+  );
+}
+
+function Bonus2Locked() {
+  return (
+    <article>
+      <div className="text-xs font-mono text-amber-400 tracking-widest">??? · HIDDEN STAGE Ⅱ</div>
+      <h1>책의 균열은 아직 열려 있지 않아요</h1>
+      <p className="text-muted mt-3">
+        이 차원으로 들어오려면 5부(13·14)를 끝내고, 오토인코더 페이지 끝에서 발견되는 <strong>두 번째 포털</strong>을 통과해야 합니다.
+      </p>
+      <div className="mt-6">
+        <PortalLanguage />
       </div>
     </article>
   );
@@ -114,6 +134,7 @@ function renderPhase(id: PhaseId) {
     case 'p12': return <Phase12 />;
     case 'p13': return <Phase13 />;
     case 'p14': return <Phase14 />;
+    case 'p15': return <Phase15 />;
     default:   return <Stub id={id} />;
   }
 }

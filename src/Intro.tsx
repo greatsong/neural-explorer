@@ -1,5 +1,5 @@
 import { Logo } from './components/Logo';
-import { PHASES, PHASE_GROUPS, isBonusGroup, isPart4Done } from './phases';
+import { PHASES, PHASE_GROUPS, isBonusGroup, isBonus2Group, isPart4Done, isPart5Done } from './phases';
 import type { PhaseId } from './phases';
 import { useApp } from './store';
 
@@ -7,8 +7,10 @@ export function Intro() {
   const setCurrent = useApp((s) => s.setCurrent);
   const completed = useApp((s) => s.completed);
   const bonusUnlocked = useApp((s) => s.bonusUnlocked);
+  const bonusUnlocked2 = useApp((s) => s.bonusUnlocked2);
   const completedCount = Object.values(completed).filter(Boolean).length;
   const part4Done = isPart4Done(completed);
+  const part5Done = isPart5Done(completed);
 
   const go = (id: PhaseId) => {
     setCurrent(id);
@@ -27,7 +29,7 @@ export function Intro() {
         <div className="text-sm text-muted mt-2">아티피셜 뉴럴넷 익스플로러</div>
         <p className="text-lg sm:text-xl text-muted mt-4 max-w-2xl mx-auto leading-relaxed">
           코드 한 줄도 쓰지 않고, 슬라이더와 그림판으로<br className="hidden sm:inline" />
-          신경망의 원리를 손끝으로 배우는 14단계 인터랙티브 학습 앱
+          신경망의 원리를 손끝으로 배우는 14단계 + 숨겨진 언어 차원 8단계 인터랙티브 학습 앱
         </p>
         <div className="flex flex-wrap justify-center gap-3 mt-8">
           <button onClick={() => go('p1')} className="btn-primary px-6 py-3 text-base">
@@ -57,6 +59,7 @@ export function Intro() {
       <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
         {PHASE_GROUPS.map(([group, items], idx) => {
           const bonus = isBonusGroup(group);
+          const bonus2 = isBonus2Group(group);
           if (bonus && !bonusUnlocked) {
             return (
               <div key={group} className="card p-5 border-dashed border-purple-400/40 bg-purple-500/5 flex flex-col justify-center min-h-[180px]">
@@ -73,6 +76,27 @@ export function Intro() {
                     className="text-xs text-purple-400 underline mt-3 self-start"
                   >
                     포털 보러 가기 →
+                  </button>
+                )}
+              </div>
+            );
+          }
+          if (bonus2 && !bonusUnlocked2) {
+            return (
+              <div key={group} className="card p-5 border-dashed border-amber-400/40 bg-amber-500/5 flex flex-col justify-center min-h-[180px]">
+                <div className="text-xs font-mono text-amber-400 mb-2 tracking-widest">PART 6 · ???</div>
+                <div className="font-semibold">📕 부서진 책 한 권</div>
+                <div className="text-xs text-muted mt-1">
+                  {part5Done
+                    ? '5부를 통과했어요. 오토인코더 페이지 끝에 두 번째 포털이 열려 있습니다.'
+                    : '5부(13·14)를 모두 끝내면 또 다른 균열이 보일지도…'}
+                </div>
+                {part5Done && (
+                  <button
+                    onClick={() => go('p14')}
+                    className="text-xs text-amber-400 underline mt-3 self-start"
+                  >
+                    두 번째 포털 보러 가기 →
                   </button>
                 )}
               </div>
@@ -118,6 +142,7 @@ export function Intro() {
           <Step n="10" title="직접 만들기" desc="8×8 도트로 직접 그린 그림을 학습시키고, 오픈 갤러리에 CC-BY로 공유합니다." />
           <Step n="11~12" title="깊은 학습" desc="진짜 MNIST로 신경망 크기와 문제 복잡도의 관계를 발견하고, 손으로 그린 숫자를 분류해봅니다." />
           <Step n="13~14" title="분류를 넘어 생성으로" desc="평균 이미지에서 시작해 오토인코더의 잠재 공간까지 — Stable Diffusion·DALL·E의 출발점." />
+          <Step n="15~22" title="언어를 다루는 신경망 (히든)" desc="글자가 숫자가 되고, 단어가 벡터가 되어 GPT가 다음 토큰을 떠올리는 순간까지." />
         </div>
       </section>
 
