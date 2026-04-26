@@ -23,23 +23,33 @@ export function Phase12() {
 
 interface Taught { pixels: Float32Array; label: number; augmented: Float32Array[] }
 
-// 28×28 이미지에 작은 회전·이동·축소를 줘서 한 장에서 여러 장을 만들어 냄.
-// 손글씨가 가운데를 살짝 벗어나거나 기울어져도 같은 숫자라는 걸 모델이 익히게 하기 위함.
+// 28×28 이미지에 회전·이동·스케일·전단(shear)을 합성해 다양한 변형을 만듦.
+// 같은 그림을 N번 증강해도 서로 다른 방향으로 변형되도록 범위를 넉넉히 둠.
 function augmentImage(pixels: Float32Array): Float32Array {
   const out = new Float32Array(784);
-  const dx = (Math.random() - 0.5) * 6;
-  const dy = (Math.random() - 0.5) * 6;
-  const angle = (Math.random() - 0.5) * 0.5; // ±~14°
-  const scale = 0.9 + Math.random() * 0.2;
-  const cos = Math.cos(angle) / scale;
-  const sin = Math.sin(angle) / scale;
+  const dx = (Math.random() - 0.5) * 8;        // 이동 ±4px
+  const dy = (Math.random() - 0.5) * 8;
+  const angle = (Math.random() - 0.5) * 0.9;   // 회전 ±~26°
+  const scale = 0.8 + Math.random() * 0.4;     // 스케일 0.8~1.2
+  const shearX = (Math.random() - 0.5) * 0.4;  // 전단 ±0.2
+  const shearY = (Math.random() - 0.5) * 0.3;  // 전단 ±0.15
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
   const cx = 13.5, cy = 13.5;
+  const det = 1 - shearX * shearY;
   for (let y = 0; y < 28; y++) {
     for (let x = 0; x < 28; x++) {
-      // 출력 좌표를 원본으로 역매핑(역변환)
-      const sx = cos * (x - cx - dx) - sin * (y - cy - dy) + cx;
-      const sy = sin * (x - cx - dx) + cos * (y - cy - dy) + cy;
-      const ix = Math.round(sx), iy = Math.round(sy);
+      // 출력 → 원본 역변환: T⁻¹ · R⁻¹ · S⁻¹ · Sh⁻¹ 순서로 적용
+      const ax = x - cx - dx;
+      const ay = y - cy - dy;
+      const bx = cos * ax + sin * ay;
+      const by = -sin * ax + cos * ay;
+      const c2x = bx / scale;
+      const c2y = by / scale;
+      const sx = (c2x - shearX * c2y) / det;
+      const sy = (-shearY * c2x + c2y) / det;
+      const ix = Math.round(sx + cx);
+      const iy = Math.round(sy + cy);
       if (ix >= 0 && ix < 28 && iy >= 0 && iy < 28) {
         out[y * 28 + x] = pixels[iy * 28 + ix];
       }
