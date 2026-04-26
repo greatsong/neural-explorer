@@ -49,11 +49,21 @@ export function Phase11() {
   const stage = STAGES[stageIdx];
   return (
     <article>
-      <div className="text-xs font-mono text-muted">PHASE 11</div>
+      <div className="text-xs font-mono text-muted">PHASE 11 · 비교 실험실</div>
       <h1>신경망 설계 — 문제 복잡도 vs 신경망 크기</h1>
       <p className="text-muted mt-2">
         같은 MNIST 데이터로 분류 문제의 난이도를 점점 올려봅니다. 어려운 문제일수록 신경망이 더 커야 한다는 걸 직접 체감해보세요.
       </p>
+      <div className="aside-tip mt-4 text-sm">
+        <div className="font-medium">🔬 이 페이지의 미션</div>
+        <p className="mt-1">
+          단계 A → B → C 세 가지 난이도에서 <strong>같은 신경망 구조</strong>를 학습시키고, "클래스 수"·"파라미터"·"시험 정확도"를 표 한 장에 모아 비교합니다.
+          세 단계를 다 풀어야 비교표가 완성돼요.
+        </p>
+        <p className="text-xs text-muted mt-2">
+          ※ 손글씨 직접 그리기·데이터 증강·재학습 같은 응용 도구는 <strong>다음 단계(페이즈 12)</strong>에서 다룹니다. 여기선 "구조와 정확도의 관계"만 깔끔하게 비교해요.
+        </p>
+      </div>
 
       <div className="flex gap-2 mt-6">
         {STAGES.map((s, i) => (
@@ -144,7 +154,7 @@ function StageView({
         학습 데이터: {trainData.length}장 · 시험 데이터: {testData.length}장
       </div>
 
-      <h3 className="mt-4">🧱 신경망 구조 짜기</h3>
+      <h3 className="mt-4">🧠 신경망 구조 짜기</h3>
       <p className="text-muted text-sm">
         은닉층의 수와 각 층 뉴런 수를 자유롭게 정해보세요. 입력은 28×28 픽셀(784), 출력은 클래스 수({stage.labels.length})로 고정입니다.
       </p>
@@ -258,6 +268,8 @@ function ComparisonTable({ results }: { results: Record<string, StageResult> }) 
         </tbody>
       </table>
 
+      {Object.keys(results).length >= 2 && <ScatterChart results={results} />}
+
       {Object.keys(results).length === 3 && (
         <div className="aside-tip mt-4 space-y-2">
           <div className="font-medium">📌 발견한 패턴</div>
@@ -276,8 +288,57 @@ function ComparisonTable({ results }: { results: Record<string, StageResult> }) 
               모두 같은 원리로 작동해요. 규모만 다를 뿐.
             </p>
           </div>
+          <div className="text-sm border-t border-border pt-2 mt-2">
+            <div className="font-medium">➡️ 다음 단계: 페이즈 12 — 진짜 MNIST 한 판</div>
+            <p className="text-xs text-muted mt-1">
+              여기서 비교만 했다면, 12단계에선 손글씨를 직접 그려서 모델이 어떻게 답하는지·왜 틀리는지 보고,
+              틀린 그림을 정답과 함께 모델에게 가르쳐(데이터 증강 + 재학습) 정확도를 끌어올려 봅니다.
+            </p>
+          </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// 클래스 수(난이도) → 파라미터 → 정확도의 관계를 한눈에 보여주는 작은 차트
+function ScatterChart({ results }: { results: Record<string, StageResult> }) {
+  const W = 520, H = 200;
+  const order: ('A'|'B'|'C')[] = ['A', 'B', 'C'];
+  const points = order
+    .filter((id) => results[id])
+    .map((id) => ({ id, ...results[id] }));
+  if (points.length === 0) return null;
+  const maxParams = Math.max(...points.map((p) => p.params), 1);
+  const xFor = (p: number) => 50 + (p / maxParams) * (W - 70);
+  const yFor = (acc: number) => H - 30 - acc * (H - 50);
+  const colorFor = (id: string) => id === 'A' ? 'rgb(16, 185, 129)' : id === 'B' ? 'rgb(234, 179, 8)' : 'rgb(244, 63, 94)';
+  return (
+    <div className="card p-4 mt-4">
+      <div className="text-sm font-medium">📈 파라미터 수 vs 시험 정확도</div>
+      <p className="text-xs text-muted mt-1">
+        오른쪽으로 갈수록 파라미터가 많고, 위로 갈수록 정확도가 높아요. 단계별로 비교해 보세요.
+      </p>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-2">
+        <line x1={50} y1={H - 30} x2={W - 20} y2={H - 30} stroke="rgb(var(--color-border))" />
+        <line x1={50} y1={20} x2={50} y2={H - 30} stroke="rgb(var(--color-border))" />
+        <text x={W - 20} y={H - 14} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">파라미터 수 →</text>
+        <text x={50} y={16} fontSize={10} fill="rgb(var(--color-muted))">↑ 시험 정확도</text>
+        {[0.5, 0.75, 0.9, 1].map((t) => (
+          <g key={t}>
+            <line x1={50} y1={yFor(t)} x2={W - 20} y2={yFor(t)} stroke="rgb(var(--color-border))" strokeDasharray="2 3" strokeWidth={0.4} />
+            <text x={46} y={yFor(t) + 3} textAnchor="end" fontSize={9} fill="rgb(var(--color-muted))">{Math.round(t * 100)}%</text>
+          </g>
+        ))}
+        {points.map((p) => (
+          <g key={p.id}>
+            <circle cx={xFor(p.params)} cy={yFor(p.testAcc)} r={7} fill={colorFor(p.id)} />
+            <text x={xFor(p.params)} y={yFor(p.testAcc) - 12} textAnchor="middle" fontSize={11} fill="rgb(var(--color-text))">
+              단계 {p.id} · {p.params.toLocaleString()}p
+            </text>
+          </g>
+        ))}
+      </svg>
     </div>
   );
 }

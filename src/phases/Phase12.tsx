@@ -161,7 +161,7 @@ function Workbench({ samples }: { samples: Sample[] }) {
         ))}
       </div>
 
-      <h2>🧱 네트워크 구조 짜기</h2>
+      <h2>🧠 신경망 구조 짜기</h2>
       <p className="text-muted text-sm">
         은닉층은 자유롭게 추가/삭제할 수 있어요. 입력(784, 픽셀)과 출력(10, 숫자 0~9)은 고정입니다.
       </p>
@@ -273,7 +273,7 @@ function Workbench({ samples }: { samples: Sample[] }) {
           />
 
           <h2>🖼 시험 데이터 결과 미리보기</h2>
-          <SampleGallery samples={samples.slice(split, split + 24)} model={model} />
+          <SampleGallery testSamples={samples.slice(split)} model={model} />
         </>
       )}
 
@@ -530,6 +530,38 @@ function Teacher({
               </div>
             ))}
           </div>
+
+          {taught.some((t) => t.augmented.length > 0) && (
+            <details className="text-sm">
+              <summary className="cursor-pointer text-muted">🔍 증강 결과 미리보기 — 한 장이 어떻게 여러 장으로 늘어났는지 보기</summary>
+              <div className="mt-3 space-y-3">
+                <p className="text-xs text-muted">
+                  원본(왼쪽 첫 장) → 회전·이동·축소를 살짝 다르게 준 사본들. 사람 눈에는 거의 같은 숫자지만, 픽셀 위치가 달라서
+                  모델 입장에선 "다양한 예시"로 보여요.
+                </p>
+                {taught.map((t, i) => (
+                  <div key={i}>
+                    <div className="text-xs text-muted mb-1">
+                      추가 #{i + 1} <span className="font-mono">→ {t.label}</span> (원본 1 + 증강 {t.augmented.length})
+                    </div>
+                    <div className="flex flex-wrap gap-1 items-start">
+                      <div className="text-center">
+                        <PixelView pixels={t.pixels} />
+                        <div className="text-[9px] text-accent">원본</div>
+                      </div>
+                      {t.augmented.map((a, j) => (
+                        <div key={j} className="text-center opacity-90">
+                          <PixelView pixels={a} />
+                          <div className="text-[9px] text-muted">#{j + 1}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+
           <button onClick={retrain} disabled={disabled} className="btn-primary">
             추가한 데이터로 다시 학습
           </button>
@@ -559,21 +591,59 @@ function Teacher({
   );
 }
 
-function SampleGallery({ samples, model }: { samples: Sample[]; model: MLP }) {
+function SampleGallery({ testSamples, model }: { testSamples: Sample[]; model: MLP }) {
+  const [mode, setMode] = useState<'first24' | 'wrong'>('first24');
+  const [showCount, setShowCount] = useState(24);
+
+  // 모든 시험 데이터에 대해 예측을 한 번만 계산
+  const evaluated = testSamples.map((s) => ({ s, p: predict(model, s.pixels) }));
+  const wrongOnly = evaluated.filter((e) => e.p !== e.s.label);
+  const list = mode === 'wrong' ? wrongOnly : evaluated.slice(0, 24);
+  const visible = list.slice(0, showCount);
+
   return (
-    <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2 mt-3">
-      {samples.map((s, i) => {
-        const p = predict(model, s.pixels);
-        const right = p === s.label;
-        return (
-          <div key={i} className={`card p-2 text-center ${right ? '' : 'border-rose-500/50'}`}>
-            <PixelView pixels={s.pixels} />
-            <div className="text-xs mt-1 font-mono">
-              {s.label} → <span className={right ? 'text-emerald-600' : 'text-rose-600'}>{p}</span>
+    <div className="mt-3">
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <button
+          onClick={() => { setMode('first24'); setShowCount(24); }}
+          className={`px-3 py-1 rounded-md text-sm border ${mode === 'first24' ? 'border-accent text-accent bg-accent-bg' : 'border-border text-muted'}`}
+        >
+          앞에서 24장
+        </button>
+        <button
+          onClick={() => { setMode('wrong'); setShowCount(24); }}
+          className={`px-3 py-1 rounded-md text-sm border ${mode === 'wrong' ? 'border-rose-500 text-rose-500 bg-rose-500/10' : 'border-border text-muted'}`}
+        >
+          ❌ 틀린 것만 보기 ({wrongOnly.length}장)
+        </button>
+        <span className="text-xs text-muted">
+          전체 {testSamples.length}장 중 {wrongOnly.length}장 틀림 ({((wrongOnly.length / Math.max(testSamples.length, 1)) * 100).toFixed(1)}%)
+        </span>
+      </div>
+
+      {mode === 'wrong' && wrongOnly.length === 0 && (
+        <div className="aside-tip text-sm">🎉 시험 데이터에서 틀린 그림이 한 장도 없어요!</div>
+      )}
+
+      <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
+        {visible.map(({ s, p }, i) => {
+          const right = p === s.label;
+          return (
+            <div key={i} className={`card p-2 text-center ${right ? '' : 'border-rose-500/50'}`}>
+              <PixelView pixels={s.pixels} />
+              <div className="text-xs mt-1 font-mono">
+                {s.label} → <span className={right ? 'text-emerald-600' : 'text-rose-600'}>{p}</span>
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+
+      {visible.length < list.length && (
+        <button onClick={() => setShowCount((n) => n + 48)} className="btn-ghost mt-3 text-sm">
+          더 보기 (+48장 · 남은 {list.length - visible.length}장)
+        </button>
+      )}
     </div>
   );
 }

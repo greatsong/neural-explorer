@@ -10,18 +10,31 @@ interface Props {
   maxDots?: number;
 }
 
-export function NetworkDiagram({ layers, labels, height = 240, maxDots = 12 }: Props) {
+export function NetworkDiagram({ layers, labels, height = 180, maxDots = 9 }: Props) {
   const W = 720;
   const H = height;
-  const pad = 24;
+  const padX = 90; // 첫/끝 레이블이 잘리지 않도록 좌우 여백 확보
+  const padTop = 14;
+  const padBot = 26;
   const colX = (k: number) =>
-    pad + (layers.length === 1 ? W / 2 : (k / (layers.length - 1)) * (W - pad * 2));
+    padX + (layers.length === 1 ? (W - padX * 2) / 2 : (k / (layers.length - 1)) * (W - padX * 2));
   const dotsFor = (n: number) => Math.min(n, maxDots);
+  const radiusFor = (d: number) => d <= 4 ? 6 : d <= 7 ? 5 : 4;
   const labelFor = (k: number) => {
     if (labels && labels[k]) return labels[k];
     if (k === 0) return `입력 (${layers[k]})`;
     if (k === layers.length - 1) return `출력 (${layers[k]})`;
     return `은닉 ${k} (${layers[k]})`;
+  };
+  const anchorFor = (k: number): 'start' | 'middle' | 'end' => {
+    if (k === 0) return 'start';
+    if (k === layers.length - 1) return 'end';
+    return 'middle';
+  };
+  const labelXFor = (k: number) => {
+    if (k === 0) return colX(k) - 18;
+    if (k === layers.length - 1) return colX(k) + 18;
+    return colX(k);
   };
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full border border-border rounded-md bg-surface/40">
@@ -31,9 +44,9 @@ export function NetworkDiagram({ layers, labels, height = 240, maxDots = 12 }: P
         const dB = dotsFor(layers[k + 1]);
         const lines: ReactElement[] = [];
         for (let i = 0; i < dA; i++) {
-          const y1 = (H - 40) * ((i + 1) / (dA + 1)) + 20;
+          const y1 = padTop + (H - padTop - padBot) * ((i + 1) / (dA + 1));
           for (let j = 0; j < dB; j++) {
-            const y2 = (H - 40) * ((j + 1) / (dB + 1)) + 20;
+            const y2 = padTop + (H - padTop - padBot) * ((j + 1) / (dB + 1));
             lines.push(
               <line key={`${k}-${i}-${j}`} x1={x1} y1={y1} x2={x2} y2={y2}
                 stroke="rgb(var(--color-border))" strokeWidth={0.4} />
@@ -45,6 +58,7 @@ export function NetworkDiagram({ layers, labels, height = 240, maxDots = 12 }: P
       {layers.map((n, k) => {
         const x = colX(k);
         const d = dotsFor(n);
+        const r = radiusFor(d);
         const truncated = n > maxDots;
         const isInput = k === 0;
         const isOutput = k === layers.length - 1;
@@ -52,13 +66,15 @@ export function NetworkDiagram({ layers, labels, height = 240, maxDots = 12 }: P
         return (
           <g key={`n-${k}`}>
             {Array.from({ length: d }).map((_, i) => {
-              const y = (H - 40) * ((i + 1) / (d + 1)) + 20;
-              return <circle key={i} cx={x} cy={y} r={6} fill={fill} stroke="rgb(var(--color-bg))" strokeWidth={1} />;
+              const y = padTop + (H - padTop - padBot) * ((i + 1) / (d + 1));
+              return <circle key={i} cx={x} cy={y} r={r} fill={fill} stroke="rgb(var(--color-bg))" strokeWidth={1} />;
             })}
             {truncated && (
-              <text x={x} y={H - 30} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">⋮</text>
+              <text x={x} y={H - padBot + 2} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">⋮</text>
             )}
-            <text x={x} y={H - 6} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">{labelFor(k)}</text>
+            <text x={labelXFor(k)} y={H - 6} textAnchor={anchorFor(k)} fontSize={11} fill="rgb(var(--color-muted))">
+              {labelFor(k)}
+            </text>
           </g>
         );
       })}
