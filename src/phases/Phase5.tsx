@@ -5,15 +5,24 @@ const DATA: [number, number][] = [
   [1, 3], [2, 5], [3, 7], [4, 9], [5, 11],
 ];
 
+// 손실 = 평균 ½ × (실제 − 예측)². ½은 미분할 때 2가 깔끔히 사라지도록 붙인 트릭이에요.
 const lossFn = (w: number, b: number) =>
-  DATA.reduce((acc, [x, y]) => acc + (w * x + b - y) ** 2, 0) / DATA.length;
+  DATA.reduce((acc, [x, y]) => {
+    const yhat = w * x + b;
+    return acc + 0.5 * (y - yhat) ** 2;
+  }, 0) / DATA.length;
 
+// PPT 흐름과 일치하는 부호 약속:
+//   오차 r = 실제 − 예측 = y − ŷ
+//   ∂L/∂w = −r·x,   ∂L/∂b = −r
+//   업데이트: w ← w − lr·dw = w + lr · 평균(r·x)
 const gradient = (w: number, b: number) => {
   let dw = 0, db = 0;
   DATA.forEach(([x, y]) => {
-    const e = w * x + b - y;
-    dw += 2 * e * x;
-    db += 2 * e;
+    const yhat = w * x + b;
+    const r = y - yhat;
+    dw += -r * x;
+    db += -r;
   });
   return { dw: dw / DATA.length, db: db / DATA.length };
 };
@@ -59,8 +68,8 @@ export function Phase5() {
 
   const perPoint = DATA.map(([x, y]) => {
     const pred = w * x + b;
-    const err = pred - y;
-    return { x, y, pred, err, dwContrib: 2 * err * x, dbContrib: 2 * err };
+    const r = y - pred; // 잔차 = 실제 − 예측
+    return { x, y, pred, r, dwContrib: -r * x, dbContrib: -r };
   });
 
   return (
@@ -111,7 +120,7 @@ export function Phase5() {
               <th className="text-left py-1">x</th>
               <th>실제 y</th>
               <th>예측 (w·x+b)</th>
-              <th>오차 (예측−실제)</th>
+              <th>오차 (실제−예측)</th>
             </tr>
           </thead>
           <tbody>
@@ -120,8 +129,8 @@ export function Phase5() {
                 <td className="py-1">{p.x}</td>
                 <td className="text-center">{p.y}</td>
                 <td className="text-center">{p.pred.toFixed(2)}</td>
-                <td className={`text-center ${Math.abs(p.err) > 0.5 ? 'text-amber-600 dark:text-amber-400' : 'text-muted'}`}>
-                  {p.err.toFixed(2)}
+                <td className={`text-center ${Math.abs(p.r) > 0.5 ? 'text-amber-600 dark:text-amber-400' : 'text-muted'}`}>
+                  {p.r.toFixed(2)}
                 </td>
               </tr>
             ))}
@@ -131,95 +140,104 @@ export function Phase5() {
 
       <h2>② 기울기 계산 — 오차로부터 "어느 쪽이 내리막인지" 뽑아내기</h2>
       <p className="text-sm text-muted">
-        손실 = (오차)². 두 층의 기울기를 곱하는 방식으로 풀면 <code>w</code>의 기울기는 각 데이터의 <code>오차×입력</code>을 평균낸 값,
-        <code>b</code>의 기울기는 오차의 평균이 됩니다.
+        손실에 <strong>½</strong>을 붙여 두면(스텝 1 참고) 두 층 기울기 곱이 <strong>오차 × x</strong> 처럼 깔끔히 떨어집니다.
+        그래서 <code>w</code>의 기울기는 점마다 <code>−오차×x</code>의 평균, <code>b</code>의 기울기는 점마다 <code>−오차</code>의 평균이에요.
       </p>
-      <details className="mt-3 card p-4 text-sm">
-        <summary className="cursor-pointer font-medium">📝 한 줄씩 따라가기 — 미분 안 배운 학생을 위한 단계별 풀이</summary>
+      <details className="mt-3 card p-4 text-sm" open>
+        <summary className="cursor-pointer font-medium">📝 한 줄씩 따라가기 — 미분 안 배운 학생을 위한 7단계 유도</summary>
         <div className="mt-3 space-y-4 leading-relaxed">
-          <Step n="1" title="기호 정리">
+          <Step n="1" title='손실 정의에 "½" 붙이기 — 미분 트릭'>
             <p>
-              데이터 한 점은 (입력 x, 실제 y) 한 쌍이에요. 그 점에서:
+              먼저 한 점의 손실을 <strong>제곱 오차</strong>로 정의합니다.
             </p>
-            <ul className="text-xs text-muted list-disc pl-5 mt-1 space-y-1">
-              <li>예측 = w × x + b</li>
-              <li>오차 e = 예측 − 실제 = w × x + b − y</li>
-              <li>한 점의 손실 = 오차의 제곱 = e × e</li>
-              <li>전체 손실 L = (점마다 손실을 모두 더한 값) ÷ (점 개수)</li>
-            </ul>
-          </Step>
-          <Step n="2" title="L의 두 층 구조 알아채기">
-            <p>
-              <code>L = e²</code>이고 <code>e = w·x + b − y</code>. 즉, 두 단계의 변화 흐름이에요.
+            <div className="font-mono text-xs mt-2 p-2 bg-surface/60 border border-border rounded">
+              SE = (실제 − 예측)² = (y − ŷ)²
+            </div>
+            <p className="mt-2">
+              그런데 다음 단계에서 "두 층의 기울기 곱"을 적용하면 겉층에서 <strong>2</strong>가 튀어나와요.
+              그 2를 미리 깔끔히 없애려고 손실 앞에 <strong>½</strong>을 붙입니다.
             </p>
-            <ul className="text-xs text-muted list-disc pl-5 mt-1 space-y-1">
-              <li><strong>안층</strong>: w가 변하면 e가 변한다 (e = wx + b − y)</li>
-              <li><strong>겉층</strong>: e가 변하면 L이 변한다 (L = e²)</li>
-            </ul>
-          </Step>
-          <Step n="3" title="겉층의 기울기: e가 1 변하면 L은? → 2e">
-            <p>
-              워밍업에서 본 패턴 그대로. <code>L = e²</code>의 한 점에서 기울기는 <code>2e</code>예요.
-              지금 <code>e = 3</code>이면 e를 살짝 늘릴 때 L은 약 6배로 커지고, <code>e = −5</code>면 L은 −10 방향(줄어드는 쪽)으로 갑니다.
+            <div className="font-mono text-xs mt-2 p-2 bg-surface/60 border border-border rounded">
+              SE = ½ × (실제 − 예측)² = ½ (y − ŷ)²
+            </div>
+            <p className="text-xs text-muted mt-1">
+              ½은 손실의 "절대값"만 살짝 줄여줄 뿐, 어디가 골짜기인지 위치는 변하지 않아요.
             </p>
           </Step>
-          <Step n="4" title="안층의 기울기: w가 1 변하면 e는? → x">
+          <Step n="2" title="경사 하강법의 핵심 식">
             <p>
-              <code>e = w·x + b − y</code>에서 <code>x</code>·<code>b</code>·<code>y</code>는 그 점에선 상수예요.
-              w 한 값만 1 늘리면 wx 항이 x만큼 커지므로 e도 정확히 <strong>x만큼</strong> 늘어납니다.
+              "지금 위치에서 손실이 가장 빨리 늘어나는 방향의 기울기"의 <strong>반대</strong>로, <strong>학습률만큼</strong> 한 발짝 가는 게 경사 하강법.
+            </p>
+            <div className="font-mono text-xs mt-2 p-2 bg-surface/60 border border-border rounded">
+              새 w = 지금 w − (학습률 × w에 대한 손실 기울기)
+            </div>
+          </Step>
+          <Step n="3" title="겉층의 기울기 (½ ×  ²의 안쪽이 1만큼 변할 때 손실은?)">
+            <p>
+              한 점의 손실 <code>½ × (실제 − 예측)²</code>에서, 안쪽 <code>(실제 − 예측)</code>을 통째로 한 변수로 보면 <code>½ × □²</code> 모양.
+              □가 1만큼 변할 때 손실은 <strong>□ 만큼</strong> 변해요(½ × 2 = 1로 깔끔!).
+              지금 □ = (실제 − 예측) = 오차이니, 겉층 기울기는 <strong>오차</strong>입니다.
+            </p>
+          </Step>
+          <Step n="4" title="안층의 기울기 (w가 1만큼 늘면 (실제 − 예측)은?)">
+            <p>
+              <code>실제 − 예측 = y − (w·x + b)</code>. 여기서 <code>x</code>·<code>y</code>·<code>b</code>는 그 점의 상수.
+              w를 1만큼 늘리면 <code>−wx</code> 항이 <strong>−x 만큼</strong> 줄어드니, (실제 − 예측)도 <strong>−x</strong>만큼 변합니다.
             </p>
             <p className="text-xs text-muted mt-1">
-              같은 방식으로 b를 1 늘리면 e는 <strong>1만큼</strong>.
+              같은 방식으로 b를 1 늘리면 (실제 − 예측)은 <strong>−1</strong>만큼.
             </p>
           </Step>
-          <Step n="5" title="두 층의 기울기를 곱한다 (양파 까기)">
+          <Step n="5" title="두 층 기울기를 곱한다 (양파 까기)">
             <p>
-              w를 1 늘리면 → e가 x만큼 → L이 (2e × x)만큼 변해요.
-              w → e → L로 변화가 흐를 때, 각 층의 기울기를 <strong>곱</strong>하면 전체 기울기예요. 톱니바퀴 두 개의 기어비 곱과 같은 발상.
+              w → (실제 − 예측) → 손실로 변화가 흐를 때, 각 층의 기울기를 <strong>곱</strong>하면 전체 기울기.
             </p>
             <div className="font-mono text-xs mt-2 p-2 bg-surface/60 border border-border rounded">
-              한 점에서 w에 대한 기울기 = (겉층 기울기) × (안층 기울기) = 2 × 오차 × x<br />
-              한 점에서 b에 대한 기울기 = 2 × 오차 × 1 = 2 × 오차
+              한 점에서 w에 대한 기울기 = (겉층) × (안층) = 오차 × (−x) = − 오차 × x<br />
+              한 점에서 b에 대한 기울기 = 오차 × (−1) = − 오차
             </div>
           </Step>
-          <Step n="6" title="모든 데이터에 대해 평균">
+          <Step n="6" title="업데이트 식 — 마이너스 두 개가 만나 플러스">
             <p>
-              한 점이 아니라 N개 데이터 전체 손실은 평균이니까, 기울기도 각 점의 기여를 <strong>평균</strong>합니다.
+              스텝 2의 식에 스텝 5의 결과를 그대로 넣으면 <strong>마이너스 두 번이 곱해져 플러스</strong>가 됩니다.
             </p>
             <div className="font-mono text-xs mt-2 p-2 bg-surface/60 border border-border rounded">
-              dw = (모든 점에서 2 × 오차 × x를 더한 합) ÷ (점 개수)<br />
-              db = (모든 점에서 2 × 오차를 더한 합) ÷ (점 개수)
+              새 w = w − 학습률 × (− 오차 × x) = w + 학습률 × 오차 × x<br />
+              새 b = w − 학습률 × (− 오차) = b + 학습률 × 오차
             </div>
+            <p className="text-xs text-muted mt-1">
+              직관: 예측이 실제보다 작으면 (오차 &gt; 0) → w를 키우는 쪽으로, x가 클수록 더 크게.
+            </p>
           </Step>
-          <Step n="7" title="부호의 의미와 한 발짝 이동">
+          <Step n="7" title="모든 점에 대해 평균">
             <p>
-              dw가 음수면 "여기서 w를 키우면 손실이 줄어든다"는 뜻. 양수면 줄여야 한다는 뜻.
-              그래서 다음 한 발짝은 <strong>부호 반대 방향</strong>으로 학습률만큼 움직입니다.
+              점이 N개라면 각 점의 기여를 <strong>평균</strong>합니다(전체 손실이 평균이니까).
             </p>
             <div className="font-mono text-xs mt-2 p-2 bg-surface/60 border border-border rounded">
-              새 w = 지금 w − (학습률 × dw)<br />
-              새 b = 지금 b − (학습률 × db)
+              새 w = w + 학습률 × ((점마다 오차 × x를 더한 합) ÷ 점 개수)<br />
+              새 b = b + 학습률 × ((점마다 오차를 더한 합) ÷ 점 개수)
             </div>
           </Step>
         </div>
       </details>
       <div className="card p-4 mt-3 font-mono text-sm space-y-2">
-        <div className="text-xs text-muted">w의 기울기 (dw):</div>
+        <div className="text-xs text-muted">점마다 오차 × x를 더한 합 ÷ 점 개수:</div>
         <div className="flex flex-wrap items-center gap-1">
           {perPoint.map((p, i) => (
             <span key={p.x} className="inline-flex items-center gap-1">
-              <span className="text-muted">2×({p.err.toFixed(2)})×{p.x}</span>
+              <span className="text-muted">({p.r.toFixed(2)})×{p.x}</span>
               {i < perPoint.length - 1 && <span className="text-muted">+</span>}
             </span>
           ))}
-          <span className="text-muted">÷ {DATA.length}</span>
+          <span className="text-muted">÷ {DATA.length} = <span className="text-accent">{(-dw).toFixed(3)}</span></span>
         </div>
+        <div className="text-xs text-muted">→ 그래서 w에 대한 기울기 dw =</div>
         <div>
           dw = <span className="text-accent">{dw.toFixed(3)}</span>
           {' '}
           {Math.abs(dw) < 0.01 ? '(거의 0 — 도착!)' : dw > 0 ? '(+ → w를 줄여야 함)' : '(− → w를 키워야 함)'}
         </div>
-        <div className="border-t border-border pt-2 mt-2 text-xs text-muted">b의 기울기 (db):</div>
+        <div className="border-t border-border pt-2 mt-2 text-xs text-muted">b의 기울기 db = − 오차의 평균:</div>
         <div>
           db = <span className="text-accent">{db.toFixed(3)}</span>
           {' '}
@@ -238,10 +256,13 @@ export function Phase5() {
         <GradientBoard w={w} b={b} dw={dw} db={db} history={history} />
       </div>
 
-      <h2>③ 수정 — 기울기 반대 방향으로 학습률만큼 이동</h2>
+      <h2>③ 수정 — "오차×x의 평균"만큼 더하기</h2>
+      <p className="text-sm text-muted">
+        부호를 정리하고 보면 결국 "오차가 양수(예측이 작다)면 w를 키운다, x가 클수록 많이 키운다"가 전부예요.
+      </p>
       <div className="card p-4 mt-3 font-mono text-sm space-y-1">
-        <div>새 w = w − (학습률 × dw) = {w.toFixed(3)} − ({lr.toFixed(3)} × {dw.toFixed(3)}) = <span className="text-accent">{(w - lr * dw).toFixed(3)}</span></div>
-        <div>새 b = b − (학습률 × db) = {b.toFixed(3)} − ({lr.toFixed(3)} × {db.toFixed(3)}) = <span className="text-accent">{(b - lr * db).toFixed(3)}</span></div>
+        <div>새 w = w + 학습률 × (오차×x의 평균) = {w.toFixed(3)} + ({lr.toFixed(3)} × {(-dw).toFixed(3)}) = <span className="text-accent">{(w - lr * dw).toFixed(3)}</span></div>
+        <div>새 b = b + 학습률 × (오차의 평균) = {b.toFixed(3)} + ({lr.toFixed(3)} × {(-db).toFixed(3)}) = <span className="text-accent">{(b - lr * db).toFixed(3)}</span></div>
       </div>
       <details className="mt-3 card p-4 text-sm">
         <summary className="cursor-pointer font-medium">🤔 왜 "빼기"이고, 학습률은 또 뭐지?</summary>
@@ -415,21 +436,22 @@ function KeulgiWarmup() {
   );
 }
 
-// 합성함수 미분의 직관: w → e → L 두 단계 변화율의 곱
+// PPT 흐름과 일치: 손실 = ½(실제 − 예측)² · 오차 r = 실제 − 예측
 function ChainRule({ w, b }: { w: number; b: number }) {
   const [pickX, setPickX] = useState(3); // 데이터 한 점 골라보기 (1~5)
-  const x = pickX, y = 2 * x + 1; // 정답 데이터 (w=2, b=1 가정)
-  const e = w * x + b - y;
-  const dEdW = x; // 안층 변화율
-  const dLdE = 2 * e; // 겉층 변화율
-  const dLdW = dLdE * dEdW; // 두 층의 기울기를 곱한 결과
+  const x = pickX, y = 2 * x + 1; // 정답 데이터 (w=2, b=1 기준)
+  const pred = w * x + b;
+  const r = y - pred;     // 오차 = 실제 − 예측
+  const dInner = -x;      // 안층 기울기: w가 1 늘면 (실제−예측)은 −x만큼
+  const dOuter = r;       // 겉층 기울기: 안쪽이 1 늘면 ½ ×  ²로 r만큼
+  const dLdW = dOuter * dInner; // 두 층 기울기 곱 = -r·x
 
   return (
     <div className="card p-4 mt-3">
       <p className="text-sm text-muted">
         예를 들어 <strong>x = {x}</strong> 데이터(<code>실제 y = {y}</code>)를 골라봅시다.
-        지금 모델 <code>(w={w.toFixed(2)}, b={b.toFixed(2)})</code>의 예측은 <code>{(w*x + b).toFixed(2)}</code>이고
-        오차 <code>e = {e.toFixed(2)}</code>예요.
+        지금 모델 <code>(w={w.toFixed(2)}, b={b.toFixed(2)})</code>의 예측은 <code>{pred.toFixed(2)}</code>,
+        오차(실제 − 예측) <code>r = {r.toFixed(2)}</code>예요.
       </p>
       <label className="block mt-3 max-w-xs">
         <div className="flex justify-between text-xs mb-1">
@@ -442,35 +464,35 @@ function ChainRule({ w, b }: { w: number; b: number }) {
 
       <div className="grid sm:grid-cols-3 gap-2 mt-4 text-sm">
         <ChainBox
-          title="①  w가 1 늘면 e는?"
-          formula="안층의 기울기 = x"
-          value={`= ${dEdW}`}
-          desc="안쪽 식 e의 변화량"
+          title="①  w가 1 늘면 (실제 − 예측)은?"
+          formula="안층의 기울기 = −x"
+          value={`= ${dInner}`}
+          desc="안쪽 식의 변화량"
         />
         <ChainBox
-          title="②  e가 1 늘면 L은?"
-          formula="겉층의 기울기 = 2e"
-          value={`= ${dLdE.toFixed(2)}`}
-          desc="바깥쪽 식 L의 변화량"
+          title="②  안쪽이 1 늘면 손실은?"
+          formula="겉층의 기울기 = (실제 − 예측) = r"
+          value={`= ${dOuter.toFixed(2)}`}
+          desc="½×  ² 의 깔끔함"
           accent="amber"
         />
         <ChainBox
           title="③  두 기울기를 곱한다"
-          formula="(겉층) × (안층)"
-          value={`= ${dLdE.toFixed(2)} × ${dEdW} = ${dLdW.toFixed(2)}`}
-          desc="w가 1 늘 때 L의 변화량"
+          formula="겉층 × 안층 = r × (−x)"
+          value={`= ${dOuter.toFixed(2)} × ${dInner} = ${dLdW.toFixed(2)}`}
+          desc="이게 dw에 그대로 들어감"
           accent="accent"
         />
       </div>
 
       <div className="mt-4 text-sm">
         <div className="font-medium">🔗 흐름 시각화</div>
-        <ChainFlow x={x} e={e} dEdW={dEdW} dLdE={dLdE} />
+        <ChainFlow x={x} r={r} dInner={dInner} dOuter={dOuter} />
       </div>
 
       <p className="text-xs text-muted mt-3">
-        같은 방식으로 <code>b</code>도: 안층 기울기 = 1, 겉층 기울기 = 2e ⇒ b의 기울기 = <strong>2e × 1 = {(2*e).toFixed(2)}</strong>.
-        b는 안층 기울기가 1이라 단순히 <strong>2e</strong>가 그 점의 기여가 됩니다.
+        같은 방식으로 <code>b</code>도: 안층 기울기 = −1, 겉층 기울기 = r ⇒ b의 기울기 = <strong>r × (−1) = {(-r).toFixed(2)}</strong>.
+        업데이트 식에 들어가면 마이너스가 한 번 더 만나 결국 <strong>+ r</strong> 만큼 b를 더해줍니다.
       </p>
     </div>
   );
@@ -488,8 +510,8 @@ function ChainBox({ title, formula, value, desc, accent = 'muted' }: { title: st
   );
 }
 
-// w → e → L 변화 흐름을 박스+화살표로
-function ChainFlow({ x, e, dEdW, dLdE }: { x: number; e: number; dEdW: number; dLdE: number }) {
+// w → (실제 − 예측) → 손실 흐름을 박스+화살표로
+function ChainFlow({ x, r, dInner, dOuter }: { x: number; r: number; dInner: number; dOuter: number }) {
   const W = 460, H = 110;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-2">
@@ -499,15 +521,14 @@ function ChainFlow({ x, e, dEdW, dLdE }: { x: number; e: number; dEdW: number; d
         </marker>
       </defs>
       <FlowBox cx={70} cy={H/2} label="w" sub="가중치" color="rgb(96,165,250)" />
-      <FlowBox cx={230} cy={H/2} label={`e = ${e.toFixed(2)}`} sub="오차(안층)" color="rgb(251,146,60)" wide />
-      <FlowBox cx={400} cy={H/2} label="L = e²" sub="손실(겉층)" color="rgb(16,185,129)" wide />
-      {/* 화살표 */}
+      <FlowBox cx={230} cy={H/2} label={`r = ${r.toFixed(2)}`} sub="실제−예측 (안층)" color="rgb(251,146,60)" wide />
+      <FlowBox cx={400} cy={H/2} label="L = ½r²" sub="손실 (겉층)" color="rgb(16,185,129)" wide />
       <line x1={108} y1={H/2} x2={180} y2={H/2} stroke="rgb(var(--color-muted))" strokeWidth={1.5} markerEnd="url(#cf-arrow)" />
-      <text x={144} y={H/2 - 8} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">×{dEdW} (= x)</text>
+      <text x={144} y={H/2 - 8} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">×{dInner} (= −x)</text>
       <line x1={290} y1={H/2} x2={350} y2={H/2} stroke="rgb(var(--color-muted))" strokeWidth={1.5} markerEnd="url(#cf-arrow)" />
-      <text x={320} y={H/2 - 8} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">×{dLdE.toFixed(2)} (= 2e)</text>
+      <text x={320} y={H/2 - 8} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">×{dOuter.toFixed(2)} (= r)</text>
       <text x={W/2} y={H - 6} textAnchor="middle" fontSize={11} fill="rgb(var(--color-muted))">
-        w가 1만큼 → e는 {x}만큼 → L은 {(dEdW * dLdE).toFixed(2)}만큼 변한다
+        w가 1만큼 → r은 {(-x)}만큼 → L은 {(dInner * dOuter).toFixed(2)}만큼 변한다
       </text>
     </svg>
   );
