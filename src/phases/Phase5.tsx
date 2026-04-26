@@ -33,6 +33,7 @@ export function Phase5() {
   const [history, setHistory] = useState<{ w: number; b: number; loss: number }[]>([
     { w: 0, b: 0, loss: lossFn(0, 0) },
   ]);
+  const [prev, setPrev] = useState<{ w: number; b: number } | null>(null);
   const markCompleted = useApp((s) => s.markCompleted);
 
   const loss = lossFn(w, b);
@@ -41,6 +42,7 @@ export function Phase5() {
   const step = () => {
     const nw = w - lr * dw;
     const nb = b - lr * db;
+    setPrev({ w, b });
     setW(nw); setB(nb);
     setHistory((h) => [...h, { w: nw, b: nb, loss: lossFn(nw, nb) }]);
     if (lossFn(nw, nb) < 0.05) markCompleted('p5');
@@ -55,6 +57,7 @@ export function Phase5() {
       cb -= lr * g.db;
       newH.push({ w: cw, b: cb, loss: lossFn(cw, cb) });
     }
+    setPrev({ w, b });
     setW(cw); setB(cb);
     setHistory((h) => [...h, ...newH]);
     if (lossFn(cw, cb) < 0.05) markCompleted('p5');
@@ -62,6 +65,7 @@ export function Phase5() {
 
   const reset = () => {
     setW(0); setB(0);
+    setPrev(null);
     setHistory([{ w: 0, b: 0, loss: lossFn(0, 0) }]);
   };
 
@@ -277,8 +281,8 @@ export function Phase5() {
         왼쪽 단면은 한 축씩 잘라본 모습, 오른쪽은 그 곡면을 비스듬히 본 3D 와이어프레임이에요.
       </p>
       <div className="grid lg:grid-cols-2 gap-4 mt-4">
-        <SlicePlot w={w} b={b} dw={dw} db={db} lr={lr} />
-        <GradientBoard w={w} b={b} dw={dw} db={db} history={history} />
+        <SlicePlot w={w} b={b} dw={dw} db={db} lr={lr} prev={prev} />
+        <GradientBoard w={w} b={b} dw={dw} db={db} history={history} prev={prev} />
       </div>
 
       <h2>③ 수정 — 기울기 반대 방향으로 학습률만큼 이동</h2>
@@ -325,27 +329,25 @@ export function Phase5() {
         </div>
       </details>
 
-      <div className="grid sm:grid-cols-3 gap-3 mt-6 font-mono text-sm">
-        <Stat label="현재 w" value={w.toFixed(3)} />
-        <Stat label="현재 b" value={b.toFixed(3)} />
-        <Stat label="손실" value={loss.toFixed(4)} highlight={loss < 0.05} />
-      </div>
-
-      <div className="mt-4">
-        <label className="block">
-          <div className="flex justify-between text-sm mb-1">
+      <div className="sticky bottom-2 z-20 mt-6 rounded-lg border border-border bg-bg/85 backdrop-blur-md shadow-lg p-3">
+        <div className="grid sm:grid-cols-3 gap-2 font-mono text-sm">
+          <Stat label="현재 w" value={w.toFixed(3)} />
+          <Stat label="현재 b" value={b.toFixed(3)} />
+          <Stat label="손실" value={loss.toFixed(4)} highlight={loss < 0.05} />
+        </div>
+        <label className="block mt-3">
+          <div className="flex justify-between text-xs mb-1">
             <span>학습률 (한 발짝 크기)</span>
             <span className="font-mono text-accent">{lr.toFixed(3)}</span>
           </div>
           <input type="range" min={0.001} max={0.1} step={0.001} value={lr}
             onChange={(e) => setLr(parseFloat(e.target.value))} className="w-full" />
         </label>
-      </div>
-
-      <div className="flex flex-wrap gap-2 mt-4">
-        <button onClick={step} className="btn-primary" disabled={loss < 0.001}>① ② ③ 한 번 실행</button>
-        <button onClick={step20} className="btn-ghost" disabled={loss < 0.001}>20번 반복</button>
-        <button onClick={reset} className="btn-ghost">초기화</button>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <button onClick={step} className="btn-primary" disabled={loss < 0.001}>① ② ③ 한 번 실행</button>
+          <button onClick={step20} className="btn-ghost" disabled={loss < 0.001}>20번 반복</button>
+          <button onClick={reset} className="btn-ghost">초기화</button>
+        </div>
       </div>
 
       {loss < 0.05 && (
@@ -600,7 +602,7 @@ function FlowBox({ cx, cy, hw, label, sub, color }: { cx: number; cy: number; hw
 }
 
 // 1D 단면: 한 축(w 또는 b)을 따라 잘라본 손실 곡선
-function SlicePlot({ w, b, dw, db, lr }: { w: number; b: number; dw: number; db: number; lr: number }) {
+function SlicePlot({ w, b, dw, db, lr, prev }: { w: number; b: number; dw: number; db: number; lr: number; prev: { w: number; b: number } | null }) {
   const [axis, setAxis] = useState<'w' | 'b'>('w');
   const W = 380, H = 240, padL = 38, padR = 12, padT = 14, padB = 28;
   const isW = axis === 'w';
@@ -651,6 +653,11 @@ function SlicePlot({ w, b, dw, db, lr }: { w: number; b: number; dw: number; db:
         접선의 기울기가 곧 d{axisLabel}. 다음 한 발짝(▲)이 어디에 떨어지는지 보세요.
       </p>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-2">
+        <defs>
+          <marker id="slice-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" fill="rgb(var(--color-accent))" />
+          </marker>
+        </defs>
         <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="rgb(var(--color-border))" />
         <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="rgb(var(--color-border))" />
         <text x={W - padR} y={H - 8} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">{axisLabel}</text>
@@ -658,6 +665,26 @@ function SlicePlot({ w, b, dw, db, lr }: { w: number; b: number; dw: number; db:
         <path d={path} fill="none" stroke="rgb(var(--color-text))" strokeOpacity={0.7} strokeWidth={1.5} />
         <line x1={sx(vMin)} y1={sy(Math.max(0, Math.min(lMax, ty1)))} x2={sx(vMax)} y2={sy(Math.max(0, Math.min(lMax, ty2)))}
           stroke="rgb(251, 146, 60)" strokeWidth={1.5} strokeOpacity={0.85} strokeDasharray="4 3" />
+        {/* 이전 위치(잔상) + 이전 → 현재 화살표 */}
+        {prev && (() => {
+          const prevV = isW ? prev.w : prev.b;
+          const Lprev = lossAt(prevV);
+          // 그래프 범위를 벗어나면 잔상 생략
+          if (prevV < vMin || prevV > vMax) return null;
+          const px = sx(prevV), py = sy(Lprev);
+          const cxp = sx(cur), cyp = sy(Lhere);
+          // 점이 거의 같으면 화살표 생략
+          const tooClose = Math.hypot(px - cxp, py - cyp) < 6;
+          return (
+            <g>
+              <circle cx={px} cy={py} r={4} fill="none" stroke="rgb(var(--color-accent))" strokeOpacity={0.5} strokeWidth={1.5} strokeDasharray="2 2" />
+              {!tooClose && (
+                <line x1={px} y1={py} x2={cxp} y2={cyp}
+                  stroke="rgb(var(--color-accent))" strokeOpacity={0.6} strokeWidth={1.4} markerEnd="url(#slice-arrow)" />
+              )}
+            </g>
+          );
+        })()}
         <circle cx={sx(cur)} cy={sy(Lhere)} r={5} fill="rgb(var(--color-accent))" stroke="white" strokeWidth={1.5} />
         <g transform={`translate(${sx(next)}, ${sy(Lnext)})`}>
           <polygon points="0,-6 5,3 -5,3" fill="rgb(16,185,129)" />
@@ -681,8 +708,8 @@ function Stat({ label, value, highlight }: { label: string; value: string; highl
 
 // 손실 풍경을 3D 와이어프레임으로 — w·b·L 세 축의 그릇 모양을 비스듬히 본 시점
 function GradientBoard({
-  w, b, dw, db, history,
-}: { w: number; b: number; dw: number; db: number; history: { w: number; b: number; loss: number }[] }) {
+  w, b, dw, db, history, prev,
+}: { w: number; b: number; dw: number; db: number; history: { w: number; b: number; loss: number }[]; prev: { w: number; b: number } | null }) {
   const W = 380, H = 280;
   const cx = W / 2, cy = H * 0.78;
 
@@ -863,6 +890,21 @@ function GradientBoard({
           <line x1={cur.sx} y1={cur.sy} x2={arr.sx} y2={arr.sy}
             stroke="rgb(var(--color-accent))" strokeWidth={2} markerEnd="url(#arrow5)" />
         )}
+        {/* 이전 위치 잔상 + 이전 → 현재 강조선 */}
+        {prev && (() => {
+          const Lp = lossFn(prev.w, prev.b);
+          const pp = project(prev.w, prev.b, Lp);
+          const tooClose = Math.hypot(pp.sx - cur.sx, pp.sy - cur.sy) < 6;
+          return (
+            <g>
+              <circle cx={pp.sx} cy={pp.sy} r={5} fill="none" stroke="rgb(var(--color-accent))" strokeOpacity={0.55} strokeWidth={1.5} strokeDasharray="2 2" />
+              {!tooClose && (
+                <line x1={pp.sx} y1={pp.sy} x2={cur.sx} y2={cur.sy}
+                  stroke="rgb(var(--color-accent))" strokeOpacity={0.85} strokeWidth={2} />
+              )}
+            </g>
+          );
+        })()}
         {/* 현재 점 (표면 위) */}
         <circle cx={cur.sx} cy={cur.sy} r={6} fill="rgb(var(--color-accent))" stroke="white" strokeWidth={2} />
         <text x={cur.sx + 9} y={cur.sy - 9} fontSize={11} fill="rgb(var(--color-text))" fontFamily="JetBrains Mono">
