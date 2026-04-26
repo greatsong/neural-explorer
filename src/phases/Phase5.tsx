@@ -80,17 +80,26 @@ export function Phase5() {
         </p>
       </div>
 
-      <h2>📐 미분 5분 워밍업 — 곡선의 기울기 읽기</h2>
+      <h2>📐 변화량과 기울기 — 과학 시간에서 시작</h2>
       <p className="text-muted text-sm">
-        손실 함수는 <strong>2차 함수</strong>예요. 그래서 미분(기울기 읽기)을 알면 자동 학습이 보입니다. 우선 가장 기본인 <code>y = x²</code>부터.
+        손실은 2차 함수라 그릇 모양이에요. 컴퓨터가 그릇 바닥으로 굴러가려면 "지금 어느 쪽이 내리막인지"를 알아야 하는데,
+        그게 바로 <strong>곡선의 한 점에서의 기울기</strong>입니다. 과학 시간에 본 <strong>속도</strong>가 출발점이에요.
       </p>
-      <DerivativeWarmup />
+      <div className="aside-tip mt-3 text-sm">
+        <div className="font-medium">속도 → 직선의 기울기 → 곡선의 한 점 기울기, 모두 같은 발상</div>
+        <ul className="mt-2 space-y-1 list-disc pl-5">
+          <li><strong>속도</strong> = 거리의 변화량 ÷ 시간의 변화량 (과학 시간에 본 식 그대로)</li>
+          <li>거리-시간 그래프로 옮기면 그 값이 곧 <strong>직선의 기울기</strong> = Δy/Δx</li>
+          <li>곡선은 위치마다 기울기가 다른데, "한 점에서의 기울기"는 두 점을 <strong>점점 가까이 모은 극한</strong>으로 정해요 — 그게 접선의 기울기.</li>
+          <li>이 "접선의 기울기"를 어른들이 부르는 다른 이름이 미분이지만, 우리는 그냥 <strong>"한 점에서의 기울기"</strong>라고 부를게요.</li>
+        </ul>
+      </div>
+      <KeulgiWarmup />
 
-      <h2>🧅 합성함수의 미분 — 양파를 까듯이</h2>
+      <h2>🧅 두 층의 기울기를 곱하기 — 양파를 까듯이</h2>
       <p className="text-muted text-sm">
-        손실은 그냥 <code>x²</code>이 아니라 <code>(wx + b − y)²</code>처럼 <strong>안쪽에 또 다른 식</strong>이 들어 있어요.
-        이런 "겉이 ()² 안에 또 다른 식"인 함수를 <strong>합성함수</strong>라고 부릅니다.
-        합성함수의 미분은 단계별로 보면 어렵지 않아요.
+        손실은 그냥 <code>x²</code>이 아니라 <code>(wx + b − y)²</code>예요. <strong>안쪽에 또 다른 식</strong>이 들어 있는 합성함수.
+        이럴 땐 "겉층의 기울기"와 "안층의 기울기"를 따로따로 구한 뒤 <strong>곱하면</strong> 됩니다. 톱니바퀴 두 개를 맞물린 것과 같은 발상이에요.
       </p>
       <ChainRule w={w} b={b} />
 
@@ -120,54 +129,57 @@ export function Phase5() {
         </table>
       </div>
 
-      <h2>② 기울기 계산 — 오차로부터 "어디로 가야 하는지" 뽑아내기</h2>
+      <h2>② 기울기 계산 — 오차로부터 "어느 쪽이 내리막인지" 뽑아내기</h2>
       <p className="text-sm text-muted">
-        손실 = (오차)². 합성함수 미분을 적용하면 <code>w</code>의 기울기는 각 데이터의 <code>오차×입력</code>을 평균낸 값,
+        손실 = (오차)². 두 층의 기울기를 곱하는 방식으로 풀면 <code>w</code>의 기울기는 각 데이터의 <code>오차×입력</code>을 평균낸 값,
         <code>b</code>의 기울기는 오차의 평균이 됩니다.
       </p>
       <details className="mt-3 card p-4 text-sm">
-        <summary className="cursor-pointer font-medium">📝 식 한 줄씩 — 합성함수 미분을 안 배운 학생용 step-by-step</summary>
+        <summary className="cursor-pointer font-medium">📝 한 줄씩 따라가기 — 미분 안 배운 학생을 위한 단계별 풀이</summary>
         <div className="mt-3 space-y-4 leading-relaxed">
           <Step n="1" title="기호 정리">
             <p>
-              한 데이터 <code>(xᵢ, yᵢ)</code>에 대해 예측은 <code>ŷᵢ = w·xᵢ + b</code>, 오차는 <code>eᵢ = ŷᵢ − yᵢ</code>예요.
-              한 점의 손실은 <code>Lᵢ = eᵢ²</code>. 모든 점의 평균이 전체 손실 <code>L</code>입니다.
+              데이터 한 점은 (입력 x, 실제 y) 한 쌍이에요. 그 점에서:
             </p>
+            <ul className="text-xs text-muted list-disc pl-5 mt-1 space-y-1">
+              <li>예측 = w × x + b</li>
+              <li>오차 e = 예측 − 실제 = w × x + b − y</li>
+              <li>한 점의 손실 = 오차의 제곱 = e × e</li>
+              <li>전체 손실 L = (점마다 손실을 모두 더한 값) ÷ (점 개수)</li>
+            </ul>
           </Step>
-          <Step n="2" title="L = (e)² 의 두 층 구조 알아채기">
+          <Step n="2" title="L의 두 층 구조 알아채기">
             <p>
-              <code>L = e²</code>이고 <code>e = w·x + b − y</code>예요. 즉, 두 단계예요.
+              <code>L = e²</code>이고 <code>e = w·x + b − y</code>. 즉, 두 단계의 변화 흐름이에요.
             </p>
             <ul className="text-xs text-muted list-disc pl-5 mt-1 space-y-1">
               <li><strong>안층</strong>: w가 변하면 e가 변한다 (e = wx + b − y)</li>
               <li><strong>겉층</strong>: e가 변하면 L이 변한다 (L = e²)</li>
             </ul>
-            <p className="text-xs text-muted mt-1">합성함수란 이렇게 "함수 안에 또 함수"가 들어 있는 구조를 말해요.</p>
           </Step>
-          <Step n="3" title="겉층의 변화율: e가 1 변하면 L은? → 2e">
+          <Step n="3" title="겉층의 기울기: e가 1 변하면 L은? → 2e">
             <p>
-              <code>L = e²</code>의 도함수는 <code>(e²)' = 2e</code>. 워밍업에서 본 대로요.
-              지금 <code>e = 3</code>이면 e를 살짝 늘리면 L은 약 6배로 커져요. <code>e = −5</code>면 L은 −10 방향(즉 줄어드는 방향)으로.
+              워밍업에서 본 패턴 그대로. <code>L = e²</code>의 한 점에서 기울기는 <code>2e</code>예요.
+              지금 <code>e = 3</code>이면 e를 살짝 늘릴 때 L은 약 6배로 커지고, <code>e = −5</code>면 L은 −10 방향(줄어드는 쪽)으로 갑니다.
             </p>
           </Step>
-          <Step n="4" title="안층의 변화율: w가 1 변하면 e는? → x">
+          <Step n="4" title="안층의 기울기: w가 1 변하면 e는? → x">
             <p>
-              <code>e = w·x + b − y</code>를 <code>w</code>로 미분. <code>x</code>는 데이터값이라 상수처럼 보면, 답은 <code>x</code>.
-              "w가 1 늘면 e는 x만큼 늘어난다"는 뜻이에요.
+              <code>e = w·x + b − y</code>에서 <code>x</code>·<code>b</code>·<code>y</code>는 그 점에선 상수예요.
+              w 한 값만 1 늘리면 wx 항이 x만큼 커지므로 e도 정확히 <strong>x만큼</strong> 늘어납니다.
             </p>
             <p className="text-xs text-muted mt-1">
-              마찬가지로 <code>b</code>로 미분하면 <code>1</code>. "b가 1 늘면 e도 1만큼 늘어난다."
+              같은 방식으로 b를 1 늘리면 e는 <strong>1만큼</strong>.
             </p>
           </Step>
-          <Step n="5" title="두 변화율을 곱한다 (이게 체인 룰)">
+          <Step n="5" title="두 층의 기울기를 곱한다 (양파 까기)">
             <p>
               w를 1 늘리면 → e가 x만큼 → L이 (2e × x)만큼 변해요.
-              "w → e → L"로 변화가 흐르는데, 각 단계의 변화율을 <strong>곱</strong>하면 전체 변화율이 됩니다.
-              이게 합성함수의 미분(체인 룰)이에요.
+              w → e → L로 변화가 흐를 때, 각 층의 기울기를 <strong>곱</strong>하면 전체 기울기예요. 톱니바퀴 두 개의 기어비 곱과 같은 발상.
             </p>
             <div className="font-mono text-xs mt-2 p-2 bg-surface/60 border border-border rounded">
-              ∂Lᵢ/∂w = (∂Lᵢ/∂eᵢ) × (∂eᵢ/∂w) = 2eᵢ × xᵢ<br />
-              ∂Lᵢ/∂b = (∂Lᵢ/∂eᵢ) × (∂eᵢ/∂b) = 2eᵢ × 1
+              한 점에서 w에 대한 기울기 = (겉층 기울기) × (안층 기울기) = 2 × 오차 × x<br />
+              한 점에서 b에 대한 기울기 = 2 × 오차 × 1 = 2 × 오차
             </div>
           </Step>
           <Step n="6" title="모든 데이터에 대해 평균">
@@ -175,15 +187,19 @@ export function Phase5() {
               한 점이 아니라 N개 데이터 전체 손실은 평균이니까, 기울기도 각 점의 기여를 <strong>평균</strong>합니다.
             </p>
             <div className="font-mono text-xs mt-2 p-2 bg-surface/60 border border-border rounded">
-              dw = (Σ 2eᵢxᵢ) / N<br />
-              db = (Σ 2eᵢ) / N
+              dw = (모든 점에서 2 × 오차 × x를 더한 합) ÷ (점 개수)<br />
+              db = (모든 점에서 2 × 오차를 더한 합) ÷ (점 개수)
             </div>
           </Step>
           <Step n="7" title="부호의 의미와 한 발짝 이동">
             <p>
               dw가 음수면 "여기서 w를 키우면 손실이 줄어든다"는 뜻. 양수면 줄여야 한다는 뜻.
-              그래서 <code>w ← w − η · dw</code>로 <strong>부호 반대 방향</strong>으로 학습률 η만큼 움직입니다.
+              그래서 다음 한 발짝은 <strong>부호 반대 방향</strong>으로 학습률만큼 움직입니다.
             </p>
+            <div className="font-mono text-xs mt-2 p-2 bg-surface/60 border border-border rounded">
+              새 w = 지금 w − (학습률 × dw)<br />
+              새 b = 지금 b − (학습률 × db)
+            </div>
           </Step>
         </div>
       </details>
@@ -239,7 +255,7 @@ export function Phase5() {
             </p>
           </div>
           <div>
-            <div className="font-medium">학습률(η, learning rate)은 "한 발짝 크기"</div>
+            <div className="font-medium">학습률은 "한 발짝 크기"</div>
             <p className="text-muted mt-1">
               기울기는 방향만 알려줄 뿐, 얼마나 멀리 갈지는 말해주지 않아요.
               학습률은 0.05처럼 작은 수를 곱해서 한 번에 너무 멀리 가지 않게 막는 안전장치입니다.
@@ -307,25 +323,36 @@ function Step({ n, title, children }: { n: string; title: string; children: Reac
   );
 }
 
-// y = x² 그래프 + 슬라이더로 x 옮기며 접선 보기
-function DerivativeWarmup() {
-  const [x, setX] = useState(2);
+// y = x² 위의 두 점을 잇는 직선의 기울기를, 두 점이 가까워질수록 접선의 기울기에 수렴하는 모습으로 보여줌
+function KeulgiWarmup() {
+  const [x0, setX0] = useState(2);
+  const [h, setH] = useState(1);
   const W = 380, H = 240, padL = 36, padR = 12, padT = 14, padB = 28;
   const xMin = -3, xMax = 3, yMin = -1, yMax = 9.5;
   const sx = (v: number) => padL + ((v - xMin) / (xMax - xMin)) * (W - padL - padR);
   const sy = (v: number) => H - padB - ((v - yMin) / (yMax - yMin)) * (H - padT - padB);
 
-  // 포물선 경로
+  // y = x² 곡선
   let path = '';
   for (let i = 0; i <= 80; i++) {
     const xv = xMin + (i / 80) * (xMax - xMin);
     path += `${i === 0 ? 'M' : 'L'}${sx(xv)},${sy(xv * xv)} `;
   }
 
-  // 접선: y = 2x₀(t − x₀) + x₀²
-  const slope = 2 * x;
-  const t1y = slope * (xMin - x) + x * x;
-  const t2y = slope * (xMax - x) + x * x;
+  // 두 점
+  const P0x = x0, P0y = x0 * x0;
+  const P1x = x0 + h, P1y = P1x * P1x;
+  const dx = h;
+  const dy = P1y - P0y;
+  const secantSlope = dy / dx;       // 두 점을 잇는 직선의 기울기
+  const tangentSlope = 2 * x0;       // 두 점이 무한히 가까울 때의 값
+
+  // 두 점을 잇는 직선을 화면 끝까지 연장
+  const sec1y = secantSlope * (xMin - P0x) + P0y;
+  const sec2y = secantSlope * (xMax - P0x) + P0y;
+  // 접선 (참고용 점선)
+  const tan1y = tangentSlope * (xMin - P0x) + P0y;
+  const tan2y = tangentSlope * (xMax - P0x) + P0y;
 
   return (
     <div className="card p-4 mt-3">
@@ -336,32 +363,51 @@ function DerivativeWarmup() {
           <line x1={sx(0)} y1={padT} x2={sx(0)} y2={H - padB} stroke="rgb(var(--color-border))" />
           <text x={W - padR} y={sy(0) + 14} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">x</text>
           <text x={sx(0) + 4} y={padT + 10} fontSize={10} fill="rgb(var(--color-muted))">y</text>
-          {/* y=x² */}
+          {/* y = x² 곡선 */}
           <path d={path} fill="none" stroke="rgb(var(--color-text))" strokeOpacity={0.7} strokeWidth={1.5} />
-          {/* 접선 */}
-          <line x1={sx(xMin)} y1={sy(t1y)} x2={sx(xMax)} y2={sy(t2y)} stroke="rgb(251, 146, 60)" strokeWidth={2} strokeOpacity={0.9} />
-          {/* 현재 점 */}
-          <circle cx={sx(x)} cy={sy(x * x)} r={5} fill="rgb(var(--color-accent))" stroke="white" strokeWidth={1.5} />
-          <text x={sx(x) + 8} y={sy(x * x) - 8} fontSize={11} fill="rgb(var(--color-text))" fontFamily="JetBrains Mono">
-            ({x.toFixed(1)}, {(x * x).toFixed(2)})
-          </text>
+          {/* 접선(참고, 점선) */}
+          <line x1={sx(xMin)} y1={sy(tan1y)} x2={sx(xMax)} y2={sy(tan2y)}
+            stroke="rgb(var(--color-muted))" strokeWidth={1} strokeDasharray="3 3" />
+          {/* 두 점을 잇는 직선 */}
+          <line x1={sx(xMin)} y1={sy(sec1y)} x2={sx(xMax)} y2={sy(sec2y)}
+            stroke="rgb(251, 146, 60)" strokeWidth={2} />
+          {/* 변화량 표시 (수직·수평선) */}
+          <line x1={sx(P0x)} y1={sy(P0y)} x2={sx(P1x)} y2={sy(P0y)} stroke="rgb(96,165,250)" strokeWidth={1.2} />
+          <line x1={sx(P1x)} y1={sy(P0y)} x2={sx(P1x)} y2={sy(P1y)} stroke="rgb(96,165,250)" strokeWidth={1.2} />
+          <text x={(sx(P0x) + sx(P1x)) / 2} y={sy(P0y) + 12} textAnchor="middle" fontSize={10} fill="rgb(96,165,250)">Δx</text>
+          <text x={sx(P1x) + 4} y={(sy(P0y) + sy(P1y)) / 2} fontSize={10} fill="rgb(96,165,250)">Δy</text>
+          {/* 점 */}
+          <circle cx={sx(P0x)} cy={sy(P0y)} r={5} fill="rgb(var(--color-accent))" stroke="white" strokeWidth={1.5} />
+          <circle cx={sx(P1x)} cy={sy(P1y)} r={4} fill="rgb(251, 146, 60)" stroke="white" strokeWidth={1.5} />
         </svg>
-        <div className="text-sm space-y-3 lg:max-w-[220px]">
+        <div className="text-sm space-y-3 lg:max-w-[240px]">
           <label className="block">
             <div className="flex justify-between text-xs mb-1">
-              <span>x</span><span className="font-mono text-accent">{x.toFixed(2)}</span>
+              <span>점 위치 x₀</span><span className="font-mono text-accent">{x0.toFixed(2)}</span>
             </div>
-            <input type="range" min={-2.8} max={2.8} step={0.05} value={x}
-              onChange={(e) => setX(parseFloat(e.target.value))} className="w-full" />
+            <input type="range" min={-2.5} max={2.5} step={0.1} value={x0}
+              onChange={(e) => setX0(parseFloat(e.target.value))} className="w-full" />
           </label>
-          <div className="font-mono text-xs space-y-1">
-            <div>y = x² = <span className="text-accent">{(x * x).toFixed(3)}</span></div>
-            <div className="text-muted">접선의 기울기:</div>
-            <div>(x²)′ = 2x = <span className="text-amber-500">{(2 * x).toFixed(3)}</span></div>
+          <label className="block">
+            <div className="flex justify-between text-xs mb-1">
+              <span>두 점 사이 거리 h (Δx)</span><span className="font-mono text-amber-500">{h.toFixed(3)}</span>
+            </div>
+            <input type="range" min={0.01} max={1.5} step={0.01} value={h}
+              onChange={(e) => setH(parseFloat(e.target.value))} className="w-full" />
+            <div className="text-[10px] text-muted mt-1">슬라이더를 왼쪽으로 끝까지 → h가 0에 가까워짐</div>
+          </label>
+          <div className="font-mono text-xs space-y-1 p-2 rounded border border-border bg-surface/40">
+            <div>Δx = <span className="text-blue-500">{dx.toFixed(3)}</span></div>
+            <div>Δy = <span className="text-blue-500">{dy.toFixed(3)}</span></div>
+            <div className="border-t border-border pt-1 mt-1">
+              두 점을 잇는 직선의 기울기 = Δy ÷ Δx = <span className="text-amber-500">{secantSlope.toFixed(3)}</span>
+            </div>
+            <div className="text-muted">↓ h를 0에 가깝게 하면…</div>
+            <div>한 점에서의 기울기 ≈ 2 × x₀ = <span className="text-accent">{tangentSlope.toFixed(3)}</span></div>
           </div>
           <p className="text-xs text-muted">
-            슬라이더로 점을 움직여 보세요. <strong>곡선의 한 점에서 접선의 기울기</strong>가 곧 그 지점의 미분값(=2x).
-            x &gt; 0이면 양수(올라가는 비탈), x &lt; 0이면 음수(내려가는 비탈), x = 0이면 0(바닥).
+            h를 줄여 보세요. 두 점을 잇는 주황 직선이 점점 회색 점선(한 점에서의 기울기)에 가까워져요.
+            그 극한값이 곧 그 점의 기울기 = <strong>2 × x₀</strong>.
           </p>
         </div>
       </div>
@@ -376,7 +422,7 @@ function ChainRule({ w, b }: { w: number; b: number }) {
   const e = w * x + b - y;
   const dEdW = x; // 안층 변화율
   const dLdE = 2 * e; // 겉층 변화율
-  const dLdW = dLdE * dEdW; // 체인 룰
+  const dLdW = dLdE * dEdW; // 두 층의 기울기를 곱한 결과
 
   return (
     <div className="card p-4 mt-3">
@@ -397,22 +443,22 @@ function ChainRule({ w, b }: { w: number; b: number }) {
       <div className="grid sm:grid-cols-3 gap-2 mt-4 text-sm">
         <ChainBox
           title="①  w가 1 늘면 e는?"
-          formula="∂e/∂w = x"
+          formula="안층의 기울기 = x"
           value={`= ${dEdW}`}
-          desc="안층의 변화율"
+          desc="안에 있는 식 e의 변화"
         />
         <ChainBox
           title="②  e가 1 늘면 L은?"
-          formula="∂L/∂e = 2e"
+          formula="겉층의 기울기 = 2e"
           value={`= ${dLdE.toFixed(2)}`}
-          desc="겉층의 변화율"
+          desc="바깥 식 L의 변화"
           accent="amber"
         />
         <ChainBox
-          title="③  곱한다 (체인 룰)"
-          formula="∂L/∂w = (∂L/∂e)(∂e/∂w)"
+          title="③  두 기울기를 곱한다"
+          formula="(겉층) × (안층)"
           value={`= ${dLdE.toFixed(2)} × ${dEdW} = ${dLdW.toFixed(2)}`}
-          desc="w 한 점의 기울기"
+          desc="w가 1 늘 때 L이 변하는 양"
           accent="accent"
         />
       </div>
@@ -423,8 +469,8 @@ function ChainRule({ w, b }: { w: number; b: number }) {
       </div>
 
       <p className="text-xs text-muted mt-3">
-        같은 방식으로 <code>b</code>도: <code>∂e/∂b = 1</code>, <code>∂L/∂b = 2e × 1 = {(2*e).toFixed(2)}</code>.
-        b는 안층 변화율이 1이라 단순히 <strong>2e</strong>가 그 점의 기여가 됩니다.
+        같은 방식으로 <code>b</code>도: 안층 기울기 = 1, 겉층 기울기 = 2e ⇒ b의 기울기 = <strong>2e × 1 = {(2*e).toFixed(2)}</strong>.
+        b는 안층 기울기가 1이라 단순히 <strong>2e</strong>가 그 점의 기여가 됩니다.
       </p>
     </div>
   );
