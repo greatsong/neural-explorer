@@ -280,7 +280,14 @@ function LossCurveView({ b, mse, slope, showTangent }: {
 
   const tanLen = 1.0;
   const tanY = (bv: number) => mse + slope * (bv - b);
-  const t1 = b - tanLen, t2 = b + tanLen;
+  // 끝점이 MSE=0 아래로 내려가면 기울기는 보존한 채 0과의 교점에서 잘라낸다
+  const clipToZero = (bv: number) => {
+    const y = tanY(bv);
+    if (y >= 0 || Math.abs(slope) < 1e-6) return bv;
+    return b + (0 - mse) / slope;
+  };
+  const t1 = clipToZero(b - tanLen);
+  const t2 = clipToZero(b + tanLen);
 
   return (
     <div className="card p-2">
@@ -305,8 +312,8 @@ function LossCurveView({ b, mse, slope, showTangent }: {
         {/* 접선 */}
         {showTangent && Math.abs(slope) > 0.01 && (
           <line
-            x1={sx(t1)} y1={sy(Math.max(0, tanY(t1)))}
-            x2={sx(t2)} y2={sy(Math.max(0, tanY(t2)))}
+            x1={sx(t1)} y1={sy(tanY(t1))}
+            x2={sx(t2)} y2={sy(tanY(t2))}
             stroke="rgb(251,146,60)" strokeWidth={2} opacity={0.85} />
         )}
 
