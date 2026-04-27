@@ -90,6 +90,9 @@ export function Phase5() {
     return { x, y, z, pred, e };
   });
 
+  // 뉴런 사망 (dying ReLU) 감지: 손실 > 0인데 기울기가 모두 0 → 학습이 영원히 멈춘 상태
+  const isDead = loss > 0.1 && Math.abs(dw) < 1e-6 && Math.abs(db) < 1e-6;
+
   const [tab, setTab] = useState<TabId>('see');
   const goNext = () => {
     const i = TABS.findIndex((t) => t.id === tab);
@@ -271,6 +274,17 @@ export function Phase5() {
       {/* ── 학습 컨트롤 (직관/수식/종합 탭에서만 표시) ────────────── */}
       {showControls && (
         <div className="sticky bottom-2 z-20 mt-6 rounded-lg border border-border bg-bg/85 backdrop-blur-md shadow-lg p-3">
+          {isDead && (
+            <div className="mb-3 rounded-md border border-amber-500/50 bg-amber-500/10 p-3 text-sm">
+              <div className="font-semibold text-amber-600 dark:text-amber-400">⚠ 뉴런 사망 (Dying ReLU)</div>
+              <p className="mt-1 text-xs text-muted leading-relaxed">
+                학습률이 너무 커서 <code>w</code>·<code>b</code>가 크게 음수로 튀었어요.
+                모든 점에서 <code>z = w·x + b &lt; 0</code>이 되면 <code>ReLU(z) = 0</code>,
+                기울기도 0 → 아무리 step을 눌러도 갱신이 일어나지 않습니다.
+                <strong className="block mt-1">초기화 버튼을 눌러 처음부터 다시 시작하세요.</strong>
+              </p>
+            </div>
+          )}
           <div className="grid sm:grid-cols-3 gap-2 font-mono text-sm">
             <Stat label="현재 w" value={w.toFixed(3)} />
             <Stat label="현재 b" value={b.toFixed(3)} />
@@ -285,13 +299,14 @@ export function Phase5() {
               onChange={(e) => setLr(parseFloat(e.target.value))} className="w-full" />
             <div className="mt-1 text-[11px] text-muted leading-snug">
               ※ 도전 — η를 <strong>0.3 이상</strong>으로 올리고 <strong>20단계 반복</strong>을 눌러 보세요.
-              손실 곡선이 0으로 내려가지 않고 <strong>위로 솟거나 진동</strong>하는 모습을 직접 확인할 수 있어요(페이즈 4의 "큰칸"과 같은 이치).
+              손실 곡선이 0으로 내려가지 않고 <strong>위로 솟거나 진동</strong>하거나,
+              뉴런이 완전히 사망(Dying ReLU)하는 모습을 직접 확인할 수 있어요.
             </div>
           </label>
           <div className="flex flex-wrap gap-2 mt-3">
-            <button onClick={step} className="btn-primary">한 단계 진행 (1 에포크)</button>
-            <button onClick={step20} className="btn-ghost">20단계 반복</button>
-            <button onClick={reset} className="btn-ghost">초기화</button>
+            <button onClick={step} className="btn-primary" disabled={isDead}>한 단계 진행 (1 에포크)</button>
+            <button onClick={step20} className="btn-ghost" disabled={isDead}>20단계 반복</button>
+            <button onClick={reset} className={isDead ? 'btn-primary' : 'btn-ghost'}>초기화</button>
           </div>
         </div>
       )}
