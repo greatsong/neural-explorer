@@ -45,12 +45,15 @@ export default function App() {
   const theme = useApp((s) => s.theme);
 
   const [view, setView] = useState<View>(() => readHash());
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     const sync = () => {
       const v = readHash();
       setView(v);
       if (v.kind === 'phase') setCurrent(v.id);
+      // 라우트 바뀌면 드로어 닫기 (모바일에서 메뉴 클릭 시 자동 닫힘)
+      setDrawerOpen(false);
     };
     sync();
     window.addEventListener('hashchange', sync);
@@ -73,12 +76,19 @@ export default function App() {
     );
   }
 
+  const isPhase = view.kind === 'phase';
+
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      <Header
+        showMenuButton={isPhase}
+        onMenuClick={() => setDrawerOpen((v) => !v)}
+      />
       <div className="flex-1 flex">
-        {view.kind === 'phase' && <Sidebar />}
-        <main className="flex-1 px-6 sm:px-8 py-10">
+        {isPhase && (
+          <Sidebar open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+        )}
+        <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
           <div className={`${wide ? 'max-w-6xl' : 'max-w-prose'} mx-auto`}>
             {view.kind === 'intro' ? <Intro /> :
              view.kind === 'guide' ? <Guide /> : (
