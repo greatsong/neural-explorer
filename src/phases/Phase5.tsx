@@ -127,12 +127,17 @@ export function Phase5() {
       </p>
       <NeuronView w={w} b={b} pulseKey={pulseKey} />
 
-      <h2>B. 숫자로 따라가기 — 한 step에 무슨 일이 일어나는가</h2>
-      <p className="text-sm text-muted">
-        절차는 ① 오차 계산 → ② 변화량(=나침반) 계산 → ③ 매개변수 수정. 식 한 줄로 묶으면 다음과 같아요.
-        지금 값을 그대로 대입한 결과를 미리 보여줍니다.
+      <p className="text-sm text-muted mt-4">
+        ↓ 아래의 <strong>한 단계 진행</strong>을 누르면 <code>w</code>·<code>b</code>가 다음 식대로 갱신됩니다 —
+        다이어그램 위 숫자가 어떻게 변하는지 식과 함께 지켜보세요.
       </p>
       <OverviewCard w={w} b={b} dw={dw} db={db} lr={lr} />
+
+      <h2>B. 숫자로 따라가기 — 식이 어떻게 만들어지는가</h2>
+      <p className="text-sm text-muted">
+        위 식의 <code>dw</code>·<code>db</code>가 어디서 나오는지를 ①②③ 한 단계씩 직접 계산해 봅니다.
+        절차는 <strong>① 오차 계산 → ② 변화량(=나침반) 계산 → ③ 매개변수 수정</strong>이에요.
+      </p>
 
       <h2>① 오차 계산</h2>
       <p className="text-sm text-muted">
@@ -301,19 +306,30 @@ function OverviewCard({ w, b, dw, db, lr }:
   const newW = w - lr * dw;
   const newB = b - lr * db;
   return (
-    <div className="card p-4 mt-3 font-mono text-sm space-y-2">
+    <div className="card p-4 mt-3 font-mono text-sm space-y-3">
       <div className="text-xs text-muted not-italic" style={{ fontFamily: 'system-ui' }}>
-        한 step 전체 식 — <strong>새 매개변수 = 지금 매개변수 − 학습률(η) × 변화량</strong>
+        한 step 전체 식 — <strong>새 매개변수 = 지금 매개변수 − 학습률 × 변화량</strong>
       </div>
-      <div className="border-t border-border pt-2">
+
+      {/* 한국어로 풀어 쓴 식 — 기호 없이 의미만 빠르게 */}
+      <div className="rounded border border-accent/30 bg-accent/5 p-3 space-y-1" style={{ fontFamily: 'system-ui' }}>
+        <div className="text-xs text-muted">한국어로 풀어 쓰면:</div>
+        <div className="text-sm">새 <strong>w</strong> = w − 학습률 × <span className="text-accent">평균(오차 × 입력값)</span></div>
+        <div className="text-sm">새 <strong>b</strong> = b − 학습률 × <span className="text-accent">평균(오차)</span></div>
+      </div>
+
+      {/* 기호 + 지금 값 대입 */}
+      <div className="border-t border-border pt-2 space-y-1">
+        <div className="text-xs text-muted not-italic" style={{ fontFamily: 'system-ui' }}>지금 값을 대입하면:</div>
         <div>새 w = w − (η × dw) = {w.toFixed(3)} − ({lr.toFixed(3)} × {dw.toFixed(3)}) = <span className="text-accent font-semibold">{newW.toFixed(3)}</span></div>
         <div>새 b = b − (η × db) = {b.toFixed(3)} − ({lr.toFixed(3)} × {db.toFixed(3)}) = <span className="text-accent font-semibold">{newB.toFixed(3)}</span></div>
       </div>
+
       <div className="border-t border-border pt-2 text-xs space-y-0.5" style={{ fontFamily: 'system-ui' }}>
-        <div className="text-muted">현재 값:</div>
-        <div>· η = <span className="text-accent">{lr.toFixed(3)}</span> (보폭, 학습률)</div>
-        <div>· dw = <span className="text-accent">{dw.toFixed(3)}</span> (w의 변화량 = 모든 점의 e × x를 평균)</div>
-        <div>· db = <span className="text-accent">{db.toFixed(3)}</span> (b의 변화량 = 모든 점의 e를 평균)</div>
+        <div className="text-muted">기호 ↔ 한국어 대응:</div>
+        <div>· η = <span className="text-accent">{lr.toFixed(3)}</span> = 학습률(보폭)</div>
+        <div>· dw = <span className="text-accent">{dw.toFixed(3)}</span> = 평균(오차 × 입력값) = w의 변화량</div>
+        <div>· db = <span className="text-accent">{db.toFixed(3)}</span> = 평균(오차) = b의 변화량</div>
       </div>
     </div>
   );
