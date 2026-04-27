@@ -67,7 +67,11 @@ function IdeaTab() {
         </p>
       </div>
 
-      <h2>예시 — GPT 스타일 토크나이저</h2>
+      <h2>예시 — GPT 스타일 토크나이저 (데모)</h2>
+      <div className="aside-warn text-sm mt-2">
+        <strong>⚠ 데모용 단순 사전입니다.</strong> 실제 GPT의 cl100k는 5만+ 토큰을 학습으로 얻습니다.
+        여기 결과(특히 한글이 한 글자=한 토큰처럼 보이는 경우)를 일반화하지 마세요 — 실제 토크나이저는 자주 함께 쓰이는 글자쌍은 묶어 한 토큰으로 처리합니다.
+      </div>
       <div className="space-y-3">
         {samples.map((s, i) => {
           const toks = pseudoTokenize(s.text);

@@ -198,10 +198,10 @@ function DrawTab({
             {drawings.map((d, i) => (
               <div key={i} className="card p-2 text-center">
                 <MiniGrid pixels={d.pixels} />
-                <div className="text-[10px] mt-1">{d.label}</div>
+                <div className="text-xs mt-1">{d.label}</div>
                 <button
                   onClick={() => setDrawings(drawings.filter((_, j) => j !== i))}
-                  className="text-[10px] text-muted hover:text-rose-500"
+                  className="text-xs text-muted hover:text-rose-500"
                 >
                   삭제
                 </button>
@@ -301,6 +301,14 @@ function TrainTab({
 
       {ready && (
         <>
+          <div className="aside-tip mt-4 text-sm">
+            <div className="font-medium">📌 페이즈 5에서 본 그 식이 여기서 돌아갑니다</div>
+            <p className="mt-1 text-muted">
+              학습 시작을 누르면 80번 반복하며 <code>w ← w − η · e · x</code>, <code>b ← b − η · e</code>를 적용해요
+              (단일 뉴런 + 시그모이드 + BCE 손실, <code>e = ŷ − y</code>). 페이즈 5는 5점 회귀였고 여기는 64픽셀 분류이지만
+              갱신 식의 골격은 똑같습니다.
+            </p>
+          </div>
           <button onClick={train} disabled={training} className="btn-primary mt-4">
             {training ? '학습 중...' : '학습 시작 (80 에폭)'}
           </button>
@@ -433,7 +441,7 @@ function Bar({ label, value }: { label: string; value: number }) {
       <div className="h-2 bg-border rounded mt-1 overflow-hidden">
         <div className="h-full bg-accent" style={{ width: `${value * 100}%` }} />
       </div>
-      <div className="text-[10px] font-mono text-muted mt-0.5">{(value * 100).toFixed(0)}%</div>
+      <div className="text-xs font-mono text-muted mt-0.5">{(value * 100).toFixed(0)}%</div>
     </div>
   );
 }

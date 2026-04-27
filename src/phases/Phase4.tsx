@@ -86,7 +86,7 @@ export function Phase4() {
                 >{opt.label}</button>
               ))}
             </div>
-            <div className="text-[11px] text-muted mt-2 leading-relaxed">
+            <div className="text-xs text-muted mt-2 leading-relaxed">
               큰칸은 정답에 빠르게 다가가지만 한 칸이 정답을 <strong>지나쳐</strong> 정착이 어렵고,
               미세칸은 매끄럽지만 답답합니다. 직접 바꿔 가며 차이를 느껴 보세요.
             </div>

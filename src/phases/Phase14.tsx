@@ -93,9 +93,11 @@ function IdeaTab() {
 
       <h2>📐 손실</h2>
       <div className="card p-4 text-sm">
-        <div className="font-mono">손실 = (입력과 출력의 차이)</div>
-        <p className="text-muted mt-2 text-xs">
-          입력 그림과 출력 그림이 같아질수록 좋음. 목표가 "라벨 맞추기"가 아니라 "자기 자신 복원하기"라는 점이 분류와 다른 점.
+        <div className="font-mono">손실 = mean((입력 x − 출력 x̂)²)</div>
+        <p className="text-muted mt-2">
+          페이즈 3·5에서 본 평균제곱오차(MSE)를 그대로 쓰는데, 정답 자리에 <strong>입력 자기 자신</strong>이
+          들어간다는 점만 달라요. 이 손실에 대해 페이즈 5의 갱신식 <code>w ← w − η · dw</code>를 적용해
+          인코더와 디코더의 모든 가중치를 한 번에 학습시킵니다.
         </p>
       </div>
 

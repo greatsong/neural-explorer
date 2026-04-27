@@ -60,9 +60,19 @@ export function Phase11() {
           단계 A → B → C 세 가지 난이도에서 <strong>같은 신경망 구조</strong>를 학습시키고, "클래스 수"·"파라미터"·"시험 정확도"를 표 한 장에 모아 비교합니다.
           세 단계를 다 풀어야 비교표가 완성돼요.
         </p>
-        <p className="text-xs text-muted mt-2">
-          ※ 손글씨 직접 그리기·데이터 증강·재학습 같은 응용 도구는 <strong>다음 단계(페이즈 12)</strong>에서 다룹니다. 여기선 "구조와 정확도의 관계"만 깔끔하게 비교해요.
+        <p className="text-sm text-muted mt-2">
+          ※ 손글씨 직접 그리기·데이터 증강·재학습 같은 응용 도구는 <strong>다음 단계(페이즈 12)</strong>에서 다룹니다.
+          여기선 "구조와 정확도의 관계"만 깔끔하게 비교해요.
         </p>
+      </div>
+
+      <div className="aside-tip mt-3 text-sm">
+        <div className="font-medium">활성화 함수 + 학습 식 (페이즈 5의 연장)</div>
+        <ul className="mt-1 list-disc pl-5 space-y-1 text-muted">
+          <li>은닉층 = <strong>ReLU</strong> (페이즈 1·5와 동일), 출력층 = <strong>softmax</strong> (여러 클래스 확률)</li>
+          <li>매 step에 페이즈 5의 갱신식 <code>w ← w − η · dw</code>를 모든 가중치에 동시 적용 (역전파로 자동 계산)</li>
+          <li>다층이라는 점만 다르고, 한 층 한 층의 갱신 원리는 페이즈 5에서 본 그대로예요</li>
+        </ul>
       </div>
 
       <div className="flex gap-2 mt-6">

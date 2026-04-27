@@ -168,6 +168,14 @@ function IntroTab({ scenario, onNext }: { scenario: Scenario; onNext: () => void
         </ul>
       </div>
 
+      <div className="aside-tip mt-3 text-sm">
+        <div className="font-medium">📌 이 페이지는 사람이 "경사하강법 역할"을 합니다</div>
+        <p className="mt-1 text-muted">
+          페이즈 5에서는 컴퓨터가 자동으로 <code>w ← w − η · dw</code>로 가중치를 옮겨 손실을 줄였죠.
+          여기서는 여러분이 직접 슬라이더로 가중치를 옮기며 정답률을 올립니다 — 어느 쪽이 내리막인지 학생이 손으로 더듬어 보는 거예요.
+        </p>
+      </div>
+
       <button onClick={onNext} className="btn-primary mt-6">② 가중치 조정해보기 →</button>
     </div>
   );
@@ -236,7 +244,7 @@ function TuneTab({
               >
                 <div className="flex justify-between items-center text-sm">
                   <span className="font-medium">{scenario.studentNames[i]}</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
                     s.passed
                       ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                       : 'bg-rose-500/20 text-rose-700 dark:text-rose-300'
@@ -244,7 +252,7 @@ function TuneTab({
                     실제 {s.passed ? '합격' : '불합'}
                   </span>
                 </div>
-                <div className="grid grid-cols-4 gap-1 mt-2 text-[11px] font-mono text-muted">
+                <div className="grid grid-cols-4 gap-1 mt-2 text-xs font-mono text-muted">
                   {scenario.variableNames.map((vn, j) => (
                     <div key={j}>
                       <div>{vn}</div>
@@ -252,7 +260,7 @@ function TuneTab({
                     </div>
                   ))}
                 </div>
-                <div className="text-[11px] font-mono mt-2">
+                <div className="text-xs font-mono mt-2">
                   {sc.toFixed(2)} {sc > cutoff ? '>' : '≤'} {cutoff.toFixed(1)} → <strong>{pred ? '합' : '불'}</strong>
                   {right ? ' ✓' : ' ✗'}
                 </div>

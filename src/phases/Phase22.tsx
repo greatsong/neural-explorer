@@ -130,6 +130,11 @@ function SamplingTab() {
           temperature로 분포의 뾰족함을 조절하고, top-k / top-p로 후보를 잘라내요.
           진지한 답이 필요하면 낮게, 다양한 표현이 필요하면 높게.
         </p>
+        <p className="text-sm mt-2 text-muted">
+          <strong>처음 만질 땐 한 번에 하나씩.</strong> 다른 두 슬라이더는 <em>꺼진 상태(top-k=0, top-p=1.0)</em>로 두고
+          temperature만 먼저 움직여 분포가 뾰족↔평평하게 변하는 모양을 보세요. 그 다음 temperature를 1로 고정하고
+          top-k 또는 top-p 하나만 움직여 보면 각각의 효과가 분리되어 보입니다.
+        </p>
       </div>
 
       <div className="card p-4 grid sm:grid-cols-3 gap-4">
@@ -153,9 +158,9 @@ function SamplingTab() {
       </div>
 
       <div className="grid sm:grid-cols-3 gap-3 text-sm">
-        <Recipe temp={0} title="T=0 — 결정적" desc="언제나 같은 답. 사실 확인·요약에 어울려요." />
-        <Recipe temp={1} title="T=1 — 균형" desc="기본값. 자연스럽고 다양한 답." />
-        <Recipe temp={2} title="T=2 — 엉뚱" desc="확률이 평탄해져 사실상 무작위에 가깝습니다." />
+        <Recipe title="T=0 — 결정적" desc="언제나 같은 답. 사실 확인·요약에 어울려요." />
+        <Recipe title="T=1 — 균형" desc="기본값. 자연스럽고 다양한 답." />
+        <Recipe title="T=2 — 엉뚱" desc="확률이 평탄해져 사실상 무작위에 가깝습니다." />
       </div>
     </div>
   );
@@ -176,7 +181,7 @@ function Slider({ label, min, max, step, value, onChange, hint }: {
   );
 }
 
-function Recipe({ title, desc }: { temp: number; title: string; desc: string }) {
+function Recipe({ title, desc }: { title: string; desc: string }) {
   return (
     <div className="card p-3">
       <div className="font-medium">{title}</div>

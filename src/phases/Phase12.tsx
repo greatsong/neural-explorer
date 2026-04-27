@@ -156,6 +156,15 @@ function Workbench({ samples }: { samples: Sample[] }) {
         뉴런과 층을 키워가며 95% 이상까지 끌어올려 보세요.
       </p>
 
+      <div className="aside-tip mt-3 text-sm">
+        <div className="font-medium">엔진은 페이즈 5의 갱신식 그대로</div>
+        <p className="mt-1 text-muted">
+          은닉층 = <strong>ReLU</strong>, 출력층 = <strong>softmax</strong>로 10개 숫자에 대한 확률을 만들어요.
+          매 step마다 페이즈 5의 <code>w ← w − η · dw</code> 식이 모든 층에 동시 적용됩니다 (역전파로 자동 계산).
+          한 점이 64픽셀 → 28×28=784픽셀로 커졌고 출력 클래스가 2개 → 10개로 늘었을 뿐, 학습의 핵심 식은 같아요.
+        </p>
+      </div>
+
       <h2>🎚 빠른 프리셋</h2>
       <div className="flex flex-wrap gap-2 mt-3">
         {presets.map((p) => (
@@ -531,10 +540,10 @@ function Teacher({
             {taught.map((t, i) => (
               <div key={i} className="card p-1 text-center">
                 <PixelView pixels={t.pixels} />
-                <div className="text-[10px] mt-1 font-mono">→ {t.label}</div>
+                <div className="text-xs mt-1 font-mono">→ {t.label}</div>
                 <button
                   onClick={() => setTaught(taught.filter((_, j) => j !== i))}
-                  className="text-[10px] text-muted hover:text-rose-500"
+                  className="text-xs text-muted hover:text-rose-500"
                   disabled={disabled}
                 >지우기</button>
               </div>

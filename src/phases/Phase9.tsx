@@ -200,7 +200,7 @@ function Metric({ label, value, note, highlight }: { label: string; value: numbe
     <div className={`card p-3 text-center ${highlight ? 'border-accent bg-accent-bg' : ''}`}>
       <div className="text-xs text-muted">{label}</div>
       <div className={`text-lg ${highlight ? 'text-accent' : ''}`}>{(value * 100).toFixed(1)}%</div>
-      <div className="text-[10px] text-muted mt-0.5">{note}</div>
+      <div className="text-xs text-muted mt-0.5">{note}</div>
     </div>
   );
 }
@@ -214,7 +214,7 @@ function Cell({ value, label, desc, tone }: { value: number; label: string; desc
     }`}>
       <div className="text-xs text-muted">{label}</div>
       <div className="text-2xl font-mono font-semibold">{value}</div>
-      <div className="text-[10px] text-muted mt-1">{desc}</div>
+      <div className="text-xs text-muted mt-1">{desc}</div>
     </div>
   );
 }

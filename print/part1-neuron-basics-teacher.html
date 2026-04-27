@@ -146,27 +146,55 @@
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 3. 오차 측정 (Phase 3)</h2>
+<h2>STEP 3. 손실함수와 경사하강법의 이해 (Phase 3)</h2>
+
+<div class="an"><span class="lab">앱 운영</span>Phase 3가 두 개념을 한 페이지에 묶도록 재구성됐다. 슬라이더로 움직이는 값이 이번 페이지에서는 <strong>"가중치 w"</strong>로 비유된다는 점을 먼저 칠판에 적어둘 것 — STEP 5의 자동 학습으로 자연스럽게 이어진다.</div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-1</span>예측 → 손실 계산표 (정답 = 5)</div>
-  <table class="tb">
-    <tr><th>예측</th><th>1</th><th>3</th><th>5</th><th>7</th><th>10</th></tr>
-    <tr><td class="lbl">오차 = 예측 − 5</td><td class="fa">−4</td><td class="fa">−2</td><td class="fa">0</td><td class="fa">2</td><td class="fa">5</td></tr>
-    <tr><td class="lbl">손실 = 오차²</td><td class="fa">16</td><td class="fa">4</td><td class="fa">0</td><td class="fa">4</td><td class="fa">25</td></tr>
-  </table>
+  <div class="qh"><span class="num">3-1</span>제곱 3가지 이유 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>① +3과 (<span class="v">−3</span>)을 그대로 더하면 (<span class="v">0</span>)이 되어 "오차 없음"처럼 보임. 제곱하면 모두 (<span class="v">양수</span>)가 됨.<br>
+  ② 1² = <span class="v">1</span>, 10² = <span class="v">100</span>. 큰 실수에 큰 페널티.<br>
+  ③ 부드러운 (<span class="v">포물선</span>) 모양 → 한 점에서 (<span class="v">기울기(접선)</span>)를 정확히 잴 수 있음.</div>
+  <div class="tt"><span class="lab">수업 팁</span>3-③의 "매끄러운 곡선"이 단순한 미적 이유가 아니라 다음 절(경사하강법)의 <strong>전제조건</strong>임을 강조. 이 한 마디가 활동지 STEP 3 전체의 연결고리.</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-2</span>관찰 — 모범 답안</div>
-  <div class="ans"><span class="lab">모양</span>아래로 볼록한 <strong>포물선(U자형)</strong>, 정점이 정답(5) 위치에 있고 손실 = 0.</div>
-  <div class="ans"><span class="lab">대칭성</span>예측 −1 → 오차 −6 → 손실 36. 예측 11 → 오차 +6 → 손실 36. <strong>같다</strong>. 이유: 제곱은 부호를 없앤다.</div>
-  <div class="ans"><span class="lab">제곱 3가지 이유</span>① 부호 상쇄 방지 ② 큰 오차에 큰 페널티 ③ <strong>매끄러운 곡선</strong>(미분 가능) → 다음 STEP의 자동 학습에서 컴퓨터가 "어느 쪽이 내리막인지"를 정확히 계산할 수 있는 기반.</div>
-  <div class="tt"><span class="lab">수업 팁</span>"부호가 사라지면 방향 정보도 사라지지 않을까?" 라는 질문을 학생에게 던질 것 — 제곱 후에도 곡선의 <strong>기울기</strong>가 방향을 되살리고, 그것이 STEP 5에서 자동으로 계산된다는 복선이 된다.</div>
+  <div class="qh"><span class="num">3-2</span>예측 → 손실 계산표 — 정답</div>
+  <table class="tb">
+    <tr><th>예측</th><th>1</th><th>3</th><th>5</th><th>7</th><th>10</th></tr>
+    <tr><td class="lbl">오차</td><td class="fa">−4</td><td class="fa">−2</td><td class="fa">0</td><td class="fa">2</td><td class="fa">5</td></tr>
+    <tr><td class="lbl">손실</td><td class="fa">16</td><td class="fa">4</td><td class="fa">0</td><td class="fa">4</td><td class="fa">25</td></tr>
+  </table>
+  <div class="ans"><span class="lab">대칭성</span>예측 −1 → 손실 36. 예측 11 → 손실 36. <strong>같다</strong>. 이유: 제곱은 부호를 없앤다.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-3</span>현재 가중치에서의 기울기 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    w = 2: 손실 = (2−5)² = <span class="v">9</span>, 기울기 = 2(2−5) = <span class="v">−6</span>, 옮길 방향 = <strong>오른쪽(+)</strong>(왼쪽이 오르막).<br>
+    w = 5: 손실 = <span class="v">0</span>, 기울기 = <span class="v">0</span>, 옮길 방향 = <strong>정지</strong>.<br>
+    w = 8: 손실 = (8−5)² = <span class="v">9</span>, 기울기 = 2(8−5) = <span class="v">+6</span>, 옮길 방향 = <strong>왼쪽(−)</strong>(오른쪽이 오르막).
+  </div>
+  <div class="pf"><span class="lab">자주 틀림</span>기울기 부호와 옮길 방향이 헷갈려 같은 방향(+→오른쪽)으로 답하는 경우. <strong>"기울기와 옮길 방향은 부호가 반대"</strong>를 칠판 상단에 고정 표기.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-4</span>갱신 규칙 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    수정된 가중치 = 지금 가중치 − ( <span class="v">기울기</span> )<br>
+    일반화: w ← w − <span class="v">∂SE/∂w</span> (SE의 w에 대한 기울기)
+  </div>
+  <div class="ans"><span class="lab">왜 빼기인가</span>기울기는 손실이 가장 빠르게 <strong>증가</strong>하는 방향을 가리킨다. 우리는 손실의 <strong>감소</strong>를 원하니 그 반대 방향으로 가야 하므로 빼기를 쓴다. 그래서 기울기가 양수면 w는 작아지는 방향(왼쪽)으로, 음수면 커지는 방향(오른쪽)으로 자동 정정.</div>
+  <div class="tt"><span class="lab">전이</span>이 식이 STEP 5의 <span class="mono">w ← w − η·dw</span>로 곧장 이어진다. 이 페이지에는 학습률 η가 아직 등장하지 않았다는 점을 짚어둘 것.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-5</span>학습 종료 신호 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>"기울기가 0이라는 것은 어느 쪽으로도 옮겨도 손실이 줄어들지 않는다는 뜻 → 더 학습할 곳이 없다." 또는 "포물선의 골짜기 바닥에 도달했다는 뜻."</div>
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 4. 수동 학습 (Phase 4)</h2>
+<h2>STEP 4. 학습률의 이해 (Phase 4)</h2>
 
 <div class="an"><span class="lab">앱 운영</span>Phase 4가 데이터 y = 2x + <strong>0.7</strong>로 바뀌었음을 칠판에 먼저 적어둘 것. 정답 b가 0.5의 배수가 아니라 <strong>큰칸 0.5로는 절대 도달 불가</strong>한 함정이 의도적으로 들어가 있다.</div>
 
@@ -204,9 +232,11 @@
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 5. 자동으로 학습하기 (Phase 5)</h2>
+<h2>STEP 5. 오차 역전파의 이해 (Phase 5)</h2>
 
-<div class="an"><span class="lab">앱 운영</span>Phase 5는 STEP 4의 슬라이더를 컴퓨터가 대신 움직이는 페이지. 데이터는 (1,3)~(5,11)로 다시 정수, 모델에 <strong>ReLU 활성화</strong>가 들어감(데이터가 모두 양수+정답 근처라 z>0이라 ReLU 통과는 항등이지만, "신경망의 일반 모습"을 보여주는 의도). 한 step = <strong>1 에포크</strong>라는 용어를 칠판에 먼저 고정.</div>
+<div class="an"><span class="lab">앱 운영</span>Phase 5가 <strong>5개 탭</strong>으로 재구성됐다(① 직관 → ② 수식 이해 → ③ 수식 유도 → ④ 전체 종합 → ⑤ 실생활 적용). <strong>탭 ②에서 5-1·5-2를, 탭 ④에서 5-3·5-4를, 탭 ③에서 5-5를, 탭 ⑤에서 5-6을 푸는 흐름</strong>으로 진행. 한 차시 안에 5탭을 모두 도는 게 부담스러우면 ①·②·④만 진행하고 ③·⑤를 과제·심화로 미뤄도 무방.</div>
+
+<div class="tt"><span class="lab">수업 팁</span>탭 이름이 "수식 유도"·"실생활 적용"으로 무거워 보이지만, 학생이 직접 식을 세우는 건 아니다. 앱이 11단계로 풀어주는 걸 따라 읽고 핵심 한 줄을 옮겨 적는 활동, 두 모델의 결과를 비교 관찰하는 활동이다.</div>
 
 <div class="qc">
   <div class="qh"><span class="num">5-1</span>한 점 변화량 — 정답</div>
@@ -253,7 +283,25 @@
 
 <div class="qc">
   <div class="qh"><span class="num">5-4</span>왜 빼기인가 — 모범 답안</div>
-  <div class="ans"><span class="lab">정답</span>변화량(dw, db)은 손실이 가장 빠르게 <strong>증가</strong>하는 방향을 가리키는 나침반이다. 우리는 손실의 <strong>감소</strong>를 원하니 그 반대 방향으로 가야 하므로 부호를 뒤집기 위해 빼기를 쓴다.</div>
+  <div class="ans"><span class="lab">정답</span>변화량(dw, db)은 손실이 가장 빠르게 <strong>증가</strong>하는 방향을 가리키는 나침반이다. 우리는 손실의 <strong>감소</strong>를 원하니 그 반대 방향으로 가야 하므로 부호를 뒤집기 위해 빼기를 쓴다. (STEP 3-4에서 이미 같은 식을 학습률 없이 본 적 있음 — η가 추가됐을 뿐.)</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-5</span>수식 유도 (탭 ③) — 모범 답안</div>
+  <div class="ans"><span class="lab">핵심 한 줄</span>"<strong>x가 큰 점일수록 w를 잘못 잡았을 때 출력의 어긋남이 더 크다 → 책임도 더 크게 묻는다</strong>." → 그래서 한 점의 w 책임 = e × x. 다섯 점 책임을 평균낸 것이 dw.</div>
+  <div class="ans"><span class="lab">수업 팁</span>11단계 모두를 학생이 외울 필요는 없다. <strong>"e × x의 x가 어디서 왔는가"</strong>라는 한 질문에 답할 수 있으면 충분.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>"미분이라서 x가 곱해진다"고만 답하는 경우. 미분의 결과로 등장하지만, 그 결과가 갖는 <strong>의미(책임 분담)</strong>를 자기 말로 설명할 수 있어야 만점.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-6</span>실생활 적용 (탭 ⑤) — 운영 가이드</div>
+  <div class="ans"><span class="lab">두 모델 비교 — 예시</span>
+    모델 A (단일 뉴런 ŷ = w·x + b): 직선 한 줄로 추세는 잡지만 계절 곡선을 못 따라감 → 손실이 일정 수준에서 멈춤.<br>
+    모델 B (은닉층 추가 또는 비선형 항): 곡선 추세를 잡아내며 손실이 더 낮게 떨어짐.
+  </div>
+  <div class="ans"><span class="lab">교실 데이터 사례 — 예시</span>① 자습 시간(x) → 시험 점수(y) ② 키(x) → 몸무게(y) ③ 이번 주 출석일(x) → 다음 주 자습 시간(y). 단순 회귀로 풀 수 있는 한 변수–한 정답 구조면 OK.</div>
+  <div class="tt"><span class="lab">수업 팁</span>이 탭은 <strong>"방금 배운 식이 학습 데이터에서 진짜 통하는가"</strong>를 확인시키는 의도. 정확한 손실 수치보다 <strong>"단일 뉴런으로 표현 못 하는 패턴이 있다 → 더 큰 신경망의 동기"</strong>로 마무리하면 자연스럽게 STEP 6과 2부로 이어진다.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>학생이 "B가 무조건 좋은 모델"로 단순화. <strong>"표현력이 클수록 과적합 위험도 커진다"</strong>는 단서를 한 마디 보태두면 STEP 3·4부의 일반화 논의가 미리 자연스러워진다.</div>
 </div>
 
 <!-- ============================================================== -->

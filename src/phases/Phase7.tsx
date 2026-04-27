@@ -249,12 +249,12 @@ function RetuneTab({
                 >
                   <div className="flex justify-between">
                     <span className="font-medium">{scenario.studentNames[i] ?? `학생${i + 1}`}</span>
-                    <span className={`text-[10px] ${s.passed ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
+                    <span className={`text-xs ${s.passed ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
                       실 {s.passed ? '합' : '불'}
                     </span>
                   </div>
-                  <div className="font-mono text-[10px] text-muted mt-0.5">[{s.scores.join(', ')}]</div>
-                  <div className="font-mono text-[11px] mt-1">
+                  <div className="font-mono text-xs text-muted mt-0.5">[{s.scores.join(', ')}]</div>
+                  <div className="font-mono text-xs mt-1">
                     {sc.toFixed(2)} → 예측 <strong>{pred ? '합' : '불'}</strong> {right ? '✓' : '✗'}
                   </div>
                 </div>
@@ -416,7 +416,7 @@ function SnsCard({
             </div>
           </div>
         )}
-        <div className="mt-3 text-[10px] text-muted">
+        <div className="mt-3 text-xs text-muted">
           본 결과는 학생이 만든 AI 모델의 예측이며 실제와 다를 수 있습니다.
         </div>
       </div>

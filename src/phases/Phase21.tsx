@@ -135,7 +135,7 @@ function AttentionMap({ A }: { A: number[][] }) {
               {row.map((v, j) => (
                 <td key={j} className="px-0.5 py-0.5">
                   <div
-                    className="w-10 h-7 rounded text-[10px] flex items-center justify-center font-mono"
+                    className="w-14 h-10 rounded text-sm flex items-center justify-center font-mono"
                     style={{ background: `rgba(168, 85, 247, ${v})`, color: v > 0.5 ? '#fff' : '#0f172a' }}
                   >
                     {v.toFixed(2)}

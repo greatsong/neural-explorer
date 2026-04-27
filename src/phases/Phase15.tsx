@@ -232,7 +232,7 @@ function CompareTab() {
                       }}
                     >
                       {c}
-                      <span className="text-[10px] opacity-70 ml-1">{b}B</span>
+                      <span className="text-xs opacity-70 ml-1">{b}B</span>
                     </span>
                   );
                 })}

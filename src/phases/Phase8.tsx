@@ -94,7 +94,7 @@ function Cell({ value, label, desc, tone }: { value: number; label: string; desc
     }`}>
       <div className="text-xs text-muted">{label}</div>
       <div className="text-2xl font-mono font-semibold">{value}</div>
-      <div className="text-[10px] text-muted mt-1">{desc}</div>
+      <div className="text-xs text-muted mt-1">{desc}</div>
     </div>
   );
 }

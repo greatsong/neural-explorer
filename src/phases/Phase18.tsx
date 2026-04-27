@@ -8,7 +8,6 @@ import {
   nearest,
   add,
   sub,
-  cosine,
   type W2VModel,
 } from '../lib/w2v';
 import { EN_CORPUS, KO_CORPUS } from '../data/w2vCorpus';
@@ -454,5 +453,3 @@ function normalize(v: number[]): number[] {
   return v.map((x) => x / n);
 }
 
-// 사용하지 않는 헬퍼지만 future에 쓸 수 있어서 export 형태로 보관할 필요 없음
-void cosine;
