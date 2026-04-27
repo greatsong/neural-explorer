@@ -134,22 +134,36 @@ export function Phase5() {
         {TABS.find((t) => t.id === tab)!.sub}
       </div>
 
-      {/* ── 탭 1: 직관 ────────────────────────────────────────────── */}
+      {/* ── 탭 1: 직관 — 다이어그램과 손실 곡선이 한 화면에 ──────── */}
       {tab === 'see' && (
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 space-y-3">
           <p className="text-muted text-sm">
             단일 뉴런 <code>ŷ = ReLU(w · x + b)</code>를 다섯 점 (1,3)·(2,5)·(3,7)·(4,9)·(5,11)에 맞추도록 자동 학습시킵니다.
-            아래 <strong>한 단계 진행</strong>을 눌러 보세요 — 다이어그램의 <code>w</code>·<code>b</code>가 바뀌고 손실이
-            줄어드는 모습을 그냥 바라보면 됩니다. 식은 다음 탭에서 자세히.
+            아래 <strong>한 단계 진행</strong>을 눌러 보세요 — 왼쪽 다이어그램의 <code>w</code>·<code>b</code>·빨간 화살표 굵기가
+            바뀌면서, 오른쪽 손실 곡선이 0으로 내려가는 모습을 한 눈에 확인할 수 있어요. 식은 다음 탭에서 자세히.
           </p>
-          <NeuronView w={w} b={b} pulseKey={pulseKey} />
-          <div>
-            <div className="text-sm font-medium mt-4">학습 진행 곡선</div>
-            <p className="text-xs text-muted mt-1">매 step마다 손실 점이 하나씩 쌓입니다. 0에 가까워지면 학습 거의 끝.</p>
-            <div className="mt-2">
-              <LossCurve history={history} />
+          <div className="grid xl:grid-cols-[2fr_1fr] gap-4 items-start">
+            <NeuronView w={w} b={b} pulseKey={pulseKey} />
+            <div className="card p-3">
+              <div className="text-sm font-medium">학습 진행 곡선</div>
+              <p className="text-xs text-muted mt-1">매 step마다 손실 점이 하나씩 쌓입니다. 0에 가까워지면 학습 거의 끝.</p>
+              <div className="mt-2 grid grid-cols-3 gap-1 text-xs font-mono">
+                <div className="text-muted">step</div>
+                <div className="text-muted">손실</div>
+                <div className="text-muted text-right">↓ 줄어듦</div>
+                <div>{history.length - 1}</div>
+                <div>{loss.toFixed(4)}</div>
+                <div className="text-right text-accent">{history.length > 1 ? ((history[history.length - 2].loss - loss) >= 0 ? '−' : '+') + Math.abs(history[history.length - 2].loss - loss).toFixed(4) : '—'}</div>
+              </div>
+              <div className="mt-2">
+                <LossCurve history={history} />
+              </div>
             </div>
           </div>
+          <p className="text-xs text-muted">
+            ※ 빨간 화살표 굵기는 그 점이 만드는 변화량(<code>w</code>는 <code>e × x</code>, <code>b</code>는 <code>e</code>)에 비례.
+            학습이 끝나갈수록 화살표가 가늘고 옅어집니다.
+          </p>
         </div>
       )}
 
@@ -188,12 +202,12 @@ export function Phase5() {
                     <tr key={p.x} className="border-t border-border">
                       <td className="py-1">{p.x}</td>
                       <td className="text-center">{p.y}</td>
-                      <td className="text-center text-muted">{p.z.toFixed(2)}</td>
-                      <td className="text-center">{p.pred.toFixed(2)}</td>
+                      <td className="text-center text-muted">{p.z.toFixed(3)}</td>
+                      <td className="text-center">{p.pred.toFixed(3)}</td>
                       <td className={`text-center ${Math.abs(p.e) > 0.5 ? 'text-amber-600 dark:text-amber-400' : 'text-muted'}`}>
-                        {p.e.toFixed(2)}
+                        {p.e.toFixed(3)}
                       </td>
-                      <td className="text-center text-accent">{(p.e * p.x).toFixed(2)}</td>
+                      <td className="text-center text-accent">{(p.e * p.x).toFixed(3)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -309,7 +323,9 @@ function UpdateFormulaCard({ w, b, dw, db, lr }: {
   );
 }
 
-// 다섯 점에서 dw·db가 어떻게 평균으로 만들어지는지 그대로 보여주는 카드
+// 다섯 점에서 dw·db가 어떻게 평균으로 만들어지는지 그대로 보여주는 카드.
+// 각 항 / 합계 / 결과의 표시 자릿수를 모두 같은 정밀도(소수 셋째 자리)로 맞춰
+// "0.01 ÷ 5 = 0.003" 같은 반올림 모순이 보이지 않도록 한다.
 function AverageCalcCard({ dw, db, perPoint }: {
   dw: number; db: number; perPoint: { x: number; e: number }[];
 }) {
@@ -325,10 +341,10 @@ function AverageCalcCard({ dw, db, perPoint }: {
           {perPoint.map((p, i) => (
             <span key={p.x}>
               {i > 0 && ' + '}
-              {p.e.toFixed(2)}×{p.x}
+              {p.e.toFixed(3)}×{p.x}
             </span>
           ))}
-          ) ÷ {N} = {sumEx.toFixed(2)} ÷ {N} = <span className="text-accent font-semibold">{dw.toFixed(3)}</span>
+          ) ÷ {N} = {sumEx.toFixed(3)} ÷ {N} = <span className="text-accent font-semibold">{dw.toFixed(3)}</span>
         </div>
       </div>
       <div className="border-t border-border pt-2">
@@ -338,10 +354,10 @@ function AverageCalcCard({ dw, db, perPoint }: {
           {perPoint.map((p, i) => (
             <span key={p.x}>
               {i > 0 && ' + '}
-              {p.e.toFixed(2)}
+              {p.e.toFixed(3)}
             </span>
           ))}
-          ) ÷ {N} = {sumE.toFixed(2)} ÷ {N} = <span className="text-accent font-semibold">{db.toFixed(3)}</span>
+          ) ÷ {N} = {sumE.toFixed(3)} ÷ {N} = <span className="text-accent font-semibold">{db.toFixed(3)}</span>
         </div>
       </div>
     </div>
@@ -376,16 +392,23 @@ function NeuronView({ w, b, pulseKey }: { w: number; b: number; pulseKey: number
     : w >= 0 ? 'rgb(var(--color-accent))' : 'rgb(190, 18, 60)';
   const wOpacity = Math.abs(w) < 0.05 ? 0.5 : 0.9;
 
-  // 역전파 화살표 두께·진하기 (|e| 비례)
-  const eAbs = Math.abs(e);
-  const eRatio = Math.min(eAbs / 4, 1);
-  const backStrokeW = 1.2 + eRatio * 4;
-  const backOpacity = 0.25 + eRatio * 0.65;
   const backColor = 'rgb(190, 18, 60)';
 
   // 한 점이 dw, db에 기여하는 양
   const dwOnePoint = e * (z >= 0 ? 1 : 0) * x;
   const dbOnePoint = e * (z >= 0 ? 1 : 0);
+
+  // 두 화살표 각각 자기 변화량 크기에 비례한 두께·진하기
+  // 데이터 (1,3)~(5,11)에서 |e·x| 최대 ~55, |e| 최대 ~11. 클램프 기준은 그 절반쯤(=학습 초기 인상값).
+  const dwRatio = Math.min(Math.abs(dwOnePoint) / 25, 1);
+  const dbRatio = Math.min(Math.abs(dbOnePoint) / 8, 1);
+  const wBackStrokeW = 1.0 + dwRatio * 4.5;
+  const wBackOpacity = 0.18 + dwRatio * 0.72;
+  const bBackStrokeW = 1.0 + dbRatio * 4.5;
+  const bBackOpacity = 0.18 + dbRatio * 0.72;
+  // 정답 ŷ↔y 점선과 마커는 둘 중 큰 것 기준
+  const maxRatio = Math.max(dwRatio, dbRatio);
+  const eOpacity = 0.25 + maxRatio * 0.65;
 
   // 두 갈래 역전파 곡선 (ŷ 노드 아래에서 시작)
   // (a) ŷ → 아래쪽으로 휘어 가중치 라벨까지 (w로 가는 화살표)
@@ -415,8 +438,11 @@ function NeuronView({ w, b, pulseKey }: { w: number; b: number; pulseKey: number
           <marker id="nv-arr" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto">
             <path d="M0,0 L5,2.5 L0,5 z" fill="rgb(var(--color-muted))" />
           </marker>
-          <marker id="nv-back" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-            <path d="M0,0 L6,3 L0,6 z" fill={backColor} fillOpacity={backOpacity} />
+          <marker id="nv-back-w" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 z" fill={backColor} fillOpacity={wBackOpacity} />
+          </marker>
+          <marker id="nv-back-b" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 z" fill={backColor} fillOpacity={bBackOpacity} />
           </marker>
         </defs>
         <g fontFamily="JetBrains Mono">
@@ -450,7 +476,7 @@ function NeuronView({ w, b, pulseKey }: { w: number; b: number; pulseKey: number
 
           {/* ŷ ↕ y : 세로 점선 (오차 시각화) */}
           <line x1={predCx} y1={fwdY + 26} x2={predCx} y2={yCy - 26}
-            stroke={backColor} strokeOpacity={0.7} strokeWidth={1.8} strokeDasharray="5 4" />
+            stroke={backColor} strokeOpacity={eOpacity} strokeWidth={1.8} strokeDasharray="5 4" />
           <ValueBadge2 cx={predCx + 96} cy={(fwdY + yCy) / 2} label={`e = ŷ − y = ${e.toFixed(2)}`} color={backColor} />
 
           {/* 노드들 */}
@@ -467,19 +493,19 @@ function NeuronView({ w, b, pulseKey }: { w: number; b: number; pulseKey: number
 
           {/* ────── 역전파 — 두 갈래 화살표 ────── */}
 
-          {/* (a) ŷ → 가중치 라벨 (w로 가는 화살표) */}
+          {/* (a) ŷ → 가중치 라벨 (w로 가는 화살표) — |e × x|에 비례한 두께·진하기 */}
           <path d={wPath} fill="none"
-            stroke={backColor} strokeOpacity={backOpacity}
-            strokeWidth={backStrokeW} strokeDasharray="7 5" strokeLinecap="round"
-            markerEnd="url(#nv-back)" />
+            stroke={backColor} strokeOpacity={wBackOpacity}
+            strokeWidth={wBackStrokeW} strokeDasharray="7 5" strokeLinecap="round"
+            markerEnd="url(#nv-back-w)" />
           <ValueBadge2 cx={(startX + wTargetX) / 2} cy={395}
             label={`w 변화량 = e × x = ${dwOnePoint.toFixed(2)}`} color={backColor} />
 
-          {/* (b) ŷ → b 라벨 (b로 가는 화살표) */}
+          {/* (b) ŷ → b 라벨 (b로 가는 화살표) — |e|에 비례한 두께·진하기 */}
           <path d={bPath} fill="none"
-            stroke={backColor} strokeOpacity={backOpacity}
-            strokeWidth={backStrokeW} strokeDasharray="7 5" strokeLinecap="round"
-            markerEnd="url(#nv-back)" />
+            stroke={backColor} strokeOpacity={bBackOpacity}
+            strokeWidth={bBackStrokeW} strokeDasharray="7 5" strokeLinecap="round"
+            markerEnd="url(#nv-back-b)" />
           <ValueBadge2 cx={predCx - 70} cy={28}
             label={`b 변화량 = e = ${dbOnePoint.toFixed(2)}`} color={backColor} />
 
@@ -487,12 +513,12 @@ function NeuronView({ w, b, pulseKey }: { w: number; b: number; pulseKey: number
           {pulseKey > 0 && (
             <>
               <path key={`pw-${pulseKey}`} d={wPath} fill="none" stroke={backColor}
-                strokeWidth={Math.max(backStrokeW + 1.5, 3)} strokeDasharray="10 6" strokeLinecap="round"
-                markerEnd="url(#nv-back)"
+                strokeWidth={Math.max(wBackStrokeW + 1.5, 3)} strokeDasharray="10 6" strokeLinecap="round"
+                markerEnd="url(#nv-back-w)"
                 style={{ animation: 'nv-backflow 1.1s ease-out forwards' }} />
               <path key={`pb-${pulseKey}`} d={bPath} fill="none" stroke={backColor}
-                strokeWidth={Math.max(backStrokeW + 1.5, 3)} strokeDasharray="10 6" strokeLinecap="round"
-                markerEnd="url(#nv-back)"
+                strokeWidth={Math.max(bBackStrokeW + 1.5, 3)} strokeDasharray="10 6" strokeLinecap="round"
+                markerEnd="url(#nv-back-b)"
                 style={{ animation: 'nv-backflow 1.1s ease-out forwards' }} />
             </>
           )}
