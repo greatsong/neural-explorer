@@ -194,9 +194,23 @@ function ScenarioContent({
         <Cell value={tn} label="TN" desc="음성을 음성으로" tone="good" />
       </div>
 
-      <div className="aside-tip mt-6 text-sm space-y-2">
-        <div><strong>📌 정밀도(precision)</strong> — 양성이라고 한 것 중 진짜 양성 비율. 낮으면 "양치기 소년" 같은 모델.</div>
-        <div><strong>📌 재현율(recall, sensitivity)</strong> — 진짜 양성 중 우리가 잡은 비율. 낮으면 환자를 놓치는 모델.</div>
+      <div className="aside-tip mt-6 text-sm space-y-4">
+        <div>
+          <div><strong>📌 정밀도(precision)</strong> — "내가 양성이라고 부른 것 중, 진짜는 몇 %?"</div>
+          <ul className="list-disc list-inside text-xs mt-1 space-y-0.5 text-muted">
+            <li>식: TP / (TP + FP) — 양성으로 지목한 사람 중 실제로 양성인 비율</li>
+            <li>🐺 비유: 양치기 소년이 "늑대다!"라고 외친 횟수 중 진짜 늑대였던 비율. 낮으면 마을 사람들이 더 이상 안 믿어줘요.</li>
+            <li>🎯 높이려면: <em>확신할 때만</em> 양성이라 부르기 → 임계값 올리기. 대신 진짜를 놓치기 쉬움.</li>
+          </ul>
+        </div>
+        <div>
+          <div><strong>📌 재현율(recall, sensitivity)</strong> — "실제 양성 중에서, 내가 잡은 건 몇 %?"</div>
+          <ul className="list-disc list-inside text-xs mt-1 space-y-0.5 text-muted">
+            <li>식: TP / (TP + FN) — 실제 양성인 사람 중 모델이 양성이라 부른 비율</li>
+            <li>🎣 비유: 강에 있는 물고기 100마리 중 내 그물에 걸린 비율. 낮으면 진짜 환자·범인이 그물 사이로 빠져나가요.</li>
+            <li>🎯 높이려면: <em>의심되면 다</em> 양성이라 부르기 → 임계값 내리기. 대신 헛짚는 일이 많아짐.</li>
+          </ul>
+        </div>
         <div className="border-t border-border pt-2 mt-2">
           <div><strong>{scenario.emoji} 이 시나리오의 비용</strong></div>
           <div className="text-xs mt-1">FN: {scenario.costPerFN}</div>
