@@ -75,14 +75,29 @@ function Phase5CBody({ embedded = false }: { embedded?: boolean }) {
 
   const [modelA, setModelA] = useState<ModelState>(() => initModel(rowsA));
   const [modelB, setModelB] = useState<ModelState>(() => initModel(rowsB));
+  // 학습 진행에 따른 두 모델의 MSE 누적 — 한 step 단위로 한 점씩 쌓는다
+  const [lossHistory, setLossHistory] = useState<{ a: number; b: number }[]>(() => [
+    { a: mse(initModel(rowsA), rowsA), b: mse(initModel(rowsB), rowsB) },
+  ]);
 
   const advance = (steps: number) => {
-    setModelA((m) => trainSteps(m, rowsA, steps));
-    setModelB((m) => trainSteps(m, rowsB, steps));
+    let curA = modelA, curB = modelB;
+    const points: { a: number; b: number }[] = [];
+    for (let i = 0; i < steps; i++) {
+      curA = trainSteps(curA, rowsA, 1);
+      curB = trainSteps(curB, rowsB, 1);
+      points.push({ a: mse(curA, rowsA), b: mse(curB, rowsB) });
+    }
+    setModelA(curA);
+    setModelB(curB);
+    setLossHistory((h) => [...h, ...points]);
   };
   const reset = () => {
-    setModelA(initModel(rowsA));
-    setModelB(initModel(rowsB));
+    const initA = initModel(rowsA);
+    const initB = initModel(rowsB);
+    setModelA(initA);
+    setModelB(initB);
+    setLossHistory([{ a: mse(initA, rowsA), b: mse(initB, rowsB) }]);
   };
 
   const maeA = mse(modelA, rowsA);
@@ -127,6 +142,15 @@ function Phase5CBody({ embedded = false }: { embedded?: boolean }) {
         modelB={modelB}
         focusFutureYear={futureYear}
       />
+
+      <div className="card p-3 mt-3">
+        <div className="text-sm font-medium">학습에 따른 손실(MSE) 변화</div>
+        <p className="text-xs text-muted mt-1">
+          step을 진행할수록 두 모델의 손실이 빠르게 0 근처로 내려가는 모습을 한 눈에 볼 수 있어요.
+          (모델 A·B는 학습 데이터가 다르므로 도착하는 손실 값도 살짝 다릅니다.)
+        </p>
+        <TwoLossCurves history={lossHistory} />
+      </div>
 
       <div className="card p-3 mt-3 sticky bottom-2 z-20 bg-bg/85 backdrop-blur-md">
         <div className="flex flex-wrap gap-2 items-center">
@@ -369,6 +393,60 @@ function ScatterWithLines({ modelA, modelB, focusFutureYear }: {
       <div className="text-xs text-muted px-2 pb-2">
         파란 점 = 실제 연평균 기온. 분홍 음영 = 모델 B의 학습 구간(1980~2025).
         모델 B의 1980년 이전은 학습에 사용되지 않은 영역이라 점선으로 외삽 표시.
+      </div>
+    </div>
+  );
+}
+
+// 두 모델의 손실 곡선 — log 스케일로 그려서 빠른 초기 감소까지 한 눈에 보이게 한다.
+function TwoLossCurves({ history }: { history: { a: number; b: number }[] }) {
+  const W = 720, H = 220, padL = 50, padR = 14, padT = 14, padB = 30;
+  const N = history.length;
+  const allLoss = history.flatMap((h) => [h.a, h.b]).filter((v) => isFinite(v) && v > 0);
+  if (allLoss.length === 0) {
+    return <div className="text-xs text-muted mt-2">학습 진행 시 곡선이 그려집니다.</div>;
+  }
+  const lMax = Math.max(...allLoss);
+  const lMin = Math.max(1e-3, Math.min(...allLoss));
+  // log 스케일
+  const lyMax = Math.log10(lMax);
+  const lyMin = Math.log10(lMin);
+  const sx = (i: number) => padL + (N > 1 ? (i / (N - 1)) : 0) * (W - padL - padR);
+  const sy = (v: number) => {
+    const lv = Math.log10(Math.max(v, 1e-6));
+    return H - padB - ((lv - lyMin) / (lyMax - lyMin || 1)) * (H - padT - padB);
+  };
+
+  let pathA = '', pathB = '';
+  history.forEach((h, i) => {
+    pathA += `${i === 0 ? 'M' : 'L'}${sx(i)},${sy(h.a)} `;
+    pathB += `${i === 0 ? 'M' : 'L'}${sx(i)},${sy(h.b)} `;
+  });
+
+  const last = history[history.length - 1];
+  const ticks = [0.001, 0.01, 0.1, 1, 10].filter((t) => t >= lMin / 10 && t <= lMax * 1.1);
+
+  return (
+    <div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-2">
+        <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="rgb(var(--color-border))" />
+        <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="rgb(var(--color-border))" />
+        <text x={W - padR} y={H - 8} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">step</text>
+        <text x={padL - 4} y={padT + 10} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">MSE (log)</text>
+        {ticks.map((t) => (
+          <g key={t}>
+            <line x1={padL - 3} y1={sy(t)} x2={padL} y2={sy(t)} stroke="rgb(var(--color-muted))" />
+            <text x={padL - 6} y={sy(t) + 3} textAnchor="end" fontSize={9} fill="rgb(var(--color-muted))">
+              {t < 1 ? t : t.toString()}
+            </text>
+          </g>
+        ))}
+        <path d={pathA} fill="none" stroke="rgb(96,165,250)" strokeWidth={1.8} />
+        <path d={pathB} fill="none" stroke="rgb(244,114,182)" strokeWidth={1.8} />
+      </svg>
+      <div className="grid grid-cols-2 gap-2 mt-1 text-xs font-mono">
+        <div style={{ color: 'rgb(96,165,250)' }}>● 모델 A 현재 MSE = {last.a.toFixed(4)}</div>
+        <div style={{ color: 'rgb(244,114,182)' }}>● 모델 B 현재 MSE = {last.b.toFixed(4)}</div>
       </div>
     </div>
   );

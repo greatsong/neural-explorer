@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../store';
 
+type ExplainTab = 'square' | 'gd';
+
 export function Phase3() {
   const TRUE = 5;
   const [pred, setPred] = useState(1);
+  const [explainTab, setExplainTab] = useState<ExplainTab>('square');
   const markCompleted = useApp((s) => s.markCompleted);
 
   const error = pred - TRUE;
@@ -47,17 +50,8 @@ export function Phase3() {
         매개변수를 한 발짝씩 옮기는 방법. 아래에서 두 개념이 어떻게 연결되는지 직접 확인해 보세요.
       </p>
 
-      <div className="aside-tip">
-        <div className="font-medium">왜 제곱을 할까?</div>
-        <ul className="mt-2 text-sm space-y-1 list-disc pl-5">
-          <li><strong>부호 상쇄 방지</strong> — 어떤 점은 +3, 어떤 점은 −3 으로 어긋나 있을 때 그대로 더하면 0이 되어 "오차 없음"처럼 보입니다. 제곱하면 모두 양수가 되어 그런 일이 생기지 않습니다.</li>
-          <li><strong>큰 오차에 더 큰 페널티</strong> — 오차 1과 10의 제곱은 1과 100. 큰 오차일수록 손실이 훨씬 커지므로, 모델이 큰 실수를 먼저 줄이려고 합니다.</li>
-          <li><strong>매끄러운 곡선</strong> — 손실이 아래 그림처럼 부드러운 포물선이 되어, 페이즈 5에서 컴퓨터가 "어느 쪽이 내리막인지"를 정확히 계산할 수 있습니다.</li>
-        </ul>
-      </div>
-
       <div className="aside-tip mt-3">
-        정답은 <strong>{TRUE}</strong> 입니다. 슬라이더로 예측값을 움직여 손실을 0에 가깝게 만들어 보세요.
+        정답은 <strong>{TRUE}</strong> 입니다. 슬라이더로 예측값을 움직이면서 아래 두 탭의 설명을 함께 읽어 보세요.
       </div>
 
       <svg viewBox={`0 0 ${W + 40} ${H + 40}`} className="w-full max-w-2xl mt-4">
@@ -105,35 +99,67 @@ export function Phase3() {
         <Stat label="손실 (오차²)" value={sqError.toFixed(2)} highlight={Math.abs(error) < 0.3} />
       </div>
 
-      {/* ── 직관 코너: 기울기 → 어느 쪽으로 줄여야 할까 ─────────── */}
-      <div className="aside-tip mt-6">
-        <div className="font-medium">경사하강법 직관 — 기울기를 보고 어느 쪽으로 옮길까?</div>
-        <p className="text-sm mt-2 text-muted">
-          이 페이지에서 슬라이더로 움직이는 값은 <strong>모델의 가중치</strong> 역할을 해요
-          (가장 단순한 모델 — "가중치를 그대로 예측으로 쓰는 모델"이라 가중치 = 예측).
-          위 그래프의 <span style={{ color: 'rgb(251,146,60)' }}>주황색 직선</span>이 지금 가중치에서의 기울기예요.
-          포물선의 한 점에서 기울기는 <code>2 × (가중치 − 정답)</code>으로 계산됩니다 — 지금은 <strong className="font-mono">{slope.toFixed(2)}</strong>.
-        </p>
-        <ul className="text-sm mt-2 space-y-1 list-disc pl-5 text-muted">
-          {slope > 0.05 ? (
-            <li><strong>기울기 +</strong> → 오른쪽이 오르막. 가중치를 <strong>왼쪽(작은 쪽)</strong>으로 옮기면 손실이 줄어요.</li>
-          ) : slope < -0.05 ? (
-            <li><strong>기울기 −</strong> → 왼쪽이 오르막. 가중치를 <strong>오른쪽(큰 쪽)</strong>으로 옮기면 손실이 줄어요.</li>
-          ) : (
-            <li><strong>기울기 ≈ 0</strong> → 거의 골짜기 바닥. 더 줄일 곳이 없어요.</li>
-          )}
-          <li>그래서 갱신 규칙은 항상 <strong>"기울기의 반대 방향(=빼기)"</strong> 으로 옮기기.</li>
-        </ul>
-        <div className="card p-3 mt-3 font-mono text-sm bg-bg/60">
-          <div className="text-xs text-muted not-italic mb-1" style={{ fontFamily: 'system-ui' }}>
-            한 줄로 쓰면:
-          </div>
-          <div>수정된 가중치 = 지금 가중치 − <span className="text-accent">기울기</span></div>
-          <div className="text-muted text-xs not-italic mt-1" style={{ fontFamily: 'system-ui' }}>
-            일반화: <code>w ← w − ∂SE/∂w</code> (∂SE/∂w = "SE의 w에 대한 기울기") — 페이즈 5의 자동 학습 출발 식이에요.
+      {/* ── 설명 탭: 왜 제곱? / 경사하강법 직관 ─────────────────── */}
+      <nav className="mt-6 flex flex-wrap gap-1 border-b border-border">
+        {([
+          { id: 'square' as const, label: '왜 제곱을 할까?' },
+          { id: 'gd' as const, label: '경사하강법 직관' },
+        ]).map((t) => {
+          const active = t.id === explainTab;
+          return (
+            <button key={t.id} onClick={() => setExplainTab(t.id)}
+              className={`px-3 py-2 text-sm border-b-2 -mb-px transition ${
+                active
+                  ? 'border-accent text-accent font-medium'
+                  : 'border-transparent text-muted hover:text-text hover:border-border'
+              }`}>
+              {t.label}
+            </button>
+          );
+        })}
+      </nav>
+
+      {explainTab === 'square' && (
+        <div className="aside-tip mt-3">
+          <div className="font-medium">왜 제곱을 할까?</div>
+          <ul className="mt-2 text-sm space-y-1 list-disc pl-5">
+            <li><strong>부호 상쇄 방지</strong> — 어떤 점은 +3, 어떤 점은 −3 으로 어긋나 있을 때 그대로 더하면 0이 되어 "오차 없음"처럼 보입니다. 제곱하면 모두 양수가 되어 그런 일이 생기지 않습니다.</li>
+            <li><strong>큰 오차에 더 큰 페널티</strong> — 오차 1과 10의 제곱은 1과 100. 큰 오차일수록 손실이 훨씬 커지므로, 모델이 큰 실수를 먼저 줄이려고 합니다.</li>
+            <li><strong>매끄러운 곡선</strong> — 손실이 위 그림처럼 부드러운 포물선이 되어, 페이즈 5에서 컴퓨터가 "어느 쪽이 내리막인지"를 정확히 계산할 수 있습니다.</li>
+          </ul>
+        </div>
+      )}
+
+      {explainTab === 'gd' && (
+        <div className="aside-tip mt-3">
+          <div className="font-medium">경사하강법 직관 — 기울기를 보고 어느 쪽으로 옮길까?</div>
+          <p className="text-sm mt-2 text-muted">
+            이 페이지에서 슬라이더로 움직이는 값은 <strong>모델의 가중치</strong> 역할을 해요
+            (가장 단순한 모델 — "가중치를 그대로 예측으로 쓰는 모델"이라 가중치 = 예측).
+            위 그래프의 <span style={{ color: 'rgb(251,146,60)' }}>주황색 직선</span>이 지금 가중치에서의 기울기예요.
+            포물선의 한 점에서 기울기는 <code>2 × (가중치 − 정답)</code>으로 계산됩니다 — 지금은 <strong className="font-mono">{slope.toFixed(2)}</strong>.
+          </p>
+          <ul className="text-sm mt-2 space-y-1 list-disc pl-5 text-muted">
+            {slope > 0.05 ? (
+              <li><strong>기울기 +</strong> → 오른쪽이 오르막. 가중치를 <strong>왼쪽(작은 쪽)</strong>으로 옮기면 손실이 줄어요.</li>
+            ) : slope < -0.05 ? (
+              <li><strong>기울기 −</strong> → 왼쪽이 오르막. 가중치를 <strong>오른쪽(큰 쪽)</strong>으로 옮기면 손실이 줄어요.</li>
+            ) : (
+              <li><strong>기울기 ≈ 0</strong> → 거의 골짜기 바닥. 더 줄일 곳이 없어요.</li>
+            )}
+            <li>그래서 갱신 규칙은 항상 <strong>"기울기의 반대 방향(=빼기)"</strong> 으로 옮기기.</li>
+          </ul>
+          <div className="card p-3 mt-3 font-mono text-sm bg-bg/60">
+            <div className="text-xs text-muted not-italic mb-1" style={{ fontFamily: 'system-ui' }}>
+              한 줄로 쓰면:
+            </div>
+            <div>수정된 가중치 = 지금 가중치 − <span className="text-accent">기울기</span></div>
+            <div className="text-muted text-xs not-italic mt-1" style={{ fontFamily: 'system-ui' }}>
+              일반화: <code>w ← w − ∂SE/∂w</code> (∂SE/∂w = "SE의 w에 대한 기울기") — 페이즈 5의 자동 학습 출발 식이에요.
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {Math.abs(error) < 0.3 && (
         <div className="aside-tip mt-4">
