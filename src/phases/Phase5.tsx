@@ -139,17 +139,17 @@ export function Phase5() {
             바뀌면서, 오른쪽 손실 곡선이 0으로 내려가는 모습을 한 눈에 확인할 수 있어요. 식은 다음 탭에서 자세히.
           </p>
           <div className="grid xl:grid-cols-[2fr_1fr] gap-4 items-start">
-            <NeuronView w={w} b={b} pulseKey={pulseKey} />
+            <NeuronView w={w} b={b} lr={lr} pulseKey={pulseKey} />
             <div className="card p-3">
               <div className="text-sm font-medium">학습 진행 곡선</div>
               <p className="text-xs text-muted mt-1">매 step마다 손실 점이 하나씩 쌓입니다. 0에 가까워지면 학습 거의 끝.</p>
               <div className="mt-2 grid grid-cols-3 gap-1 text-xs font-mono">
                 <div className="text-muted">step</div>
                 <div className="text-muted">손실</div>
-                <div className="text-muted text-right">↓ 줄어듦</div>
+                <div className="text-muted text-right">변화량 (↓줄어듦/↑늘어남)</div>
                 <div>{history.length - 1}</div>
                 <div>{loss.toFixed(4)}</div>
-                <div className="text-right text-accent">{history.length > 1 ? ((history[history.length - 2].loss - loss) >= 0 ? '−' : '+') + Math.abs(history[history.length - 2].loss - loss).toFixed(4) : '—'}</div>
+                <div className="text-right text-accent">{formatDelta(history, loss)}</div>
               </div>
               <div className="mt-2">
                 <LossCurve history={history} />
@@ -157,8 +157,8 @@ export function Phase5() {
             </div>
           </div>
           <p className="text-xs text-muted">
-            ※ 빨간 화살표 굵기는 그 점이 만드는 변화량(<code>w</code>는 <code>e × x</code>, <code>b</code>는 <code>e</code>)에 비례.
-            학습이 끝나갈수록 화살표가 가늘고 옅어집니다.
+            ※ 빨간 화살표 굵기는 한 점이 만드는 <strong>그래디언트 신호 크기</strong>(<code>w</code>는 <code>e × x</code>, <code>b</code>는 <code>e</code>)에 비례.
+            라벨에는 거기에 <strong>학습률 η를 곱한 실제 갱신량</strong>까지 적혀 있어요 — 학습률을 줄이면 굵기는 그대로지만 실제 한 step의 이동은 작아집니다.
             <br />
             ※ 활성화 함수 ReLU는 z = 0에서 수학적으로 미분 불가능하지만, 학습이 멈추지 않도록 이 페이지에서는
             관습적으로 <code>ReLU′(0) = 1</code>로 처리해요(다른 자료에서는 0이나 0.5로 잡기도 합니다).
@@ -232,17 +232,17 @@ export function Phase5() {
             동시에 보이도록. 다음 탭(실생활 적용)으로 넘어가기 전 마지막 점검이에요.
           </p>
           <div className="grid xl:grid-cols-[2fr_1fr] gap-4 items-start">
-            <NeuronView w={w} b={b} pulseKey={pulseKey} />
+            <NeuronView w={w} b={b} lr={lr} pulseKey={pulseKey} />
             <div className="card p-3">
               <div className="text-sm font-medium">학습 진행 곡선</div>
               <p className="text-xs text-muted mt-1">손실이 0으로 내려가면 학습 거의 끝.</p>
               <div className="mt-2 grid grid-cols-3 gap-1 text-xs font-mono">
                 <div className="text-muted">step</div>
                 <div className="text-muted">손실</div>
-                <div className="text-muted text-right">↓ 줄어듦</div>
+                <div className="text-muted text-right">변화량 (↓줄어듦/↑늘어남)</div>
                 <div>{history.length - 1}</div>
                 <div>{loss.toFixed(4)}</div>
-                <div className="text-right text-accent">{history.length > 1 ? ((history[history.length - 2].loss - loss) >= 0 ? '−' : '+') + Math.abs(history[history.length - 2].loss - loss).toFixed(4) : '—'}</div>
+                <div className="text-right text-accent">{formatDelta(history, loss)}</div>
               </div>
               <div className="mt-2">
                 <LossCurve history={history} />
@@ -382,7 +382,7 @@ function AverageCalcCard({ dw, db, perPoint }: {
 // 단일 뉴런 다이어그램 — 페이즈 1과 같은 디자인 언어.
 // 정방향: x → ×w → Σ(여기 b 합산) → z 배지 → ReLU → ŷ, 그리고 정답 y.
 // 역방향: ŷ에서 두 갈래 빨간 화살표가 분기하여 각각 가중치 라벨(w)과 편향 라벨(b)로 흐른다.
-function NeuronView({ w, b, pulseKey }: { w: number; b: number; pulseKey: number }) {
+function NeuronView({ w, b, lr, pulseKey }: { w: number; b: number; lr: number; pulseKey: number }) {
   const [pickX, setPickX] = useState(3);
   const x = pickX;
   const y = 2 * x + 1;
@@ -513,7 +513,8 @@ function NeuronView({ w, b, pulseKey }: { w: number; b: number; pulseKey: number
             strokeWidth={wBackStrokeW} strokeDasharray="7 5" strokeLinecap="round"
             markerEnd="url(#nv-back-w)" />
           <ValueBadge2 cx={(startX + wTargetX) / 2} cy={395}
-            label={`w 변화량 = e × x = ${dwOnePoint.toFixed(2)}`} color={backColor} />
+            label={`w 변화량 = η × (e × x) = ${lr.toFixed(3)} × ${dwOnePoint.toFixed(2)} = ${(lr * dwOnePoint).toFixed(3)}`}
+            color={backColor} />
 
           {/* (b) ŷ → b 라벨 (b로 가는 화살표) — |e|에 비례한 두께·진하기 */}
           <path d={bPath} fill="none"
@@ -521,7 +522,8 @@ function NeuronView({ w, b, pulseKey }: { w: number; b: number; pulseKey: number
             strokeWidth={bBackStrokeW} strokeDasharray="7 5" strokeLinecap="round"
             markerEnd="url(#nv-back-b)" />
           <ValueBadge2 cx={predCx - 70} cy={28}
-            label={`b 변화량 = e = ${dbOnePoint.toFixed(2)}`} color={backColor} />
+            label={`b 변화량 = η × e = ${lr.toFixed(3)} × ${dbOnePoint.toFixed(2)} = ${(lr * dbOnePoint).toFixed(3)}`}
+            color={backColor} />
 
           {/* 학습 단계 실행 시 펄스 — pulseKey가 바뀌면 두 path 리마운트로 CSS 애니메이션 재생 */}
           {pulseKey > 0 && (
@@ -601,6 +603,19 @@ function ValueBadge2({ cx, cy, label, color }: { cx: number; cy: number; label: 
   );
 }
 
+
+// 직전 step과의 손실 차이를 사람이 읽기 좋게 표시.
+// - 첫 step은 '—'
+// - 4자리 반올림에서 0이 되는 미세 변화는 '≈ 0' (잘못된 '−0.0000' 방지)
+// - 줄어듦은 '↓ 0.0033', 늘어남은 '↑ 0.0021'
+function formatDelta(history: { loss: number }[], loss: number) {
+  if (history.length < 2) return '—';
+  const prev = history[history.length - 2].loss;
+  const diff = prev - loss; // 양수면 손실이 줄어든 것
+  const mag = Math.abs(diff);
+  if (mag < 5e-5) return '≈ 0';
+  return (diff > 0 ? '↓ ' : '↑ ') + mag.toFixed(4);
+}
 
 function Stat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
