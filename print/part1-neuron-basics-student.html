@@ -284,38 +284,82 @@
   <div class="ans-area"></div>
 </div>
 
-<h3>3-B. 경사하강법 직관 — 기울기를 보고 어느 쪽으로 옮길까?</h3>
+<h3>3-B. 한 점 옆을 살짝 — "기울기"의 의미</h3>
 
 <div class="ib tip">
-  <strong>이번 페이지 한정 단순 모델</strong> — 슬라이더로 움직이는 값을 그대로 모델의 <strong>가중치 w</strong>로 본다. (가장 단순한 모델: 가중치 = 예측). 손실 식 <span class="mono">L = (w − 정답)²</span>의 한 점에서의 기울기는 <strong>2 · (w − 정답)</strong>이다.
+  <strong>이번 페이지 한정 단순 비유</strong> — 슬라이더로 움직이는 값을 그대로 모델의 <strong>가중치 w</strong>로 본다. (가장 단순한 모델: 가중치 = 예측). 손실 식은 <span class="mono">L = (w − 5)²</span>.
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-3</span>현재 가중치에서의 기울기 계산</div>
-  <div class="qd">아래 표의 각 가중치 w에서 손실의 기울기 <span class="mono">∂L/∂w = 2(w − 5)</span>를 구하고, 손실을 줄이려면 w를 어느 쪽으로 옮겨야 하는지 적으세요.</div>
-  <table class="tb">
-    <tr><th>w (가중치)</th><th>2</th><th>5</th><th>8</th></tr>
-    <tr><td class="lbl">손실 (w−5)²</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="lbl">기울기 2(w−5)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="lbl">옮길 방향 (← / 정지 / →)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-  </table>
-</div>
-
-<div class="qc">
-  <div class="qh"><span class="num">3-4</span>갱신 규칙 — 한 줄로</div>
-  <div class="qd">앱의 카드에 적힌 갱신 규칙을 그대로 옮겨 적으세요.</div>
+  <div class="qh"><span class="num">3-3</span>한 점 옆의 손실을 살짝 비교 — 디딤돌</div>
+  <div class="qd">w = 2일 때 손실은 (2−5)² = <span class="bk"></span>. 그럼 w를 살짝 옆으로 움직이면 손실은 어떻게 될까? 두 옆을 직접 계산해보세요.</div>
   <div class="fm">
-    수정된 가중치 = 지금 가중치 − ( <span class="bk lg"></span> )<br>
+    w = 1.9 → 손실 = (1.9 − 5)² = <span class="bk lg"></span><br>
+    w = 2.0 → 손실 = (2.0 − 5)² = <span class="bk lg"></span><br>
+    w = 2.1 → 손실 = (2.1 − 5)² = <span class="bk lg"></span>
+  </div>
+  <div class="qd">w를 1.9 → 2.0 → 2.1로 키울 때 손실은 (커진다 / 작아진다). ☞ <span class="bk lg"></span></div>
+  <div class="qd">결론: w = 2 근처에서 손실을 줄이려면 w를 (왼쪽 / 오른쪽)으로 옮겨야 한다. ☞ <span class="bk lg"></span></div>
+  <div class="ib"><strong>"기울기"의 정체</strong> — 이렇게 한 점 옆을 살짝 살펴서 손실이 어느 쪽으로 변하는지 잰 값이 그 점에서의 <strong>기울기</strong>다. 양수면 오른쪽이 오르막, 음수면 오른쪽이 내리막.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-4</span>기울기를 식으로 — 매번 옆을 재지 않아도 된다</div>
+  <div class="qd">손실 L = (w − 5)²의 한 점에서의 기울기는 매번 옆을 재지 않고 식 한 줄로 바로 구할 수 있어요.</div>
+  <div class="fm" style="font-size:11pt">
+    기울기 ∂L/∂w = <strong>2 · (w − 5)</strong>
+  </div>
+  <div class="qd">이 식으로 3-3에서 본 w = 2의 기울기를 구해보세요.</div>
+  <div class="fm">
+    w = 2 → 기울기 = 2 · (2 − 5) = <span class="bk lg"></span><br>
+    부호 = (+ / − / 0). ☞ <span class="bk"></span><br>
+    뜻: 오른쪽이 (오르막 / 내리막). ☞ <span class="bk lg"></span>
+  </div>
+  <div class="qd">3-3에서 손계산으로 얻은 결론과 같은가요? <span class="bk"></span></div>
+</div>
+
+<h3>3-C. 점마다 기울기 — 어디서든 같은 절차</h3>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-5</span>세 점에서 같은 절차 반복</div>
+  <div class="qd">아래 세 가중치에 대해 같은 절차를 반복하세요. 손실, 기울기, 옮길 방향(← / 정지 / →)을 채웁니다.</div>
+  <table class="tb">
+    <tr><th>w</th><th>2</th><th>5</th><th>8</th></tr>
+    <tr><td class="lbl">손실 = (w−5)²</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="lbl">기울기 = 2(w−5)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="lbl">기울기 부호</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="lbl">옮길 방향</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+  </table>
+  <div class="qd">규칙이 보이나요? <strong>"기울기 부호"와 "옮길 방향"의 부호 관계</strong>를 한 줄로 적어보세요.</div>
+  <div class="ans-area"></div>
+</div>
+
+<h3>3-D. 갱신 규칙 — 식으로 묶기</h3>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-6</span>"기울기를 빼면 손실이 줄어든다" — 단계별</div>
+  <div class="qd">3-5에서 발견한 규칙(부호가 반대)을 식으로 적으면 다음과 같습니다. 빈칸을 채워보세요.</div>
+  <div class="fm">
+    수정된 w = 지금 w − ( <span class="bk lg"></span> )<br>
     일반화: w ← w − <span class="bk lg"></span> &nbsp; (∂SE/∂w = "SE의 w에 대한 기울기")
   </div>
-  <div class="qd">기울기가 <strong>양수(+)</strong>일 때, w를 어느 쪽으로 옮겨야 손실이 줄어드나요? 그리고 이 식에 빼기(−)가 있는 이유는?</div>
+  <div class="qd">기울기가 양수(+)일 때 위 식대로 빼면, 새 w는 (커진다 / 작아진다). ☞ <span class="bk lg"></span></div>
+  <div class="qd">왼쪽 = 작아지는 쪽이므로 w가 (왼쪽 / 오른쪽)으로 옮겨가는 셈. 3-5의 결론과 일치한다. ☞ <span class="bk lg"></span></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-7</span>왜 빼기인가 — 한 줄로</div>
+  <div class="qd">위 식에 빼기(−)가 들어 있는 이유를 자기 말로:</div>
   <div class="ans-area"></div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-5</span>학습 종료 신호</div>
-  <div class="qd">앱은 손실이 0에 가까워지면 "기울기 ≈ 0"을 학습 종료 신호로 안내해요. 그 이유를 한 줄로:</div>
-  <div class="ans-area"></div>
+  <div class="qh"><span class="num">3-8</span>학습 종료 신호</div>
+  <div class="qd">w = 5에서 기울기는 얼마이고, 갱신 식 w ← w − 기울기를 적용하면 새 w는 얼마인가요?</div>
+  <div class="fm">
+    기울기 = 2(5 − 5) = <span class="bk"></span> &nbsp;/&nbsp; 새 w = 5 − <span class="bk"></span> = <span class="bk lg"></span>
+  </div>
+  <div class="qd">즉 기울기가 0이면 더 이상 (<span class="bk lg"></span>) 않는다 → 학습 종료 신호.</div>
 </div>
 
 <!-- ============================================================== -->
@@ -363,14 +407,71 @@
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-1</span>w와 b를 추측해 손실 계산</div>
+  <div class="qh"><span class="num">4-1</span>시도 A — 절차 시범 (w = 1, b = 0)</div>
+  <div class="qd">한 점씩 ŷ → 오차 → 오차²을 차례로 계산해 마지막에 합산합니다. 같은 절차를 시도 B·C에도 반복할 거예요.</div>
   <table class="tb">
-    <tr><th>시도</th><th>w</th><th>b</th><th>x=1, ŷ</th><th>x=3, ŷ</th><th>x=5, ŷ</th><th>총 손실</th></tr>
-    <tr><td>A</td><td>1</td><td>0</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>B</td><td>2</td><td>0</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>C</td><td>2</td><td>0.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><th>x</th><th>실제 y</th><th>ŷ = 1·x + 0</th><th>오차 = ŷ − y</th><th>오차²</th></tr>
+    <tr><td>1</td><td>2.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>2</td><td>4.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>3</td><td>6.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>4</td><td>8.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>5</td><td>10.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td colspan="4" class="lbl" style="text-align:right">합 (총 손실) =</td><td class="blank"></td></tr>
   </table>
-  <div class="qd">총 손실 계산은 5개 점 모두에 대해. 시도 C까지 했을 때 발견한 정답: <strong>w =</strong> <span class="bk"></span> &nbsp; <strong>b =</strong> <span class="bk"></span></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-2</span>시도 B — 같은 절차 반복 (w = 2, b = 0)</div>
+  <table class="tb">
+    <tr><th>x</th><th>y</th><th>ŷ = 2·x + 0</th><th>오차</th><th>오차²</th></tr>
+    <tr><td>1</td><td>2.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>2</td><td>4.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>3</td><td>6.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>4</td><td>8.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>5</td><td>10.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td colspan="4" class="lbl" style="text-align:right">합 =</td><td class="blank"></td></tr>
+  </table>
+  <div class="qd">시도 A와 비교: 손실이 (작아졌다 / 커졌다 / 같다). ☞ <span class="bk lg"></span></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-3</span>시도 C — 정답 후보 (w = 2, b = 0.7)</div>
+  <table class="tb">
+    <tr><th>x</th><th>y</th><th>ŷ = 2·x + 0.7</th><th>오차</th><th>오차²</th></tr>
+    <tr><td>1</td><td>2.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>2</td><td>4.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>3</td><td>6.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>4</td><td>8.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>5</td><td>10.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td colspan="4" class="lbl" style="text-align:right">합 =</td><td class="blank"></td></tr>
+  </table>
+  <div class="qd">발견한 정답: <strong>w =</strong> <span class="bk"></span> &nbsp; <strong>b =</strong> <span class="bk"></span></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-4</span>세 시도 한눈에</div>
+  <table class="tb">
+    <tr><th>시도</th><th>w</th><th>b</th><th>총 손실</th></tr>
+    <tr><td>A</td><td>1</td><td>0</td><td class="blank"></td></tr>
+    <tr><td>B</td><td>2</td><td>0</td><td class="blank"></td></tr>
+    <tr><td>C</td><td>2</td><td>0.7</td><td class="blank"></td></tr>
+  </table>
+  <div class="qd">"학습"이란 결국 무엇을 하는 과정인지 30자 이내로 정의해 보세요.</div>
+  <div class="ans-area"></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-5</span>슬라이더 한 칸 크기 — "보폭"의 첫 등장</div>
+  <div class="qd">앱은 슬라이더 한 칸 크기를 <strong>큰칸 0.5 / 보통 0.1 / 미세 0.01</strong> 중에 고를 수 있어요. 각 설정에서 b를 0에서 출발해 한 칸씩 위로 누르며 b가 어떤 값들을 거치는지 적어보세요.</div>
+  <table class="tb">
+    <tr><th>한 칸 크기</th><th>b가 거치는 값들 (4번까지)</th><th>0.7에 정확히 도달 가능?</th></tr>
+    <tr><td>0.5 (큰칸)</td><td class="blank" style="text-align:left;padding-left:8pt"></td><td class="blank"></td></tr>
+    <tr><td>0.1 (보통)</td><td class="blank" style="text-align:left;padding-left:8pt"></td><td class="blank"></td></tr>
+    <tr><td>0.01 (미세)</td><td class="blank" style="text-align:left;padding-left:8pt"></td><td class="blank"></td></tr>
+  </table>
+  <div class="qd">큰칸 0.5로는 정답 b = 0.7에 도달할 수 없어요. 그 이유는 무엇인가요?</div>
+  <div class="ans-area"></div>
+  <div class="ib tip">한 칸 크기는 다음 단계(STEP 5)의 <strong>학습률 η(보폭)</strong>와 같은 발상이에요. "너무 크면 정답을 지나치고, 너무 작으면 답답하다"는 느낌을 손으로 먼저 익히는 활동.</div>
 </div>
 
 <div class="qc">

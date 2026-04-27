@@ -72,7 +72,7 @@
 </header>
 
 <!-- ============================================================== -->
-<h2>① 1부 — 뉴런의 기초 (16점)</h2>
+<h2>① 1부 — 뉴런의 기초 (18점)</h2>
 
 <div class="qc">
   <div class="qh"><span><span class="num">1</span>인공 뉴런의 부품</span><span class="pt">3점</span></div>
@@ -88,10 +88,12 @@
 </div>
 
 <div class="qc">
-  <div class="qh"><span><span class="num">3</span>오차와 손실</span><span class="pt">3점</span></div>
+  <div class="qh"><span><span class="num">3</span>손실함수와 경사하강법 직관</span><span class="pt">5점</span></div>
   <div class="ans"><span class="lab">정답</span>L = (5 − 8)² = <span class="v">9</span></div>
-  <div class="ans"><span class="lab">제곱 3가지 이유</span>① <strong>부호 상쇄 방지</strong> — 어떤 점은 +3, 어떤 점은 −3으로 어긋나 있을 때 그대로 더하면 0이 되어 "오차 없음"처럼 보임. 제곱하면 모두 양수.<br>② <strong>큰 오차에 더 큰 페널티</strong> — 1²=1 vs 10²=100. 모델이 큰 실수를 먼저 줄이려고 함.<br>③ <strong>매끄러운 곡선</strong>(미분 가능) — 손실이 부드러운 포물선이 되어 자동 학습이 "어느 쪽이 내리막인지"를 정확히 계산할 수 있음.</div>
-  <div class="pt-rule"><span class="lab">부분점수</span>L 값 1점 + 이유 3가지 중 2개 정답이면 2점, 3개 모두면 만점(3점). 한 가지만 적었으면 0.5점.</div>
+  <div class="ans"><span class="lab">제곱 3가지 이유</span>① <strong>부호 상쇄 방지</strong> — 어떤 점은 +3, 어떤 점은 −3으로 어긋나 있을 때 그대로 더하면 0이 되어 "오차 없음"처럼 보임. 제곱하면 모두 양수.<br>② <strong>큰 오차에 더 큰 페널티</strong> — 1²=1 vs 10²=100. 모델이 큰 실수를 먼저 줄이려고 함.<br>③ <strong>매끄러운 곡선</strong>(미분 가능) — 손실이 부드러운 포물선이 되어 한 점에서 기울기를 정확히 잴 수 있음(경사하강법의 토대).</div>
+  <div class="ans"><span class="lab">기울기·옮길 방향</span>기울기 = 2(5 − 8) = <span class="v">−6</span>. 기울기가 음수면 왼쪽이 오르막이므로 w를 <strong>오른쪽(→, 정답 8쪽)</strong>으로 옮기면 손실이 줄어든다.</div>
+  <div class="pt-rule"><span class="lab">부분점수</span>L 값 1점 + 이유 3가지 각 1점(총 3점) + 기울기·방향 1점 = 5점. 기울기는 맞고 방향만 반대로 답하면 0.5점.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>기울기 −6의 부호와 옮길 방향이 같다고 답하는 경우(둘 다 왼쪽). <strong>"기울기와 옮길 방향은 부호가 반대"</strong>를 채점 안내로 명시.</div>
 </div>
 
 <div class="qc">
