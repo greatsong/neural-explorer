@@ -4,15 +4,12 @@ import { useApp } from '../store';
 /**
  * 페이즈 3 — 손실함수와 경사하강법
  *
- * 한 흐름의 다섯 단계로 진행:
- *   1. 데이터  : 여러 점이 있고, 가장 잘 맞는 직선을 찾고 싶다
- *   2. 오차    : 직선과 점 사이의 부호 있는 차이 e = ŷ − y
- *   3. 오차²   : 부호 제거 + 큰 실수 강조
+ * 한 흐름의 다섯 단계:
+ *   1. 데이터  : 여러 점(노이즈 포함), 가장 잘 맞는 직선을 찾고 싶다
+ *   2. 오차    : 직선과 점 사이의 부호 있는 차이 e = ŷ − y (w, b 모두 슬라이더)
+ *   3. 오차²   : 부호 제거 + 큰 실수 강조 (w=2 고정)
  *   4. 평균(MSE): 한 숫자로 모은 손실함수
- *   5. 경사하강법: 손실 곡선 위에서 기울기 → 갱신 (보폭=학습률은 페이즈 4로)
- *
- * 모든 탭이 같은 데이터셋과 같은 슬라이더(b)를 공유한다 — w는 정답값 2로 고정해
- * b 한 변수만 움직이게 함으로써 손실 곡선을 1차원 포물선으로 깔끔히 그릴 수 있다.
+ *   5. 경사하강법: 손실 곡선 위에서 기울기 → 갱신
  */
 
 type TabId = 'data' | 'error' | 'square' | 'mse' | 'gd';
@@ -24,37 +21,40 @@ const TABS: { id: TabId; num: string; label: string; sub: string }[] = [
   { id: 'gd',     num: '5', label: '경사하강법',   sub: '기울기 → 가중치 갱신 (보폭=학습률은 페이즈 4)' },
 ];
 
-// 데이터 — 정답 직선은 ŷ = 2x + 0.7 (페이즈 4·5와 공유 가능)
+// 데이터 — 실제 데이터처럼 노이즈가 있는 다섯 점 (대략 y ≈ 2x + 0.8 방향)
 const DATA: [number, number][] = [
-  [1, 2.7], [2, 4.7], [3, 6.7], [4, 8.7], [5, 10.7],
+  [1, 2.5], [2, 5.1], [3, 6.8], [4, 8.5], [5, 10.9],
 ];
-const W_FIXED = 2;          // w는 정답값으로 고정 — 한 변수(b)에 집중
-const B_TRUE  = 0.7;
+const W_FIXED = 2;   // 탭3~5(오차²·MSE·GD)에서 w를 고정해 1차원 손실 곡선을 그림
 const N = DATA.length;
 
+// 탭4-5용 손실 함수: w=W_FIXED 고정, b만 변수
 const predict = (b: number, x: number) => W_FIXED * x + b;
 const errors = (b: number) => DATA.map(([x, y]) => predict(b, x) - y);
-const mseAt = (b: number) => {
-  const es = errors(b);
-  return es.reduce((s, e) => s + e * e, 0) / N;
-};
-const slopeAt = (b: number) => {
-  // dMSE/db = (2/N) * Σ(pred − y) — 데이터 5점에서의 기울기
-  const es = errors(b);
-  return (2 / N) * es.reduce((s, e) => s + e, 0);
-};
+const mseAt = (b: number) => errors(b).reduce((s, e) => s + e * e, 0) / N;
+const slopeAt = (b: number) => (2 / N) * errors(b).reduce((s, e) => s + e, 0);
+
+// w=W_FIXED 고정 시 최적 b (= mean(y − W_FIXED·x))
+const B_OPT = +(DATA.reduce((s, [x, y]) => s + (y - W_FIXED * x), 0) / N).toFixed(2);
+
+// 오차/오차² 탭: w, b 모두 자유
+const predictWith = (w: number, b: number, x: number) => w * x + b;
+const errorsWithW = (w: number, b: number) => DATA.map(([x, y]) => predictWith(w, b, x) - y);
 
 export function Phase3() {
   const [tab, setTab] = useState<TabId>('data');
   const [b, setB] = useState(0);
+  const [w, setW] = useState<number>(W_FIXED);
   const markCompleted = useApp((s) => s.markCompleted);
 
+  // 탭4-5용 (w=W_FIXED 고정)
   const mse = useMemo(() => mseAt(b), [b]);
   const slope = useMemo(() => slopeAt(b), [b]);
-  const errs = useMemo(() => errors(b), [b]);
+  // 오차 탭용 (w 자유)
+  const errs = useMemo(() => errorsWithW(w, b), [w, b]);
 
   useEffect(() => {
-    if (mse < 0.05) markCompleted('p3');
+    if (mse < 0.15) markCompleted('p3');
   }, [mse, markCompleted]);
 
   return (
@@ -87,22 +87,48 @@ export function Phase3() {
         {TABS.find((t) => t.id === tab)!.sub}
       </div>
 
-      {/* ── 그래프 영역 — 탭에 따라 산점도 또는 손실 곡선 ── */}
+      {/* ── 그래프 영역 ── */}
       <div className="mt-4">
-        {tab === 'data' && <ScatterView b={null} errs={[]} mode="data" />}
-        {tab === 'error' && <ScatterView b={b} errs={errs} mode="error" />}
-        {tab === 'square' && <ScatterView b={b} errs={errs} mode="square" />}
+        {tab === 'data' && <ScatterView w={W_FIXED} b={null} errs={[]} mode="data" />}
+        {tab === 'error' && <ScatterView w={w} b={b} errs={errs} mode="error" />}
+        {tab === 'square' && <ScatterView w={W_FIXED} b={b} errs={errors(b)} mode="square" />}
         {(tab === 'mse' || tab === 'gd') && (
           <LossCurveView b={b} mse={mse} slope={slope} showTangent={tab === 'gd'} />
         )}
       </div>
 
-      {/* ── 슬라이더 (데이터 탭 외 모두) ─── */}
-      {tab !== 'data' && (
+      {/* ── 슬라이더 ─── */}
+      {tab === 'error' && (
+        <div className="mt-4 grid sm:grid-cols-2 gap-4">
+          <label className="block">
+            <div className="flex justify-between text-sm mb-1">
+              <span>가중치 w (기울기)</span>
+              <span className="font-mono text-accent">w = {w.toFixed(1)}</span>
+            </div>
+            <input
+              type="range" min={0} max={4} step={0.1}
+              value={w} onChange={(e) => setW(parseFloat(e.target.value))}
+              className="w-full"
+            />
+          </label>
+          <label className="block">
+            <div className="flex justify-between text-sm mb-1">
+              <span>편향 b (높이 조절)</span>
+              <span className="font-mono text-accent">b = {b.toFixed(2)}</span>
+            </div>
+            <input
+              type="range" min={-3} max={4} step={0.05}
+              value={b} onChange={(e) => setB(parseFloat(e.target.value))}
+              className="w-full"
+            />
+          </label>
+        </div>
+      )}
+      {(tab === 'square' || tab === 'mse' || tab === 'gd') && (
         <div className="mt-4">
           <label className="block">
             <div className="flex justify-between text-sm mb-1">
-              <span>편향 b (가중치 w = {W_FIXED}로 고정 — b만 움직여 직선의 높이를 맞춰 보세요)</span>
+              <span>편향 b &nbsp;<span className="text-muted text-xs">(가중치 w = {W_FIXED}로 고정 — b만 움직여 보세요)</span></span>
               <span className="font-mono text-accent">b = {b.toFixed(2)}</span>
             </div>
             <input
@@ -114,21 +140,25 @@ export function Phase3() {
         </div>
       )}
 
-      {/* ── 점별 표 — 모든 탭에서 공유, 탭에 따라 강조 컬럼 변경 ─ */}
+      {/* ── 점별 표 ─ */}
       {tab !== 'data' && (
-        <PointsTable b={b} highlight={tab} />
+        <PointsTable
+          w={tab === 'error' ? w : W_FIXED}
+          b={b}
+          highlight={tab}
+        />
       )}
 
       {/* ── 탭별 설명 ───────────────────── */}
       {tab === 'data' && <DataExplain />}
-      {tab === 'error' && <ErrorExplain b={b} errs={errs} />}
-      {tab === 'square' && <SquareExplain errs={errs} />}
+      {tab === 'error' && <ErrorExplain w={w} b={b} errs={errs} />}
+      {tab === 'square' && <SquareExplain errs={errors(b)} />}
       {tab === 'mse' && <MseExplain b={b} mse={mse} />}
       {tab === 'gd' && <GdExplain b={b} slope={slope} mse={mse} setB={setB} />}
 
-      {mse < 0.05 && tab !== 'data' && (
+      {mse < 0.15 && tab !== 'data' && (
         <div className="aside-tip mt-4 text-sm">
-          정답 직선에 거의 도달했어요 (정답: w = {W_FIXED}, b = {B_TRUE}). MSE ≈ 0이면 이 데이터에 더 줄일 수 없는 상태예요.
+          좋아요! w = {W_FIXED} 고정 시 최적 b ≈ {B_OPT} 근처에서 MSE가 거의 최저가 됩니다.
           <strong> 한 번에 얼마나 옮길지(=학습률)</strong>는 다음 페이즈에서 직접 체험합니다.
         </div>
       )}
@@ -139,7 +169,8 @@ export function Phase3() {
 /* ─────────────────────────────────────────────────────────
    산점도 뷰 — 데이터/오차/오차² 탭에서 사용
 ───────────────────────────────────────────────────────── */
-function ScatterView({ b, errs, mode }: {
+function ScatterView({ w, b, errs, mode }: {
+  w: number;
   b: number | null;
   errs: number[];
   mode: 'data' | 'error' | 'square';
@@ -169,8 +200,8 @@ function ScatterView({ b, errs, mode }: {
         {/* 직선 (오차/제곱 탭) */}
         {b !== null && (
           <line
-            x1={sx(xMin)} y1={sy(predict(b, xMin))}
-            x2={sx(xMax)} y2={sy(predict(b, xMax))}
+            x1={sx(xMin)} y1={sy(predictWith(w, b, xMin))}
+            x2={sx(xMax)} y2={sy(predictWith(w, b, xMax))}
             stroke="rgb(var(--color-accent))" strokeWidth={2} />
         )}
 
@@ -180,7 +211,7 @@ function ScatterView({ b, errs, mode }: {
           if (b === null) {
             return <circle key={x} cx={px} cy={py} r={5} fill="rgb(var(--color-text))" />;
           }
-          const yhat = predict(b, x);
+          const yhat = predictWith(w, b, x);
           const lineY = sy(yhat);
           const e = errs[i];
           if (mode === 'error') {
@@ -196,13 +227,12 @@ function ScatterView({ b, errs, mode }: {
               </g>
             );
           }
-          // square mode — 오차²를 정사각형 면적으로 표현
+          // square mode
           const sq = e * e;
-          // 화면 단위 길이 (1 단위 = sx(1)-sx(0)와 sy(0)-sy(1)의 평균)
           const unit = (sx(1) - sx(0) + sy(0) - sy(1)) / 2;
           const side = Math.abs(e) * unit;
-          const sqX = e >= 0 ? px : px - side; // 오차 부호에 따라 사각형이 점 좌/우로 펼쳐짐
-          const sqY = e >= 0 ? lineY : py;     // 사각형은 점과 직선 사이에 걸침
+          const sqX = e >= 0 ? px : px - side;
+          const sqY = e >= 0 ? lineY : py;
           return (
             <g key={x}>
               <rect x={sqX} y={sqY} width={side} height={side}
@@ -222,7 +252,7 @@ function ScatterView({ b, errs, mode }: {
       <div className="text-[11px] text-muted px-2 pb-2">
         {b === null ? '검은 점 = 데이터 (x, y)' : (
           <>
-            검은 점 = 데이터, 보라 직선 = 현재 모델 ŷ = {W_FIXED}x + {b.toFixed(2)},
+            검은 점 = 데이터, 보라 직선 = 현재 모델 ŷ = {w.toFixed(1)}x + {b.toFixed(2)},
             {' '}주황 = {mode === 'error' ? '점별 부호 있는 오차' : '오차²(정사각형 면적)'}.
           </>
         )}
@@ -239,12 +269,10 @@ function LossCurveView({ b, mse, slope, showTangent }: {
 }) {
   const W = 540, H = 280, padL = 40, padR = 14, padT = 14, padB = 30;
   const bMin = -3, bMax = 4;
-  // 손실 최댓값 — bMin과 bMax 중 더 큰 손실
   const lMax = Math.max(mseAt(bMin), mseAt(bMax)) * 1.05;
   const sx = (bv: number) => padL + ((bv - bMin) / (bMax - bMin)) * (W - padL - padR);
   const sy = (lv: number) => H - padB - (lv / lMax) * (H - padT - padB);
 
-  // 곡선
   const path = (() => {
     const parts: string[] = [];
     for (let bv = bMin; bv <= bMax; bv += 0.05) {
@@ -253,7 +281,6 @@ function LossCurveView({ b, mse, slope, showTangent }: {
     return parts.join(' ');
   })();
 
-  // 접선 (gd 탭)
   const tanLen = 1.0;
   const tanY = (bv: number) => mse + slope * (bv - b);
   const t1 = b - tanLen, t2 = b + tanLen;
@@ -270,10 +297,10 @@ function LossCurveView({ b, mse, slope, showTangent }: {
         <text x={W - padR - 4} y={H - padB - 4} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">b</text>
         <text x={padL + 4} y={padT + 10} fontSize={10} fill="rgb(var(--color-muted))">MSE</text>
 
-        {/* 정답 b 수직선 */}
-        <line x1={sx(B_TRUE)} y1={padT} x2={sx(B_TRUE)} y2={H - padB}
+        {/* 최적 b 수직선 */}
+        <line x1={sx(B_OPT)} y1={padT} x2={sx(B_OPT)} y2={H - padB}
           stroke="rgb(var(--color-muted))" strokeDasharray="3 3" opacity={0.7} />
-        <text x={sx(B_TRUE) + 4} y={padT + 10} fontSize={10} fill="rgb(var(--color-muted))">b={B_TRUE} (최저)</text>
+        <text x={sx(B_OPT) + 4} y={padT + 10} fontSize={10} fill="rgb(var(--color-muted))">b≈{B_OPT} (최저)</text>
 
         {/* 곡선 */}
         <path d={path} fill="none" stroke="rgb(var(--color-accent))" strokeWidth={2} />
@@ -294,7 +321,7 @@ function LossCurveView({ b, mse, slope, showTangent }: {
         </text>
       </svg>
       <div className="text-[11px] text-muted px-2 pb-2">
-        가로축 = 편향 b의 후보값, 세로축 = 그 b로 만든 직선의 평균 손실(MSE).
+        가로축 = 편향 b의 후보값, 세로축 = 그 b로 만든 직선의 평균 손실(MSE). w = {W_FIXED} 고정.
         {showTangent && ' 주황색 = 현재 점에서의 접선(기울기).'}
       </div>
     </div>
@@ -302,9 +329,9 @@ function LossCurveView({ b, mse, slope, showTangent }: {
 }
 
 /* ─────────────────────────────────────────────────────────
-   점별 표 — 탭마다 강조 컬럼이 다름
+   점별 표
 ───────────────────────────────────────────────────────── */
-function PointsTable({ b, highlight }: { b: number; highlight: TabId }) {
+function PointsTable({ w, b, highlight }: { w: number; b: number; highlight: TabId }) {
   return (
     <div className="card p-3 mt-4 overflow-x-auto">
       <table className="w-full text-xs font-mono">
@@ -312,14 +339,14 @@ function PointsTable({ b, highlight }: { b: number; highlight: TabId }) {
           <tr>
             <th className="text-left py-1">x</th>
             <th>y (실제)</th>
-            <th>ŷ = {W_FIXED}x + b</th>
+            <th>ŷ = {w.toFixed(1)}x + {b.toFixed(2)}</th>
             <th className={highlight === 'error' ? 'text-accent' : ''}>오차 e = ŷ − y</th>
             <th className={highlight === 'square' ? 'text-accent' : ''}>오차² (e²)</th>
           </tr>
         </thead>
         <tbody>
           {DATA.map(([x, y]) => {
-            const yhat = predict(b, x);
+            const yhat = predictWith(w, b, x);
             const e = yhat - y;
             return (
               <tr key={x} className="border-t border-border">
@@ -355,36 +382,37 @@ function DataExplain() {
     <div className="aside-tip mt-4">
       <div className="font-medium">1. 데이터 — 다섯 점에 가장 잘 맞는 직선?</div>
       <p className="text-sm mt-2 text-muted">
-        다섯 개의 점이 있어요. 이 점들을 가장 잘 설명하는 <strong>직선 한 개</strong>를 찾는 게 목표입니다.
-        직선은 두 숫자 <code>w</code>(기울기)와 <code>b</code>(높이)로 정해져요 — <code>ŷ = w · x + b</code>.
+        다섯 개의 점이 있어요. 실제 데이터는 이렇게 약간씩 노이즈가 섞여 있어 완벽한 직선 위에 있지 않아요.
+        이 점들을 가장 잘 설명하는 <strong>직선 한 개</strong>를 찾는 게 목표입니다 — <code>ŷ = w · x + b</code>.
       </p>
       <ul className="text-sm mt-2 space-y-1 list-disc pl-5 text-muted">
-        <li>여기서는 <code>w = {W_FIXED}</code>로 <strong>고정</strong>하고, 직선의 높이 <code>b</code> 한 가지만 움직여 봅니다.</li>
-        <li>그래야 "가장 잘 맞다"의 의미를 한 변수의 곡선으로 깔끔히 그릴 수 있어요(다음 탭부터).</li>
+        <li>탭 2(오차)에서 <code>w</code>와 <code>b</code>를 직접 움직여 직선을 맞춰보세요.</li>
+        <li>탭 3~5에서는 <code>w = {W_FIXED}</code>로 <strong>고정</strong>하고, <code>b</code>만 움직입니다 — 손실 곡선을 1차원으로 깔끔히 그릴 수 있어요.</li>
         <li>그런데 "잘 맞다"는 어떻게 측정할까? — <strong>다음 탭으로</strong>.</li>
       </ul>
     </div>
   );
 }
 
-function ErrorExplain({ b, errs }: { b: number; errs: number[] }) {
+function ErrorExplain({ w, b, errs }: { w: number; b: number; errs: number[] }) {
   const sumE = errs.reduce((s, e) => s + e, 0);
   return (
     <div className="aside-tip mt-4">
       <div className="font-medium">2. 오차 — 점 하나마다 직선까지의 부호 있는 차이</div>
       <p className="text-sm mt-2 text-muted">
         한 점의 오차는 <code>e = 예측 ŷ − 실제 y</code>. 점이 직선 위에 있으면 +, 아래면 −.
-        주황색 세로 막대 길이가 그 점의 오차 크기, 부호는 +/− 표시로 보여요.
+        주황색 세로 막대 길이가 그 점의 오차 크기입니다. 여기서는 <strong>w와 b 모두</strong> 직접 움직여 볼 수 있어요.
       </p>
       <div className="card p-3 mt-2 font-mono text-sm">
-        <div>다섯 점의 오차 합 = {sumE.toFixed(2)}
+        <div>현재 직선: ŷ = {w.toFixed(1)}x + {b.toFixed(2)}</div>
+        <div className="mt-1">다섯 점의 오차 합 = {sumE.toFixed(2)}
           <span className="text-muted ml-2 text-xs not-italic" style={{ fontFamily: 'system-ui' }}>
-            (b = {b.toFixed(2)}일 때)
+            (w = {w.toFixed(1)}, b = {b.toFixed(2)} 일 때)
           </span>
         </div>
         <div className="text-xs text-muted mt-1.5 not-italic" style={{ fontFamily: 'system-ui' }}>
-          그런데 합을 그대로 쓰면 <strong>+오차와 −오차가 상쇄</strong>되어, 직선이 점들 가운데를 지날 때만 합이 0에 가까워져요.
-          → "어긋남이 큰지 작은지"의 정보가 사라져요. 그래서 다음 탭에서 <strong>제곱</strong>합니다.
+          그런데 합을 그대로 쓰면 <strong>+오차와 −오차가 상쇄</strong>되어, 어긋남의 정도가 사라져요.
+          → 그래서 다음 탭에서 <strong>제곱</strong>합니다.
         </div>
       </div>
     </div>
@@ -397,12 +425,12 @@ function SquareExplain({ errs }: { errs: number[] }) {
       <div className="font-medium">3. 오차 제곱 — 부호를 없애고 큰 실수에 더 큰 페널티</div>
       <p className="text-sm mt-2 text-muted">
         각 오차에 자기 자신을 곱하면(<code>e² = e × e</code>) 부호가 사라지고, <strong>큰 오차일수록 훨씬 큰 값</strong>이 됩니다.
-        그림에서는 정사각형의 <strong>면적</strong>이 곧 e²예요 — 한 변의 길이가 |e|니까요.
+        그림에서는 정사각형의 <strong>면적</strong>이 곧 e²예요.
       </p>
       <ul className="text-sm mt-2 space-y-1 list-disc pl-5 text-muted">
         <li>오차 ±1 → e² = 1. 오차 ±2 → e² = 4. <strong>2배가 4배</strong>가 됩니다.</li>
-        <li>주황 사각형들을 보세요 — 큰 오차의 사각형이 작은 오차의 사각형보다 훨씬 더 넓죠?</li>
-        <li>다섯 사각형의 면적을 모두 더하면 <strong>{errs.reduce((s, e) => s + e * e, 0).toFixed(2)}</strong>. 이걸 한 숫자로 묶으면 다음 단계.</li>
+        <li>주황 사각형들을 보세요 — 큰 오차의 사각형이 작은 것보다 훨씬 더 넓죠?</li>
+        <li>다섯 사각형의 면적 합 = <strong>{errs.reduce((s, e) => s + e * e, 0).toFixed(2)}</strong>. 이걸 평균내면 다음 단계.</li>
       </ul>
     </div>
   );
@@ -413,13 +441,14 @@ function MseExplain({ b, mse }: { b: number; mse: number }) {
     <div className="aside-tip mt-4">
       <div className="font-medium">4. 평균 제곱 오차 (MSE) — 한 숫자로 모은 손실함수</div>
       <p className="text-sm mt-2 text-muted">
-        다섯 사각형 면적의 <strong>평균</strong>이 이 모델의 손실입니다. 식은 단순 — <code>MSE = (e₁² + ⋯ + e₅²) ÷ 5</code>.
+        다섯 사각형 면적의 <strong>평균</strong>이 이 모델의 손실입니다 — <code>MSE = (e₁² + ⋯ + e₅²) ÷ 5</code>.
+        여기서는 w = {W_FIXED}로 고정하고 b만 바꿔가며 손실이 어떻게 변하는지 봅니다.
       </p>
       <div className="card p-3 mt-2 font-mono text-sm">
         <div>지금 b = {b.toFixed(2)} → MSE = <span className="text-accent font-bold">{mse.toFixed(3)}</span></div>
         <div className="text-xs text-muted mt-2 not-italic" style={{ fontFamily: 'system-ui' }}>
           이 한 숫자가 <strong>"이 모델이 얼마나 틀렸는지"</strong>의 종합 점수예요.
-          위 그래프는 b를 좌우로 움직였을 때 MSE가 그리는 곡선 — 정답 b={B_TRUE} 근처에서 최저가 됩니다.
+          위 그래프는 b를 좌우로 움직였을 때 MSE가 그리는 곡선 — b ≈ {B_OPT} 근처에서 최저가 됩니다.
           학습 = 이 곡선의 <strong>가장 낮은 곳</strong>을 찾는 일.
         </div>
       </div>
@@ -430,7 +459,6 @@ function MseExplain({ b, mse }: { b: number; mse: number }) {
 function GdExplain({ b, slope, mse, setB }: {
   b: number; slope: number; mse: number; setB: (v: number) => void;
 }) {
-  // 기울기 반대 방향으로 한 step (학습률 0.1 가정 — 페이즈 4에서 이 값을 직접 다룸)
   const lrFixed = 0.1;
   const stepOnce = () => setB(b - lrFixed * slope);
 
@@ -444,7 +472,7 @@ function GdExplain({ b, slope, mse, setB }: {
       <ul className="text-sm mt-2 space-y-1 list-disc pl-5 text-muted">
         <li>지금 기울기 = <strong className="font-mono">{slope.toFixed(2)}</strong>, MSE = <strong className="font-mono">{mse.toFixed(3)}</strong></li>
         <li>갱신 규칙: <code>새 b = b − (보폭) × 기울기</code></li>
-        <li>"한 번에 얼마나 옮길지(=보폭)"가 바로 <strong>학습률</strong>이에요. <strong>너무 크면 정답을 지나치고, 너무 작으면 너무 느립니다</strong> — 다음 페이즈에서 직접 체험.</li>
+        <li>"한 번에 얼마나 옮길지(=보폭)"가 바로 <strong>학습률</strong>이에요. 너무 크면 정답을 지나치고, 너무 작으면 너무 느립니다 — 다음 페이즈에서 직접 체험.</li>
       </ul>
       <div className="flex flex-wrap gap-2 mt-3">
         <button onClick={stepOnce} disabled={Math.abs(slope) < 0.005}
