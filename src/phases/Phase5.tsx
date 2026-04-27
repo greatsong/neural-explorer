@@ -85,16 +85,35 @@ export function Phase5() {
       <p className="text-muted mt-2">
         페이즈 4에서 슬라이더를 손으로 움직여 오차를 줄였다면, 이제는 컴퓨터가 어느 쪽으로 얼마만큼 움직여야 하는지 스스로 알아냅니다.
         절차는 <strong>① 오차 계산 → ② 기울기 계산 → ③ 매개변수 수정</strong> 세 단계이며,
-        이 묶음을 한 번 도는 것을 한 <strong>step</strong>이라 부릅니다.
+        이 묶음을 한 번 도는 것을 한 <strong>step(에포크)</strong>이라 부릅니다.
       </p>
+
+      <div className="aside-tip mt-3">
+        <div className="font-medium">이 페이지에서 자주 등장하는 기호</div>
+        <ul className="mt-2 text-sm space-y-1 list-disc pl-5">
+          <li><code>w</code> 가중치, <code>b</code> 편향 — 우리가 조정해서 학습시키는 두 매개변수</li>
+          <li><code>ŷ</code> 모델의 예측, <code>y</code> 정답, <code>e = ŷ − y</code> 한 점의 오차</li>
+          <li><code>dw</code> = <strong>w의 변화량</strong> (모든 점의 <code>e × x</code>를 평균낸 값) → 이만큼 <code>w</code>를 바꿔야 손실이 가장 빠르게 줄어듭니다</li>
+          <li><code>db</code> = <strong>b의 변화량</strong> (모든 점의 <code>e</code>를 평균낸 값)</li>
+          <li><code>η</code> (그리스 문자 <strong>에타</strong>) = <strong>학습률</strong> = "한 발짝의 크기" — 페이즈 4에서 슬라이더 한 칸 크기를 직접 골라본 그 값입니다</li>
+        </ul>
+      </div>
 
       <h2>학습 대상 — 단일 뉴런 모델</h2>
       <p className="text-muted text-sm">
         이번 페이즈에서 학습시키는 모델은 입력 <code>x</code> 하나를 받아 예측 <code>ŷ = w·x + b</code>를 출력하는 단일 뉴런입니다.
         학습이란 가중치 <code>w</code>와 편향 <code>b</code>를 조정해 예측 <code>ŷ</code>가 정답 <code>y</code>에 가까워지도록 만드는 일입니다.
         아래에서 입력 <code>x</code>를 하나 골라 보면, 현재 모델의 정방향 계산과 역전파 채널을 한 그림으로 확인할 수 있습니다.
+        (<strong>주의</strong>: 다이어그램의 빨간 곡선과 두 라벨은 <em>이 한 점</em>이 갱신에 기여하는 양을 보여줍니다 — 실제 <code>dw</code>·<code>db</code>는 다섯 점을 모두 평균낸 값입니다.)
       </p>
       <NeuronView w={w} b={b} pulseKey={pulseKey} />
+
+      <h2>한 step에서 무엇이 일어나는가 — 한눈에</h2>
+      <p className="text-sm text-muted">
+        ①②③을 한 번 묶어 본 식이 아래입니다. 지금 값을 그대로 대입해서 한 step 후 새 <code>w</code>·<code>b</code>가 얼마가 되는지 미리 보여줍니다.
+        그 아래 ①②③ 섹션에서 <code>dw</code>·<code>db</code>가 어떻게 계산되는지 한 단계씩 펼쳐 봅니다.
+      </p>
+      <OverviewCard w={w} b={b} dw={dw} db={db} lr={lr} />
 
       <h2>준비 — 곡선의 기울기와 두 층의 기울기</h2>
       <p className="text-muted text-sm">
@@ -137,9 +156,9 @@ export function Phase5() {
 
       <h2>② 기울기 계산</h2>
       <p className="text-sm text-muted">
-        한 점에서 <code>w</code>에 대한 손실의 기울기는 <strong>오차 × x</strong>, <code>b</code>에 대한 기울기는 <strong>오차</strong>입니다.
-        학습 데이터가 N개이면 점마다의 기여를 평균한 값을 각각 <code>dw</code>, <code>db</code>로 정의합니다.
-        아래 카드는 현재 매개변수에서 다섯 점이 <code>dw</code>·<code>db</code>에 기여하는 양을 그대로 보여줍니다.
+        한 점에서 <code>w</code>의 기여는 <strong>오차 × x</strong>, <code>b</code>의 기여는 <strong>오차</strong>입니다.
+        학습 데이터가 N개이면 <strong>점마다의 기여를 모두 더해 평균낸 값</strong>이 곧 <code>w·b의 변화량</code> <code>dw</code>·<code>db</code>입니다.
+        아래 카드에 다섯 점의 기여가 그대로 펼쳐져 있고, 마지막 줄이 평균값(= 실제 갱신에 쓰일 <code>dw</code>·<code>db</code>)입니다.
       </p>
       <details className="mt-3 card p-4 text-sm">
         <summary className="cursor-pointer font-medium">유도 과정 한 줄씩 따라가기</summary>
@@ -253,14 +272,17 @@ export function Phase5() {
 
       <h2>③ 수정</h2>
       <p className="text-sm text-muted">
-        매개변수를 기울기의 반대 방향으로 학습률 <code>η</code>만큼 이동시킵니다.
+        매개변수를 변화량의 반대 방향으로 학습률 <code>η</code>(에타, "한 발짝의 크기")만큼 이동시킵니다.
         오차가 양수이면 <code>dw</code>도 양수가 되어 <code>w</code>를 감소시키는 방향으로,
         음수이면 증가시키는 방향으로 자동 갱신됩니다.
       </p>
-      <div className="card p-4 mt-3 font-mono text-sm space-y-1">
-        <div>새 w = w − (η × dw) = {w.toFixed(3)} − ({lr.toFixed(3)} × {dw.toFixed(3)}) = <span className="text-accent">{(w - lr * dw).toFixed(3)}</span></div>
-        <div>새 b = b − (η × db) = {b.toFixed(3)} − ({lr.toFixed(3)} × {db.toFixed(3)}) = <span className="text-accent">{(b - lr * db).toFixed(3)}</span></div>
-      </div>
+      <details className="mt-3 card p-4 text-sm">
+        <summary className="cursor-pointer font-medium">새 w·b 계산식 펼치기 — 지금 값으로 한 step</summary>
+        <div className="mt-3 font-mono text-sm space-y-1">
+          <div>새 w = w − (η × dw) = {w.toFixed(3)} − ({lr.toFixed(3)} × {dw.toFixed(3)}) = <span className="text-accent">{(w - lr * dw).toFixed(3)}</span></div>
+          <div>새 b = b − (η × db) = {b.toFixed(3)} − ({lr.toFixed(3)} × {db.toFixed(3)}) = <span className="text-accent">{(b - lr * db).toFixed(3)}</span></div>
+        </div>
+      </details>
       <details className="mt-3 card p-4 text-sm">
         <summary className="cursor-pointer font-medium">왜 빼기인가, 학습률 η는 무엇인가</summary>
         <div className="mt-3 space-y-3 leading-relaxed">
@@ -273,21 +295,29 @@ export function Phase5() {
             </p>
           </div>
           <div>
-            <div className="font-medium">학습률 η</div>
+            <div className="font-medium">학습률 η (에타) — "한 발짝의 크기"</div>
             <p className="text-muted mt-1">
-              기울기는 방향만 알려줄 뿐, 한 발짝의 크기는 정해주지 않습니다.
-              학습률 <code>η</code>는 한 발짝의 크기를 결정하는 양수 상수입니다.
-              만약 <code>η</code> 없이 <code>w ← w − dw</code>로 갱신하면 한 발짝이 기울기 자체가 되어,
-              기울기가 큰 위치에서는 골짜기 반대편으로 튕겨 발산할 수 있습니다.
+              <strong>페이즈 4의 슬라이더 한 칸 크기와 같은 발상</strong>입니다.
+              기울기는 어느 쪽이 내리막인지 방향만 알려줄 뿐, 한 발짝의 크기는 정해주지 않습니다.
+              학습률 <code>η</code>는 그 한 발짝의 크기를 결정하는 양수 상수예요.
+              만약 <code>η</code> 없이 <code>w ← w − dw</code>로 갱신하면 한 발짝이 변화량 자체가 되어,
+              변화량이 큰 위치에서는 골짜기 반대편으로 튕겨 발산할 수 있습니다.
             </p>
             <ul className="text-xs text-muted mt-2 list-disc pl-5 space-y-1">
-              <li><code>η</code>가 너무 크면 손실이 진동하거나 발산합니다.</li>
-              <li><code>η</code>가 너무 작으면 수렴이 매우 느립니다.</li>
+              <li><code>η</code>가 너무 크면(페이즈 4의 "큰칸"처럼) 손실이 진동하거나 발산합니다.</li>
+              <li><code>η</code>가 너무 작으면(페이즈 4의 "미세칸"처럼) 수렴이 매우 느립니다.</li>
               <li>적절한 <code>η</code>에서 손실이 매끄럽게 0으로 수렴합니다.</li>
             </ul>
           </div>
         </div>
       </details>
+
+      <h2>다시 한눈에 — 한 step의 결과</h2>
+      <p className="text-sm text-muted">
+        ①②③을 한 번 묶어 본 식이 다시 등장합니다. 위쪽 빵에서 본 것과 같은 식이지만,
+        이제는 <code>dw</code>·<code>db</code>·<code>η</code>가 무엇이고 어떻게 나왔는지 알고 보는 것입니다.
+      </p>
+      <OverviewCard w={w} b={b} dw={dw} db={db} lr={lr} asResult />
 
       <h2>학습 진행</h2>
       <p className="text-muted text-sm">
@@ -326,6 +356,41 @@ export function Phase5() {
         </div>
       )}
     </article>
+  );
+}
+
+// 한 step 전체 식을 한눈에 보여주는 카드 — 샌드위치 빵 ① (위)와 ② (아래) 양쪽에서 재사용
+function OverviewCard({ w, b, dw, db, lr, asResult = false }:
+  { w: number; b: number; dw: number; db: number; lr: number; asResult?: boolean }) {
+  const newW = w - lr * dw;
+  const newB = b - lr * db;
+  return (
+    <div className="card p-4 mt-3 font-mono text-sm space-y-2">
+      <div className="text-xs text-muted not-italic" style={{ fontFamily: 'system-ui' }}>
+        한 step 전체 식 — <strong>새 매개변수 = 지금 매개변수 − 학습률(η) × 변화량</strong>
+      </div>
+      <div className="border-t border-border pt-2">
+        <div>새 w = w − (η × dw) = {w.toFixed(3)} − ({lr.toFixed(3)} × {dw.toFixed(3)}) = <span className="text-accent font-semibold">{newW.toFixed(3)}</span></div>
+        <div>새 b = b − (η × db) = {b.toFixed(3)} − ({lr.toFixed(3)} × {db.toFixed(3)}) = <span className="text-accent font-semibold">{newB.toFixed(3)}</span></div>
+      </div>
+      <div className="border-t border-border pt-2 text-xs space-y-0.5" style={{ fontFamily: 'system-ui' }}>
+        <div className="text-muted">현재 값:</div>
+        <div>· η = <span className="text-accent">{lr.toFixed(3)}</span> (학습률, 한 발짝의 크기)</div>
+        <div>· dw = <span className="text-accent">{dw.toFixed(3)}</span> (w의 변화량 = 모든 점의 e × x를 평균)</div>
+        <div>· db = <span className="text-accent">{db.toFixed(3)}</span> (b의 변화량 = 모든 점의 e를 평균)</div>
+      </div>
+      {asResult ? (
+        <div className="text-xs text-muted pt-1" style={{ fontFamily: 'system-ui' }}>
+          이번 step에서 <code>w</code>는 <span className="text-accent">{(newW - w >= 0 ? '+' : '')}{(newW - w).toFixed(3)}</span> 만큼,
+          <code> b</code>는 <span className="text-accent">{(newB - b >= 0 ? '+' : '')}{(newB - b).toFixed(3)}</span> 만큼 갱신됩니다.
+          이 한 줄을 손실이 0에 가까워질 때까지 반복하면 학습이 끝납니다.
+        </div>
+      ) : (
+        <div className="text-xs text-muted pt-1" style={{ fontFamily: 'system-ui' }}>
+          <code>dw</code>·<code>db</code>가 어떻게 계산되는지는 아래 ①②에서, 왜 빼기·왜 학습률인지는 ③에서 확인합니다.
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -437,13 +502,13 @@ function NeuronView({ w, b, pulseKey }: { w: number; b: number; pulseKey: number
             strokeWidth={backStrokeW} strokeDasharray="7 5" strokeLinecap="round"
             markerEnd="url(#nv-back)" />
 
-          {/* 두 라벨: 곡선 위쪽 (각 노드 아래) */}
+          {/* 두 라벨: 곡선 위쪽 (각 노드 아래) — "이 한 점"임을 명시 */}
           <ValueBadge2 cx={(predCx + sumCx) / 2} cy={250}
-            label={`b 변화량 = e = ${dbOnePoint.toFixed(2)}`} color={backColor} />
+            label={`이 점의 b 기여 = e = ${dbOnePoint.toFixed(2)}`} color={backColor} />
           <ValueBadge2 cx={(sumCx + xCx) / 2} cy={250}
-            label={`w 변화량 = e × x = ${dwOnePoint.toFixed(2)}`} color={backColor} />
+            label={`이 점의 w 기여 = e × x = ${dwOnePoint.toFixed(2)}`} color={backColor} />
           <text x={W / 2} y={350} textAnchor="middle" fontSize={11.5} fill="rgb(var(--color-muted))">
-            아래 빨간 곡선 = 역전파. <tspan fill={backColor} fillOpacity={0.85}>오차 |e|가 클수록 곡선이 굵고 진해집니다.</tspan>
+            빨간 곡선 = 이 한 점의 역전파. <tspan fill={backColor} fillOpacity={0.85}>실제 dw·db는 다섯 점 평균.</tspan> <tspan fill={backColor} fillOpacity={0.85}>오차 |e|가 클수록 굵고 진하게.</tspan>
           </text>
 
           {/* 학습 단계 실행 시 펄스 — pulseKey가 바뀌면 path 리마운트로 CSS animation 재생 */}

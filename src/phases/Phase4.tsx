@@ -9,6 +9,7 @@ const DATA: [number, number][] = [
 export function Phase4() {
   const [w, setW] = useState(0);
   const [b, setB] = useState(0);
+  const [stepSize, setStepSize] = useState(0.1); // 슬라이더 한 칸의 크기 — 페이즈 5의 학습률(η)과 같은 발상
   const markCompleted = useApp((s) => s.markCompleted);
 
   const total = DATA.reduce((acc, [x, y]) => {
@@ -64,8 +65,33 @@ export function Phase4() {
         </svg>
 
         <div className="space-y-4">
-          <Slider label="w (가중치)" value={w} setValue={setW} min={-3} max={5} step={0.1} />
-          <Slider label="b (편향)" value={b} setValue={setB} min={-5} max={5} step={0.1} />
+          <div className="card p-3">
+            <div className="text-xs text-muted mb-2">
+              한 칸 크기 — 슬라이더를 한 번 움직였을 때 <code>w</code>·<code>b</code>가 바뀌는 양.
+              페이즈 5에서는 이 값을 <strong>학습률 η</strong>라고 부릅니다.
+            </div>
+            <div className="inline-flex rounded-md border border-border overflow-hidden text-xs">
+              {[
+                { v: 0.5, label: '큰칸 0.5' },
+                { v: 0.1, label: '보통 0.1' },
+                { v: 0.01, label: '미세 0.01' },
+              ].map((opt) => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  onClick={() => setStepSize(opt.v)}
+                  className={`px-3 py-1.5 ${stepSize === opt.v ? 'bg-accent text-white' : 'bg-surface/40 text-muted'}`}
+                >{opt.label}</button>
+              ))}
+            </div>
+            <div className="text-[11px] text-muted mt-2 leading-relaxed">
+              큰칸은 정답에 빠르게 다가가지만 근처에서 정착이 어렵고, 미세칸은 매끄럽지만 답답합니다.
+              직접 바꿔 가며 차이를 느껴 보세요.
+            </div>
+          </div>
+
+          <Slider label="w (가중치)" value={w} setValue={setW} min={-3} max={5} step={stepSize} />
+          <Slider label="b (편향)" value={b} setValue={setB} min={-5} max={5} step={stepSize} />
 
           <div className="card p-4">
             <div className="text-xs text-muted mb-2">총 오차 (모든 데이터 손실 합)</div>
@@ -106,11 +132,13 @@ export function Phase4() {
 function Slider({
   label, value, setValue, min, max, step,
 }: { label: string; value: number; setValue: (v: number) => void; min: number; max: number; step: number }) {
+  // step에 따라 표시 자릿수 결정 (0.5→1, 0.1→1, 0.01→2)
+  const digits = step >= 0.1 ? 1 : 2;
   return (
     <label className="block">
       <div className="flex justify-between text-sm mb-1">
         <span>{label}</span>
-        <span className="font-mono text-accent">{value.toFixed(1)}</span>
+        <span className="font-mono text-accent">{value.toFixed(digits)}</span>
       </div>
       <input type="range" min={min} max={max} step={step} value={value}
         onChange={(e) => setValue(parseFloat(e.target.value))} className="w-full" />

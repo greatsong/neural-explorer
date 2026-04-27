@@ -34,7 +34,16 @@ export function Phase3() {
       </p>
 
       <div className="aside-tip">
-        정답은 <strong>{TRUE}</strong>입니다. 슬라이더로 예측값을 움직여 손실을 0에 가깝게 만들어보세요.
+        <div className="font-medium">왜 제곱을 할까?</div>
+        <ul className="mt-2 text-sm space-y-1 list-disc pl-5">
+          <li><strong>부호 상쇄 방지</strong> — 어떤 점은 +3, 어떤 점은 −3 으로 어긋나 있을 때 그대로 더하면 0이 되어 "오차 없음"처럼 보입니다. 제곱하면 모두 양수가 되어 그런 일이 생기지 않습니다.</li>
+          <li><strong>큰 오차에 더 큰 페널티</strong> — 오차 1과 10의 제곱은 1과 100. 큰 오차일수록 손실이 훨씬 커지므로, 모델이 큰 실수를 먼저 줄이려고 합니다.</li>
+          <li><strong>매끄러운 곡선</strong> — 손실이 아래 그림처럼 부드러운 포물선이 되어, 페이즈 5에서 컴퓨터가 "어느 쪽이 내리막인지"를 정확히 계산할 수 있습니다.</li>
+        </ul>
+      </div>
+
+      <div className="aside-tip mt-3">
+        정답은 <strong>{TRUE}</strong> 입니다. 슬라이더로 예측값을 움직여 손실을 0에 가깝게 만들어 보세요.
       </div>
 
       <svg viewBox={`0 0 ${W + 40} ${H + 40}`} className="w-full max-w-2xl mt-4">
