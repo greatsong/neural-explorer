@@ -24,6 +24,12 @@ export function Phase3() {
   const sy = (y: number) => H - ((y - yMin) / (yMax - yMin)) * H;
   const path = points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${sx(x)},${sy(y)}`).join(' ');
 
+  // 손실 = (예측 − 정답)² 의 예측에 대한 기울기 = 2(예측 − 정답)
+  const slope = 2 * (pred - TRUE);
+  // 현재 점 기준 접선 양 끝 (시각화용)
+  const tanY = (x: number) => sqError + slope * (x - pred);
+  const tanX1 = pred - 2.5, tanX2 = pred + 2.5;
+
   return (
     <article>
       <div className="text-xs font-mono text-muted">PHASE 3</div>
@@ -52,6 +58,14 @@ export function Phase3() {
           <line x1={sx(TRUE)} y1={0} x2={sx(TRUE)} y2={H} stroke="rgb(var(--color-muted))" strokeDasharray="3 3" />
           <text x={sx(TRUE) + 4} y={14} fontSize={11} fill="rgb(var(--color-muted))">정답</text>
           <path d={path} stroke="rgb(var(--color-accent))" strokeWidth={2} fill="none" />
+          {/* 현재 점에서의 접선 — 기울기의 부호와 크기를 시각화 */}
+          {Math.abs(error) > 0.05 && (
+            <line
+              x1={sx(tanX1)} y1={sy(Math.max(yMin, Math.min(yMax, tanY(tanX1))))}
+              x2={sx(tanX2)} y2={sy(Math.max(yMin, Math.min(yMax, tanY(tanX2))))}
+              stroke="rgb(251, 146, 60)" strokeWidth={2} opacity={0.85}
+            />
+          )}
           <circle cx={sx(pred)} cy={sy(sqError)} r={7} fill="rgb(var(--color-accent))" stroke="white" strokeWidth={2} />
           <text x={sx(pred) + 10} y={sy(sqError) - 6} fontSize={11} fill="rgb(var(--color-text))">
             예측 {pred.toFixed(1)} → 손실 {sqError.toFixed(2)}
@@ -83,9 +97,38 @@ export function Phase3() {
         <Stat label="손실 (오차²)" value={sqError.toFixed(2)} highlight={Math.abs(error) < 0.3} />
       </div>
 
+      {/* ── 직관 코너: 기울기 → 어느 쪽으로 줄여야 할까 ─────────── */}
+      <div className="aside-tip mt-6">
+        <div className="font-medium">기울기를 보고 어느 쪽으로 옮기면 손실이 줄까?</div>
+        <p className="text-sm mt-2 text-muted">
+          위 그래프의 <span style={{ color: 'rgb(251,146,60)' }}>주황색 직선</span>이 지금 위치에서의 기울기예요.
+          포물선의 한 점에서 기울기는 <code>2 × (예측 − 정답)</code>으로 계산됩니다 — 지금은 <strong className="font-mono">{slope.toFixed(2)}</strong>.
+        </p>
+        <ul className="text-sm mt-2 space-y-1 list-disc pl-5 text-muted">
+          {slope > 0.05 ? (
+            <li><strong>기울기 +</strong> → 오른쪽이 오르막. 예측을 <strong>왼쪽(작은 쪽)</strong>으로 옮기면 손실이 줄어요.</li>
+          ) : slope < -0.05 ? (
+            <li><strong>기울기 −</strong> → 왼쪽이 오르막. 예측을 <strong>오른쪽(큰 쪽)</strong>으로 옮기면 손실이 줄어요.</li>
+          ) : (
+            <li><strong>기울기 ≈ 0</strong> → 거의 골짜기 바닥. 더 줄일 곳이 없어요.</li>
+          )}
+          <li>그래서 갱신 규칙은 항상 <strong>"기울기의 반대 방향(=빼기)"</strong> 으로 옮기기.</li>
+        </ul>
+        <div className="card p-3 mt-3 font-mono text-sm bg-bg/60">
+          <div className="text-xs text-muted not-italic mb-1" style={{ fontFamily: 'system-ui' }}>
+            한 줄로 쓰면 (∂SE/∂w = "SE의 w에 대한 기울기"):
+          </div>
+          <div>새 예측 = 지금 예측 − <span className="text-accent">기울기</span></div>
+          <div className="text-muted text-xs not-italic mt-1" style={{ fontFamily: 'system-ui' }}>
+            일반화: <code>w ← w − ∂SE/∂w</code> &nbsp; — 이게 페이즈 5의 자동 학습 출발 식이에요.
+          </div>
+        </div>
+      </div>
+
       {Math.abs(error) < 0.3 && (
         <div className="aside-tip mt-4">
           정답 근처에 도달했어요. 손실이 0에 가까울수록 모델이 잘 맞힌 거예요.
+          기울기도 0에 가까워졌죠 — <strong>기울기 ≈ 0</strong>이 학습 종료 신호입니다.
         </div>
       )}
     </article>

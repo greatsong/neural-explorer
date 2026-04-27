@@ -56,8 +56,22 @@ const STEPS_B: { id: number; expr: string; why: string; highlight?: boolean }[] 
   {
     id: 10,
     expr: 'b ← b − (ŷ − y)',
-    highlight: true,
     why: '(wx + b − y)에서 b가 1만큼 변하면 식 전체도 1만큼 변한다 → (ŷ − y) × 1. 결과는 단순히 b ← b − e.',
+  },
+];
+
+// 결론 직전 — 한 점 식에 학습률 η를 도입하는 마지막 단계
+const STEPS_LR: { id: number; expr: string; why: string; highlight?: boolean }[] = [
+  {
+    id: 11,
+    expr: 'w ← w − η · (ŷ − y) · x',
+    why: '한 점의 기울기 (ŷ − y) · x를 그대로 빼면 한 step에 너무 멀리 튀어 나갈 수 있다. 보폭 조절을 위해 학습률 η(0~1 사이의 작은 양수)를 곱한다.',
+  },
+  {
+    id: 12,
+    expr: 'b ← b − η · (ŷ − y)',
+    highlight: true,
+    why: 'b도 마찬가지. 같은 학습률 η를 곱해 보폭을 맞춘다.',
   },
 ];
 
@@ -107,24 +121,34 @@ export function DerivationContent() {
         {STEPS_B.map((s) => <DerivStep key={s.id} step={s} />)}
       </div>
 
+      <h2>학습률 η 도입 — 보폭 조절 한 단계</h2>
+      <p className="text-sm text-muted">
+        지금까지 나온 식은 "기울기 그 자체"만큼 빼는 식이에요. 그런데 그 양이 한 step에 너무 클 수 있으니
+        <strong> 보폭을 조절하는 작은 양수 <code>η</code>(에타)</strong>를 곱해 줍니다. 이걸 <strong>학습률</strong>이라고 부르고,
+        페이즈 5의 슬라이더로 조절했던 그 값이에요.
+      </p>
+      <div className="mt-3 space-y-2">
+        {STEPS_LR.map((s) => <DerivStep key={s.id} step={s} />)}
+      </div>
+
       <h2>결론 — 매우 깔끔한 두 줄</h2>
       <div className="card p-5 mt-3 bg-accent/5 border-accent/40">
         <div className="text-center font-mono text-lg space-y-3">
           <div>
             <span className="text-muted text-sm">새 w =</span>{' '}
-            w − <span className="text-accent font-bold">(ŷ − y) · x</span>{' '}
-            = w − <span className="text-accent font-bold">e · x</span>
+            w − η · <span className="text-accent font-bold">(ŷ − y) · x</span>{' '}
+            = w − η · <span className="text-accent font-bold">e · x</span>
           </div>
           <div>
             <span className="text-muted text-sm">새 b =</span>{' '}
-            b − <span className="text-accent font-bold">(ŷ − y)</span>{' '}
-            = b − <span className="text-accent font-bold">e</span>
+            b − η · <span className="text-accent font-bold">(ŷ − y)</span>{' '}
+            = b − η · <span className="text-accent font-bold">e</span>
           </div>
         </div>
         <p className="text-sm text-muted mt-4 leading-relaxed">
-          10단계의 ∂·½ 같은 것들이 <strong>약분(½ × 2 = 1)</strong>을 거치며 모두 사라지고,
-          남은 건 그저 <strong>"오차에 입력 x를 곱하기"</strong>(w 쪽)와 <strong>"오차 그대로"</strong>(b 쪽)입니다.
-          이게 바로 페이즈 5에서 보던 <code>e × x</code>·<code>e</code>의 정체예요.
+          12단계의 ∂·½ 같은 것들이 <strong>약분(½ × 2 = 1)</strong>을 거치며 모두 사라지고,
+          남은 건 그저 <strong>"오차에 입력 x를 곱한 양에 보폭 η를 곱하기"</strong>(w 쪽)와
+          <strong> "오차에 보폭 η를 곱하기"</strong>(b 쪽)입니다. 이게 바로 페이즈 5에서 보던 갱신 식의 정체예요.
         </p>
       </div>
 
