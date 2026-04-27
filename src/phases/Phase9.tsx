@@ -26,7 +26,7 @@ const SCENARIOS: MedicalScenario[] = [
     modelStd: 0.15,
     context:
       '인구 1000명을 검사해요. 실제로는 약 2%(20명)만 코로나 양성. 우리 진단 모델은 각 사람에게 0~1 사이 "양성 가능성 점수"를 매겨요. 점수가 임계값보다 높으면 양성 판정.',
-    threshold: { default: 0.5, min: 0.05, max: 0.95 },
+    threshold: { default: 0.5, min: 0, max: 1 },
     costPerFN: '진짜 환자를 놓치면 → 본인 악화 + 주변 전염 (큰 비용)',
     costPerFP: '음성인데 양성 판정 → 격리 부담, 추가 검사 (작은 비용)',
   },
@@ -40,7 +40,7 @@ const SCENARIOS: MedicalScenario[] = [
     modelStd: 0.18,
     context:
       '인구 1000명을 정기검진해요. 실제 암 환자는 0.5%(5명) 수준. 우리 모델은 영상에서 각 환자에게 "암 의심도 점수"를 매겨요.',
-    threshold: { default: 0.5, min: 0.05, max: 0.95 },
+    threshold: { default: 0.5, min: 0, max: 1 },
     costPerFN: '진짜 암을 놓치면 → 진행 후 발견 → 생존율 급락 (매우 큰 비용)',
     costPerFP: '암 아닌데 의심 판정 → 추가 검사, 환자 불안 (중간 비용)',
   },
@@ -140,12 +140,23 @@ function ScenarioContent({
 
       <h2>임계값 조절</h2>
       <p className="text-sm text-muted">
-        모델이 매긴 점수를 어디서 잘라야 할까? 임계값을 움직이면 정밀도와 재현율이 시소처럼 움직여요.
+        모델은 각 사람에게 <strong>0~1 사이 점수</strong>를 매겨요. 점수가 높을수록 "양성일 것 같다"는 뜻이에요.
+        그런데 점수만으론 양/음을 결정 못 하니, <strong>어디서 자를지</strong>를 정해야 해요. 이 자르는 위치가 임계값.
       </p>
+
+      <div className="aside-tip mt-3 text-sm">
+        <div className="font-medium mb-1">예시 — 세 사람의 점수</div>
+        <div className="grid grid-cols-3 gap-2 font-mono text-center">
+          <div className="rounded-md border border-border p-2">A: 0.82<div className="text-xs text-muted mt-0.5">거의 확실</div></div>
+          <div className="rounded-md border border-border p-2">B: 0.45<div className="text-xs text-muted mt-0.5">애매</div></div>
+          <div className="rounded-md border border-border p-2">C: 0.13<div className="text-xs text-muted mt-0.5">거의 음성</div></div>
+        </div>
+        <p className="text-xs text-muted mt-2">→ 임계값을 0.5로 두면 A만 양성. 0.4로 낮추면 A·B 양성. 어디서 자를까?</p>
+      </div>
 
       <div className="mt-3">
         <Slider
-          label="임계값 (점수가 이 값 이상이면 양성 판정)"
+          label="이 점수 이상이면 양성으로 — 어디서 자를까?"
           value={threshold}
           setValue={setThreshold}
           min={scenario.threshold.min}
@@ -155,6 +166,10 @@ function ScenarioContent({
       </div>
 
       <ScoreDistribution data={data} threshold={threshold} />
+      <div className="text-xs text-muted mt-1 px-1 flex justify-between">
+        <span>가로축: 모델이 매긴 점수 (0=확실히 음성 · 1=확실히 양성)</span>
+        <span>막대 색: 실제 정답 (회색=음성 / 주황=양성)</span>
+      </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 text-sm font-mono">
         <Metric label="정확도" value={accuracy} note="(TP+TN)/전체" />
