@@ -212,7 +212,7 @@ export function Phase5() {
                 </tbody>
               </table>
             </div>
-            <AverageCalcCard dw={dw} db={db} perPoint={perPoint} />
+            <AverageCalcCard dw={dw} db={db} lr={lr} perPoint={perPoint} />
           </section>
         </div>
       )}
@@ -340,16 +340,18 @@ function UpdateFormulaCard({ w, b, dw, db, lr }: {
 // 다섯 점에서 dw·db가 어떻게 평균으로 만들어지는지 그대로 보여주는 카드.
 // 각 항 / 합계 / 결과의 표시 자릿수를 모두 같은 정밀도(소수 셋째 자리)로 맞춰
 // "0.01 ÷ 5 = 0.003" 같은 반올림 모순이 보이지 않도록 한다.
-function AverageCalcCard({ dw, db, perPoint }: {
-  dw: number; db: number; perPoint: { x: number; e: number }[];
+function AverageCalcCard({ dw, db, lr, perPoint }: {
+  dw: number; db: number; lr: number; perPoint: { x: number; e: number }[];
 }) {
   const N = perPoint.length;
   const sumEx = perPoint.reduce((s, p) => s + p.e * p.x, 0);
-  const sumE = perPoint.reduce((s, p) => s + p.e, 0);
+  const sumE  = perPoint.reduce((s, p) => s + p.e, 0);
   return (
     <div className="card p-4 mt-3 font-mono text-sm space-y-3">
       <div>
-        <div className="text-xs text-muted not-italic" style={{ fontFamily: 'system-ui' }}>dw = 평균(e × x):</div>
+        <div className="text-xs text-muted not-italic" style={{ fontFamily: 'system-ui' }}>
+          dw = 평균(e × x) &nbsp;—&nbsp; <strong>기울기만, 학습률 η는 갱신 단계에서 곱함</strong>
+        </div>
         <div className="break-all mt-1">
           dw = (
           {perPoint.map((p, i) => (
@@ -360,9 +362,14 @@ function AverageCalcCard({ dw, db, perPoint }: {
           ))}
           ) ÷ {N} = {sumEx.toFixed(3)} ÷ {N} = <span className="text-accent font-semibold">{dw.toFixed(3)}</span>
         </div>
+        <div className="text-xs text-muted mt-1 not-italic" style={{ fontFamily: 'system-ui' }}>
+          → 실제 w 변화량 = −η × dw = −{lr.toFixed(3)} × {dw.toFixed(3)} = <span className="text-accent">{(-lr * dw).toFixed(4)}</span>
+        </div>
       </div>
       <div className="border-t border-border pt-2">
-        <div className="text-xs text-muted not-italic" style={{ fontFamily: 'system-ui' }}>db = 평균(e):</div>
+        <div className="text-xs text-muted not-italic" style={{ fontFamily: 'system-ui' }}>
+          db = 평균(e) &nbsp;—&nbsp; <strong>기울기만, 학습률 η는 갱신 단계에서 곱함</strong>
+        </div>
         <div className="break-all mt-1">
           db = (
           {perPoint.map((p, i) => (
@@ -373,6 +380,14 @@ function AverageCalcCard({ dw, db, perPoint }: {
           ))}
           ) ÷ {N} = {sumE.toFixed(3)} ÷ {N} = <span className="text-accent font-semibold">{db.toFixed(3)}</span>
         </div>
+        <div className="text-xs text-muted mt-1 not-italic" style={{ fontFamily: 'system-ui' }}>
+          → 실제 b 변화량 = −η × db = −{lr.toFixed(3)} × {db.toFixed(3)} = <span className="text-accent">{(-lr * db).toFixed(4)}</span>
+        </div>
+      </div>
+      <div className="border-t border-border pt-2 text-xs not-italic text-muted" style={{ fontFamily: 'system-ui' }}>
+        <strong>요약:</strong> dw·db는 "어느 방향으로 얼마나 기울어져 있나"(=기울기)이고,
+        학습률 η를 곱해야 비로소 "이번 step에 실제로 얼마나 움직일지"(=변화량)가 됩니다.
+        η가 작으면 변화량이 작아져 안전하지만 느리고, 크면 빠르지만 불안정해집니다(페이즈 4 참조).
       </div>
     </div>
   );
@@ -560,13 +575,14 @@ function NeuronView({ w, b, lr, pulseKey }: { w: number; b: number; lr: number; 
         </label>
         <p className="text-xs text-muted leading-relaxed">
           아래의 <strong>한 단계 진행</strong>을 누르면 오차 <code>e</code>로부터 만들어진
-          <strong> 변화량 신호</strong>(w 쪽은 <code>e·x</code>, b 쪽은 <code>e</code>)가 두 갈래로 갈라져
+          <strong> 기울기 신호</strong>(w 쪽은 <code>e·x</code>, b 쪽은 <code>e</code>)가 두 갈래로 갈라져
           가중치 <code>w</code>와 편향 <code>b</code>를 각각 갱신합니다.
-          빨간 화살표 두 개는 <em>이 한 점</em>이 만드는 변화량이고, 실제 갱신엔 다섯 점의 평균이 사용돼요.
+          화살표 <strong>굵기</strong>는 이 한 점의 기울기 크기를, <strong>라벨</strong>은 η를 곱한 실제 변화량(Δw·Δb)을 나타내며,
+          실제 갱신엔 다섯 점의 기울기 <strong>평균</strong>이 사용돼요.
           <br />
           <strong>비교 과제</strong> — 위 슬라이더로 <strong>x = 1</strong>일 때와 <strong>x = 5</strong>일 때
           w 쪽 화살표 굵기를 비교해 보세요. 같은 오차여도 <em>큰 x가 w를 더 크게 흔드는 이유</em>가
-          식 <code>w 변화량 = e × x</code>에 그대로 들어 있어요.
+          식 <code>w 기울기(한 점) = e × x</code>에 그대로 들어 있어요.
         </p>
       </div>
     </div>

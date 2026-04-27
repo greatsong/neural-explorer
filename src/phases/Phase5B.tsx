@@ -166,7 +166,7 @@ export function DerivationContent() {
       </p>
       <div className="card p-4 mt-3 space-y-3">
         <div>
-          <div className="text-xs text-muted mb-1.5">w의 변화량</div>
+          <div className="text-xs text-muted mb-1.5">w 기울기 (gradient) — 학습률 η 없이 방향·크기만</div>
           <div className="font-mono text-base">
             <code>dw</code> = 평균(<span className="text-accent">e · x</span>) =
             <span className="text-muted"> (e</span><sub>1</sub><span className="text-muted">·x</span><sub>1</sub>
@@ -175,7 +175,7 @@ export function DerivationContent() {
           </div>
         </div>
         <div className="border-t border-border pt-3">
-          <div className="text-xs text-muted mb-1.5">b의 변화량</div>
+          <div className="text-xs text-muted mb-1.5">b 기울기 (gradient) — 학습률 η 없이 방향·크기만</div>
           <div className="font-mono text-base">
             <code>db</code> = 평균(<span className="text-accent">e</span>) =
             <span className="text-muted"> (e</span><sub>1</sub>
@@ -184,11 +184,16 @@ export function DerivationContent() {
           </div>
         </div>
         <div className="border-t border-border pt-3">
-          <div className="text-xs text-muted mb-1.5">최종 갱신 식 (페이즈 5의 한 step)</div>
+          <div className="text-xs text-muted mb-1.5">실제 변화량 = −η × 기울기 &nbsp;|&nbsp; 최종 갱신 식 (한 step)</div>
           <div className="font-mono text-base space-y-1">
-            <div>새 w = w − η · <span className="text-accent">dw</span></div>
-            <div>새 b = b − η · <span className="text-accent">db</span></div>
+            <div>Δw = −η · <span className="text-accent">dw</span> &nbsp;→&nbsp; 새 w = w + Δw = w − η · <span className="text-accent">dw</span></div>
+            <div>Δb = −η · <span className="text-accent">db</span> &nbsp;→&nbsp; 새 b = b + Δb = b − η · <span className="text-accent">db</span></div>
           </div>
+        </div>
+        <div className="text-xs text-muted border-t border-border pt-3" style={{ fontFamily: 'system-ui' }}>
+          <strong>핵심 구별:</strong> dw·db는 "<strong>기울기</strong>" (어느 방향으로 얼마나 가파른지)이고,
+          여기에 −η를 곱해야 비로소 "<strong>실제 변화량</strong>" Δw·Δb가 됩니다.
+          η가 작으면 변화량이 작아져 안전하지만 느리고, 크면 빠르지만 불안정합니다.
         </div>
       </div>
     </>
