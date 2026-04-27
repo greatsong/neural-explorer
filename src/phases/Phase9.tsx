@@ -25,7 +25,7 @@ const SCENARIOS: MedicalScenario[] = [
     modelMean: { pos: 0.75, neg: 0.20 },
     modelStd: 0.15,
     context:
-      '인구 1000명을 검사해요. 실제로는 약 2%(20명)만 코로나 양성. 우리 진단 모델은 각 사람에게 0~1 사이 "양성 가능성 점수"를 매겨요. 점수가 임계값보다 높으면 양성 판정.',
+      '인구 1000명을 검사해요. 실제로는 약 2%(20명)만 코로나 양성. 우리 진단 모델은 각 사람에게 0~1 사이 "양성 확률"을 출력해요. 이 확률이 임계값보다 높으면 양성 판정.',
     threshold: { default: 0.5, min: 0, max: 1 },
     costPerFN: '진짜 환자를 놓치면 → 본인 악화 + 주변 전염 (큰 비용)',
     costPerFP: '음성인데 양성 판정 → 격리 부담, 추가 검사 (작은 비용)',
@@ -39,7 +39,7 @@ const SCENARIOS: MedicalScenario[] = [
     modelMean: { pos: 0.70, neg: 0.18 },
     modelStd: 0.18,
     context:
-      '인구 1000명을 정기검진해요. 실제 암 환자는 0.5%(5명) 수준. 우리 모델은 영상에서 각 환자에게 "암 의심도 점수"를 매겨요.',
+      '인구 1000명을 정기검진해요. 실제 암 환자는 0.5%(5명) 수준. 우리 모델은 영상에서 각 환자에게 "암(양성)일 확률"을 0~1 사이로 출력해요.',
     threshold: { default: 0.5, min: 0, max: 1 },
     costPerFN: '진짜 암을 놓치면 → 진행 후 발견 → 생존율 급락 (매우 큰 비용)',
     costPerFP: '암 아닌데 의심 판정 → 추가 검사, 환자 불안 (중간 비용)',
@@ -140,12 +140,12 @@ function ScenarioContent({
 
       <h2>임계값 조절</h2>
       <p className="text-sm text-muted">
-        모델은 각 사람에게 <strong>0~1 사이 점수</strong>를 매겨요. 점수가 높을수록 "양성일 것 같다"는 뜻이에요.
-        그런데 점수만으론 양/음을 결정 못 하니, <strong>어디서 자를지</strong>를 정해야 해요. 이 자르는 위치가 임계값.
+        모델은 각 사람에게 <strong>양성일 확률(0~1)</strong>을 출력해요. 1에 가까울수록 "양성이 거의 확실", 0에 가까울수록 "음성이 거의 확실".
+        그런데 확률만으론 양/음을 결정 못 하니, <strong>어디서 자를지</strong>를 정해야 해요. 이 자르는 위치가 임계값.
       </p>
 
       <div className="aside-tip mt-3 text-sm">
-        <div className="font-medium mb-1">예시 — 세 사람의 점수</div>
+        <div className="font-medium mb-1">예시 — 세 사람의 양성 확률</div>
         <div className="grid grid-cols-3 gap-2 font-mono text-center">
           <div className="rounded-md border border-border p-2">A: 0.82<div className="text-xs text-muted mt-0.5">거의 확실</div></div>
           <div className="rounded-md border border-border p-2">B: 0.45<div className="text-xs text-muted mt-0.5">애매</div></div>
@@ -156,7 +156,7 @@ function ScenarioContent({
 
       <div className="mt-3">
         <Slider
-          label="이 점수 이상이면 양성으로 — 어디서 자를까?"
+          label="이 확률 이상이면 양성으로 — 어디서 자를까?"
           value={threshold}
           setValue={setThreshold}
           min={scenario.threshold.min}
@@ -167,7 +167,7 @@ function ScenarioContent({
 
       <ScoreDistribution data={data} threshold={threshold} />
       <div className="text-xs text-muted mt-1 px-1 flex justify-between">
-        <span>가로축: 모델이 매긴 점수 (0=확실히 음성 · 1=확실히 양성)</span>
+        <span>가로축: 모델이 출력한 양성 확률 (0=확실히 음성 · 1=확실히 양성)</span>
         <span>막대 색: 실제 정답 (회색=음성 / 주황=양성)</span>
       </div>
 
@@ -267,7 +267,7 @@ function ScoreDistribution({ data, threshold }: { data: { score: number; positiv
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-4 border border-border rounded-md bg-surface/40">
-      <text x={PAD_L - 6} y={14} fontSize={10} fill="rgb(var(--color-muted))">점수 분포 (같은 인원 스케일) — 음성(회색) · 양성(주황)</text>
+      <text x={PAD_L - 6} y={14} fontSize={10} fill="rgb(var(--color-muted))">양성 확률 분포 (같은 인원 스케일) — 실제 음성(회색) · 실제 양성(주황)</text>
 
       {/* 양성 판정 영역 음영 (임계값 오른쪽) */}
       <rect x={thrX} y={PAD_T} width={Math.max(0, W - PAD_R - thrX)} height={plotH}
