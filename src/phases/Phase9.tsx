@@ -206,7 +206,95 @@ function ScenarioContent({
           </div>
         </div>
       </div>
+
+      <h2 className="mt-8">상황이 바뀌면 무엇을 우선할까?</h2>
+      <p className="text-sm text-muted">
+        같은 모델이라도 어디에 쓰이느냐에 따라 임계값을 다르게 잘라야 해요. 두 상황을 골라 직접 판단해 보세요.
+      </p>
+      <div className="space-y-3 mt-3">
+        <ScenarioQuiz
+          emoji="💼"
+          title="회사 면접"
+          question="진짜 천재는 한 명도 놓치고 싶지 않은데, 회사에 해를 끼칠 빌런은 절대 들이면 안 돼. 어디에 무게를 둘까?"
+          options={[
+            {
+              label: '재현율 ↑ (천재 놓치지 않기)',
+              effect: '임계값을 낮춤 → 의심스러워도 일단 통과',
+              result: '천재는 거의 다 합격, 그러나 빌런도 일부 통과 (FP↑)',
+              tone: 'warn',
+            },
+            {
+              label: '정밀도 ↑ (빌런 거르기)',
+              effect: '임계값을 높임 → 확실한 사람만 통과',
+              result: '빌런은 거의 차단, 그러나 천재도 일부 떨어짐 (FN↑)',
+              tone: 'warn',
+            },
+          ]}
+          conclusion="현실 해법: 1차는 재현율↑(서류 넓게), 2차는 정밀도↑(면접 깐깐하게) — 다단계 면접이 등장하는 이유."
+        />
+        <ScenarioQuiz
+          emoji="💬"
+          title="메시지 스팸 필터"
+          question="단체 채팅방에 광고 메시지가 섞여 와요. 친구의 중요한 안내는 절대 가리면 안 되는데, 광고는 짜증나요. 어디에 무게를 둘까?"
+          options={[
+            {
+              label: '재현율 ↑ (광고 다 잡기)',
+              effect: '의심되면 다 차단',
+              result: '광고는 거의 다 차단, 친구의 안내 메시지도 가끔 가려짐 (FP↑)',
+              tone: 'warn',
+            },
+            {
+              label: '정밀도 ↑ (친구 메시지 안 가리기)',
+              effect: '확실한 광고만 차단',
+              result: '친구 메시지는 안전, 광고가 일부 새어 들어옴 (FN↑)',
+              tone: 'good',
+            },
+          ]}
+          conclusion="대부분의 메시지 앱은 정밀도를 우선 — 중요한 메시지를 놓치는 비용이 광고 한두 개 보는 것보다 훨씬 크기 때문."
+        />
+      </div>
     </article>
+  );
+}
+
+type QuizOption = { label: string; effect: string; result: string; tone: 'good' | 'warn' | 'bad' };
+function ScenarioQuiz({
+  emoji, title, question, options, conclusion,
+}: { emoji: string; title: string; question: string; options: [QuizOption, QuizOption]; conclusion: string }) {
+  const [picked, setPicked] = useState<number | null>(null);
+  return (
+    <div className="card p-4">
+      <div className="font-medium">{emoji} {title}</div>
+      <p className="text-sm text-muted mt-1">{question}</p>
+      <div className="grid sm:grid-cols-2 gap-2 mt-3">
+        {options.map((opt, i) => (
+          <button
+            key={i}
+            onClick={() => setPicked(i)}
+            className={`text-left p-3 rounded-md border text-sm transition ${
+              picked === i ? 'border-accent bg-accent-bg' : 'border-border hover:border-accent/50'
+            }`}
+          >
+            <div className="font-medium">{opt.label}</div>
+            {picked === i && (
+              <div className="mt-2 space-y-1 text-xs">
+                <div className="text-muted">→ {opt.effect}</div>
+                <div className={
+                  opt.tone === 'good' ? 'text-emerald-700 dark:text-emerald-400'
+                  : opt.tone === 'bad' ? 'text-rose-700 dark:text-rose-400'
+                  : 'text-amber-700 dark:text-amber-400'
+                }>결과: {opt.result}</div>
+              </div>
+            )}
+          </button>
+        ))}
+      </div>
+      {picked !== null && (
+        <div className="text-xs text-muted mt-3 border-t border-border pt-2">
+          💡 {conclusion}
+        </div>
+      )}
+    </div>
   );
 }
 
