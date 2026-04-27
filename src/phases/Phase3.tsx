@@ -167,7 +167,7 @@ export function Phase3() {
       {/* ── 수치 카드 — 현재 탭에 맞춰 강조 ─────────────── */}
       <div className="mt-4 grid grid-cols-3 gap-3 font-mono text-sm">
         <Stat label="예측" value={pred.toFixed(1)} highlight={tab === 'error'} />
-        <Stat label="오차 (예측 − 정답)" value={error.toFixed(2)} highlight={tab === 'error'} />
+        <Stat label="부호 있는 오차 e = ŷ − y" value={error.toFixed(2)} highlight={tab === 'error'} />
         <Stat label="손실 (오차²)" value={sqError.toFixed(2)} highlight={tab === 'square' || tab === 'loss' || tab === 'gd'} />
       </div>
 
@@ -232,21 +232,26 @@ export function Phase3() {
       {/* ── 탭 4: 경사하강법 ─────────────────────────────── */}
       {tab === 'gd' && (
         <div className="aside-tip mt-4">
-          <div className="font-medium">3. 경사하강법 — 기울기로 가중치를 옮긴다</div>
+          <div className="font-medium">4. 경사하강법 — 기울기로 가중치를 옮긴다</div>
           <p className="text-sm mt-2 text-muted">
             손실 곡선이 매끄러운 포물선이 됐으니, 한 점에서의 <strong>기울기</strong>
             (<span style={{ color: 'rgb(251,146,60)' }}>주황색 접선</span>)를 보면 어느 쪽이 내리막인지 알 수 있어요.
             지금 기울기는 <strong className="font-mono">{slope.toFixed(2)}</strong>.
           </p>
           <ul className="text-sm mt-2 space-y-1 list-disc pl-5 text-muted">
-            {slope > 0.05 ? (
-              <li><strong>기울기 +</strong> → 오른쪽이 오르막. 가중치를 <strong>왼쪽</strong>으로 옮기면 손실이 줄어요.</li>
-            ) : slope < -0.05 ? (
-              <li><strong>기울기 −</strong> → 왼쪽이 오르막. 가중치를 <strong>오른쪽</strong>으로 옮기면 손실이 줄어요.</li>
-            ) : (
-              <li><strong>기울기 ≈ 0</strong> → 거의 골짜기 바닥. 더 줄일 곳이 없어요.</li>
-            )}
-            <li>그래서 갱신 규칙은 항상 <strong>"기울기의 반대 방향(=빼기)"</strong>, 한 번에 얼마나 옮길지는 <strong>학습률</strong>로 정해요.</li>
+            <li className={slope > 0.05 ? 'text-accent font-medium' : ''}>
+              <strong>기울기 +</strong> (양수) → 오른쪽이 오르막. 가중치를 <strong>왼쪽(작은 쪽)</strong>으로 옮기면 손실이 줄어요.
+              {slope > 0.05 && <span className="ml-1 text-xs">← 지금</span>}
+            </li>
+            <li className={slope < -0.05 ? 'text-accent font-medium' : ''}>
+              <strong>기울기 −</strong> (음수) → 왼쪽이 오르막. 가중치를 <strong>오른쪽(큰 쪽)</strong>으로 옮기면 손실이 줄어요.
+              {slope < -0.05 && <span className="ml-1 text-xs">← 지금</span>}
+            </li>
+            <li className={Math.abs(slope) <= 0.05 ? 'text-accent font-medium' : ''}>
+              <strong>기울기 ≈ 0</strong> → 거의 골짜기 바닥. 더 줄일 곳이 없어요(학습 종료 신호).
+              {Math.abs(slope) <= 0.05 && <span className="ml-1 text-xs">← 지금</span>}
+            </li>
+            <li>어느 쪽이든 갱신 규칙은 같아요 — <strong>"기울기의 반대 방향(=빼기)"</strong>, 한 번에 얼마나 옮길지는 <strong>학습률</strong>로 정합니다.</li>
           </ul>
           <div className="card p-3 mt-3 font-mono text-sm bg-bg/60">
             <div className="text-xs text-muted not-italic mb-1" style={{ fontFamily: 'system-ui' }}>

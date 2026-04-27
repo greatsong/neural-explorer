@@ -117,7 +117,8 @@ function Phase5CBody({ embedded = false }: { embedded?: boolean }) {
         </>
       )}
       <p className="text-muted mt-2">
-        페이즈 5에서 익힌 식 <code>ŷ = w · x + b</code>를 실제 데이터에 적용합니다.
+        페이즈 5의 단일 뉴런 식에서 ReLU만 빼고 <code>ŷ = w · x + b</code>를 실제 데이터에 적용합니다
+        (기온은 음수도 의미 있는 값이라 ReLU로 자르지 않아요).
         서울 연평균 기온(1908~2025)을 가지고 두 모델을 학습시켜 봅시다 —
         같은 식인데 <strong>학습 데이터의 구간이 다르면 결과가 달라집니다.</strong>
       </p>
@@ -173,7 +174,8 @@ function Phase5CBody({ embedded = false }: { embedded?: boolean }) {
           </div>
         </div>
         <div className="text-xs text-muted mt-2">
-          학습률 η = {LR} (고정). 페이즈 5와 동일한 식 <code>w ← w − η · 평균(e·x)</code>, <code>b ← b − η · 평균(e)</code>를 매 step 적용합니다.
+          학습률 η = {LR} (고정). 페이즈 5와 동일한 갱신식 <code>w ← w − η · 평균(e·x)</code>, <code>b ← b − η · 평균(e)</code>를 매 step 적용합니다.
+          (※ 기온 회귀에서는 음수 출력이 의미 있어 ReLU 같은 활성화 함수는 빼고 순수 선형 <code>ŷ = w·x + b</code>로 학습 — 페이즈 5의 단일 뉴런 식에서 ReLU만 제외한 형태입니다.)
         </div>
       </div>
 

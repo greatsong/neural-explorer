@@ -11,18 +11,18 @@ const STEPS: { id: number; expr: string; why: string; highlight?: boolean }[] = 
   },
   {
     id: 2,
-    expr: 'SE = ½ × (ŷ − y)²',
-    why: '½을 곱해도 최소가 되는 위치는 똑같다. 나중에 기울기를 구할 때 2가 깔끔히 사라지게 하려는 약속.',
+    expr: 'L := ½ × (ŷ − y)²',
+    why: 'SE 자체는 그대로 두고, 미분 편의를 위한 새 기호 L을 도입한다. ½을 곱해도 최소가 되는 위치는 똑같으니 L과 SE는 "최소를 찾는 문제"로는 동치 — 다만 기울기를 구할 때 ½ × 2가 1로 깔끔히 사라진다.',
   },
   {
     id: 3,
-    expr: 'w ← w − ∂SE/∂w',
-    why: '갱신의 출발 식. ∂SE/∂w = "SE의 w에 대한 기울기" — w를 살짝 바꿀 때 SE가 얼마나 변하는지의 비율. 그 반대 방향으로 가면 SE가 줄어든다.',
+    expr: 'w ← w − ∂L/∂w',
+    why: '갱신의 출발 식. (정식으로는 처음부터 학습률 η가 곱해지지만, 식의 모양을 보기 위해 일단 η = 1로 두고 시작 — η는 11단계에서 다시 끼워 넣는다.) ∂L/∂w = "L의 w에 대한 기울기" — w를 살짝 바꿀 때 L이 얼마나 변하는지의 비율. 그 반대 방향으로 가면 L이 줄어든다.',
   },
   {
     id: 4,
     expr: 'w ← w − ∂/∂w · ½ (ŷ − y)²',
-    why: '③의 ∂SE/∂w 자리에 ②의 SE 정의를 그대로 끼워 넣는다.',
+    why: '③의 ∂L/∂w 자리에 ②의 L 정의를 그대로 끼워 넣는다.',
   },
   {
     id: 5,
@@ -45,8 +45,8 @@ const STEPS: { id: number; expr: string; why: string; highlight?: boolean }[] = 
 const STEPS_B: { id: number; expr: string; why: string; highlight?: boolean }[] = [
   {
     id: 8,
-    expr: 'b ← b − ∂SE/∂b',
-    why: 'b도 같은 방식. b의 갱신은 SE의 b에 대한 기울기의 반대 방향으로.',
+    expr: 'b ← b − ∂L/∂b',
+    why: 'b도 같은 방식. b의 갱신은 L의 b에 대한 기울기의 반대 방향으로 (여기서도 일단 η = 1).',
   },
   {
     id: 9,
@@ -66,7 +66,7 @@ const STEPS_LR: { id: number; expr: string; why: string; highlight?: boolean }[]
     id: 11,
     expr: 'w ← w − η · (ŷ − y) · x',
     highlight: true,
-    why: '한 점의 기울기 (ŷ − y) · x를 그대로 빼면 한 step에 너무 멀리 튀어 나갈 수 있다. 보폭 조절을 위해 학습률 η(0~1 사이의 작은 양수)를 곱한다.',
+    why: '③에서 잠시 빼두었던 학습률 η를 다시 끼워 넣는다. 한 점의 기울기 (ŷ − y) · x를 그대로 빼면 한 step에 너무 멀리 튀어 나갈 수 있어서 보폭 조절용 작은 양수 η를 곱한다. 보통 0보다 크고 1보다 작은 작은 값(예: 0.01 ~ 0.1)을 쓰지만, 모델·데이터에 따라 더 클 수도 있다.',
   },
   {
     id: 12,
@@ -91,13 +91,18 @@ export function DerivationContent() {
           <li><code>y</code> = 정답, <code>ŷ = w · x + b</code> = 예측</li>
           <li><code>e = ŷ − y</code> = 한 점의 오차 (예측 − 정답)</li>
           <li><code>SE</code> (Squared Error) = <code>e²</code> = 한 점의 오차 제곱</li>
+          <li><code>L = ½·SE</code> = 미분 편의를 위해 ½을 곱한 손실 (최소가 되는 위치는 SE와 동일)</li>
           <li>
-            <code>∂SE/∂w</code> = "<strong>SE의 w에 대한 기울기</strong>" =
-            "<code>w</code>를 살짝 바꿀 때 <code>SE</code>가 얼마나 변하는지의 비율"
+            <code>∂L/∂w</code> = "<strong>L의 w에 대한 기울기</strong>" =
+            "<code>w</code>를 살짝 바꿀 때 <code>L</code>이 얼마나 변하는지의 비율"
           </li>
           <li>
-            <strong>출발 원리</strong>: 기울기는 SE가 가장 빠르게 <em>증가</em>하는 방향.
-            우리는 SE를 <em>감소</em>시키고 싶으니 그 <strong>반대 방향(=빼기)</strong>으로 옮긴다.
+            <strong>출발 원리</strong>: 기울기는 L이 가장 빠르게 <em>증가</em>하는 방향.
+            우리는 L을 <em>감소</em>시키고 싶으니 그 <strong>반대 방향(=빼기)</strong>으로 옮긴다.
+          </li>
+          <li>
+            <strong>활성화 함수 가정</strong>: 본 유도는 <code>ŷ = w·x + b</code>로 진행한다 (즉 ReLU′ = 1인 영역, 페이즈 5의 학습 데이터처럼 z &gt; 0인 구간).
+            ReLU′가 0인 영역에서는 그 점이 갱신에 기여하지 않는다는 작은 차이만 생기고, 식의 뼈대는 동일.
           </li>
         </ul>
         <p className="mt-2 text-xs text-muted">

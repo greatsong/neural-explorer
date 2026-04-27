@@ -14,14 +14,15 @@ export function Phase4() {
   const [stepSize, setStepSize] = useState(0.1); // 슬라이더 한 칸의 크기 — 페이즈 5의 학습률(η)과 같은 발상
   const markCompleted = useApp((s) => s.markCompleted);
 
-  const total = DATA.reduce((acc, [x, y]) => {
+  // 손실은 페이즈 3·5와 동일하게 평균제곱오차(MSE)로 통일.
+  const mse = DATA.reduce((acc, [x, y]) => {
     const pred = w * x + b;
     return acc + (pred - y) ** 2;
-  }, 0);
+  }, 0) / DATA.length;
 
   useEffect(() => {
-    if (total < 1) markCompleted('p4');
-  }, [total, markCompleted]);
+    if (mse < 0.2) markCompleted('p4');
+  }, [mse, markCompleted]);
 
   const W = 360, H = 260;
   const sx = (x: number) => 30 + ((x - 0) / 6) * (W - 40);
@@ -38,7 +39,7 @@ export function Phase4() {
       <h1>학습률의 이해</h1>
       <p className="text-muted mt-2">
         데이터에 가장 잘 맞는 직선을 손으로 찾아봅시다. 가중치 <code>w</code>와 편향 <code>b</code>를 조절해서
-        <strong> 총 오차</strong>를 가장 작게 만드는 게 목표예요.
+        <strong> 평균 손실(MSE)</strong>을 가장 작게 만드는 게 목표예요.
       </p>
 
       <div className="grid md:grid-cols-2 gap-6 mt-6">
@@ -96,20 +97,23 @@ export function Phase4() {
           <Slider label="b (편향)" value={b} setValue={setB} min={-5} max={5} step={stepSize} />
 
           <div className="card p-4">
-            <div className="text-xs text-muted mb-2">총 오차 (모든 데이터 손실 합)</div>
-            <div className={`font-mono text-2xl ${total < 1 ? 'text-accent' : ''}`}>
-              {total.toFixed(2)}
+            <div className="text-xs text-muted mb-2">
+              평균 손실 MSE = (오차₁² + ⋯ + 오차₅²) ÷ 5
+              <span className="ml-1 text-[11px] opacity-70">— 페이즈 3·5와 동일한 정의</span>
             </div>
-            {total < 1 && (
+            <div className={`font-mono text-2xl ${mse < 0.2 ? 'text-accent' : ''}`}>
+              {mse.toFixed(3)}
+            </div>
+            {mse < 0.2 && (
               <div className="text-sm text-accent mt-2">
                 훌륭해요! 이게 바로 "학습"이에요. (정답: w = 2, b = 0.7)
               </div>
             )}
-            {total >= 1 && stepSize >= 0.5 && (
+            {mse >= 0.2 && stepSize >= 0.5 && (
               <div className="text-xs text-amber-600 dark:text-amber-400 mt-2 leading-relaxed">
                 한 칸이 <strong>0.5</strong>로 너무 커서 정답을 정확히 짚을 수 없어요(정답의 <code>b</code>는 0.7이라
                 0.5 단위로는 0.5 또는 1.0만 가능). <strong>보통 0.1</strong> 이하로 바꿔야 도달할 수 있습니다.
-                페이즈 5의 학습률 <code>η</code>가 너무 클 때 일어나는 일과 같은 이치예요.
+                실제 학습에서도 학습률 <code>η</code>가 너무 크면 비슷한 일이 일어나요 — 정답 근처에서 <strong>좌우로 진동하거나 발산</strong>해서 결국 도달하지 못합니다(페이즈 5에서 직접 확인).
               </div>
             )}
           </div>

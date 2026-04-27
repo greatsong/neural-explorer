@@ -82,10 +82,14 @@ export function Phase1() {
         </div>
         <div className="pt-1">
           {sub >= 3 ? (
-            <>y = ReLU(z) = <span className="text-accent">{out.toFixed(2)}</span></>
+            <>ŷ = ReLU(z) = <span className="text-accent">{out.toFixed(2)}</span></>
           ) : (
-            <>y = z = <span className="text-accent">{out.toFixed(2)}</span></>
+            <>ŷ = z = <span className="text-accent">{out.toFixed(2)}</span></>
           )}
+        </div>
+        <div className="text-xs text-muted pt-2 leading-relaxed" style={{ fontFamily: 'system-ui' }}>
+          ※ <code>ŷ</code>(와이 햇)은 뉴런이 <strong>예측한 출력</strong>을 뜻하는 약속 기호예요.
+          페이즈 3부터는 <code>y</code>를 "정답"이라는 다른 의미로 쓰니, 두 기호를 구별해 둡시다.
         </div>
       </div>
     </article>
@@ -151,7 +155,7 @@ function NeuronDiagram({
         {/* z 값 배지 — Σ 직후 연결선 위 */}
         <ValueBadge cx={showRelu ? 309 : 364} cy={94} label={`z = ${sum.toFixed(1)}`} />
         {/* output */}
-        <Node cx={460} cy={110} label={`y=${out.toFixed(1)}`} accent />
+        <Node cx={460} cy={110} label={`ŷ=${out.toFixed(1)}`} accent />
       </g>
     </svg>
   );

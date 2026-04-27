@@ -78,7 +78,10 @@ export function Phase2() {
           <div>가중치: w₁ = {q.w1}, w₂ = {q.w2}</div>
           <div>편향: b = {q.b}</div>
           <div className="text-muted mt-3">
-            y = ReLU(w₁·x₁ + w₂·x₂ + b) = ?
+            ŷ = ReLU(w₁·x₁ + w₂·x₂ + b) = ?
+          </div>
+          <div className="text-xs text-muted mt-1" style={{ fontFamily: 'system-ui' }}>
+            ※ <code>ŷ</code>은 뉴런의 <strong>예측 출력</strong>입니다 (페이즈 1과 같은 약속).
           </div>
         </div>
 

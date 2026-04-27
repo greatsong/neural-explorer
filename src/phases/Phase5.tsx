@@ -159,6 +159,9 @@ export function Phase5() {
           <p className="text-xs text-muted">
             ※ 빨간 화살표 굵기는 그 점이 만드는 변화량(<code>w</code>는 <code>e × x</code>, <code>b</code>는 <code>e</code>)에 비례.
             학습이 끝나갈수록 화살표가 가늘고 옅어집니다.
+            <br />
+            ※ 활성화 함수 ReLU는 z = 0에서 수학적으로 미분 불가능하지만, 학습이 멈추지 않도록 이 페이지에서는
+            관습적으로 <code>ReLU′(0) = 1</code>로 처리해요(다른 자료에서는 0이나 0.5로 잡기도 합니다).
           </p>
         </div>
       )}
@@ -278,8 +281,12 @@ export function Phase5() {
               <span>학습률 η (보폭)</span>
               <span className="font-mono text-accent">{lr.toFixed(3)}</span>
             </div>
-            <input type="range" min={0.001} max={0.1} step={0.001} value={lr}
+            <input type="range" min={0.001} max={0.5} step={0.001} value={lr}
               onChange={(e) => setLr(parseFloat(e.target.value))} className="w-full" />
+            <div className="mt-1 text-[11px] text-muted leading-snug">
+              ※ 도전 — η를 <strong>0.3 이상</strong>으로 올리고 <strong>20단계 반복</strong>을 눌러 보세요.
+              손실 곡선이 0으로 내려가지 않고 <strong>위로 솟거나 진동</strong>하는 모습을 직접 확인할 수 있어요(페이즈 4의 "큰칸"과 같은 이치).
+            </div>
           </label>
           <div className="flex flex-wrap gap-2 mt-3">
             <button onClick={step} className="btn-primary">한 단계 진행 (1 에포크)</button>
@@ -550,10 +557,14 @@ function NeuronView({ w, b, pulseKey }: { w: number; b: number; pulseKey: number
           </div>
         </label>
         <p className="text-xs text-muted leading-relaxed">
-          아래의 <strong>한 단계 진행</strong>을 누르면 오차 <code>e</code>가 두 갈래로 분기되어
-          <strong> 가중치 <code>w</code>와 편향 <code>b</code> 각각</strong>으로 흐르며 자동 갱신됩니다.
+          아래의 <strong>한 단계 진행</strong>을 누르면 오차 <code>e</code>로부터 만들어진
+          <strong> 변화량 신호</strong>(w 쪽은 <code>e·x</code>, b 쪽은 <code>e</code>)가 두 갈래로 갈라져
+          가중치 <code>w</code>와 편향 <code>b</code>를 각각 갱신합니다.
           빨간 화살표 두 개는 <em>이 한 점</em>이 만드는 변화량이고, 실제 갱신엔 다섯 점의 평균이 사용돼요.
-          오차 <code>|e|</code>가 클수록 화살표가 굵고 진하게 표시됩니다.
+          <br />
+          <strong>비교 과제</strong> — 위 슬라이더로 <strong>x = 1</strong>일 때와 <strong>x = 5</strong>일 때
+          w 쪽 화살표 굵기를 비교해 보세요. 같은 오차여도 <em>큰 x가 w를 더 크게 흔드는 이유</em>가
+          식 <code>w 변화량 = e × x</code>에 그대로 들어 있어요.
         </p>
       </div>
     </div>
