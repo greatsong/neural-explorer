@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>[교사용] Neural Explorer 활동지 5부 — 분류를 넘어 생성으로</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt}
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .tlab{display:inline-block;background:#000;color:#fff;font-size:9pt;padding:1pt 8pt;border-radius:3px;margin-right:8pt;letter-spacing:1px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt}
+  .qh .num{display:inline-block;background:#000;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+
+  .ans{background:#fff8e1;border:1.2px solid #c89000;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .ans .lab{display:inline-block;background:#000;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .ans .v{font-family:'JetBrains Mono',monospace;font-weight:600}
+  .pf{background:#fce4e4;border:1.2px solid #b04040;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .pf .lab{display:inline-block;background:#b04040;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .tt{background:#e6f0ea;border:1.2px solid #2e7a4f;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .tt .lab{display:inline-block;background:#2e7a4f;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center;vertical-align:top}
+  .tb th{background:#000;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb td.fa{background:#fffaea;font-weight:600;font-family:'JetBrains Mono',monospace}
+  .tb td.al{text-align:left}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0}
+
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .rb{width:100%;border-collapse:collapse;margin:8pt 0;font-size:9.5pt}
+  .rb th,.rb td{border:1px solid #888;padding:5pt 7pt;vertical-align:top;text-align:left}
+  .rb th{background:#000;color:#fff;text-align:center}
+  .rb td.lvl{text-align:center;font-weight:700;background:#f0f0f0;width:60pt}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt} ul,ol{padding-left:18pt;margin:4pt 0} li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto}
+    .qh,.fm,.ib,.tb,.an,.ans,.pf,.tt,.rb{break-inside:avoid;page-break-inside:avoid}
+    .tb th,.qh .num,.lh .tlab,.rb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .ans,.pf,.tt{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header class="lh">
+  <div><span class="tlab">교사용</span><span class="lab">NEURAL EXPLORER · WORKSHEET 4 / 7 · BONUS · 정답·해설·루브릭</span></div>
+  <h1 style="margin-top:6pt">5부 — 분류를 넘어 생성으로</h1>
+  <div class="sub">앱 페이즈 13~14 · 학생용과 동일 구조 + 정답·해설</div>
+  <div class="obj"><strong>핵심 메시지</strong> 5부의 한 문장: "분류기는 한 점이 어느 영역에 속하는지를 묻고, 생성기는 어느 영역의 한 점을 가져다 그림으로 펼친다." 학생이 평균/보간/잠재 공간이라는 세 도구의 역할을 자기 말로 정리할 수 있어야 한다.</div>
+</header>
+
+<!-- ============================================================== -->
+<h2>STEP 1. 평균과 분포 (Phase 13)</h2>
+
+<div class="an"><span class="lab">앱 운영</span>이 페이즈는 5부 시작점이라 학생이 처음 보면 "이게 왜 생성이지?"라고 헷갈릴 수 있음. 도입을 <strong>"평균을 새 그림으로 보면 어떨까"</strong>로 잡고 시작.</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-1·1-2</span>평균과 분산 — 모범 답안</div>
+  <div class="ans"><span class="lab">분산의 의미</span>분산이 큰 픽셀 = 그림마다 칠해졌다 안 칠해졌다 변화가 큰 자리. <strong>같은 라벨 안에서도 다양성이 발생하는 영역</strong>(예: ⬜ 네모는 가장자리는 일정하나 안쪽이 그림마다 다를 수 있음).</div>
+  <div class="tt"><span class="lab">수업 팁</span>"평균이 곧 생성"이라는 말은 다소 도발적이라 보충 설명 필요. <strong>"분포의 중심점을 새 샘플로 가져다 쓴다"</strong>가 정확한 표현.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-3</span>보간 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>blend 0~0.25는 A 그대로, 0.5는 두 그림이 겹친 흐릿한 형태, 0.75~1은 B 형태. 양 끝은 라벨 평균, 중간은 두 평균의 가중합.</div>
+  <div class="ans"><span class="lab">중간 그림이 어중간한 이유</span>분류기는 결정 경계를 기준으로 판단하는데, 두 평균을 잇는 선분의 중간점은 두 클래스의 거리가 같은 지점, 즉 <strong>결정 경계 위</strong>에 있어 어느 쪽으로도 분류되지 않는다.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>"중간 그림은 그냥 두 그림을 겹친 거다"라고만 답하는 경우. <strong>"왜 어중간한가"</strong>는 결정 경계의 위치로 설명되어야 한다는 점 짚기.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-4</span>노이즈 — 모범 답안</div>
+  <div class="ans"><span class="lab">관찰</span>5장 모두 같은 평균 주변에서 흔들리지만 픽셀 패턴이 매번 미세하게 다름. <strong>다양성</strong>은 "평균(중심)에서 분산(허용 오차)만큼 벗어난 다른 점들을 뽑아내는 일"로 이해된다.</div>
+  <div class="tt"><span class="lab">전이</span>이 직관이 그대로 VAE의 sampling으로 이어진다 — 평균과 분산을 학습해 그 안에서 점을 뽑는다. 5부 마지막에서 짧게 언급.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 2. 오토인코더 (Phase 14)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-1</span>구조 — 정답</div>
+  <div class="ans">
+    입력(64) → 인코더 → 잠재(<span class="v">2</span>차원) → 디코더 → 출력(<span class="v">64</span>픽셀)<br>
+    학습 목표: <span class="v">입력</span>과 <span class="v">출력</span>이 같아지도록 W·b를 찾기 (= 자기 자신 복원)
+  </div>
+  <div class="ans"><span class="lab">분류와의 차이</span>분류는 정답 라벨이 외부에서 주어지지만, 오토인코더는 <strong>입력 자체가 정답</strong>(self-supervised). 라벨이 필요 없다.</div>
+  <div class="tt"><span class="lab">수업 팁</span>"라벨이 필요 없는 학습"은 거대 모델(LLM·SSL)의 핵심 발상이라는 점을 짧게 짚어둘 것 — 6부의 GPT 학습으로 이어지는 다리.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-2</span>잠재 공간 탐험 — 전형 결과</div>
+  <div class="ans"><span class="lab">예시</span>학습이 잘 되면 평면의 한 축(z₁)을 따라 그림이 한 라벨에서 다른 라벨로 점진적으로 변하고, 다른 축(z₂)은 굵기·기울기 같은 부차 특성 변화로 잡히는 경우가 많음. (학습마다 축의 의미는 달라질 수 있음을 안내.)</div>
+  <div class="ans"><span class="lab">한 줄 설명</span>"z₁이 커질수록 그림이 라벨 A → B로 변한다"처럼 <strong>잠재 좌표 = 의미의 다이얼</strong>이라는 표현이면 OK.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-3</span>학습 외 좌표 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>z₁ = z₂ = 3처럼 학습 데이터가 모이지 않은 영역의 좌표를 디코더에 넣으면, 어느 라벨에도 속하지 않는 <strong>이상하거나 깨진 그림</strong>이 나오는 경우가 많다.</div>
+  <div class="ans"><span class="lab">이유</span>디코더는 학습 데이터가 분포한 영역에서만 "옳은 그림"을 만들도록 훈련됐다. 빈 영역은 한 번도 학습된 적이 없는 입력이므로, 출력의 품질이 보장되지 않는다.</div>
+  <div class="tt"><span class="lab">전이</span>이것이 "왜 좋은 잠재 공간을 만들기 어려운가"의 핵심. VAE·정규화 같은 후속 기법은 모두 <strong>잠재 공간을 매끈하게 채우려는 시도</strong>로 이해할 수 있음.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 3. 마무리 — 정답</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">정리</span>분류 vs 생성 — 정답표</div>
+  <table class="tb">
+    <tr><th></th><th>분류 (1~4부)</th><th>생성 (5부)</th></tr>
+    <tr><td class="lbl">입력</td><td>그림</td><td class="fa">잠재 좌표 (또는 데이터 자체)</td></tr>
+    <tr><td class="lbl">출력</td><td>라벨</td><td class="fa">그림</td></tr>
+    <tr><td class="lbl">학습 목표</td><td>라벨 맞히기</td><td class="fa">자기 복원 (입력 = 출력)</td></tr>
+    <tr><td class="lbl">대표 도구</td><td>단일 뉴런·MLP</td><td class="fa">평균·오토인코더(인코더+디코더)</td></tr>
+  </table>
+</div>
+
+<h3>관찰·수행 평가 루브릭</h3>
+<table class="rb">
+  <tr><th style="width:90pt">수준</th><th>평균·분포 (Phase 13)</th><th>오토인코더 (Phase 14)</th><th>분류 vs 생성 정리</th></tr>
+  <tr><td class="lvl">A 도달</td>
+    <td>평균/분산의 의미를 자기 말로 설명. 보간 중간점이 어중간해지는 이유를 결정 경계로 설명.</td>
+    <td>인코더–잠재–디코더 구조와 자기 복원 학습 목표를 정확히 설명. 잠재 공간 탐험에서 축의 의미를 발견.</td>
+    <td>4가지 항목 모두 정확. "분류기를 뒤집으면 생성기"라는 말의 의미를 잠재 공간으로 설명.</td></tr>
+  <tr><td class="lvl">B 진행</td>
+    <td>평균과 분산은 구분하지만 분산의 의미가 모호.</td>
+    <td>구조는 그릴 수 있으나 "자기 복원"의 학습 목표를 분류와 헷갈림.</td>
+    <td>표는 채우지만 두 패러다임의 차이를 한 문장으로 압축하지 못함.</td></tr>
+  <tr><td class="lvl">C 보충</td>
+    <td>평균이 왜 "생성"인지 못 설명.</td>
+    <td>잠재 공간이 무엇인지 인지하지 못함.</td>
+    <td>분류와 생성을 입력·출력 차원에서 구분하지 못함.</td></tr>
+</table>
+
+<div class="tt"><span class="lab">전이 포인트</span>5부까지는 모두 <strong>그림</strong>이 입력이었다. 6부에서는 입력이 <strong>텍스트</strong>로 바뀌고, "글자도 결국 숫자다"라는 메시지를 ASCII·토큰·임베딩 순으로 풀어간다. 잠재 공간 ≈ 단어 임베딩 공간이라는 연결고리를 미리 던져둘 것.</div>
+
+</body>
+</html>

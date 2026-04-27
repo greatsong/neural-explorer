@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>[교사용] Neural Explorer 활동지 1부 — 뉴런의 기초</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt;page-break-after:avoid}
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .tlab{display:inline-block;background:#000;color:#fff;font-size:9pt;padding:1pt 8pt;border-radius:3px;margin-right:8pt;letter-spacing:1px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .meta{font-size:9pt;color:#777;margin-top:6pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt}
+  .qh .num{display:inline-block;background:#000;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+  .sh{font-size:11pt;font-weight:700;margin:14pt 0 6pt;color:#222}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .tip{border-left-style:dashed}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px}
+
+  /* 정답 박스 */
+  .ans{background:#fff8e1;border:1.2px solid #c89000;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .ans .lab{display:inline-block;background:#000;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600;letter-spacing:0.5px}
+  .ans .v{font-family:'JetBrains Mono',monospace;font-weight:600}
+  /* 자주 틀리는 지점 */
+  .pf{background:#fce4e4;border:1.2px solid #b04040;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .pf .lab{display:inline-block;background:#b04040;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  /* 수업 팁 */
+  .tt{background:#e6f0ea;border:1.2px solid #2e7a4f;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .tt .lab{display:inline-block;background:#2e7a4f;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#000;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb td.fa{background:#fffaea;font-weight:600;font-family:'JetBrains Mono',monospace}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0}
+
+  .sf{margin:8pt auto;text-align:center}
+  .sf svg{max-width:100%!important;height:auto!important}
+  .cap{font-size:9pt;color:#666;margin-top:3pt;text-align:center}
+
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .rb{width:100%;border-collapse:collapse;margin:8pt 0;font-size:9.5pt}
+  .rb th,.rb td{border:1px solid #888;padding:5pt 7pt;vertical-align:top;text-align:left}
+  .rb th{background:#000;color:#fff;text-align:center}
+  .rb td.lvl{text-align:center;font-weight:700;background:#f0f0f0;width:60pt}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt}
+  ul,ol{padding-left:18pt;margin:4pt 0}
+  li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto;overflow:visible}
+    .qh,.sf,.fm,.ex,.ib,.tb,.an,.ans,.pf,.tt,.rb{break-inside:avoid;page-break-inside:avoid}
+    .sh{break-after:avoid;page-break-after:avoid}
+    .sf svg{max-width:100%!important;height:auto!important}
+    p,li{orphans:3;widows:3}
+    .tb th,.qh .num,.lh .tlab,.rb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .ans,.pf,.tt{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header class="lh">
+  <div><span class="tlab">교사용</span><span class="lab">NEURAL EXPLORER · WORKSHEET 1 / 7 · 정답·해설·루브릭</span></div>
+  <h1 style="margin-top:6pt">1부 — 뉴런의 기초</h1>
+  <div class="sub">앱 페이즈 1~5 · 학생용과 동일 구조 + 정답·해설·관찰 평가 기준</div>
+  <div class="obj"><strong>핵심 메시지</strong> 학생이 1부를 끝낼 때 <em>"학습 = 손실을 줄이는 방향으로 w·b를 조금씩 미는 일"</em>을 자기 말로 말할 수 있어야 한다. 수식 자체보다 <strong>흐름</strong>에 집중시킬 것.</div>
+</header>
+
+<!-- ============================================================== -->
+<h2>STEP 1. 인공 뉴런 해부 (Phase 1)</h2>
+
+<div class="an"><span class="lab">앱 운영</span>1-1 → 1-2 → 1-3 탭을 차례로 따라가며 한 부품씩 추가. <strong>입력 x₁=3, x₂=2 고정</strong>이라는 점을 먼저 칠판에 적어둘 것.</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-1</span>가중치만 있을 때 — 정답</div>
+  <table class="tb">
+    <tr><th>w₁</th><th>w₂</th><th>z = w₁·3 + w₂·2</th></tr>
+    <tr><td>1</td><td>1</td><td class="fa">5</td></tr>
+    <tr><td>2</td><td>−1</td><td class="fa">4</td></tr>
+    <tr><td>−1</td><td>3</td><td class="fa">3</td></tr>
+  </table>
+  <div class="ans"><span class="lab">정답</span>도입 빈칸: <span class="v">2·3 + 1·2 = 8</span>. 마지막 관찰: <strong>작아지게</strong>(음수 가중치는 해당 입력의 영향을 반대로 돌림).</div>
+  <div class="pf"><span class="lab">자주 틀림</span>음수 부호 처리 실수. 특히 <span class="mono">−1·3 = −3</span>을 <span class="mono">−13</span>으로 적는 경우. 부호와 계수를 분리해 적게 시범 보일 것.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-2</span>편향 — 정답</div>
+  <table class="tb">
+    <tr><th>b</th><th>z = 3 + 2 + b</th><th>b의 의미 (예시 답안)</th></tr>
+    <tr><td>0</td><td class="fa">5</td><td>편향이 없을 때의 기본 합</td></tr>
+    <tr><td>+3</td><td class="fa">8</td><td>입력과 무관하게 뉴런이 잘 반응하도록 미는 힘</td></tr>
+    <tr><td>−4</td><td class="fa">1</td><td>잘 반응하지 않도록 누르는 힘 (문턱을 높임)</td></tr>
+  </table>
+  <div class="tt"><span class="lab">수업 팁</span>편향을 "기본 점수"로 비유. 시험 가산점/감점, 운동 경기의 핸디캡 등 친숙한 사례로 묶을 것.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-3</span>ReLU — 정답</div>
+  <table class="tb">
+    <tr><th>z</th><th>−4</th><th>−1</th><th>0</th><th>2.5</th><th>7</th></tr>
+    <tr><td class="lbl">ReLU(z)</td><td class="fa">0</td><td class="fa">0</td><td class="fa">0</td><td class="fa">2.5</td><td class="fa">7</td></tr>
+  </table>
+  <div class="ans"><span class="lab">서술 예시</span>ReLU가 없으면 뉴런 여러 개를 쌓아도 결국 <strong>하나의 직선 변환</strong>으로 합쳐져서, 곡선이나 복잡한 패턴을 표현할 수 없게 된다. ("선형 함수의 합성은 선형"이라는 사실을 직관 수준으로만 짚을 것.)</div>
+  <div class="tt"><span class="lab">수업 팁</span>ReLU의 별칭 "꺾인 직선" 사용. <strong>비선형성 = 학습의 표현력</strong>이라는 한 줄로 마무리.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 2. 순전파 퀴즈 (Phase 2)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-1</span>문제 ① 정답</div>
+  <div class="ans"><span class="lab">정답</span>z = 1·2 + 2·3 + (−1) = <span class="v">7</span> &nbsp;/&nbsp; y = ReLU(7) = <span class="v">7</span></div>
+</div>
+<div class="qc">
+  <div class="qh"><span class="num">2-2</span>문제 ② 정답</div>
+  <div class="ans"><span class="lab">정답</span>z = (−1)·4 + 3·1 + 2 = <span class="v">1</span> &nbsp;/&nbsp; y = ReLU(1) = <span class="v">1</span></div>
+</div>
+<div class="qc">
+  <div class="qh"><span class="num">2-3</span>문제 ③ 정답</div>
+  <div class="ans"><span class="lab">정답</span>z = (−2)·5 + (−1)·2 + 3 = <span class="v">−9</span> &nbsp;/&nbsp; y = ReLU(−9) = <span class="v">0</span> &nbsp; → "<strong>반응하지 않았다</strong>"</div>
+  <div class="pf"><span class="lab">자주 틀림</span>음수 z를 그대로 답으로 적는 경우. ReLU 단계에서 <strong>0으로 잘림</strong>을 한 번 더 강조.</div>
+  <div class="tt"><span class="lab">수업 팁</span>"이 뉴런은 이번 입력에 침묵했다"라는 표현으로 정리하면, 뒤에 나올 <strong>희소 활성</strong> 개념의 토대가 된다.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 3. 오차 측정 (Phase 3)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-1</span>예측 → 손실 계산표 (정답 = 5)</div>
+  <table class="tb">
+    <tr><th>예측</th><th>1</th><th>3</th><th>5</th><th>7</th><th>10</th></tr>
+    <tr><td class="lbl">오차 = 예측 − 5</td><td class="fa">−4</td><td class="fa">−2</td><td class="fa">0</td><td class="fa">2</td><td class="fa">5</td></tr>
+    <tr><td class="lbl">손실 = 오차²</td><td class="fa">16</td><td class="fa">4</td><td class="fa">0</td><td class="fa">4</td><td class="fa">25</td></tr>
+  </table>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-2</span>관찰 — 모범 답안</div>
+  <div class="ans"><span class="lab">모양</span>아래로 볼록한 <strong>포물선(U자형)</strong>, 정점이 정답(5) 위치에 있고 손실 = 0.</div>
+  <div class="ans"><span class="lab">대칭성</span>예측 −1 → 오차 −6 → 손실 36. 예측 11 → 오차 +6 → 손실 36. <strong>같다</strong>. 이유: 제곱은 부호를 없앤다.</div>
+  <div class="ans"><span class="lab">제곱 3가지 이유</span>① 부호 상쇄 방지 ② 큰 오차에 큰 페널티 ③ <strong>매끄러운 곡선</strong>(미분 가능) → 다음 STEP의 자동 학습에서 컴퓨터가 "어느 쪽이 내리막인지"를 정확히 계산할 수 있는 기반.</div>
+  <div class="tt"><span class="lab">수업 팁</span>"부호가 사라지면 방향 정보도 사라지지 않을까?" 라는 질문을 학생에게 던질 것 — 제곱 후에도 곡선의 <strong>기울기</strong>가 방향을 되살리고, 그것이 STEP 5에서 자동으로 계산된다는 복선이 된다.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 4. 수동 학습 (Phase 4)</h2>
+
+<div class="an"><span class="lab">앱 운영</span>Phase 4가 데이터 y = 2x + <strong>0.7</strong>로 바뀌었음을 칠판에 먼저 적어둘 것. 정답 b가 0.5의 배수가 아니라 <strong>큰칸 0.5로는 절대 도달 불가</strong>한 함정이 의도적으로 들어가 있다.</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-1</span>w·b 시도별 손실 — 정답 (y = 2x + 0.7)</div>
+  <table class="tb">
+    <tr><th>시도</th><th>w</th><th>b</th><th>x=1, ŷ</th><th>x=3, ŷ</th><th>x=5, ŷ</th><th>총 손실</th></tr>
+    <tr><td>A</td><td>1</td><td>0</td><td class="fa">1</td><td class="fa">3</td><td class="fa">5</td><td class="fa">78.45</td></tr>
+    <tr><td>B</td><td>2</td><td>0</td><td class="fa">2</td><td class="fa">6</td><td class="fa">10</td><td class="fa">2.45</td></tr>
+    <tr><td>C</td><td>2</td><td>0.7</td><td class="fa">2.7</td><td class="fa">6.7</td><td class="fa">10.7</td><td class="fa">0</td></tr>
+  </table>
+  <div class="ans"><span class="lab">상세 계산</span>
+    시도 A (w=1, b=0): ŷ−y = (−1.7, −2.7, −3.7, −4.7, −5.7) → 손실 = 2.89+7.29+13.69+22.09+32.49 = <span class="v">78.45</span><br>
+    시도 B (w=2, b=0): ŷ−y = (−0.7, −0.7, −0.7, −0.7, −0.7) → 손실 = 5 × 0.49 = <span class="v">2.45</span><br>
+    시도 C (w=2, b=0.7): ŷ−y = (0, 0, 0, 0, 0) → 손실 = <span class="v">0</span> &nbsp; ← <strong>정답 w=2, b=0.7</strong>
+  </div>
+  <div class="pf"><span class="lab">자주 틀림</span>총 손실을 5개 점 모두에 대해 합산해야 하는데 표에 표시된 3개(x=1,3,5)만 더하는 경우.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-2</span>슬라이더 한 칸 크기 — 모범 답안</div>
+  <table class="tb">
+    <tr><th>한 칸 크기</th><th>관찰</th></tr>
+    <tr><td>0.5 (큰칸)</td><td class="al">b가 0, 0.5, 1.0, 1.5만 가능 → <strong>0.7에 도달 불가</strong>. 0.5와 1.0을 오가는 진동.</td></tr>
+    <tr><td>0.1 (보통)</td><td class="al">b를 0.7로 정확히 맞춰 정답 도달. 손실 = 0.</td></tr>
+    <tr><td>0.01 (미세)</td><td class="al">정답 도달은 가능하지만 같은 거리를 가는 데 칸 수가 많아 답답함.</td></tr>
+  </table>
+  <div class="ans"><span class="lab">큰칸 0.5로 못 가는 이유</span>한 칸이 0.5의 배수만 만들 수 있는데 정답 b = 0.7은 0.5의 배수가 아니다. 보폭 자체가 정답을 <strong>지나치게(overshoot)</strong> 만든다.</div>
+  <div class="tt"><span class="lab">전이 메시지</span>슬라이더 한 칸 크기 = STEP 5의 <strong>학습률 η(보폭)</strong>. "너무 크면 정답을 지나친다"는 감각을 학생이 손으로 먼저 체험하게 하는 의도된 함정.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-3</span>학습 정의 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>"학습이란 <strong>총 손실이 가장 작아지는 w·b를 찾는 일</strong>이다." (다른 표현 허용: "데이터에 가장 잘 맞는 직선의 기울기와 절편을 정하는 일".)</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 5. 자동으로 학습하기 (Phase 5)</h2>
+
+<div class="an"><span class="lab">앱 운영</span>Phase 5는 STEP 4의 슬라이더를 컴퓨터가 대신 움직이는 페이지. 데이터는 (1,3)~(5,11)로 다시 정수, 모델에 <strong>ReLU 활성화</strong>가 들어감(데이터가 모두 양수+정답 근처라 z>0이라 ReLU 통과는 항등이지만, "신경망의 일반 모습"을 보여주는 의도). 한 step = <strong>1 에포크</strong>라는 용어를 칠판에 먼저 고정.</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-1</span>한 점 변화량 — 정답</div>
+  <div class="ans"><span class="lab">계산</span>
+    z = 1·3 + 0 = <span class="v">3</span><br>
+    ŷ = ReLU(3) = <span class="v">3</span> &nbsp;(z > 0이라 그대로 통과)<br>
+    e = 3 − 7 = <span class="v">−4</span><br>
+    w 변화량 = e · x = (−4)·3 = <span class="v">−12</span><br>
+    b 변화량 = e = <span class="v">−4</span><br>
+    업데이트: w ← 1 − 0.1·(−12) = <span class="v">2.2</span>, &nbsp; b ← 0 − 0.1·(−4) = <span class="v">0.4</span><br>
+    → 정답 (2, 1)에 <strong>가까워졌다</strong>.
+  </div>
+  <div class="pf"><span class="lab">자주 틀림</span>① 부호 약속(e = ŷ − y) 헷갈려 부호 반대로. ② 마이너스 학습률 부분을 빼먹어 발산 방향으로 업데이트. → <strong>"오차 = 예측 − 정답, 업데이트는 −η·변화량"</strong>을 칠판 상단에 고정.</div>
+  <div class="tt"><span class="lab">수업 팁</span>"한 점만으로 갱신"은 단순화된 시나리오. 실제 앱은 <strong>다섯 점 평균</strong>으로 갱신한다는 점을 STEP 5-2 진행 직전에 짚을 것.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-2</span>앱 관찰 기록 — 정답 (η = 0.1, 시작 w=0, b=0, 다섯 점 평균)</div>
+  <div class="ans"><span class="lab">참고: 손실 정의</span>L = Σ ½·(ŷ−y)² / N (코드의 lossFn). N=5.</div>
+  <table class="tb">
+    <tr><th>step</th><th>w</th><th>b</th><th>손실</th></tr>
+    <tr><td>0</td><td class="fa">0.000</td><td class="fa">0.000</td><td class="fa">28.5</td></tr>
+    <tr><td>1</td><td class="fa">≈ 2.500</td><td class="fa">≈ 0.700</td><td class="fa">≈ 0.97</td></tr>
+    <tr><td>2</td><td class="fa">≈ 2.040</td><td class="fa">≈ 0.580</td><td class="fa">≈ 0.047</td></tr>
+    <tr><td>3</td><td class="fa">≈ 2.122</td><td class="fa">≈ 0.610</td><td class="fa">≈ 0.040</td></tr>
+    <tr><td>5</td><td class="fa">≈ 2.06</td><td class="fa">≈ 0.74</td><td class="fa">≈ 0.013</td></tr>
+  </table>
+  <div class="ans"><span class="lab">손실 곡선</span>step 0에서 28.5라는 큰 값에서 시작 → step 1에서 1 미만으로 급락 → 이후 0에 수렴하며 미세 진동. <strong>꾸준한 감소(단조 감소는 아니지만 추세 감소)</strong>가 정답.</div>
+  <div class="tt"><span class="lab">수업 팁</span>학생이 적은 값이 정확하지 않아도 OK. "step 1에서 큰 점프 → step 2부터 미세 조정"이라는 패턴만 확인.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-3</span>학습률 비교 — 정답 (앱 슬라이더 범위 0.001 ~ 0.1)</div>
+  <table class="tb">
+    <tr><th>η</th><th>20단계 후 손실</th><th>현상</th></tr>
+    <tr><td>0.001</td><td class="fa">≈ 14~20</td><td class="al">매우 느림. 20단계로는 정답 근처에 못 감.</td></tr>
+    <tr><td>0.01</td><td class="fa">≈ 1~2</td><td class="al">느린 수렴. 손실이 부드럽게 감소하지만 시간이 걸림.</td></tr>
+    <tr><td>0.05</td><td class="fa">≈ 0.01 부근</td><td class="al">적절. 약 10~15단계 안에 거의 수렴.</td></tr>
+    <tr><td>0.1</td><td class="fa">≈ 0.005 이하</td><td class="al">빠름. 1~2단계의 큰 점프 후 미세 진동하며 수렴.</td></tr>
+  </table>
+  <div class="ans"><span class="lab">한 줄 정리</span>η가 작으면 <strong>답답하고</strong>, 너무 크면 <strong>정답을 지나쳐 못 멈춘다</strong>. → STEP 4의 큰칸 0.5가 b=0.7에 못 닿던 일과 정확히 같은 현상.</div>
+  <div class="pf"><span class="lab">앱 제약</span>앱의 학습률 최대값이 0.1로 제한돼 있어 "발산"을 직접 시연할 수는 없다. 발산을 보여주려면 칠판에서 η = 1.5로 한 step을 손계산해 손실이 폭발적으로 커지는 모습을 보여줄 것.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-4</span>왜 빼기인가 — 모범 답안</div>
+  <div class="ans"><span class="lab">정답</span>변화량(dw, db)은 손실이 가장 빠르게 <strong>증가</strong>하는 방향을 가리키는 나침반이다. 우리는 손실의 <strong>감소</strong>를 원하니 그 반대 방향으로 가야 하므로 부호를 뒤집기 위해 빼기를 쓴다.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 6. 마무리 — 정답</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">정리</span>학습 흐름도</div>
+  <div class="ans">
+    입력 → ( <span class="v">가중치</span> · 입력 합산 + <span class="v">편향</span> ) → ( <span class="v">활성화 함수</span> ) → 예측 ŷ
+    → ( <span class="v">손실</span> ) 측정 → ( <span class="v">기울기</span> )로 방향 찾기 → w·b ( <span class="v">수정(업데이트)</span> )
+  </div>
+</div>
+
+<h3>관찰·수행 평가 루브릭</h3>
+<table class="rb">
+  <tr><th style="width:90pt">수준</th><th>가중치·편향·활성화</th><th>순전파·손실 계산</th><th>학습 흐름 설명</th></tr>
+  <tr><td class="lvl">A 도달</td>
+    <td>세 부품의 역할을 자기 말로 구분 설명. 음수 가중치/편향의 의미를 예시로 설명.</td>
+    <td>5문항 이상 모두 정확. 음수 부호·ReLU 처리 정확.</td>
+    <td>5용어를 모두 자연스럽게 사용해 6~7문장으로 흐름을 설명.</td></tr>
+  <tr><td class="lvl">B 진행</td>
+    <td>세 부품을 식별하지만 음수의 의미가 모호.</td>
+    <td>1~2문제 부호 실수. 다시 짚으면 스스로 수정.</td>
+    <td>일부 용어를 빠뜨리거나 순서가 어색.</td></tr>
+  <tr><td class="lvl">C 보충</td>
+    <td>부품 이름은 알지만 식과 연결 못 함.</td>
+    <td>ReLU·부호 처리에서 반복 오류.</td>
+    <td>"손실"·"기울기"의 역할을 설명하지 못함.</td></tr>
+</table>
+
+<div class="tt"><span class="lab">전이 포인트</span>1부에서 학습이 <strong>수치 회귀</strong>(연속 값 맞히기)로 끝났음을 짚고, 2부에서는 같은 도구로 <strong>분류</strong>(합·불, 0·1)를 다룬다는 점을 예고할 것. 시그모이드 도입의 자연스러운 연결고리가 된다.</div>
+
+</body>
+</html>

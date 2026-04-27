@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>[교사용] Neural Explorer 활동지 6부 전반 — 글자에서 의미로</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt}
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .tlab{display:inline-block;background:#000;color:#fff;font-size:9pt;padding:1pt 8pt;border-radius:3px;margin-right:8pt;letter-spacing:1px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt}
+  .qh .num{display:inline-block;background:#000;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px}
+
+  .ans{background:#fff8e1;border:1.2px solid #c89000;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .ans .lab{display:inline-block;background:#000;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .ans .v{font-family:'JetBrains Mono',monospace;font-weight:600}
+  .pf{background:#fce4e4;border:1.2px solid #b04040;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .pf .lab{display:inline-block;background:#b04040;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .tt{background:#e6f0ea;border:1.2px solid #2e7a4f;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .tt .lab{display:inline-block;background:#2e7a4f;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center;vertical-align:top}
+  .tb th{background:#000;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb td.fa{background:#fffaea;font-weight:600;font-family:'JetBrains Mono',monospace}
+  .tb td.al{text-align:left}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0}
+
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .rb{width:100%;border-collapse:collapse;margin:8pt 0;font-size:9.5pt}
+  .rb th,.rb td{border:1px solid #888;padding:5pt 7pt;vertical-align:top;text-align:left}
+  .rb th{background:#000;color:#fff;text-align:center}
+  .rb td.lvl{text-align:center;font-weight:700;background:#f0f0f0;width:60pt}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt} ul,ol{padding-left:18pt;margin:4pt 0} li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto}
+    .qh,.fm,.ex,.ib,.tb,.an,.ans,.pf,.tt,.rb{break-inside:avoid;page-break-inside:avoid}
+    .tb th,.qh .num,.lh .tlab,.rb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .ans,.pf,.tt{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header class="lh">
+  <div><span class="tlab">교사용</span><span class="lab">NEURAL EXPLORER · WORKSHEET 5 / 7 · BONUS 2 · 정답·해설</span></div>
+  <h1 style="margin-top:6pt">6부 전반 — 글자에서 의미로</h1>
+  <div class="sub">앱 페이즈 15~18 · 학생용과 동일 구조 + 정답·해설</div>
+  <div class="obj"><strong>핵심 메시지</strong> "신경망에 들어가는 모든 것은 결국 벡터다. 글자도 예외가 아니다." 글자 → 코드포인트 → 토큰 → 임베딩 → 의미 공간으로 이어지는 사다리를 학생이 한 호흡으로 따라갈 수 있게 한다.</div>
+</header>
+
+<!-- ============================================================== -->
+<h2>STEP 1. 텍스트 인코딩 (Phase 15)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-1</span>"안녕하세요" — 정답</div>
+  <table class="tb">
+    <tr><th>글자</th><th>안</th><th>녕</th><th>하</th><th>세</th><th>요</th></tr>
+    <tr><td class="lbl">코드포인트(10진)</td><td class="fa">50504</td><td class="fa">45397</td><td class="fa">54616</td><td class="fa">49464</td><td class="fa">50836</td></tr>
+    <tr><td class="lbl">UTF-8 바이트 수</td><td class="fa">3</td><td class="fa">3</td><td class="fa">3</td><td class="fa">3</td><td class="fa">3</td></tr>
+  </table>
+  <div class="ans"><span class="lab">참고</span>한글 음절(가~힣) 영역은 U+AC00 ~ U+D7A3. 모든 한글 음절이 UTF-8에서 정확히 3바이트.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-2</span>한·영·이모지 — 정답</div>
+  <table class="tb">
+    <tr><th>문자열</th><th>글자 수</th><th>UTF-8 바이트</th></tr>
+    <tr><td class="al">"AI"</td><td class="fa">2</td><td class="fa">2 (각 1바이트)</td></tr>
+    <tr><td class="al">"인공지능"</td><td class="fa">4</td><td class="fa">12 (각 3바이트)</td></tr>
+    <tr><td class="al">"🤖🧠"</td><td class="fa">2</td><td class="fa">8 (각 4바이트)</td></tr>
+  </table>
+  <div class="ans"><span class="lab">이유</span>UTF-8은 ASCII 호환을 위해 자주 쓰는 영어를 1바이트로 짧게 둠. 한글·이모지처럼 코드포인트가 큰 글자는 더 많은 바이트가 필요. → "표현력과 호환성의 타협"이 만든 결과.</div>
+  <div class="tt"><span class="lab">수업 팁</span>"바이트 수가 다르면 입력 길이가 다르고, 그게 모델 비용에 그대로 영향을 준다"는 점이 다음 STEP의 토큰 단가 이야기와 자연스럽게 연결됨.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 2. 토큰 (Phase 16)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-1</span>토큰 수 — 전형 결과 (GPT 계열 토크나이저 기준)</div>
+  <table class="tb">
+    <tr><th>예문</th><th>글자 수</th><th>토큰 수</th></tr>
+    <tr><td class="al">Hello world</td><td class="fa">11</td><td class="fa">2</td></tr>
+    <tr><td class="al">Tokenization is fun</td><td class="fa">19</td><td class="fa">4</td></tr>
+    <tr><td class="al">안녕하세요</td><td class="fa">5</td><td class="fa">5~7</td></tr>
+    <tr><td class="al">공부했어요</td><td class="fa">5</td><td class="fa">5~8</td></tr>
+    <tr><td class="al">GPT는 한글을 잘게 쪼개요</td><td class="fa">15</td><td class="fa">15~20</td></tr>
+  </table>
+  <div class="tt"><span class="lab">수업 팁</span>학생이 앱에서 보는 정확한 수치를 그대로 적게 한다(토크나이저 버전에 따라 약간씩 다름). 핵심 메시지: <strong>한글 글자수 ≪ 토큰수</strong>.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-2</span>BPE 미니 — 예시 정답</div>
+  <div class="ans"><span class="lab">예시 진행</span>(low/lower/newest/widest 코퍼스 기준 — 정확한 빈도는 앱 따라 조금씩 다름)<br>
+    1단계: 가장 자주 붙는 페어 <span class="v">e + s</span> → <span class="v">es</span><br>
+    2단계: <span class="v">es + t</span> → <span class="v">est</span><br>
+    3단계: <span class="v">l + o</span> → <span class="v">lo</span> (또는 <span class="v">w + e</span> → <span class="v">we</span>)
+  </div>
+  <div class="ans"><span class="lab">메시지</span>"글자 → 자주 같이 등장하는 두 조각을 한 토큰으로 합쳐 어휘를 키운다." 이 절차의 반복이 BPE.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-3</span>한글 토큰이 많아지는 이유 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>학습 코퍼스에 한글 텍스트가 영어 텍스트보다 훨씬 적어서, 한글 음절·바이트 페어가 자주 등장하는 단위로 학습되지 못함 → 합쳐지지 못한 채 글자 단위 또는 바이트 단위로 남음 → 결과적으로 토큰 수↑.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>"한글이 더 복잡해서"라는 답. <strong>복잡성이 아니라 학습 데이터의 빈도</strong>가 핵심임을 짚어줄 것. 영어도 새로 만든 단어("metaverse" 같은)는 자주 잘게 쪼개진다.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 3. 원-핫 → 임베딩 (Phase 17)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-1</span>원-핫 + 코사인 — 정답</div>
+  <div class="ans"><span class="lab">계산</span>
+    "고양이" = (<span class="v">1, 0, 0, 0, 0, 0</span>) (1번째 자리만 1로 가정)<br>
+    "강아지" = (<span class="v">0, 1, 0, 0, 0, 0</span>) (2번째 자리만 1)<br>
+    내적 = 0, 크기 = 1·1 → cos = <span class="v">0</span>
+  </div>
+  <div class="ans"><span class="lab">왜 문제인가</span>의미가 매우 비슷한 "고양이/강아지"와 의미가 전혀 다른 "고양이/컴퓨터"가 똑같이 cos = 0이 된다. 신경망이 "비슷한 단어를 비슷하게 다루는" 능력을 처음부터 갖지 못한다.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-2</span>임베딩 그룹 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>가까이 모이는 그룹: <strong>{고양이, 강아지, 호랑이}</strong>(동물), <strong>{사과, 바나나}</strong>(과일). 멀리 떨어진 단어: <strong>컴퓨터</strong>. 의미 카테고리가 같으면 자연스럽게 한 영역에 모이도록 학습이 진행된다.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-3</span>임베딩 행렬 W — 정답</div>
+  <div class="ans"><span class="lab">계산</span>W의 크기 = <span class="v">6 × 3</span> = 학습할 숫자 <span class="v">18</span>개</div>
+  <div class="ans"><span class="lab">곱셈의 의미</span>원-핫 × W = W의 <strong>해당 단어 행</strong>을 그대로 꺼내오는 것과 같다. 즉 "임베딩 = W에서 그 단어 인덱스의 행 벡터"이다. 그래서 실제 구현은 행렬곱이 아니라 <strong>인덱스 룩업</strong>으로 한다.</div>
+  <div class="tt"><span class="lab">수업 팁</span>"행렬곱이지만 사실은 룩업"이라는 트릭이 거대 모델에서도 그대로 쓰인다는 점을 짚으면, 학생들이 거대해 보이는 LLM도 익숙한 도구로 만들어졌다는 감각을 얻음.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 4. Word2Vec (Phase 18)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-1</span>의미 산수 — 전형 결과</div>
+  <div class="ans"><span class="lab">예시</span>제대로 학습됐다면 4문제 모두 1순위로 기대 답이 등장. 학습량이 부족하면 1순위가 어긋나도 상위 3개 안에는 들어오는 경우 많음.</div>
+  <div class="tt"><span class="lab">앱 운영</span>학습 step 1500이 기본. 학생들이 결과가 이상하게 나온다고 보고하면 step 3000으로 올려 재학습 시킬 것. seed에 따라 결과가 달라지므로, "정답 시드"가 있다는 점도 안내.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-2</span>화살표의 의미 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>"king → queen" 화살표는 <strong>"왕족이라는 속성은 유지한 채 성별만 남→여로 바꾸는 변환"</strong>을 가리킨다. 같은 의미를 가진 "father → mother" 화살표는 임베딩 공간에서 <strong>방향과 크기가 거의 같다</strong>(평행이동에 가깝다).</div>
+  <div class="ans"><span class="lab">메시지</span>"의미 = 위치"가 아니라 "<strong>의미 차이 = 벡터 차</strong>". 이 발상이 LLM의 의미 처리의 출발점.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-3</span>실패 사례 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>학습 코퍼스에 등장 빈도가 낮은 단어("호랑이" 등)는 의미 산수 결과가 어긋나는 경우가 많다. 이유: 그 단어의 위치가 학습으로 잘 다듬어지지 못했기 때문.</div>
+  <div class="ans"><span class="lab">교육적 의미</span>"임베딩의 품질은 코퍼스의 양과 다양성에 비례한다"는 데이터 시대의 격언을 학생이 직접 발견하게 됨.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 5. 마무리 — 정답</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">정리</span>한 줄 정리 — 정답</div>
+  <div class="ans">
+    글자는 (<span class="v">코드포인트</span>)와 (<span class="v">UTF-8</span>)를 거쳐 0과 1이 되고,<br>
+    문장은 (<span class="v">토큰</span>) 단위로 쪼개진 뒤 (<span class="v">임베딩</span>) 벡터로 변환된다.<br>
+    의미가 비슷한 단어가 (<span class="v">가까운</span>) 곳에 모이도록 학습된 결과,<br>
+    벡터의 (<span class="v">덧셈</span>)과 (<span class="v">뺄셈</span>)이 의미의 연산이 된다.
+  </div>
+</div>
+
+<h3>관찰·수행 평가 루브릭</h3>
+<table class="rb">
+  <tr><th style="width:90pt">수준</th><th>인코딩 (P15)</th><th>토큰 (P16)</th><th>임베딩 (P17)</th><th>Word2Vec (P18)</th></tr>
+  <tr><td class="lvl">A 도달</td>
+    <td>코드포인트·UTF-8 차이를 정확히 설명. 한·영·이모지 바이트 수 차이의 이유를 안다.</td>
+    <td>한·영 토큰 수 차이의 원인을 학습 빈도로 설명. BPE 절차를 따라간다.</td>
+    <td>원-핫의 두 가지 한계를 정확히 설명. W의 크기와 룩업의 의미를 안다.</td>
+    <td>의미 산수 4문제 중 3 이상 적중. "의미 차 = 벡터 차"를 자기 말로 설명.</td></tr>
+  <tr><td class="lvl">B 진행</td>
+    <td>UTF-8 바이트 수 비교는 하지만 이유는 모호.</td>
+    <td>한·영 차이는 알지만 BPE 절차를 못 따라감.</td>
+    <td>원-핫과 임베딩의 차이는 알지만 cos 계산 못함.</td>
+    <td>실험은 했으나 화살표 평행성을 못 짚음.</td></tr>
+  <tr><td class="lvl">C 보충</td>
+    <td>"글자도 결국 숫자"라는 메시지를 흡수 못함.</td>
+    <td>토큰 수가 무엇을 세는지 모름.</td>
+    <td>원-핫이 무엇인지 모름.</td>
+    <td>의미 산수의 의의를 잡지 못함.</td></tr>
+</table>
+
+<div class="tt"><span class="lab">전이 포인트</span>여기까지가 "단어 한 개를 어떻게 표현하는가"였다. 6부 후반에서는 단어가 <strong>줄지어 등장하는 시퀀스</strong>를 다룬다. "어떤 단어에 집중할지"가 학습되는 어텐션이 등장하고, 그것이 트랜스포머와 GPT의 심장임을 알게 된다.</div>
+
+</body>
+</html>

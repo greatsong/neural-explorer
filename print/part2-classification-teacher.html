@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>[교사용] Neural Explorer 활동지 2부 — 분류와 평가</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt}
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .tlab{display:inline-block;background:#000;color:#fff;font-size:9pt;padding:1pt 8pt;border-radius:3px;margin-right:8pt;letter-spacing:1px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt}
+  .qh .num{display:inline-block;background:#000;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px}
+
+  .ans{background:#fff8e1;border:1.2px solid #c89000;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .ans .lab{display:inline-block;background:#000;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600;letter-spacing:0.5px}
+  .ans .v{font-family:'JetBrains Mono',monospace;font-weight:600}
+  .pf{background:#fce4e4;border:1.2px solid #b04040;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .pf .lab{display:inline-block;background:#b04040;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .tt{background:#e6f0ea;border:1.2px solid #2e7a4f;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .tt .lab{display:inline-block;background:#2e7a4f;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center;vertical-align:top}
+  .tb th{background:#000;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb td.fa{background:#fffaea;font-weight:600;font-family:'JetBrains Mono',monospace}
+  .tb td.al{text-align:left}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0}
+
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .rb{width:100%;border-collapse:collapse;margin:8pt 0;font-size:9.5pt}
+  .rb th,.rb td{border:1px solid #888;padding:5pt 7pt;vertical-align:top;text-align:left}
+  .rb th{background:#000;color:#fff;text-align:center}
+  .rb td.lvl{text-align:center;font-weight:700;background:#f0f0f0;width:60pt}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt} ul,ol{padding-left:18pt;margin:4pt 0} li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto}
+    .qh,.fm,.ex,.ib,.tb,.an,.ans,.pf,.tt,.rb{break-inside:avoid;page-break-inside:avoid}
+    .tb th,.qh .num,.lh .tlab,.rb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .ans,.pf,.tt{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header class="lh">
+  <div><span class="tlab">교사용</span><span class="lab">NEURAL EXPLORER · WORKSHEET 2 / 7 · 정답·해설·루브릭</span></div>
+  <h1 style="margin-top:6pt">2부 — 분류와 평가</h1>
+  <div class="sub">앱 페이즈 6~9 · 학생용과 동일 구조 + 정답·해설·관찰 루브릭</div>
+  <div class="obj"><strong>핵심 메시지</strong> "정확도 한 숫자에 속지 말 것." 합·불, 양성·음성처럼 <strong>비대칭 비용</strong>을 가진 문제에서는 정밀도·재현율을 함께 봐야 한다는 감각을 심는 것이 2부 전체의 목표.</div>
+</header>
+
+<!-- ============================================================== -->
+<h2>STEP 1. 입시 합격 예측 (Phase 6)</h2>
+
+<div class="an"><span class="lab">앱 운영</span>학생들이 시나리오를 자유 선택. 한 반에서 A·B가 섞여도 좋다. <strong>둘 다 풀게 하면 시간 부족</strong>이므로 1개 선택 후 STEP 2~4까지 같은 시나리오 유지.</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-1</span>변수 — 정답</div>
+  <div class="ans"><span class="lab">시나리오 A 정시</span>x₁ <span class="v">국어</span> · x₂ <span class="v">수학</span> · x₃ <span class="v">영어</span> · x₄ <span class="v">탐구</span> (모두 1~10점)</div>
+  <div class="ans"><span class="lab">시나리오 B 학종</span>x₁ <span class="v">학업역량</span> · x₂ <span class="v">진로역량</span> · x₃ <span class="v">공동체역량</span> · x₄ <span class="v">면접</span> (모두 1~10점)</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-2</span>가중치 조정 — 운영 가이드</div>
+  <div class="tt"><span class="lab">수업 팁</span>처음 슬라이더 위치는 모두 0.25(균등). 학생들이 무작정 올리지 않도록 <strong>"합격자에서 가장 높은 변수가 무엇인지"</strong>부터 명단을 들여다보고 시작하게 안내. 한 슬라이더만 0.5로 올려 변화 보고 → 다음 슬라이더 → 식으로 한 번에 한 변수만 움직이는 절차를 시범.</div>
+  <div class="tt"><span class="lab">관찰 포인트</span>학생들이 가중치를 키우다가 컷오프를 함께 올리지 않으면 <strong>전원 합격</strong>으로 정확도가 50% 부근에 멈춘다. "합격컷"의 역할을 짚어줄 시점.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-3</span>학습 vs 시험 정확도 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시 결과</span>10명 학습 후 학습 정확도 ≈ 100%인데 시험 정확도는 70~80% 수준에 머무는 경우가 많음. 시나리오에 따라 차이.</div>
+  <div class="ans"><span class="lab">차이 원인</span>10명만 보고 정한 가중치는 그 10명의 우연한 패턴까지 외운 것이라, 새 20명에게는 잘 맞지 않는다. → <strong>과적합(overfitting)</strong>의 직관적 설명. (용어는 STEP 2에서 함께 도입.)</div>
+  <div class="pf"><span class="lab">자주 틀림</span>"학습 정확도가 높을수록 좋은 모델"이라는 오해. 실제 평가는 시험 정확도로만 한다는 점을 강조.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-4</span>비밀 공식 추적 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>합·불 결과는 가중치의 <strong>흔적</strong>이기 때문. 결과가 충분히 모이면 그 결과를 만들어낸 비율을 거꾸로 추정할 수 있다.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 2. 데이터 추가 후 재학습 (Phase 7)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-1·2-2</span>예시 결과</div>
+  <div class="ans"><span class="lab">전형 패턴</span>10명 → 40명으로 늘리면 <strong>학습 정확도는 약간 떨어지고 시험 정확도는 올라간다</strong>. 즉 두 정확도가 가까워진다.</div>
+  <div class="ans"><span class="lab">가중치</span>10명 시점의 "외운 가중치"가 무너지고, 4영역 모두에 분산된 더 일반적인 비율로 이동.</div>
+  <div class="tt"><span class="lab">수업 팁</span>가상 인물 P1·P2·P3에서 <strong>한 영역만 약점인 학생</strong>이 합/불 어느 쪽으로 분류되는지를 비교하면, 그 시나리오에서 가장 큰 가중치가 어디 있는지 학생 스스로 발견할 수 있음.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-3</span>일반화 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>데이터가 많아지면 우연한 잡음이 평균에 묻혀 사라지고, 데이터를 만든 진짜 규칙이 더 잘 드러난다. 그래서 새 데이터에도 통하는 모델이 된다.</div>
+  <div class="ib tip" style="margin-top:6pt"><strong>전이 메시지</strong> "데이터가 곧 권력이다." 이 직관이 거대 모델 시대의 핵심.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 3. 정확도와 혼동행렬 (Phase 8)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-1·3-2</span>혼동행렬 — 운영</div>
+  <div class="tt"><span class="lab">수업 팁</span>학생마다 페이즈 7 가중치가 다르므로 결과 값이 모두 다르다. 정답 숫자를 외우는 게 아니라 "<strong>네 칸이 합쳐져 20이 되는지</strong>"만 점검할 것. 정확도 = (TP+TN)/20.</div>
+  <div class="ans"><span class="lab">참고 범위</span>대부분 시험 정확도 70~95% 사이에 분포. TP+TN ≥ 14 면 우수 수준.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-3</span>정확도 함정 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>전원 불합격이라 외치면 정확도 = 99/100 = <span class="v">99%</span>.</div>
+  <div class="ans"><span class="lab">비판 예시</span>합격자 1명을 100% 놓치는데도 정확도는 99%. 정확도 한 숫자만으로는 "쓸모"를 평가할 수 없다.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>합격자 수를 1로 잡았는데 99%로 답하지 않고 100%로 답하는 경우. 분모 = 100명 임을 다시 확인.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 4. 평가의 함정 — 정밀도·재현율 (Phase 9)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-1</span>코로나 — 임계값별 경향</div>
+  <div class="ans"><span class="lab">정성적 경향</span>임계값을 <strong>낮출수록</strong> TP·FP↑ / FN·TN↓ → 재현율↑, 정밀도↓. <br><strong>높일수록</strong> 반대 방향. 정확도는 임계값 0.4~0.6 부근에서 최대인 경우가 많음.</div>
+  <table class="tb">
+    <tr><th>임계값</th><th>재현율 경향</th><th>정밀도 경향</th></tr>
+    <tr><td>0.3</td><td class="al">높음 (놓침 적음)</td><td class="al">낮음 (FP 많음)</td></tr>
+    <tr><td>0.5</td><td class="al">중간</td><td class="al">중간</td></tr>
+    <tr><td>0.7</td><td class="al">낮음 (놓침 많음)</td><td class="al">높음</td></tr>
+  </table>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-2</span>코로나 임계값 결정 — 모범 답안</div>
+  <div class="ans"><span class="lab">정답</span>FN(놓침) 비용 ≫ FP 비용 → <strong>재현율을 우선</strong> → 임계값을 <strong>낮춘다</strong>. 약간의 오인(격리)은 감수하고 환자를 놓치지 않는 쪽.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-3</span>암 검진 — 모범 답안</div>
+  <div class="ans"><span class="lab">정답</span>코로나와 같은 방향: 놓침이 더 큰 비용 → <strong>재현율 우선</strong>. 다만 암은 추가 검사 비용·환자 불안이 코로나의 격리보다 크므로 임계값을 무한정 낮추진 못함. <strong>1차 검진은 재현율 우선, 2차 정밀검사로 정밀도 회복</strong>이 실제 의료의 패턴.</div>
+  <div class="tt"><span class="lab">전이</span>"단계적 검진 = 임계값을 다르게 둔 모델 두 개의 직렬 연결"이라는 메타 메시지를 함께 짚어주면 좋음.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-4</span>모두 음성 모델의 정밀도·재현율 — 정답</div>
+  <div class="ans"><span class="lab">계산</span>
+    재현율 = TP / (TP + FN) = <span class="v">0</span> / (<span class="v">0</span> + <span class="v">5</span>) = <span class="v">0%</span><br>
+    정밀도 = TP / (TP + FP) = 0 / 0 → <strong>정의 불가</strong> (양성이라 외친 적이 없으므로 분모 = 0).
+  </div>
+  <div class="ans"><span class="lab">의미</span>이 모델은 양성 환자를 단 한 명도 못 잡았고(재현율 0), "양성"이라는 판정 자체를 한 적이 없어 정밀도는 정의되지 않는다. 정확도 99.5%라는 숫자가 얼마나 거짓 위안인지 한 번에 드러난다.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>정밀도를 0%로 답하는 경우. 0/0은 0이 아니라 "정의 불가"임을 짚을 것.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 5. 마무리 — 지표 선택 가이드</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">정리</span>정답 매트릭스</div>
+  <table class="tb">
+    <tr><th>상황</th><th>가장 중요한 지표</th><th>이유</th></tr>
+    <tr><td class="al">스팸 메일 분류</td><td class="fa">정밀도</td><td class="al">정상 메일을 스팸함으로 보내면(FP) 사용자가 중요한 메일을 놓침. FP 비용이 크다.</td></tr>
+    <tr><td class="al">암 조기검진</td><td class="fa">재현율</td><td class="al">진짜 환자를 놓치면(FN) 생존율 급락. FN 비용이 가장 크다.</td></tr>
+    <tr><td class="al">입시 합격 예측</td><td class="fa">정확도(또는 균형 F1)</td><td class="al">합·불 비율이 비슷하고 두 오류의 비용이 비슷하면 정확도가 무난.</td></tr>
+  </table>
+</div>
+
+<h3>관찰·수행 평가 루브릭</h3>
+<table class="rb">
+  <tr><th style="width:90pt">수준</th><th>분류 모델 조작</th><th>혼동행렬·지표</th><th>지표 선택 판단</th></tr>
+  <tr><td class="lvl">A 도달</td>
+    <td>한 번에 한 변수씩 조정해 시험 정확도를 80% 이상으로 끌어올림. 학습/시험 정확도 차이를 일반화 개념으로 설명.</td>
+    <td>정확도·정밀도·재현율을 모두 정의에 따라 정확히 계산. 임계값 변화의 트레이드오프를 자기 말로 설명.</td>
+    <td>3개 시나리오 모두에서 비용 구조에 맞는 지표를 정확히 골라 이유 설명.</td></tr>
+  <tr><td class="lvl">B 진행</td>
+    <td>가중치 조정으로 70% 부근까지 도달. 두 정확도 차이의 의미는 모호.</td>
+    <td>정확도는 계산하지만 정밀도·재현율 분모를 헷갈림.</td>
+    <td>스팸·암 중 한 쪽은 맞히지만 이유가 단편적.</td></tr>
+  <tr><td class="lvl">C 보충</td>
+    <td>슬라이더를 무작위로 움직여 정확도가 50%대.</td>
+    <td>TP/FP/FN/TN의 의미를 구분하지 못함.</td>
+    <td>"정확도 높으면 좋은 모델"이라는 인식에 머무름.</td></tr>
+</table>
+
+<div class="tt"><span class="lab">전이 포인트</span>2부에서 다룬 모든 분류는 <strong>점수 계산 + 임계값 비교</strong>의 단일 뉴런이었다. 3부에서 같은 도구로 픽셀 단위 도트 그림을 분류하면서 "특징이 많아지면 어떻게 되는가"를 묻게 된다.</div>
+
+</body>
+</html>

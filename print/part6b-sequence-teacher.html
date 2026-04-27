@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>[교사용] Neural Explorer 활동지 6부 후반 — 시퀀스에서 GPT까지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt}
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .tlab{display:inline-block;background:#000;color:#fff;font-size:9pt;padding:1pt 8pt;border-radius:3px;margin-right:8pt;letter-spacing:1px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt}
+  .qh .num{display:inline-block;background:#000;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+
+  .ans{background:#fff8e1;border:1.2px solid #c89000;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .ans .lab{display:inline-block;background:#000;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .ans .v{font-family:'JetBrains Mono',monospace;font-weight:600}
+  .pf{background:#fce4e4;border:1.2px solid #b04040;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .pf .lab{display:inline-block;background:#b04040;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .tt{background:#e6f0ea;border:1.2px solid #2e7a4f;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .tt .lab{display:inline-block;background:#2e7a4f;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center;vertical-align:top}
+  .tb th{background:#000;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb td.fa{background:#fffaea;font-weight:600;font-family:'JetBrains Mono',monospace}
+  .tb td.al{text-align:left}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0}
+
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .rb{width:100%;border-collapse:collapse;margin:8pt 0;font-size:9.5pt}
+  .rb th,.rb td{border:1px solid #888;padding:5pt 7pt;vertical-align:top;text-align:left}
+  .rb th{background:#000;color:#fff;text-align:center}
+  .rb td.lvl{text-align:center;font-weight:700;background:#f0f0f0;width:60pt}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt} ul,ol{padding-left:18pt;margin:4pt 0} li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto}
+    .qh,.fm,.ib,.tb,.an,.ans,.pf,.tt,.rb{break-inside:avoid;page-break-inside:avoid}
+    .tb th,.qh .num,.lh .tlab,.rb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .ans,.pf,.tt{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header class="lh">
+  <div><span class="tlab">교사용</span><span class="lab">NEURAL EXPLORER · WORKSHEET 6 / 7 · BONUS 2 · 정답·해설</span></div>
+  <h1 style="margin-top:6pt">6부 후반 — 시퀀스에서 GPT까지</h1>
+  <div class="sub">앱 페이즈 19~22 · 학생용과 동일 구조 + 정답·해설</div>
+  <div class="obj"><strong>핵심 메시지</strong> "어텐션은 단어들끼리 서로 점수 매겨 가중합하는 일이고, 트랜스포머 = 어텐션 + FFN 블록을 N층 쌓은 것이며, GPT = 그 출력에서 다음 토큰을 샘플링해 자기 입력에 붙이는 일을 반복하는 기계." 학생이 한 문장으로 이 흐름을 정리할 수 있게 하는 것이 6부 후반의 종착점.</div>
+</header>
+
+<!-- ============================================================== -->
+<h2>STEP 1. 시퀀스 (Phase 19)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-1</span>순서가 의미를 만든다 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>모든 행에서 "<strong>의미가 같지 않다</strong>". 같은 단어 집합이라도 누가 행위자(주어), 누가 대상(목적어)인지가 순서로 결정되기 때문.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-2</span>평균 임베딩 — 계산 정답</div>
+  <div class="ans"><span class="lab">계산</span>
+    "I love you" 평균 = ((0.9 + 0.0 + (−0.9))/3, (0.2 + 0.9 + 0.2)/3) = <span class="v">(0.0, 0.433)</span><br>
+    "You love I" 평균 = ((−0.9 + 0.0 + 0.9)/3, (0.2 + 0.9 + 0.2)/3) = <span class="v">(0.0, 0.433)</span><br>
+    → <strong>같다</strong>.
+  </div>
+  <div class="ans"><span class="lab">결론</span>평균 임베딩은 <strong>순서 정보를 잃는다</strong>. 그래서 의미가 정반대인 두 문장도 같은 점으로 매핑된다. 이 한계가 RNN과 어텐션의 발상으로 이어진다.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-3</span>RNN 직관 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>RNN은 <strong>매 단계 이전 상태 + 현재 단어</strong>를 입력으로 받아 새 상태를 계산한다. 입력 순서가 다르면 매 단계 입력이 달라지므로 마지막 상태도 달라진다. 즉 "상태에 순서 정보가 누적된다."</div>
+  <div class="tt"><span class="lab">수업 팁</span>RNN의 장점만 강조하지 말고, "긴 문장에서 앞 정보가 희미해지는 한계"를 한 줄 짚어둘 것 — 어텐션의 등장 동기로 자연스럽게 연결됨.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 2. 어텐션 (Phase 20)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-1</span>어텐션 점수 — 계산 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    S("봤다", "고양이는") = 0.09 + 0.14 + 0.06 + 0.09 = <span class="v">0.38</span><br>
+    S("봤다", "쥐를")     = 0.02 + 0.12 + 0.24 + 0.09 = <span class="v">0.47</span><br>
+    S("봤다", "봤다")     = 0.01 + 0.04 + 0.09 + 0.81 = <span class="v">0.95</span>
+  </div>
+  <div class="ans"><span class="lab">실제 softmax</span>(스케일 √d 생략, 단순화) softmax(0.38, 0.47, 0.95) ≈ <span class="v">(0.26, 0.28, 0.46)</span>. <strong>"봤다"가 자기 자신에 가장 큰 가중치를 줌</strong> — self-attention의 흔한 현상이라 짚어줄 것.</div>
+  <div class="tt"><span class="lab">수업 팁</span>학생용 활동지에는 단순화된 (0.30, 0.30, 0.40)로 진행하도록 제시해 가중합 계산을 깔끔하게 만들었음. 시간 여유가 있는 반은 실제 softmax 값으로 다시 계산해보게 하면 좋다.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-2</span>가중합 — 계산 정답 (가중치 0.30, 0.30, 0.40 사용 시)</div>
+  <div class="ans"><span class="lab">계산</span>
+    O = 0.30·(0.9, 0.7, 0.2, 0.1) + 0.30·(0.2, 0.6, 0.8, 0.1) + 0.40·(0.1, 0.2, 0.3, 0.9)<br>
+    = (0.27, 0.21, 0.06, 0.03) + (0.06, 0.18, 0.24, 0.03) + (0.04, 0.08, 0.12, 0.36)<br>
+    = <span class="v">(0.37, 0.47, 0.42, 0.42)</span>
+  </div>
+  <div class="ans"><span class="lab">변화 방향</span>"봤다"의 원래 벡터 (0.1, 0.2, 0.3, 0.9)와 비교하면 4번째 차원이 0.9 → 0.42로 줄고, 1·2번째 차원이 커졌다. → <strong>"봤다"가 "고양이는"·"쥐를"의 의미를 흡수해 더 풍부한 표현이 됨.</strong></div>
+  <div class="pf"><span class="lab">자주 틀림</span>가중합 계산에서 차원별로 따로 더해야 하는데 한 차원에 모두 더하는 실수. 표를 4열로 그려 차원별로 적게 시범할 것.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-3</span>"봤다" 행이 의미하는 것 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>"봤다"는 동사라 주체와 대상이 모두 필요하다. 그래서 두 명사("고양이는"·"쥐를")에 비슷한 비중으로 주목해야 의미가 완성된다. 어텐션은 <strong>문법적 역할</strong>을 학습된 가중치로 자동 잡아낸다.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 3. 멀티헤드와 블록 (Phase 21)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-1</span>4개 헤드 — 정답</div>
+  <table class="tb">
+    <tr><th>헤드</th><th>"줬다"가 가장 주목하는 단어</th></tr>
+    <tr><td class="al">주격 헤드</td><td class="fa">철수가</td></tr>
+    <tr><td class="al">대상 헤드</td><td class="fa">영희에게</td></tr>
+    <tr><td class="al">목적어 헤드</td><td class="fa">책을</td></tr>
+    <tr><td class="al">전체 문장 헤드</td><td class="fa">모두 비슷 (0.25 부근)</td></tr>
+  </table>
+  <div class="ans"><span class="lab">메시지</span>한 헤드 = 한 가지 관계. 멀티헤드는 <strong>관계의 종류만큼 채널을 늘리는 일</strong>이다.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-2</span>블록 부품 — 정답</div>
+  <div class="ans">
+    ① <span class="v">멀티헤드 어텐션</span><br>
+    ② <span class="v">잔차 연결 (residual connection)</span><br>
+    ③ <span class="v">FFN (feed-forward network, 작은 MLP)</span><br>
+    ④ <span class="v">LayerNorm (층 정규화)</span>
+  </div>
+  <div class="tt"><span class="lab">수업 팁</span>잔차 연결의 직관: "원본 입력을 유지한 채 변화를 더한다" → 깊게 쌓아도 학습이 안 부서지는 이유. 학생이 외울 필요는 없고 "이런 게 있구나" 정도로 충분.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-3</span>1층 vs 6층 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시 관찰</span>
+    1층: 인접 단어 사이 직접 관계만 잡힘 (주어-동사 등).<br>
+    3층: 두 단계 떨어진 관계도 잡힘. 문맥의 일부 추상화.<br>
+    6층: 문장 전체의 의미·역할 구조가 하나의 표현으로 통합됨.
+  </div>
+  <div class="ans"><span class="lab">메시지</span>"깊이 = 문맥을 모으는 단계 수." 깊을수록 더 멀리 있는 단어 관계와 더 추상적인 패턴을 다룰 수 있다.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 4. GPT 샘플링 (Phase 22)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-1</span>"고양이는" 다음 — 전형 결과</div>
+  <div class="ans"><span class="lab">예시</span>상위 5개: 귀엽다(≈0.27), 잔다(≈0.16), 쥐를(≈0.05), 동물(≈0.04), 집사(≈0.03). 정확한 값은 앱 logit에 따라 다르지만, "귀엽다 / 잔다"가 압도적 1·2위인 분포가 자연스럽다.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-2</span>온도 — 정답</div>
+  <table class="tb">
+    <tr><th>T</th><th>1순위 확률 경향</th><th>분포 모양</th></tr>
+    <tr><td>0.2</td><td class="fa">0.7~0.9</td><td class="al">매우 뾰족 — 1위에 거의 몰림</td></tr>
+    <tr><td>1.0</td><td class="fa">0.2~0.3</td><td class="al">중간 — 위 결과처럼 분산</td></tr>
+    <tr><td>2.0</td><td class="fa">0.05~0.10</td><td class="al">평탄 — 거의 균등</td></tr>
+  </table>
+  <div class="ans"><span class="lab">정답</span>T가 작을수록 <strong>보수적</strong>(반복·뻔함). T가 클수록 <strong>의외성↑</strong>(엉뚱·환각 위험).</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-3·4-4</span>같은 시작·다른 결과 / 창의성 — 모범 답안</div>
+  <div class="ans"><span class="lab">왜 다른가</span>매 단계 분포에서 <strong>샘플링</strong>(확률적으로 한 토큰 선택)을 하기 때문. 같은 분포라도 매번 다른 토큰이 뽑힐 수 있다.</div>
+  <div class="ans"><span class="lab">"창의성"의 정체</span>"학습된 분포에서 매번 다른 점을 뽑아내는 무작위성과, 그 분포의 모양을 조절하는 온도(temperature)의 합. 새로운 의미를 만들어내는 게 아니라 <strong>분포의 다양한 영역을 표본으로 가져오는 일</strong>이다."</div>
+  <div class="tt"><span class="lab">수업 팁</span>"창의성 = 무작위성"으로 단순화하지 않도록 주의. <strong>학습된 분포의 품질</strong>이 90%, 샘플링 전략이 10%라는 비유가 안전.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 5. 마무리 — 정답</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">정리</span>흐름 빈칸 — 정답</div>
+  <div class="ans">
+    토큰 → (<span class="v">임베딩</span>) 벡터 → (<span class="v">멀티헤드</span>) 어텐션 + FFN을 가진 트랜스포머 블록을 N층 통과<br>
+    → 마지막에 어휘에 대한 (<span class="v">확률 분포(logit·softmax)</span>)이 만들어지고, (<span class="v">샘플링</span>)으로 다음 토큰을 뽑는다.<br>
+    이 과정을 반복(자기회귀)해 문장 전체가 만들어진다.
+  </div>
+</div>
+
+<h3>관찰·수행 평가 루브릭</h3>
+<table class="rb">
+  <tr><th style="width:80pt">수준</th><th>시퀀스 (P19)</th><th>어텐션 (P20)</th><th>트랜스포머 (P21)</th><th>GPT 샘플링 (P22)</th></tr>
+  <tr><td class="lvl">A 도달</td>
+    <td>평균 임베딩의 한계를 직접 계산으로 보임. RNN 상태 누적의 의미를 자기 말로 설명.</td>
+    <td>4차원 어텐션 점수와 가중합을 손으로 정확히 계산. 결과 벡터가 어떤 단어 쪽으로 가까워졌는지 해석.</td>
+    <td>4개 헤드의 의미 차이를 식별. 블록 부품 4개 모두 이름으로 답. 깊이 효과를 추상화 수준으로 설명.</td>
+    <td>온도와 분포 모양의 관계를 정확히 설명. "창의성"을 분포·샘플링으로 재정의.</td></tr>
+  <tr><td class="lvl">B 진행</td>
+    <td>평균 임베딩 계산은 하지만 결론을 못 일반화.</td>
+    <td>점수는 계산하나 가중합 계산에서 차원 합산 실수.</td>
+    <td>헤드 차이는 알지만 블록 부품 일부 누락.</td>
+    <td>온도 효과는 알지만 자기회귀 개념을 못 짚음.</td></tr>
+  <tr><td class="lvl">C 보충</td>
+    <td>순서가 의미를 만든다는 메시지를 흡수 못함.</td>
+    <td>내적·가중합 자체를 어려워함.</td>
+    <td>어텐션 한 가지만 알고 멀티헤드의 의의를 못 잡음.</td>
+    <td>"창의성 = 무작위"로 단순화에 머무름.</td></tr>
+</table>
+
+<div class="tt"><span class="lab">전이 포인트</span>여기까지가 22단계 전체의 마지막 코스다. 7번째 워크시트(종합 평가지)에서는 부별로 1~2문항씩 묶어 학생이 전체 흐름을 자기 안에서 다시 짜 맞출 수 있는지 점검한다.</div>
+
+</body>
+</html>

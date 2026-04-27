@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Neural Explorer 활동지 6부 전반 — 글자에서 의미로</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt;page-break-after:avoid}
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .meta{font-size:9pt;color:#777;margin-top:6pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+  .name{font-size:9.5pt;color:#555;margin-top:8pt}
+  .name span{display:inline-block;border-bottom:1px solid #888;min-width:80pt;margin:0 8pt}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt}
+  .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .tip{border-left-style:dashed}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#000;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb td.al{text-align:left}
+  .tb .blank{height:22pt;background:#fff}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0}
+  .bk{display:inline-block;border-bottom:1.5px solid #333;min-width:30pt;text-align:center;padding:0 4pt;margin:0 2pt}
+  .bk.lg{min-width:60pt}
+  .ans-area{border:1px solid #aaa;border-radius:4px;min-height:38pt;padding:6pt;margin:6pt 0;background:#fcfcfc}
+  .ans-area.lg{min-height:60pt}
+
+  .sf{margin:8pt auto;text-align:center}
+  .sf svg{max-width:100%!important;height:auto!important}
+  .cap{font-size:9pt;color:#666;margin-top:3pt;text-align:center}
+
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .ob{border:1.2px dashed #777;border-radius:5px;padding:8pt 10pt;margin:6pt 0}
+  .ob .lab{font-weight:700;font-size:10pt;margin-bottom:4pt}
+
+  /* 토큰 박스 */
+  .tok{display:inline-block;border:1px solid #888;border-radius:4px;padding:2pt 6pt;margin:1pt;font-family:'JetBrains Mono',monospace;font-size:9.5pt;background:#fafafa}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt}
+  ul,ol{padding-left:18pt;margin:4pt 0}
+  li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto}
+    .qh,.sf,.fm,.ex,.ib,.tb,.an,.ob{break-inside:avoid;page-break-inside:avoid}
+    .sh{break-after:avoid;page-break-after:avoid}
+    .sf svg{max-width:100%!important;height:auto!important}
+    .tb th,.qh .num{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header class="lh">
+  <div class="lab">NEURAL EXPLORER · WORKSHEET 5 / 7 · BONUS 2</div>
+  <h1>6부 전반 — 글자에서 의미로</h1>
+  <div class="sub">텍스트 인코딩 · 토큰 · 원-핫에서 임베딩으로 · Word2Vec 미니</div>
+  <div class="meta">앱 페이즈 15~18 (히든 스테이지) · 대상: 고등학생 · 활동 시간 약 90분</div>
+  <div class="obj"><strong>학습 목표</strong> ① 글자가 어떻게 숫자가 되는지(코드포인트, UTF-8) 설명한다. ② 토큰의 단위와 한·영 토큰 수 차이의 원인을 설명한다. ③ 원-핫의 한계와 임베딩의 등장 이유를 안다. ④ Word2Vec의 "왕 − 남자 + 여자 = 여왕" 같은 의미 연산을 직접 확인하고 의미를 해석한다.</div>
+  <div class="name">학년 반 번호 <span></span> 이름 <span></span></div>
+</header>
+
+<!-- ============================================================== -->
+<h2>STEP 1. 텍스트가 숫자가 되기까지 (Phase 15)</h2>
+
+<div class="an"><span class="lab">앱</span>페이즈 15에서 ① 글자 → 코드포인트 → ② 직접 입력 → ③ 한글·영어·이모지 비교를 따라가며 숫자 변환 과정을 관찰합니다.</div>
+
+<div class="ib">
+  <div class="t">코드포인트와 UTF-8</div>
+  ▸ 모든 글자는 <strong>유니코드 코드포인트</strong>(고유 번호)를 가짐. 예: 'A' = 65, '안' = 50504(U+C548).<br>
+  ▸ 저장·전송할 때 <strong>UTF-8</strong> 규칙으로 1~4 바이트의 0/1 묶음으로 펼쳐짐.<br>
+  ▸ 영어 알파벳 = 1바이트, 한글 = 3바이트, 이모지 = 4바이트가 일반적.
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-1</span>"안녕하세요" 코드포인트 기록</div>
+  <div class="qd">앱이 보여주는 다섯 글자의 코드포인트와 UTF-8 바이트 수를 표에 옮겨 적으세요.</div>
+  <table class="tb">
+    <tr><th>글자</th><th>안</th><th>녕</th><th>하</th><th>세</th><th>요</th></tr>
+    <tr><td class="lbl">코드포인트(10진)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="lbl">UTF-8 바이트 수</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+  </table>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-2</span>한·영·이모지 길이 비교</div>
+  <table class="tb">
+    <tr><th>문자열</th><th>글자 수</th><th>UTF-8 총 바이트</th></tr>
+    <tr><td class="al">"AI"</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="al">"인공지능"</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="al">"🤖🧠"</td><td class="blank"></td><td class="blank"></td></tr>
+  </table>
+  <div class="qd">한글이나 이모지가 영어보다 바이트를 더 많이 쓰는 이유는 무엇일까요?</div>
+  <div class="ans-area"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 2. 토큰 — 단어보다 작고 글자보다 큰 조각 (Phase 16)</h2>
+
+<div class="an"><span class="lab">앱</span>페이즈 16에서 ① 토크나이저 시연 → ② BPE 미니 시뮬레이터 → ③ 영어 vs 한글 비교를 진행.</div>
+
+<div class="ib">
+  <div class="t">토큰(token)</div>
+  모델은 글자도 단어도 아닌 토큰 단위로 문장을 받음. 자주 등장하는 조합은 <strong>한 토큰</strong>으로, 드물게 등장하는 조합은 <strong>글자 단위</strong>까지 쪼개짐.<br>
+  ▸ 토큰화 규칙: <strong>BPE</strong>(Byte-Pair Encoding) 등 — "가장 자주 붙어 다니는 두 조각을 한 토큰으로 합친다"를 반복.
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-1</span>토큰 수 비교 — 앱 시연 결과 기록</div>
+  <table class="tb">
+    <tr><th>예문</th><th>글자 수</th><th>토큰 수</th></tr>
+    <tr><td class="al">Hello world</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="al">Tokenization is fun</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="al">안녕하세요</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="al">공부했어요</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="al">GPT는 한글을 잘게 쪼개요</td><td class="blank"></td><td class="blank"></td></tr>
+  </table>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-2</span>BPE 미니 시뮬레이션 따라하기</div>
+  <div class="qd">초기 어휘는 글자 단위. 가장 자주 붙어 다니는 두 조각을 합쳐가며 토큰을 만들어 갑니다.</div>
+  <div class="ex">
+    <strong>예시 코퍼스</strong> &nbsp; "low", "lower", "newest", "widest" &nbsp; (각각 5번씩)
+  </div>
+  <div class="qd">아래 단계에서 다음에 합칠 두 조각을 적어보세요. (앱 시뮬레이터의 진행 순서를 따라가며)</div>
+  <table class="tb">
+    <tr><th>단계</th><th>현재 빈도 1위 페어</th><th>합친 결과</th></tr>
+    <tr><td>1</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>2</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>3</td><td class="blank"></td><td class="blank"></td></tr>
+  </table>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-3</span>한글이 토큰을 더 많이 차지하는 이유</div>
+  <div class="qd">"공부했어요"가 1글자처럼 보이지만 토큰이 5~8개로 쪼개지는 이유를 학습 코퍼스 관점에서 설명하세요.</div>
+  <div class="ans-area"></div>
+  <div class="ib tip"><strong>실용 영향</strong> 같은 분량의 글이라도 한글이 영어보다 <strong>토큰 단가</strong>가 더 비싸다 → API 사용료 차이의 원인.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 3. 원-핫에서 임베딩으로 (Phase 17)</h2>
+
+<div class="an"><span class="lab">앱</span>페이즈 17에서 ① 원-핫의 한계 → ② 임베딩 행렬 W → ③ 직접 만져보기를 진행.</div>
+
+<div class="ib">
+  <div class="t">원-핫 vs 임베딩</div>
+  ▸ <strong>원-핫</strong>: 어휘가 V개면 V차원 벡터. 단어 i는 i번째 자리만 1, 나머지 0.<br>
+  ▸ <strong>임베딩</strong>: 학습되는 작은 차원(예: 3, 50, 768) 벡터. <strong>의미가 비슷한 단어가 가까이</strong> 배치되도록 학습됨.
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-1</span>원-핫의 한계 — 직접 계산</div>
+  <div class="qd">어휘 V = 6일 때 두 단어의 원-핫 벡터를 적고, 코사인 유사도를 계산해보세요.</div>
+  <div class="fm">
+    "고양이" = ( <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span> )<br>
+    "강아지" = ( <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span> )<br>
+    cos = (내적) / (크기 × 크기) = <span class="bk lg"></span>
+  </div>
+  <div class="qd">"고양이"와 "강아지"는 사람 보기에 매우 비슷한 단어인데, 원-핫에서는 모든 다른 단어 쌍과 똑같이 cos = 0이 됩니다. 이 현상이 왜 문제가 될까요?</div>
+  <div class="ans-area"></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-2</span>임베딩 — 차원 줄이고 의미 담기</div>
+  <div class="qd">앱은 V = 6 단어를 3차원 벡터로 임베딩한 결과를 보여줍니다. 그림에서 가까이 모인 단어 그룹과 멀리 떨어진 그룹을 적어보세요.</div>
+  <table class="tb">
+    <tr><th>가까이 모인 그룹</th><th>왜 가깝게 학습됐을까 (의미적으로)</th></tr>
+    <tr><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="blank"></td><td class="blank"></td></tr>
+  </table>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-3</span>임베딩 행렬 W의 정체</div>
+  <div class="qd">앱에서 단어 → 임베딩 벡터로 가는 과정은 결국 <strong>원-핫 × W</strong>의 곱셈입니다. W의 크기는 V × d (어휘 × 임베딩 차원).</div>
+  <div class="fm">
+    어휘 V = 6, 임베딩 차원 d = 3일 때 W의 크기 = <span class="bk"></span> × <span class="bk"></span> = 학습할 숫자 <span class="bk lg"></span>개
+  </div>
+  <div class="qd">"원-핫 × W = 임베딩"의 곱셈 결과는 사실상 W의 어떤 부분을 그대로 꺼내오는 것과 같다. 어떤 부분인가?</div>
+  <div class="ans-area"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 4. Word2Vec 미니 — 의미 연산 (Phase 18)</h2>
+
+<div class="an"><span class="lab">앱</span>페이즈 18에서 ① 학습 → ② 잠재 공간 → ③ 의미 산수를 진행. 영어/한국어 코퍼스 둘 다 시도 권장.</div>
+
+<div class="ib">
+  <div class="t">Word2Vec의 발견</div>
+  단어 임베딩 공간에서 <strong>벡터 덧셈/뺄셈이 의미 연산이 된다</strong>는 사실. <br>
+  ▸ <span class="mono">vec(king) − vec(man) + vec(woman) ≈ vec(queen)</span><br>
+  → 학습된 임베딩 공간이 "왕족 vs 일반 / 남성 vs 여성" 같은 <strong>의미의 축</strong>을 자동으로 잡았다는 증거.
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-1</span>학습 후 의미 산수 결과 기록</div>
+  <table class="tb">
+    <tr><th>식</th><th>가장 가까운 단어 (앱 출력)</th><th>기대 답</th></tr>
+    <tr><td class="al">king − man + woman</td><td class="blank"></td><td>queen</td></tr>
+    <tr><td class="al">prince − man + woman</td><td class="blank"></td><td>princess</td></tr>
+    <tr><td class="al">왕 − 남자 + 여자</td><td class="blank"></td><td>여왕</td></tr>
+    <tr><td class="al">아빠 − 남자 + 여자</td><td class="blank"></td><td>엄마</td></tr>
+  </table>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-2</span>왜 이런 산수가 가능한가</div>
+  <div class="qd">"king"과 "queen"은 의미상 한 가지(성별)만 다르다. 임베딩 공간에서 두 단어를 잇는 화살표가 의미하는 것이 무엇인지 적어보세요.</div>
+  <div class="ans-area"></div>
+  <div class="qd">"father → mother"의 화살표와 "king → queen"의 화살표는 임베딩 공간에서 어떻게 비슷할까?</div>
+  <div class="ans-area"></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-3</span>실패 사례도 적어보기</div>
+  <div class="qd">앱에서 결과가 "기대 답과 다른" 경우도 있나요? 한 가지 사례와 그 이유 추측을 적어보세요.</div>
+  <div class="ans-area"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 5. 6부 전반 마무리</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">정리</span>한 줄 정리 빈칸</div>
+  <div class="fm">
+    글자는 ( <span class="bk lg"></span> )와 ( <span class="bk lg"></span> )를 거쳐 0과 1이 되고,<br>
+    문장은 ( <span class="bk lg"></span> ) 단위로 쪼개진 뒤 ( <span class="bk lg"></span> ) 벡터로 변환된다.<br>
+    의미가 비슷한 단어가 ( <span class="bk lg"></span> ) 곳에 모이도록 학습된 결과,<br>
+    벡터의 ( <span class="bk lg"></span> )과 ( <span class="bk lg"></span> )이 의미의 연산이 된다.
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">서술</span>친구에게 설명하기</div>
+  <div class="qd">"GPT는 글자가 아니라 토큰을 본다. 그리고 각 토큰을 임베딩 벡터로 바꾼다." 이 두 문장을 6부 전반에서 배운 용어를 사용해 5~7문장으로 풀어 설명하세요.</div>
+  <div class="ans-area lg" style="min-height:90pt"></div>
+</div>
+
+</body>
+</html>

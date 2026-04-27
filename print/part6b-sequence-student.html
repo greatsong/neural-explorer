@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Neural Explorer 활동지 6부 후반 — 시퀀스에서 GPT까지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt;page-break-after:avoid}
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .meta{font-size:9pt;color:#777;margin-top:6pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+  .name{font-size:9.5pt;color:#555;margin-top:8pt}
+  .name span{display:inline-block;border-bottom:1px solid #888;min-width:80pt;margin:0 8pt}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt}
+  .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .tip{border-left-style:dashed}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#000;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb td.al{text-align:left}
+  .tb .blank{height:22pt;background:#fff}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0}
+  .bk{display:inline-block;border-bottom:1.5px solid #333;min-width:30pt;text-align:center;padding:0 4pt;margin:0 2pt}
+  .bk.lg{min-width:60pt}
+  .ans-area{border:1px solid #aaa;border-radius:4px;min-height:38pt;padding:6pt;margin:6pt 0;background:#fcfcfc}
+  .ans-area.lg{min-height:60pt}
+
+  .sf{margin:8pt auto;text-align:center}
+  .sf svg{max-width:100%!important;height:auto!important}
+  .cap{font-size:9pt;color:#666;margin-top:3pt;text-align:center}
+
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .ob{border:1.2px dashed #777;border-radius:5px;padding:8pt 10pt;margin:6pt 0}
+  .ob .lab{font-weight:700;font-size:10pt;margin-bottom:4pt}
+
+  /* 어텐션 행렬 셀 농도 */
+  .att td{font-family:'JetBrains Mono',monospace;text-align:center}
+  .att td.h{background:#000;color:#fff}
+  .att .h2{background:#444;color:#fff}
+  .att .h3{background:#888;color:#fff}
+  .att .h4{background:#bbb}
+  .att .h5{background:#eee}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt}
+  ul,ol{padding-left:18pt;margin:4pt 0}
+  li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto}
+    .qh,.sf,.fm,.ex,.ib,.tb,.an,.ob,.att{break-inside:avoid;page-break-inside:avoid}
+    .sh{break-after:avoid;page-break-after:avoid}
+    .sf svg{max-width:100%!important;height:auto!important}
+    .tb th,.qh .num,.att td.h,.att .h2,.att .h3{background-color:initial;color:initial}
+    .tb th,.qh .num{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .att td.h{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .att .h2{background:#444!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .att .h3{background:#888!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .att .h4{background:#bbb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .att .h5{background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header class="lh">
+  <div class="lab">NEURAL EXPLORER · WORKSHEET 6 / 7 · BONUS 2</div>
+  <h1>6부 후반 — 시퀀스에서 GPT까지</h1>
+  <div class="sub">시퀀스 · 어텐션 · 멀티헤드 트랜스포머 · GPT 샘플링</div>
+  <div class="meta">앱 페이즈 19~22 (히든 스테이지) · 대상: 고등학생 · 활동 시간 약 90분</div>
+  <div class="obj"><strong>학습 목표</strong> ① 단어 순서가 의미를 만든다는 점을 평균 임베딩의 한계로 설명한다. ② 어텐션의 기본 식(점수 → 가중치 → 가중합)을 직접 손으로 계산한다. ③ 멀티헤드와 깊이가 표현력을 어떻게 늘리는지 설명한다. ④ 샘플링 온도(temperature)와 top-k가 생성 결과에 미치는 영향을 관찰한다.</div>
+  <div class="name">학년 반 번호 <span></span> 이름 <span></span></div>
+</header>
+
+<!-- ============================================================== -->
+<h2>STEP 1. 시퀀스 — 순서가 의미를 만드는 순간 (Phase 19)</h2>
+
+<div class="an"><span class="lab">앱</span>페이즈 19에서 ① 순서가 왜 중요한가 → ② 평균 임베딩의 한계 → ③ RNN 직관을 따라갑니다.</div>
+
+<div class="ib">
+  <div class="t">평균(BoW)의 한계와 RNN의 발상</div>
+  ▸ <strong>평균 임베딩</strong>: 문장의 모든 단어 벡터를 평균. → 단어 순서가 사라짐.<br>
+  ▸ <strong>RNN</strong>: 단어를 한 개씩 순서대로 받으며 <strong>이전 상태</strong>를 다음으로 전달. 순서가 보존됨.
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-1</span>순서가 바뀌면 의미가 뒤집힌다</div>
+  <table class="tb">
+    <tr><th>문장 A</th><th>문장 B</th><th>의미가 같은가?</th></tr>
+    <tr><td class="al">고양이가 쥐를 잡았다</td><td class="al">쥐가 고양이를 잡았다</td><td class="blank"></td></tr>
+    <tr><td class="al">철수는 영희에게 책을 줬다</td><td class="al">영희는 철수에게 책을 줬다</td><td class="blank"></td></tr>
+    <tr><td class="al">Dog bites man</td><td class="al">Man bites dog</td><td class="blank"></td></tr>
+  </table>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-2</span>평균 임베딩의 한계 — 직접 계산</div>
+  <div class="qd">단어 임베딩이 다음과 같다고 하자.</div>
+  <div class="fm">
+    I = (0.9, 0.2) &nbsp;/&nbsp; you = (−0.9, 0.2) &nbsp;/&nbsp; love = (0.0, 0.9)
+  </div>
+  <div class="qd">"I love you"와 "You love I"의 단어 임베딩 평균을 각각 계산.</div>
+  <div class="fm">
+    avg("I love you") = ( <span class="bk lg"></span>, <span class="bk lg"></span> )<br>
+    avg("You love I") = ( <span class="bk lg"></span>, <span class="bk lg"></span> )<br>
+    두 평균은 <strong>같다 / 다르다</strong>. ☞ 동그라미: <span class="bk lg"></span>
+  </div>
+  <div class="qd">의미가 정반대인 두 문장이 평균 임베딩에서는 같은 점이 됩니다. 이 사실로부터 어떤 결론을 내릴 수 있나요?</div>
+  <div class="ans-area"></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-3</span>RNN의 직관</div>
+  <div class="qd">앱 ③ 탭에서 RNN이 단어를 한 개씩 받으며 상태(hidden state)를 갱신하는 모습을 봅니다.</div>
+  <div class="ob">
+    <div class="lab">관찰 — 같은 단어 집합이라도 RNN의 마지막 상태가 다르게 나오는 이유는 무엇인가?</div>
+    <div class="ans-area"></div>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 2. 어텐션 — 어디에 집중할지 (Phase 20)</h2>
+
+<div class="an"><span class="lab">앱</span>페이즈 20에서 ① 핵심 아이디어 → ② 어텐션 행렬 만지기 → ③ 가중 합 결과를 진행. 슬라이더로 점수를 직접 만져보며 결과 변화를 관찰.</div>
+
+<div class="ib">
+  <div class="t">어텐션 한 줄 식</div>
+  점수 S = Q · Kᵀ &nbsp;→&nbsp; 가중치 A = softmax(S) &nbsp;→&nbsp; 출력 O = A · V<br>
+  ▸ Q(질문)·K(키)로 누구에게 집중할지 정하고, V(값)에서 그 비율로 가져옴.<br>
+  ▸ 이 페이지에서는 단순화: <strong>Q = K = V = 단어 임베딩</strong>.
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-1</span>"고양이는 쥐를 봤다" — 어텐션 가중치 직접 계산</div>
+  <div class="qd">단어 임베딩이 다음과 같다.</div>
+  <div class="fm">
+    고양이는 = (0.9, 0.7, 0.2, 0.1)<br>
+    쥐를     = (0.2, 0.6, 0.8, 0.1)<br>
+    봤다     = (0.1, 0.2, 0.3, 0.9)
+  </div>
+  <div class="qd">"봤다"가 다른 단어들에게 매긴 점수(내적)를 계산해보세요.</div>
+  <div class="fm">
+    S("봤다", "고양이는") = 0.1·0.9 + 0.2·0.7 + 0.3·0.2 + 0.9·0.1 = <span class="bk lg"></span><br>
+    S("봤다", "쥐를")     = 0.1·0.2 + 0.2·0.6 + 0.3·0.8 + 0.9·0.1 = <span class="bk lg"></span><br>
+    S("봤다", "봤다")     = 0.1² + 0.2² + 0.3² + 0.9² = <span class="bk lg"></span>
+  </div>
+  <div class="qd">정규화 결과(소수점 둘째 자리 반올림)는 다음과 같다고 가정합시다 (앱이 보여주는 값을 적어 넣어도 됨).</div>
+  <div class="fm">
+    A = softmax(S) ≈ ( 고양이는 = <span class="bk">0.30</span>, &nbsp; 쥐를 = <span class="bk">0.30</span>, &nbsp; 봤다 = <span class="bk">0.40</span> )
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-2</span>가중합 — "봤다"의 새 표현 계산</div>
+  <div class="qd">위 가중치를 사용해 "봤다"의 새 출력 벡터를 계산하세요.</div>
+  <div class="fm">
+    O = 0.30·(0.9, 0.7, 0.2, 0.1) + 0.30·(0.2, 0.6, 0.8, 0.1) + 0.40·(0.1, 0.2, 0.3, 0.9)<br>
+    = ( <span class="bk lg"></span>, <span class="bk lg"></span>, <span class="bk lg"></span>, <span class="bk lg"></span> )
+  </div>
+  <div class="qd">"봤다"의 원래 벡터와 비교했을 때, 어느 방향으로 가까워졌나요? (어떤 단어의 영향이 가장 컸나요)</div>
+  <div class="ans-area"></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-3</span>어텐션 행렬 시각화</div>
+  <div class="qd">아래는 앱이 보여주는 3×3 어텐션 행렬의 한 예시입니다. 색이 진할수록 가중치가 큼.</div>
+  <table class="tb att" style="max-width:280pt">
+    <tr><th>Q ↓ \ K →</th><th>고양이는</th><th>쥐를</th><th>봤다</th></tr>
+    <tr><td class="lbl">고양이는</td><td class="h">0.7</td><td class="h4">0.2</td><td class="h5">0.1</td></tr>
+    <tr><td class="lbl">쥐를</td><td class="h4">0.2</td><td class="h">0.6</td><td class="h4">0.2</td></tr>
+    <tr><td class="lbl">봤다</td><td class="h2">0.4</td><td class="h2">0.4</td><td class="h4">0.2</td></tr>
+  </table>
+  <div class="qd">"봤다" 행이 다른 두 단어를 비슷하게 보고 있다(0.4·0.4·0.2). 이것이 의미하는 바는?</div>
+  <div class="ans-area"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 3. 멀티헤드와 트랜스포머 블록 (Phase 21)</h2>
+
+<div class="an"><span class="lab">앱</span>페이즈 21에서 ① 4개 헤드의 시선 → ② 트랜스포머 블록 → ③ 1층 vs 6층을 진행.</div>
+
+<div class="ib">
+  <div class="t">멀티헤드 = 동시에 여러 관계를 보기</div>
+  한 어텐션은 한 가지 관계만 봅니다. 트랜스포머는 <strong>여러 헤드</strong>를 두고 각자 다른 관점(주격·대상·목적어 등)을 동시에 학습합니다. 결과를 이어 붙여 다음 층으로.
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-1</span>"철수가 영희에게 책을 줬다" — 4개 헤드 관찰</div>
+  <div class="qd">앱이 보여주는 4개 어텐션 헤드의 행렬을 보고, "줬다" 행에서 가장 큰 가중치가 어느 단어로 향하는지 적어보세요.</div>
+  <table class="tb">
+    <tr><th>헤드 이름</th><th>"줬다"가 가장 주목하는 단어</th><th>그 헤드가 잡는 의미 관계</th></tr>
+    <tr><td class="al">주격 헤드</td><td class="blank"></td><td class="al">누가 ____ ?</td></tr>
+    <tr><td class="al">대상 헤드</td><td class="blank"></td><td class="al">누구에게 ____ ?</td></tr>
+    <tr><td class="al">목적어 헤드</td><td class="blank"></td><td class="al">무엇을 ____ ?</td></tr>
+    <tr><td class="al">전체 문장 헤드</td><td class="blank"></td><td class="al">전체 문맥</td></tr>
+  </table>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-2</span>트랜스포머 블록 — 구성 요소 빈칸</div>
+  <div class="sf">
+  <svg viewBox="0 0 360 200" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif">
+    <rect x="60" y="20" width="240" height="170" fill="#fff" stroke="#333" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <text x="180" y="38" text-anchor="middle" font-size="9.5" fill="#333" font-weight="700">트랜스포머 블록 1개</text>
+    <!-- 어텐션 -->
+    <rect x="100" y="55" width="160" height="28" fill="#000" stroke="#000"/>
+    <text x="180" y="73" text-anchor="middle" font-size="10.5" fill="#fff" font-weight="700">멀티헤드 어텐션</text>
+    <line x1="180" y1="83" x2="180" y2="100" stroke="#333" stroke-width="1.5"/>
+    <!-- 잔차+정규화 -->
+    <rect x="100" y="100" width="160" height="20" fill="#f0f0f0" stroke="#333"/>
+    <text x="180" y="114" text-anchor="middle" font-size="9.5" fill="#333">+ 잔차 연결 / LayerNorm</text>
+    <line x1="180" y1="120" x2="180" y2="135" stroke="#333" stroke-width="1.5"/>
+    <!-- FFN -->
+    <rect x="100" y="135" width="160" height="28" fill="#888" stroke="#333"/>
+    <text x="180" y="153" text-anchor="middle" font-size="10.5" fill="#fff" font-weight="700">FFN (작은 MLP)</text>
+    <!-- 화살표 입출력 -->
+    <line x1="20" y1="69" x2="99" y2="69" stroke="#333" stroke-width="1.5"/>
+    <text x="40" y="62" font-size="9" fill="#555">입력</text>
+    <line x1="261" y1="149" x2="340" y2="149" stroke="#333" stroke-width="1.5"/>
+    <text x="290" y="142" font-size="9" fill="#555">다음 블록으로</text>
+  </svg>
+  <div class="cap">▲ 트랜스포머 블록 1개의 구성</div>
+  </div>
+  <div class="qd">블록의 4가지 부품 이름을 적어보세요.</div>
+  <ol style="padding-left:24pt">
+    <li>① <span class="bk lg"></span> — 단어들끼리 서로 점수 매기고 가중합</li>
+    <li>② <span class="bk lg"></span> — 입력을 출력에 더해 학습 안정화</li>
+    <li>③ <span class="bk lg"></span> — 각 단어에 작은 MLP 적용</li>
+    <li>④ <span class="bk lg"></span> — 출력을 정규화해 다음 층 입력으로</li>
+  </ol>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-3</span>1층 vs 6층 — 깊이의 의미</div>
+  <table class="tb">
+    <tr><th>깊이</th><th>관찰 — 무엇을 더 잘 잡아내나</th></tr>
+    <tr><td>1층</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
+    <tr><td>3층</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
+    <tr><td>6층</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
+  </table>
+  <div class="ib tip">실제 GPT-3는 96층, GPT-4는 그보다 더 깊다고 알려져 있어요. 깊이가 늘어나면 <strong>긴 문맥과 추상 패턴</strong>을 다룰 수 있게 됩니다.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 4. GPT의 다음 토큰 — 샘플링이 곧 창의성 (Phase 22)</h2>
+
+<div class="an"><span class="lab">앱</span>페이즈 22에서 ① 어휘 분포 → ② 샘플링 슬라이더(temperature, top-k) → ③ 자기회귀 생성을 진행.</div>
+
+<div class="ib">
+  <div class="t">한 토큰씩 — 자기회귀 생성</div>
+  GPT는 한 번에 한 토큰씩 출력합니다. 매 단계: 어휘 전체에 대한 <strong>점수(logit)</strong> → softmax → 확률 분포 → <strong>샘플링</strong> → 다음 토큰. 그 토큰을 입력 끝에 붙이고 다시 반복.<br>
+  ▸ <strong>temperature(온도)</strong>: softmax 전에 logit을 T로 나눔. 낮으면 보수적·반복, 높으면 다양·산만.<br>
+  ▸ <strong>top-k</strong>: 상위 k개 토큰만 후보로 두고 그 안에서 샘플링.
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-1</span>"고양이는" 다음 — 분포 관찰</div>
+  <div class="qd">앱이 보여주는 상위 5개 후보 토큰과 확률을 적어보세요.</div>
+  <table class="tb">
+    <tr><th>순위</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
+    <tr><td class="lbl">토큰</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="lbl">확률</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+  </table>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-2</span>온도(temperature) 변화 관찰</div>
+  <table class="tb">
+    <tr><th>T</th><th>1순위 확률</th><th>분포 모양</th><th>한 줄 묘사</th></tr>
+    <tr><td>0.2</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>1.0</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>2.0</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+  </table>
+  <div class="qd">T가 작을수록 (보수적 / 다양). T가 클수록 (예측 가능 / 의외성↑). 동그라미하기.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-3</span>자기회귀 생성 5번 — 같은 시작으로 다른 결과</div>
+  <div class="qd">앱에서 같은 시작 문장으로 5번 연속 생성한 결과를 적어보세요. (T = 1.0 권장)</div>
+  <table class="tb">
+    <tr><th>시도</th><th>생성된 문장</th></tr>
+    <tr><td>1</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
+    <tr><td>2</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
+    <tr><td>3</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
+    <tr><td>4</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
+    <tr><td>5</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
+  </table>
+  <div class="qd">결과들이 다른 이유를 한 줄로 적어보세요.</div>
+  <div class="ans-area"></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-4</span>"창의성"의 정체</div>
+  <div class="qd">"GPT의 창의성"이라는 표현이 사실은 무엇을 가리키는지, 분포·샘플링·온도 개념을 사용해 30~50자로 정리.</div>
+  <div class="ans-area"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 5. 6부 후반 마무리</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">정리</span>흐름 빈칸</div>
+  <div class="fm">
+    토큰 → ( <span class="bk lg"></span> ) 벡터 → ( <span class="bk lg"></span> ) 어텐션 + FFN을 가진 트랜스포머 블록을 N층 통과<br>
+    → 마지막에 어휘에 대한 ( <span class="bk lg"></span> )이 만들어지고, ( <span class="bk lg"></span> )로 다음 토큰을 뽑는다.<br>
+    이 과정을 반복(자기회귀)해 문장 전체가 만들어진다.
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">서술</span>친구에게 설명하기</div>
+  <div class="qd">"GPT가 한 문장을 만드는 동안 내부에서 무슨 일이 일어나는가?"를 임베딩·어텐션·블록·샘플링 네 단어를 모두 사용해 6~8문장으로 설명하세요.</div>
+  <div class="ans-area lg" style="min-height:100pt"></div>
+</div>
+
+</body>
+</html>

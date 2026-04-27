@@ -66,12 +66,11 @@ const STEPS_B: { id: number; expr: string; why: string; highlight?: boolean }[] 
   },
 ];
 
-export function Phase5B() {
+// 페이즈 5의 "수식 유도" 탭에서도 동일 본문을 재사용하도록 헤더 없이 노출.
+export function DerivationContent() {
   return (
-    <article>
-      <div className="text-xs font-mono text-muted">PHASE 5+</div>
-      <h1>w · b 업데이트 식은 어디서 왔나</h1>
-      <p className="text-muted mt-2">
+    <>
+      <p className="text-muted">
         페이즈 5의 갱신량 <code>e · x</code>와 <code>e</code>가 어디에서 왔는지, 식을 한 줄씩 풀어가는 과정을 가볍게 따라가 봅니다.
         외울 필요는 없어요 — <strong>"아 이렇게 차근차근 약분하면 결국 깔끔한 한 줄이 되는구나"</strong> 정도만 눈에 들어오면 충분합니다.
       </p>
@@ -137,15 +136,10 @@ export function Phase5B() {
       </p>
 
       <p className="text-xs text-muted mt-4">
-        ※ 부호 메모 — 이 페이지는 <code>오차 = y − ŷ</code>로 약속해 마지막이 <strong>덧셈</strong>(+),
+        ※ 부호 메모 — 이 풀이는 <code>오차 = y − ŷ</code>로 약속해 마지막이 <strong>덧셈</strong>(+),
         페이즈 5 본문은 <code>e = ŷ − y</code>로 약속해 <strong>뺄셈</strong>(−). 약속만 뒤집혔을 뿐 결과는 동일.
       </p>
-
-      <div className="mt-6 flex flex-wrap gap-3 text-sm">
-        <a href="#/p5" className="underline text-accent">← 페이즈 5로 돌아가기</a>
-        <a href="#/p5c" className="underline text-accent ml-auto">페이즈 5* 서울 기온으로 학습 →</a>
-      </div>
-    </article>
+    </>
   );
 }
 

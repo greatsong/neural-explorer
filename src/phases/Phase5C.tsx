@@ -28,6 +28,7 @@ const initModel = (rows: SeoulTempRow[]): ModelState => {
 };
 
 // 한 step(=1 epoch) 진행: 페이즈 5와 동일한 갱신 식 — w ← w − η·평균(e·x), b ← b − η·평균(e)
+// NaN 가드: 만약 어떤 이유로든 w·b가 발산하면 그 step부터는 더 이상 진행하지 않고 직전 안전 값을 유지.
 const trainSteps = (m: ModelState, rows: SeoulTempRow[], steps: number): ModelState => {
   let { w, b, epoch } = m;
   const N = rows.length;
@@ -40,8 +41,10 @@ const trainSteps = (m: ModelState, rows: SeoulTempRow[], steps: number): ModelSt
       db += e;
     }
     dw /= N; db /= N;
-    w -= LR * dw;
-    b -= LR * db;
+    const nw = w - LR * dw;
+    const nb = b - LR * db;
+    if (!isFinite(nw) || !isFinite(nb)) break;
+    w = nw; b = nb;
     epoch += 1;
   }
   return { w, b, epoch, offset: m.offset };
@@ -55,7 +58,16 @@ const mse = (m: ModelState, rows: SeoulTempRow[]) =>
 
 const predict = (m: ModelState, year: number) => m.w * (year - m.offset) + m.b;
 
+// 페이즈 5의 "실생활 문제해결" 탭에서 동일 본문을 재사용하기 위한 wrapper (헤더 숨김).
+export function PracticalContent() {
+  return <Phase5CBody embedded />;
+}
+
 export function Phase5C() {
+  return <Phase5CBody />;
+}
+
+function Phase5CBody({ embedded = false }: { embedded?: boolean }) {
   const [futureYear, setFutureYear] = useState(2050);
 
   const rowsA = useMemo(() => subset(RANGE_A), []);
@@ -83,8 +95,12 @@ export function Phase5C() {
 
   return (
     <article>
-      <div className="text-xs font-mono text-muted">PHASE 5*</div>
-      <h1>서울 기온으로 학습하기</h1>
+      {!embedded && (
+        <>
+          <div className="text-xs font-mono text-muted">PHASE 5*</div>
+          <h1>서울 기온으로 학습하기</h1>
+        </>
+      )}
       <p className="text-muted mt-2">
         페이즈 5에서 익힌 식 <code>ŷ = w · x + b</code>를 실제 데이터에 적용합니다.
         서울 연평균 기온(1908~2025)을 가지고 두 모델을 학습시켜 봅시다 —
@@ -235,10 +251,12 @@ export function Phase5C() {
         </p>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-3 text-sm">
-        <a href="#/p5b" className="underline text-accent">← 페이즈 5+ 책임 분담</a>
-        <a href="#/p6" className="underline text-accent ml-auto">페이즈 6 입시 합격 예측 →</a>
-      </div>
+      {!embedded && (
+        <div className="mt-6 flex flex-wrap gap-3 text-sm">
+          <a href="#/p5" className="underline text-accent">← 페이즈 5로 돌아가기</a>
+          <a href="#/p6" className="underline text-accent ml-auto">페이즈 6 입시 합격 예측 →</a>
+        </div>
+      )}
     </article>
   );
 }

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>[교사용] Neural Explorer 종합 평가지 — 채점 기준</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt}
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .tlab{display:inline-block;background:#000;color:#fff;font-size:9pt;padding:1pt 8pt;border-radius:3px;margin-right:8pt;letter-spacing:1px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt;display:flex;justify-content:space-between;align-items:baseline;gap:8pt}
+  .qh .num{display:inline-block;background:#000;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qh .pt{font-size:9pt;color:#fff;font-weight:600;background:#000;padding:1pt 8pt;border-radius:10pt}
+  .qd{font-size:10pt;color:#333;margin-bottom:6pt}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0}
+
+  .ans{background:#fff8e1;border:1.2px solid #c89000;border-radius:5px;padding:8pt 10pt;margin:6pt 0;font-size:10pt}
+  .ans .lab{display:inline-block;background:#000;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .ans .v{font-family:'JetBrains Mono',monospace;font-weight:600}
+  .pt-rule{background:#e6f0ea;border:1.2px solid #2e7a4f;border-radius:5px;padding:8pt 10pt;margin:6pt 0;font-size:10pt}
+  .pt-rule .lab{display:inline-block;background:#2e7a4f;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .pf{background:#fce4e4;border:1.2px solid #b04040;border-radius:5px;padding:8pt 10pt;margin:6pt 0;font-size:10pt}
+  .pf .lab{display:inline-block;background:#b04040;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center;vertical-align:top}
+  .tb th{background:#000;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb td.fa{background:#fffaea;font-weight:600;font-family:'JetBrains Mono',monospace}
+  .tb td.al{text-align:left}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0}
+
+  .rb{width:100%;border-collapse:collapse;margin:8pt 0;font-size:9.5pt}
+  .rb th,.rb td{border:1px solid #888;padding:5pt 7pt;vertical-align:top;text-align:left}
+  .rb th{background:#000;color:#fff;text-align:center}
+  .rb td.lvl{text-align:center;font-weight:700;background:#f0f0f0;width:60pt}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt} ul,ol{padding-left:18pt;margin:4pt 0} li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto}
+    .qh,.fm,.ib,.tb,.ans,.pt-rule,.pf,.rb{break-inside:avoid;page-break-inside:avoid}
+    .tb th,.qh .num,.qh .pt,.lh .tlab,.rb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .ans,.pt-rule,.pf{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header class="lh">
+  <div><span class="tlab">교사용</span><span class="lab">NEURAL EXPLORER · WORKSHEET 7 / 7 · 종합 평가 채점 기준</span></div>
+  <h1 style="margin-top:6pt">종합 평가 — 채점 가이드</h1>
+  <div class="sub">학생용과 동일 문항 순서 + 정답 + 부분점수 규칙 + 자주 틀리는 지점</div>
+  <div class="obj"><strong>채점 원칙</strong> ① 객관식은 1답만 정답. ② 단답·계산은 정답 그대로면 만점. ③ 서술은 키워드 충족 여부로 부분점수. ④ 계산 도중 절차가 옳고 마지막 산수만 틀린 경우 1~2점 부분점수.</div>
+</header>
+
+<!-- ============================================================== -->
+<h2>① 1부 — 뉴런의 기초 (16점)</h2>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">1</span>인공 뉴런의 부품</span><span class="pt">3점</span></div>
+  <div class="ans"><span class="lab">정답</span>① <span class="v">가중치 (w)</span> &nbsp; ② <span class="v">편향 (b)</span> &nbsp; ③ <span class="v">활성화 함수 (예: ReLU)</span></div>
+  <div class="pt-rule"><span class="lab">부분점수</span>각 1점. ③에서 "ReLU"라고 함수명만 적어도 인정.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">2</span>순전파 계산</span><span class="pt">4점</span></div>
+  <div class="ans"><span class="lab">정답</span>z = (−2)·4 + 1·3 + 5 = −8 + 3 + 5 = <span class="v">0</span> &nbsp;/&nbsp; y = ReLU(0) = <span class="v">0</span></div>
+  <div class="pt-rule"><span class="lab">부분점수</span>z 값 정답 2점, y 값 정답 2점. z가 −8+3+5 같이 풀이는 옳고 산수만 틀리면 1점.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>−2·4를 −24로 잘못 계산. ReLU(0)을 1이나 −0으로 답.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">3</span>오차와 손실</span><span class="pt">3점</span></div>
+  <div class="ans"><span class="lab">정답</span>L = (5 − 8)² = <span class="v">9</span></div>
+  <div class="ans"><span class="lab">제곱 3가지 이유</span>① <strong>부호 상쇄 방지</strong> — 어떤 점은 +3, 어떤 점은 −3으로 어긋나 있을 때 그대로 더하면 0이 되어 "오차 없음"처럼 보임. 제곱하면 모두 양수.<br>② <strong>큰 오차에 더 큰 페널티</strong> — 1²=1 vs 10²=100. 모델이 큰 실수를 먼저 줄이려고 함.<br>③ <strong>매끄러운 곡선</strong>(미분 가능) — 손실이 부드러운 포물선이 되어 자동 학습이 "어느 쪽이 내리막인지"를 정확히 계산할 수 있음.</div>
+  <div class="pt-rule"><span class="lab">부분점수</span>L 값 1점 + 이유 3가지 중 2개 정답이면 2점, 3개 모두면 만점(3점). 한 가지만 적었으면 0.5점.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">4</span>한 step 자동 갱신 (ReLU 모델)</span><span class="pt">6점</span></div>
+  <div class="ans"><span class="lab">정답</span>
+    z = 1·2 + 0 = <span class="v">2</span> &nbsp;/&nbsp; ŷ = ReLU(2) = <span class="v">2</span> (z &gt; 0이므로 그대로 통과)<br>
+    e = 2 − 5 = <span class="v">−3</span><br>
+    w 변화량 = e · x = (−3)·2 = <span class="v">−6</span> &nbsp;/&nbsp; b 변화량 = e = <span class="v">−3</span><br>
+    w ← 1 − 0.1·(−6) = <span class="v">1.6</span><br>
+    b ← 0 − 0.1·(−3) = <span class="v">0.3</span>
+  </div>
+  <div class="pt-rule"><span class="lab">부분점수</span>z·ŷ·e·w변화량·b변화량·w·b의 7항목 중 6개 이상 정답이면 만점, 5개 5점, 4개 4점 ... 부호 약속이 일관되면(예: e = y − ŷ로 정의) 그 정의에 따라 풀었으면 인정.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>① ReLU 단계를 빼먹고 z를 그대로 ŷ로 쓰면 결과 동일 → 인정 가능. 다만 "z &gt; 0이면 ReLU(z)=z"임을 명시해야 만점.<br>② 업데이트 식에서 마이너스 빼먹어 발산 방향(w → 0.4)으로 내려간 답.</div>
+  <div class="tt"><span class="lab">참고</span>z &lt; 0인 경우라면 ReLU(z) = 0이 되어 ŷ = 0, e = −5. 이 경우 ReLU'(z) = 0이라 변화량도 모두 0 → 학습이 멈춤(dead ReLU). 이번 문제는 z &gt; 0이라 그 함정에 걸리지 않는다는 점을 짚어둘 것.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>② 2부 — 분류와 평가 (18점)</h2>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">5</span>혼동행렬 지표</span><span class="pt">4점</span></div>
+  <div class="ans"><span class="lab">정답</span>
+    정확도 = (35 + 50)/100 = <span class="v">85%</span><br>
+    정밀도 = 35/(35 + 10) = 35/45 ≈ <span class="v">0.778</span> (또는 7/9, 77.8%)<br>
+    재현율 = 35/(35 + 5) = 35/40 = <span class="v">0.875</span> (87.5%)
+  </div>
+  <div class="pt-rule"><span class="lab">부분점수</span>각 1점 + 분모 정확히 쓴 식 1점.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">6</span>객관식</span><span class="pt">3점</span></div>
+  <div class="ans"><span class="lab">정답</span>③ 정확도 99%, 재현율 0%</div>
+  <div class="pf"><span class="lab">자주 틀림</span>② 선택 — 정확도는 맞으나 재현율 100%로 헷갈림. TP=0이라 분자가 0임을 짚을 것.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">7</span>지표 매칭</span><span class="pt">6점</span></div>
+  <div class="ans"><span class="lab">정답</span>
+    스팸 메일: <span class="v">정밀도</span> — 정상 메일을 스팸으로 잘못 분류하면(FP) 사용자가 중요한 메일 놓침. FP 비용↑.<br>
+    암 검진: <span class="v">재현율</span> — 진짜 환자를 놓치면(FN) 생존율 급락. FN 비용↑.<br>
+    동전 던지기: <span class="v">정확도</span> — 클래스 비율과 두 오류 비용이 같아 단순 정확도가 충분.
+  </div>
+  <div class="pt-rule"><span class="lab">부분점수</span>지표 1점 + 이유 1점, 행마다 총 2점. 이유에 "FP/FN 중 어느 쪽이 비싼가" 언급이 있으면 만점.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">8</span>학습 vs 시험 정확도</span><span class="pt">5점</span></div>
+  <div class="ans"><span class="lab">키워드</span>"<strong>과적합(overfitting)</strong>"이라는 용어가 등장하면 2점.</div>
+  <div class="ans"><span class="lab">개선 방안 예시</span>① 데이터 추가 ② 데이터 증강 ③ 모델 크기 줄이기 / 정규화 ④ 학습 일찍 멈추기(early stopping) ⑤ 일반화 점검을 위한 검증 셋 사용. 두 가지 이상 적으면 3점.</div>
+  <div class="pt-rule"><span class="lab">부분점수</span>과적합 진단 2점 + 방안 1개 1점, 2개 이상 3점.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>③ 3·4부 — 도트 학습과 깊은 학습 (14점)</h2>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">9</span>은닉층의 역할</span><span class="pt">4점</span></div>
+  <div class="ans"><span class="lab">키워드</span>"<strong>입력의 부분 패턴(특징)을 추출</strong>", "출력층이 그 특징들을 <strong>조합</strong>해 분류"라는 두 단어가 모두 들어가면 4점.</div>
+  <div class="pt-rule"><span class="lab">부분점수</span>특징 추출 2점 + 조합/판단 2점. "비선형성을 더한다" 같은 답도 부분 인정(2점).</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">10</span>객관식 — 데이터 증강</span><span class="pt">3점</span></div>
+  <div class="ans"><span class="lab">정답</span>② 같은 라벨의 다양한 변형을 보게 해 위치·각도·크기에 강해진다</div>
+  <div class="pf"><span class="lab">자주 틀림</span>① 선택 — "양이 늘면 무조건 좋다"는 단순화는 오답.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">11</span>클래스 수와 신경망 크기</span><span class="pt">4점</span></div>
+  <div class="ans"><span class="lab">예시 답안</span>"같은 구조라면 클래스가 많아질수록 시험 정확도가 떨어진다. 10종을 잘 분류하려면 더 큰 은닉층(또는 더 깊은 층)이 필요하다. 2종(0/1)은 작은 신경망으로도 99% 가능하지만 10종은 더 풍부한 표현력을 요구한다."</div>
+  <div class="pt-rule"><span class="lab">부분점수</span>"정확도 차이" 2점 + "표현력/모델 크기 필요" 2점. 한쪽만 적으면 2점.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">12</span>파라미터 수</span><span class="pt">3점</span></div>
+  <div class="ans"><span class="lab">정답</span>(64+1)·8 + (8+1)·2 = 65·8 + 9·2 = 520 + 18 = <span class="v">538</span>개</div>
+  <div class="pt-rule"><span class="lab">부분점수</span>편향 빼먹어 64·8 + 8·2 = 528로 답하면 2점. 식 자체는 옳지만 산수 틀림 → 2점.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>④ 5부 — 생성으로 (12점)</h2>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">13</span>분류 vs 생성</span><span class="pt">4점</span></div>
+  <div class="ans"><span class="lab">정답</span>
+    분류: 입력 = <span class="v">데이터(그림 등)</span>, 출력 = <span class="v">라벨</span><br>
+    생성: 입력 = <span class="v">잠재 좌표 또는 노이즈</span>, 출력 = <span class="v">데이터(그림 등)</span>
+  </div>
+  <div class="pt-rule"><span class="lab">부분점수</span>각 1점.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">14</span>오토인코더 구조</span><span class="pt">4점</span></div>
+  <div class="ans"><span class="lab">정답</span>
+    ① <span class="v">인코더</span> — 입력을 짧은 잠재 벡터로 압축<br>
+    ② <span class="v">잠재(코드, latent z)</span> — 핵심 정보를 담은 저차원 벡터<br>
+    ③ <span class="v">디코더</span> — 잠재 벡터를 다시 입력 크기의 출력으로 복원
+  </div>
+  <div class="pt-rule"><span class="lab">부분점수</span>이름과 설명 각 0.5점씩, 항목당 1점, 전체 4점 만점에서 가깝게 차감.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">15</span>잠재 공간 외 영역</span><span class="pt">4점</span></div>
+  <div class="ans"><span class="lab">정답 키워드</span>"이상하거나 깨진 그림이 나옴 / 어느 라벨에도 속하지 않음" + 이유는 "그 좌표는 학습 데이터가 분포하지 않아 디코더가 그 입력을 본 적이 없기 때문".</div>
+  <div class="pt-rule"><span class="lab">부분점수</span>현상 2점 + 이유 2점.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>⑤ 6부 전반 — 글자에서 의미로 (14점)</h2>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">16</span>한글 토큰이 많은 이유</span><span class="pt">4점</span></div>
+  <div class="ans"><span class="lab">정답 키워드</span>① <strong>학습 코퍼스에 한글 텍스트가 영어보다 적음</strong> ② <strong>자주 등장하는 한글 음절 페어가 적게 학습됨</strong> ③ 결과적으로 한글은 글자 단위 또는 바이트 단위로 더 잘게 쪼개진다.</div>
+  <div class="pt-rule"><span class="lab">부분점수</span>코퍼스 빈도 차이 2점 + 결과(쪼개짐) 2점. "한글이 복잡해서"만 적으면 1점.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">17</span>객관식 — 원-핫 한계</span><span class="pt">3점</span></div>
+  <div class="ans"><span class="lab">정답</span>③ "학습할 파라미터가 너무 많아 학습이 느리다" — 원-핫 자체에는 학습 파라미터가 없음. ①②④는 모두 진짜 한계.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>"옳지 <strong>않은</strong>"을 놓치고 ②(cos = 0)를 답하는 경우.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">18</span>임베딩 룩업</span><span class="pt">3점</span></div>
+  <div class="ans"><span class="lab">정답</span>W = <span class="v">1000 × 64</span> = <span class="v">64,000</span>개</div>
+  <div class="pt-rule"><span class="lab">부분점수</span>크기 1점 + 곱셈 1점 + 결과 1점.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">19</span>의미 산수의 정체</span><span class="pt">4점</span></div>
+  <div class="ans"><span class="lab">예시 답안</span>"임베딩 공간에서 두 단어를 잇는 화살표는 <strong>두 단어의 의미 차이</strong>를 가리킨다. king→queen 화살표는 '왕족이라는 속성을 유지한 채 성별만 남→여로 바꾸는 변환'이다. 같은 변환을 다른 단어(father)에 적용하면 같은 방향의 결과(mother)가 나온다. 즉 의미가 위치가 아니라 <strong>벡터의 방향</strong>으로 표현되기 때문."</div>
+  <div class="pt-rule"><span class="lab">부분점수</span>"화살표 = 의미 차이"라는 직관 2점 + "같은 변환은 다른 단어에서도 평행" 2점.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>⑥ 6부 후반 — 시퀀스에서 GPT까지 (18점)</h2>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">20</span>평균 임베딩 한계</span><span class="pt">3점</span></div>
+  <div class="ans"><span class="lab">예시 답안</span>"단어 임베딩의 단순 평균은 <strong>순서 정보를 잃는다</strong>. 그래서 모델이 의미를 보존하려면 순서를 다루는 별도 메커니즘(RNN·어텐션 등)이 필요하다."</div>
+  <div class="pt-rule"><span class="lab">부분점수</span>"순서 정보 상실" 2점 + "별도 메커니즘 필요" 1점.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">21</span>어텐션 점수</span><span class="pt">5점</span></div>
+  <div class="ans"><span class="lab">정답</span>
+    S(a, b) = 1·2 + 0·1 + 2·0 = <span class="v">2</span><br>
+    S(a, c) = 1·1 + 0·1 + 2·1 = <span class="v">3</span><br>
+    softmax 가중치는 <span class="v">c</span> 쪽이 더 큼 (점수가 큰 쪽이 가중치도 큼).
+  </div>
+  <div class="pt-rule"><span class="lab">부분점수</span>S(a,b) 2점 + S(a,c) 2점 + 비교 1점.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">22</span>가중합</span><span class="pt">3점</span></div>
+  <div class="ans"><span class="lab">정답</span>
+    O = 0.6·(2, 1, 0) + 0.4·(1, 1, 1)<br>
+    &nbsp;&nbsp;&nbsp;= (1.2, 0.6, 0) + (0.4, 0.4, 0.4)<br>
+    &nbsp;&nbsp;&nbsp;= <span class="v">(1.6, 1.0, 0.4)</span>
+  </div>
+  <div class="pt-rule"><span class="lab">부분점수</span>차원별 1점 (3개 차원).</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">23</span>트랜스포머 블록 부품</span><span class="pt">4점</span></div>
+  <div class="ans"><span class="lab">정답</span>① <span class="v">멀티헤드 어텐션</span> &nbsp; ② <span class="v">잔차 연결 (residual)</span> &nbsp; ③ <span class="v">FFN (feed-forward, 작은 MLP)</span> &nbsp; ④ <span class="v">LayerNorm (층 정규화)</span></div>
+  <div class="pt-rule"><span class="lab">부분점수</span>각 1점. 순서·표기 차이 인정. "Self-attention"도 ①의 동의어로 인정.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">24</span>객관식 — 온도</span><span class="pt">3점</span></div>
+  <div class="ans"><span class="lab">정답</span>② 분포가 더 평탄해지고 결과의 다양성·의외성이 커짐</div>
+  <div class="pf"><span class="lab">자주 틀림</span>① 선택 — T 작을 때와 클 때를 반대로 이해.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>⑦ 통합 서술 (8점)</h2>
+
+<div class="qc">
+  <div class="qh"><span><span class="num">25</span>22단계 한 호흡 정리</span><span class="pt">8점</span></div>
+  <div class="ans"><span class="lab">모범 답안 예시</span>
+    "단일 뉴런은 입력에 <strong>가중치</strong>를 곱하고 편향을 더해 출력하며, 정답과의 차이로 <strong>손실</strong>을 측정해 그 방향으로 가중치를 조금씩 옮기는 학습을 한다. 이렇게 학습된 모델이 새 데이터에서도 잘 맞히는 능력을 <strong>일반화</strong>라 부른다. 입력이 픽셀로 풍부해지면 단일 뉴런만으로 부족하므로 <strong>은닉층</strong>을 두고 부분 패턴을 잡아 조합한다. 분류만이 아니라 잠재 좌표에서 그림을 만들어내는 <strong>생성</strong> 모델로도 같은 도구를 쓸 수 있다. 텍스트는 토큰으로 쪼갠 뒤 <strong>임베딩</strong> 벡터로 바꾸는데, 이 공간에서는 의미가 위치가 아니라 방향으로 표현된다. 단어들의 관계를 모델이 직접 정하게 하는 장치가 <strong>어텐션</strong>이고, 이 어텐션과 작은 MLP를 한 블록으로 묶어 깊게 쌓은 것이 트랜스포머다. GPT는 트랜스포머의 마지막 출력에서 어휘에 대한 분포를 만들고 한 토큰을 <strong>샘플링</strong>해 입력 끝에 붙이는 일을 반복하며 문장을 완성한다."
+  </div>
+  <div class="pt-rule"><span class="lab">채점 규칙</span>키워드 8개(가중치·손실·일반화·은닉층·생성·임베딩·어텐션·샘플링) 각 1점. 단순 단어 등장이 아니라 <strong>문맥에 맞게 사용</strong>되어야 인정. 단어가 등장하지만 의미가 어긋나면 0.5점 차감. 8문장 미만이면 최대 6점, 12문장 초과는 가독성 평가.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>키워드를 단순 나열한 답("가중치·손실·일반화 ...에 대해 배웠다") → 0~2점. 4부까지만 정리하고 5·6부 누락 → 최대 4점.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>채점 후 점검 — 영역별 진단 가이드</h2>
+
+<table class="rb">
+  <tr><th style="width:80pt">영역</th><th>득점 12점 미만일 때 짚을 부분</th></tr>
+  <tr><td class="lvl">① 1부</td><td>가중치·편향·활성화의 식 표현(z = wx+b, ReLU)을 다시 시범. 부호 처리 연습 추가.</td></tr>
+  <tr><td class="lvl">② 2부</td><td>혼동행렬 분모 오류가 흔함. TP/FP/FN/TN을 표로 그려 분모 계산을 한 번 더.</td></tr>
+  <tr><td class="lvl">③ 3·4부</td><td>파라미터 계산에서 편향 누락 흔함. (in+1)·out 공식을 칠판에 고정 표기.</td></tr>
+  <tr><td class="lvl">④ 5부</td><td>"분류 ↔ 생성"의 입출력이 뒤집힘을 못 잡으면 보충 활동.</td></tr>
+  <tr><td class="lvl">⑤ 6부전반</td><td>임베딩이 룩업이라는 점을 못 잡았으면 W 그림으로 다시 시범.</td></tr>
+  <tr><td class="lvl">⑥ 6부후반</td><td>어텐션 가중합 계산이 약하면 차원별 분리 표기를 한 번 더 연습.</td></tr>
+  <tr><td class="lvl">⑦ 통합</td><td>키워드 8개 중 6개 미만 등장 시, 각 부의 한 줄 요약 카드를 만들어 다시 묶기.</td></tr>
+</table>
+
+<div class="ib"><strong>총평 가이드</strong> 80점 이상 = A 도달 / 60~79점 = B 진행 / 60점 미만 = C 보충. 영역별 점수가 평균 대비 ±5점 이상 벌어지면 그 영역의 워크시트(1~6번)를 부분 재학습 권장.</div>
+
+</body>
+</html>

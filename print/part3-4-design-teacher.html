@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>[교사용] Neural Explorer 활동지 3·4부 — 직접 만들기와 깊은 학습</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt}
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .tlab{display:inline-block;background:#000;color:#fff;font-size:9pt;padding:1pt 8pt;border-radius:3px;margin-right:8pt;letter-spacing:1px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt}
+  .qh .num{display:inline-block;background:#000;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px}
+
+  .ans{background:#fff8e1;border:1.2px solid #c89000;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .ans .lab{display:inline-block;background:#000;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .ans .v{font-family:'JetBrains Mono',monospace;font-weight:600}
+  .pf{background:#fce4e4;border:1.2px solid #b04040;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .pf .lab{display:inline-block;background:#b04040;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .tt{background:#e6f0ea;border:1.2px solid #2e7a4f;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt}
+  .tt .lab{display:inline-block;background:#2e7a4f;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center;vertical-align:top}
+  .tb th{background:#000;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb td.fa{background:#fffaea;font-weight:600;font-family:'JetBrains Mono',monospace}
+  .tb td.al{text-align:left}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0}
+
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .rb{width:100%;border-collapse:collapse;margin:8pt 0;font-size:9.5pt}
+  .rb th,.rb td{border:1px solid #888;padding:5pt 7pt;vertical-align:top;text-align:left}
+  .rb th{background:#000;color:#fff;text-align:center}
+  .rb td.lvl{text-align:center;font-weight:700;background:#f0f0f0;width:60pt}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt} ul,ol{padding-left:18pt;margin:4pt 0} li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto}
+    .qh,.fm,.ex,.ib,.tb,.an,.ans,.pf,.tt,.rb{break-inside:avoid;page-break-inside:avoid}
+    .tb th,.qh .num,.lh .tlab,.rb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .ans,.pf,.tt{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header class="lh">
+  <div><span class="tlab">교사용</span><span class="lab">NEURAL EXPLORER · WORKSHEET 3 / 7 · 정답·해설·루브릭</span></div>
+  <h1 style="margin-top:6pt">3·4부 — 직접 만들기와 깊은 학습</h1>
+  <div class="sub">앱 페이즈 10~12 · 학생용과 동일 구조 + 정답·해설</div>
+  <div class="obj"><strong>핵심 메시지</strong> "복잡한 문제는 더 큰 신경망을 요구한다, 그러나 크기만 키우면 과적합이 늘어난다." 3·4부에서는 모델 크기·데이터 양·증강 세 축으로 일반화 감각을 길러내는 게 목표.</div>
+</header>
+
+<!-- ============================================================== -->
+<h2>STEP 1. 도트 그림 학습 (Phase 10)</h2>
+
+<div class="an"><span class="lab">앱 운영</span>한 라벨당 <strong>최소 5장</strong>을 권장. 시간이 부족하면 앱의 "프리셋 불러오기"로 기본 데이터셋을 채운 뒤 학생이 1~2장만 추가하게 한다.</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-2</span>학습 관찰 — 전형 패턴</div>
+  <div class="ans"><span class="lab">예시</span>
+    라벨당 3장: 학습 정확도 100% / 새 그림 적중 50~70%<br>
+    라벨당 5장: 학습 정확도 100% / 새 그림 적중 70~85%<br>
+    라벨당 10장: 학습 정확도 95% 부근(소폭 하락) / 새 그림 적중 85~95%
+  </div>
+  <div class="tt"><span class="lab">수업 팁</span>3장에서 학습 정확도가 100%인데 테스트가 50%라면 <strong>외운 모델</strong>임을 강조 — 2부에서 다룬 일반화 개념의 자연스러운 복습.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-3</span>가중치 시각화 — 모범 답안</div>
+  <div class="ans"><span class="lab">관찰 예시</span>가중치 그림은 <strong>두 라벨의 평균 차이</strong>처럼 보인다. 라벨 A가 자주 켜진 자리는 양수(밝음), B가 자주 켜진 자리는 음수(어두움). 두 그림이 겹치는 부분은 0(회색).</div>
+  <div class="ans"><span class="lab">한 줄 정의</span>"단일 뉴런이 두 그림을 구분한다 = <strong>두 라벨의 픽셀 차이를 평균낸 패턴과 입력의 내적을 보고, 양수면 A·음수면 B로 결정하는 일</strong>." (학생 답이 "비슷한 무늬가 그림을 구분한다"라는 직관 수준이어도 인정.)</div>
+  <div class="tt"><span class="lab">수업 팁</span>학생들이 "고양이 vs 강아지"처럼 너무 자유로운 라벨을 고르면 학습이 안 된다. 처음에는 <strong>대조가 강한 라벨</strong>(원 vs X, 가로줄 vs 세로줄)을 권하고, 그다음에 자유 주제로.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 2. 신경망 설계 (Phase 11)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-1</span>단계 A·B·C — 전형 결과</div>
+  <div class="tt"><span class="lab">앱 운영</span>각 단계 학습은 수십 초 ~ 1분. 한 단계가 끝나면 같은 신경망 구조로 다음 단계 진행. 시간이 부족하면 단계 A·C 두 개만 비교해도 메시지는 전달됨.</div>
+  <table class="tb">
+    <tr><th>단계</th><th>클래스</th><th>은닉 = 8 일 때 파라미터 수(개략)</th><th>전형 시험 정확도</th></tr>
+    <tr><td>A</td><td>2</td><td class="fa">6,298</td><td class="fa">99% 부근</td></tr>
+    <tr><td>B</td><td>3</td><td class="fa">6,307</td><td class="fa">95~98%</td></tr>
+    <tr><td>C</td><td>10</td><td class="fa">6,370</td><td class="fa">75~85%</td></tr>
+  </table>
+  <div class="ans"><span class="lab">파라미터 계산법</span>층 사이 파라미터 = (in+1) × out. 입력 784, 은닉 8, 출력 c일 때 = 785·8 + 9·c = 6280 + 9c. 단계 A(c=2)=6298, B(c=3)=6307, C(c=10)=6370. (학생이 정확한 수치 대신 "약 6,300으로 비슷하다"고 답해도 OK.)</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-2</span>은닉 키우기 (단계 C) — 전형 결과</div>
+  <table class="tb">
+    <tr><th>은닉 크기</th><th>4</th><th>8</th><th>16</th><th>32</th></tr>
+    <tr><td class="lbl">파라미터 수</td><td class="fa">≈ 3.2k</td><td class="fa">≈ 6.4k</td><td class="fa">≈ 12.7k</td><td class="fa">≈ 25.4k</td></tr>
+    <tr><td class="lbl">시험 정확도</td><td class="fa">≈ 70%</td><td class="fa">≈ 82%</td><td class="fa">≈ 88%</td><td class="fa">≈ 91%</td></tr>
+  </table>
+  <div class="ans"><span class="lab">관찰 모범 답안</span>은닉을 키우면 정확도가 오르지만 <strong>증가폭이 점점 작아진다</strong>(수확체감). 매우 작은 데이터로 너무 키우면 학습 정확도와 시험 정확도가 벌어지는 <strong>과적합</strong>이 보이기 시작한다.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-3</span>1·7 혼동 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>1과 7은 모두 <strong>세로 직선이 핵심 특징</strong>이다. 7은 위쪽에 짧은 가로획이 추가될 뿐이라, 가로획이 흐릿하거나 작은 글씨에서 신경망이 두 클래스의 신호를 분리하기 어렵다.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 3. MNIST 도전 (Phase 12)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-1</span>구조·설정 변화 — 전형 결과</div>
+  <table class="tb">
+    <tr><th>설정</th><th>은닉</th><th>학습 정확도</th><th>시험 정확도</th></tr>
+    <tr><td class="al">기본</td><td>[4]</td><td class="fa">≈ 70%</td><td class="fa">≈ 65%</td></tr>
+    <tr><td class="al">은닉 키움</td><td>[32]</td><td class="fa">≈ 92%</td><td class="fa">≈ 88%</td></tr>
+    <tr><td class="al">2층</td><td>[32, 16]</td><td class="fa">≈ 95%</td><td class="fa">≈ 90%</td></tr>
+    <tr><td class="al">에폭 늘림</td><td>[32, 16] · 10ep</td><td class="fa">≈ 99%</td><td class="fa">≈ 92%</td></tr>
+  </table>
+  <div class="ans"><span class="lab">관찰</span>2층 + 충분한 에폭에서 시험 정확도 90% 안팎. 학습 ≫ 시험 차이가 벌어지는 마지막 행이 <strong>과적합 시작점</strong>. 학생이 직접 그 차이를 발견하도록 유도.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-2</span>증강의 효과 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>증강 전: 학생이 그린 글씨가 평소 MNIST 데이터보다 살짝 기울거나 두꺼워서 모델이 헛다리. 증강 후(같은 그림을 회전·이동·축소 N번): 모델이 "이 그림은 위치·각도가 변해도 같은 숫자다"라는 불변성을 배워 적중.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>"증강 = 데이터를 늘린 것 자체가 좋다"로 단순화하는 답. <strong>"같은 라벨의 다양한 변형을 보게 한다"</strong>는 점이 핵심임을 짚어줄 것.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-3</span>모델이 끝까지 헷갈리는 페어 — 예시</div>
+  <div class="ans"><span class="lab">예시</span>4-9, 3-8, 5-6 등이 자주 등장. 사람이 보면 닫힘/열림 곡선이 한두 픽셀 차이지만, 신경망에는 매우 비슷하게 매핑됨. <strong>특징을 더 잘 잡는 구조(CNN)가 필요하다는 동기부여</strong>가 됨 — 이번 과정 범위 밖이지만 관심 학생에게 한 마디 짚어줄 만함.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 4. 마무리 — 정답</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">정리</span>핵심 빈칸 — 정답</div>
+  <div class="ans">
+    문제가 어려워질수록 신경망은 더 (<span class="v">커</span>)져야 한다.<br>
+    그러나 무한정 키우면 (<span class="v">과적합</span>) 위험이 생기고, 이를 줄이는 한 가지 방법이 (<span class="v">데이터 증강</span> / 또는 <span class="v">데이터 추가</span>)이다.<br>
+    은닉층은 입력의 (<span class="v">부분 패턴(특징)</span>)을 잡아내고, 출력층은 그것을 (<span class="v">조합</span>)해 분류한다.
+  </div>
+</div>
+
+<h3>관찰·수행 평가 루브릭</h3>
+<table class="rb">
+  <tr><th style="width:90pt">수준</th><th>도트 학습 (Phase 10)</th><th>비교 실험 (Phase 11)</th><th>MNIST·증강 (Phase 12)</th></tr>
+  <tr><td class="lvl">A 도달</td>
+    <td>두 라벨 데이터를 5장 이상 모아 95% 이상 도달. 가중치 시각화의 의미를 자기 말로 설명.</td>
+    <td>A·B·C 모두 학습 후 클래스 수와 정확도의 관계를 그래프적 직관으로 설명. 1·7 혼동 원인을 픽셀 패턴으로 설명.</td>
+    <td>은닉/에폭 변화에 따른 학습 vs 시험 차이를 관찰해 과적합 신호를 식별. 증강의 효과를 "불변성 학습"으로 설명.</td></tr>
+  <tr><td class="lvl">B 진행</td>
+    <td>적당히 학습은 됐지만 가중치 시각화 의미를 직관 수준으로만 설명.</td>
+    <td>두 단계만 비교, 클래스 수의 영향을 부분적으로만 설명.</td>
+    <td>모델 변경의 영향을 표로 기록하지만 일반화 차이를 못 짚음.</td></tr>
+  <tr><td class="lvl">C 보충</td>
+    <td>데이터 부족으로 학습 안 됨. 가중치 시각화 보고 답을 적지 못함.</td>
+    <td>한 단계만 풀고 비교 못함.</td>
+    <td>설정을 바꿨지만 변화 의미를 해석하지 못함.</td></tr>
+</table>
+
+<div class="tt"><span class="lab">전이 포인트</span>4부까지는 모두 <strong>분류</strong> 문제였다. 5부에서는 같은 도구로 <strong>새로운 것을 만드는</strong>(생성) 모델로 넘어간다. "분류기를 뒤집으면 생성기가 된다"는 직관을 미리 던져둘 것.</div>
+
+</body>
+</html>
