@@ -26,7 +26,7 @@ export function Stub({ id }: { id: PhaseId }) {
 
 function PreviewContent({ id }: { id: PhaseId }) {
   const previews: Record<PhaseId, string[]> = {
-    p1: [], p2: [], p3: [], p4: [], p5: [],
+    p1: [], p2: [], p3: [], p4: [], p5: [], p5b: [], p5c: [],
     p6: [
       '시나리오 선택: 정시(수능 점수) / 학종(역량 점수)',
       '학생 카드 10명 + 가중치 슬라이더 4개 + 합격 컷 슬라이더',

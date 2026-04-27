@@ -1,5 +1,5 @@
 export type PhaseId =
-  | 'p1' | 'p2' | 'p3' | 'p4' | 'p5'
+  | 'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p5b' | 'p5c'
   | 'p6' | 'p7' | 'p8' | 'p9'
   | 'p10' | 'p11' | 'p12'
   | 'p13' | 'p14'
@@ -24,7 +24,9 @@ export const PHASES: PhaseMeta[] = [
   { id: 'p2',  num: '2',  title: '순전파 퀴즈',             subtitle: '직접 계산해보기',         group: '1부 — 뉴런의 기초' },
   { id: 'p3',  num: '3',  title: '오차 측정',               subtitle: '예측과 정답의 거리',      group: '1부 — 뉴런의 기초' },
   { id: 'p4',  num: '4',  title: '수동 학습',               subtitle: '슬라이더로 직접 맞추기',  group: '1부 — 뉴런의 기초' },
-  { id: 'p5',  num: '5',  title: '기울기와 수정',           subtitle: '오차 → 기울기 → 수정 파헤치기', group: '1부 — 뉴런의 기초' },
+  { id: 'p5',  num: '5',  title: '자동으로 학습하기',       subtitle: '나침반(기울기) + 보폭(학습률)', group: '1부 — 뉴런의 기초' },
+  { id: 'p5b', num: '5+', title: '왜 e × x 인가',            subtitle: '책임 분담 — 미분 없이 직관으로', group: '1부 — 뉴런의 기초' },
+  { id: 'p5c', num: '5*', title: '서울 기온으로 학습하기',   subtitle: '두 모델로 미래 기온 예측·비교', group: '1부 — 뉴런의 기초' },
   { id: 'p6',  num: '6',  title: '입시 합격 예측',          subtitle: '정시 / 학종 시나리오',    group: '2부 — 분류와 평가' },
   { id: 'p7',  num: '7',  title: '데이터 추가 후 재학습',   subtitle: '10명 → 40명',             group: '2부 — 분류와 평가' },
   { id: 'p8',  num: '8',  title: '정확도',                  subtitle: '기본 평가 지표',          group: '2부 — 분류와 평가' },

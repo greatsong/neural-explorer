@@ -12,6 +12,8 @@ import { Phase2 } from './phases/Phase2';
 import { Phase3 } from './phases/Phase3';
 import { Phase4 } from './phases/Phase4';
 import { Phase5 } from './phases/Phase5';
+import { Phase5B } from './phases/Phase5B';
+import { Phase5C } from './phases/Phase5C';
 import { Phase6 } from './phases/Phase6';
 import { Phase7 } from './phases/Phase7';
 import { Phase8 } from './phases/Phase8';
@@ -94,7 +96,7 @@ function readHash(): View {
 }
 
 function isWide(id: PhaseId) {
-  return ['p6', 'p7', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14', 'p15', 'p16', 'p17', 'p18', 'p19', 'p20', 'p21', 'p22'].includes(id);
+  return ['p5c', 'p6', 'p7', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14', 'p15', 'p16', 'p17', 'p18', 'p19', 'p20', 'p21', 'p22'].includes(id);
 }
 
 function renderPhase(id: PhaseId) {
@@ -104,6 +106,8 @@ function renderPhase(id: PhaseId) {
     case 'p3': return <Phase3 />;
     case 'p4': return <Phase4 />;
     case 'p5': return <Phase5 />;
+    case 'p5b': return <Phase5B />;
+    case 'p5c': return <Phase5C />;
     case 'p6': return <Phase6 />;
     case 'p7': return <Phase7 />;
     case 'p8': return <Phase8 />;
