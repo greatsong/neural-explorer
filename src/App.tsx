@@ -43,8 +43,6 @@ type View =
 export default function App() {
   const setCurrent = useApp((s) => s.setCurrent);
   const theme = useApp((s) => s.theme);
-  const unlockBonus = useApp((s) => s.unlockBonus);
-  const unlockBonus2 = useApp((s) => s.unlockBonus2);
 
   const [view, setView] = useState<View>(() => readHash());
 
@@ -52,17 +50,12 @@ export default function App() {
     const sync = () => {
       const v = readHash();
       setView(v);
-      if (v.kind === 'phase') {
-        setCurrent(v.id);
-        // 보너스 페이즈에 URL로 직접 진입하면 그 그룹을 자동 해금
-        if (isBonusPhase(v.id)) unlockBonus();
-        if (isBonus2Phase(v.id)) unlockBonus2();
-      }
+      if (v.kind === 'phase') setCurrent(v.id);
     };
     sync();
     window.addEventListener('hashchange', sync);
     return () => window.removeEventListener('hashchange', sync);
-  }, [setCurrent, unlockBonus, unlockBonus2]);
+  }, [setCurrent]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -107,7 +100,12 @@ function readHash(): View {
   if (raw === 'guide') return { kind: 'guide' };
   if (raw === 'textbook' || raw === 'textbook/') return { kind: 'textbook', slug: 'intro' };
   if (raw.startsWith('textbook/')) return { kind: 'textbook', slug: raw.slice('textbook/'.length) };
-  if (raw && PHASE_IDS.has(raw as PhaseId)) return { kind: 'phase', id: raw as PhaseId };
+  if (raw && PHASE_IDS.has(raw as PhaseId)) {
+    const id = raw as PhaseId;
+    // 5·6부는 메뉴에서 숨겼고 URL 직진입도 차단 — 인트로로 돌려보낸다
+    if (isBonusPhase(id) || isBonus2Phase(id)) return { kind: 'intro' };
+    return { kind: 'phase', id };
+  }
   return { kind: 'intro' };
 }
 

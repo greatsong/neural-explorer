@@ -6,17 +6,15 @@ export function Sidebar() {
   const current = useApp((s) => s.current);
   const completed = useApp((s) => s.completed);
   const setCurrent = useApp((s) => s.setCurrent);
-  const bonusUnlocked = useApp((s) => s.bonusUnlocked);
-  const bonusUnlocked2 = useApp((s) => s.bonusUnlocked2);
-
   const go = (id: PhaseId) => {
     setCurrent(id);
     window.location.hash = `#/${id}`;
   };
 
+  // 5·6부는 메뉴에서 항상 숨김 (인지 과부하 방지)
   const visibleGroups = PHASE_GROUPS.filter(([group]) => {
-    if (isBonusGroup(group)) return bonusUnlocked;
-    if (isBonus2Group(group)) return bonusUnlocked2;
+    if (isBonusGroup(group)) return false;
+    if (isBonus2Group(group)) return false;
     return true;
   });
 

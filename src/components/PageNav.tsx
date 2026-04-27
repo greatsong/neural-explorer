@@ -5,15 +5,12 @@ import type { PhaseId } from '../phases';
 export function PageNav() {
   const current = useApp((s) => s.current);
   const setCurrent = useApp((s) => s.setCurrent);
-  const bonusUnlocked = useApp((s) => s.bonusUnlocked);
-  const bonusUnlocked2 = useApp((s) => s.bonusUnlocked2);
   const idx = PHASES.findIndex((p) => p.id === current);
   const prev = idx > 0 ? PHASES[idx - 1] : null;
   const rawNext = idx < PHASES.length - 1 ? PHASES[idx + 1] : null;
-  // 보너스 그룹은 해금된 경우에만 다음 단계로 안내
+  // 5·6부는 메뉴에서 숨김 — 다음 단계로도 안내하지 않음
   let next = rawNext;
-  if (next && isBonusPhase(next.id) && !bonusUnlocked) next = null;
-  if (next && isBonus2Phase(next.id) && !bonusUnlocked2) next = null;
+  if (next && (isBonusPhase(next.id) || isBonus2Phase(next.id))) next = null;
 
   const go = (id: PhaseId) => {
     setCurrent(id);
