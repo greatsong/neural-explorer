@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApp } from '../store';
 
 interface MedicalScenario {
@@ -120,7 +120,9 @@ function ScenarioContent({
   const recall = tp + fn > 0 ? tp / (tp + fn) : 0;
   const allNegAcc = (data.filter((c) => !c.positive).length) / total;
 
-  if (recall > 0.5 && precision > 0.5) onPass();
+  useEffect(() => {
+    if (recall > 0.5 && precision > 0.5) onPass();
+  }, [recall, precision, onPass]);
 
   return (
     <article>

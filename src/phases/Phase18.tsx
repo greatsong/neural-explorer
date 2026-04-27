@@ -247,9 +247,13 @@ function LossChart({ losses }: { losses: number[] }) {
 
 // ──────── 탭 2 ────────
 function SpaceTab({ model, lang }: { model: W2VModel | null; lang: Lang }) {
-  if (!model) return <NeedTrain />;
+  // Hooks는 항상 같은 순서로 호출되어야 하므로 early return을 useMemo 이후로 옮긴다.
   const presets = PRESETS[lang];
-  const proj = useMemo(() => projectTo3D(model, presets.map((p) => p.word)), [model, presets]);
+  const proj = useMemo(
+    () => (model ? projectTo3D(model, presets.map((p) => p.word)) : []),
+    [model, presets],
+  );
+  if (!model) return <NeedTrain />;
   const points: Point3D[] = presets.map((p, i) => ({
     x: proj[i][0], y: proj[i][1], z: proj[i][2],
     label: p.word,

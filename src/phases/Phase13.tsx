@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../store';
 import { PRESET_DATASETS } from '../data/dotPresets';
 
@@ -37,7 +37,9 @@ export function Phase13() {
     return out;
   }, [meanA, meanB, blend, noise, seed]);
 
-  if (blend > 0.1 && blend < 0.9) markCompleted('p13');
+  useEffect(() => {
+    if (blend > 0.1 && blend < 0.9) markCompleted('p13');
+  }, [blend, markCompleted]);
 
   return (
     <article>

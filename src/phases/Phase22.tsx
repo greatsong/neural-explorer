@@ -40,7 +40,7 @@ export function Phase22() {
       <p className="text-muted mt-2">
         GPT가 답하는 방식은 한 번에 한 토큰씩 — 매번 어휘 전체에 대해 <strong>확률 분포</strong>를 만들고,
         그 분포에서 한 토큰을 <strong>샘플링</strong>합니다. 어떻게 뽑느냐(temperature, top-k, top-p)에 따라
-        같은 모델이 진지한 답을 줄 수도, 엉뚱한 시도 줄 수도 있어요.
+        같은 모델이 진지한 답을 줄 수도, 엉뚱한 답을 줄 수도 있어요.
       </p>
 
       <div className="flex gap-1 mt-6 border-b border-border">

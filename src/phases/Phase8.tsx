@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../store';
 import { SCENARIO_A, SCENARIO_B, type Student } from '../data/scenarios';
 import { useAdmissions } from '../adminStore';
@@ -17,7 +17,11 @@ export function Phase8() {
   const total = tp + fp + tn + fn;
   const acc = total > 0 ? (tp + tn) / total : 0;
   const markCompleted = useApp((s) => s.markCompleted);
-  if (acc > 0) markCompleted('p8');
+  // 학생이 한 번이라도 의미 있는 정확도(혼동행렬을 본 뒤)를 확보했을 때 완료 처리.
+  // 진입 즉시 완료되는 버그를 막기 위해 useEffect + 의미 있는 임계값 사용.
+  useEffect(() => {
+    if (acc >= 0.7) markCompleted('p8');
+  }, [acc, markCompleted]);
 
   return (
     <article>
