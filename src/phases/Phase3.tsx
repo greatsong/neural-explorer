@@ -227,23 +227,20 @@ function ScatterView({ w, b, errs, mode }: {
               </g>
             );
           }
-          // square mode
+          // square mode — 사각형 면적이 아니라 오차 제곱값을 그대로 보여줍니다
           const sq = e * e;
-          const unit = (sx(1) - sx(0) + sy(0) - sy(1)) / 2;
-          const side = Math.abs(e) * unit;
-          const sqX = e >= 0 ? px : px - side;
-          const sqY = e >= 0 ? lineY : py;
           return (
             <g key={x}>
-              <rect x={sqX} y={sqY} width={side} height={side}
-                fill="rgb(251,146,60)" fillOpacity={0.18}
-                stroke="rgb(251,146,60)" strokeWidth={1.2} />
               <line x1={px} y1={lineY} x2={px} y2={py}
-                stroke="rgb(251,146,60)" strokeWidth={1.5} opacity={0.7} strokeDasharray="3 3" />
+                stroke="rgb(251,146,60)" strokeWidth={2} opacity={0.85} />
               <circle cx={px} cy={py} r={4.5} fill="rgb(var(--color-text))" />
-              <text x={sqX + side / 2} y={sqY + side / 2 + 3} textAnchor="middle"
-                fontSize={10} fill="rgb(251,146,60)" fontWeight={700}>
-                {sq.toFixed(2)}
+              <text x={px + 7} y={(lineY + py) / 2 - 2} fontSize={10}
+                fill="rgb(251,146,60)" opacity={0.85}>
+                e = {e >= 0 ? '+' : ''}{e.toFixed(2)}
+              </text>
+              <text x={px + 7} y={(lineY + py) / 2 + 11} fontSize={10}
+                fill="rgb(251,146,60)" fontWeight={700}>
+                e² = {sq.toFixed(2)}
               </text>
             </g>
           );
@@ -253,7 +250,7 @@ function ScatterView({ w, b, errs, mode }: {
         {b === null ? '검은 점 = 데이터 (x, y)' : (
           <>
             검은 점 = 데이터, 보라 직선 = 현재 모델 ŷ = {w.toFixed(1)}x + {b.toFixed(2)},
-            {' '}주황 = {mode === 'error' ? '점별 부호 있는 오차' : '점별 오차 제곱(e²)'}.
+            {' '}주황 = {mode === 'error' ? '점별 부호 있는 오차' : '점별 오차(e)와 그 제곱(e²)'}.
           </>
         )}
       </div>
@@ -389,7 +386,25 @@ function DataExplain() {
         다섯 개의 점이 있어요. 실제 데이터는 이렇게 약간씩 노이즈가 섞여 있어 완벽한 직선 위에 있지 않아요.
         이 점들을 가장 잘 설명하는 <strong>직선 한 개</strong>를 찾는 게 목표입니다 — <code>ŷ = w · x + b</code>.
       </p>
-      <ul className="text-sm mt-2 space-y-1 list-disc pl-5 text-muted">
+
+      <div className="card p-3 mt-3 text-sm">
+        <div className="font-medium text-text">📌 그런데 "모델"이 뭐예요?</div>
+        <p className="text-muted mt-1.5">
+          <strong>모델</strong>이란 입력 <code>x</code>가 들어왔을 때 출력 <code>ŷ</code>를 어떻게 예측할지에 대한
+          <strong> 규칙(함수)</strong>이에요. 여기서 우리가 고른 규칙은 직선 <code>ŷ = w · x + b</code>고,
+          이 규칙의 모양을 결정하는 두 숫자 <code>w</code>와 <code>b</code>를 <strong>매개변수(파라미터)</strong>라고 불러요.
+        </p>
+        <ul className="text-muted mt-2 space-y-1 list-disc pl-5 text-[13px]">
+          <li><strong>모델 구조</strong> = "직선이다"라는 가정 — 사람이 정함</li>
+          <li><strong>매개변수 <code>w, b</code></strong> = 그 직선의 기울기와 높이 — 데이터로부터 찾음</li>
+          <li><strong>학습</strong> = <code>w, b</code>를 데이터에 가장 잘 맞도록 조정하는 일</li>
+        </ul>
+        <p className="text-muted mt-2 text-[13px]">
+          앞으로 페이즈가 바뀌면 모델 구조도 바뀝니다(직선 → 곡선 → 신경망). 하지만 "구조 + 매개변수 + 학습"이라는 틀은 그대로예요.
+        </p>
+      </div>
+
+      <ul className="text-sm mt-3 space-y-1 list-disc pl-5 text-muted">
         <li>탭 2(오차)에서 <code>w</code>와 <code>b</code>를 직접 움직여 직선을 맞춰보세요.</li>
         <li>탭 3~5에서는 <code>w = {W_FIXED}</code>로 <strong>고정</strong>하고, <code>b</code>만 움직입니다 — 손실 곡선을 1차원으로 깔끔히 그릴 수 있어요.</li>
         <li>그런데 "잘 맞다"는 어떻게 측정할까? — <strong>다음 탭으로</strong>.</li>
@@ -444,7 +459,7 @@ function MseExplain({ b, mse }: { b: number; mse: number }) {
     <div className="aside-tip mt-4">
       <div className="font-medium">4. 평균 제곱 오차 (MSE) — 한 숫자로 모은 손실함수</div>
       <p className="text-sm mt-2 text-muted">
-        다섯 사각형 면적의 <strong>평균</strong>이 이 모델의 손실입니다 — <code>MSE = (e₁² + ⋯ + e₅²) ÷ 5</code>.
+        다섯 점의 <strong>오차 제곱을 모두 더한 뒤 5로 나눈 평균</strong>이 이 모델의 손실입니다 — <code>MSE = (e₁² + ⋯ + e₅²) ÷ 5</code>.
         여기서는 w = {W_FIXED}로 고정하고 b만 바꿔가며 손실이 어떻게 변하는지 봅니다.
       </p>
       <div className="card p-3 mt-2 font-mono text-sm">
