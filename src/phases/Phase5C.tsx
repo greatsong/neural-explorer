@@ -1,59 +1,85 @@
 import { useMemo, useState } from 'react';
 import { SEOUL_TEMP } from '../data/seoulTemp';
+import type { SeoulTempRow } from '../data/seoulTemp';
 
 // 서울 연평균 기온 = w · 연도 + b 모델을 학습.
 // 연도 값이 매우 크므로 학습 안정을 위해 연도를 (year - 2000)로 평행이동해 학습한 뒤
 // 화면에 표시할 때만 다시 변환한다 (학습률을 너무 작게 하지 않아도 수렴).
 
 type Range = { from: number; to: number };
+// 각 모델은 자기 학습 구간의 "평균 연도"를 offset으로 잡아 x 범위를 작게 유지한다
+// (그래야 같은 학습률에서 두 모델이 모두 안정적으로 수렴).
+type ModelState = { w: number; b: number; epoch: number; offset: number };
 
 const RANGE_A: Range = { from: 1908, to: 2025 };
 const RANGE_B: Range = { from: 1980, to: 2025 };
+const LR = 0.001;
 
 const subset = (r: Range) => SEOUL_TEMP.filter((d) => d.year >= r.from && d.year <= r.to);
 
-// 데이터를 (x = year - 2000, y = mean)으로 학습한다
-const trainModel = (rows: { year: number; mean: number }[], lr = 0.01, epochs = 4000) => {
-  let w = 0;
-  let b = rows.reduce((s, r) => s + r.mean, 0) / rows.length; // y 평균으로 b 초기화
+const initModel = (rows: SeoulTempRow[]): ModelState => {
+  const offset = rows.reduce((s, r) => s + r.year, 0) / rows.length; // 학습 구간 평균 연도
+  return {
+    w: 0,
+    b: rows.reduce((s, r) => s + r.mean, 0) / rows.length, // y 평균으로 b 초기화
+    epoch: 0,
+    offset,
+  };
+};
+
+// 한 step(=1 epoch) 진행: 페이즈 5와 동일한 갱신 식 — w ← w − η·평균(e·x), b ← b − η·평균(e)
+const trainSteps = (m: ModelState, rows: SeoulTempRow[], steps: number): ModelState => {
+  let { w, b, epoch } = m;
   const N = rows.length;
-  for (let i = 0; i < epochs; i++) {
+  for (let i = 0; i < steps; i++) {
     let dw = 0, db = 0;
     for (const { year, mean } of rows) {
-      const x = year - 2000;
+      const x = year - m.offset;
       const e = (w * x + b) - mean;
       dw += e * x;
       db += e;
     }
     dw /= N; db /= N;
-    w -= lr * dw;
-    b -= lr * db;
+    w -= LR * dw;
+    b -= LR * db;
+    epoch += 1;
   }
-  return { w, b };
+  return { w, b, epoch, offset: m.offset };
 };
 
-const predict = (w: number, b: number, year: number) => w * (year - 2000) + b;
+const mse = (m: ModelState, rows: SeoulTempRow[]) =>
+  rows.reduce((s, r) => {
+    const e = (m.w * (r.year - m.offset) + m.b) - r.mean;
+    return s + e * e;
+  }, 0) / rows.length;
+
+const predict = (m: ModelState, year: number) => m.w * (year - m.offset) + m.b;
 
 export function Phase5C() {
   const [futureYear, setFutureYear] = useState(2050);
 
   const rowsA = useMemo(() => subset(RANGE_A), []);
   const rowsB = useMemo(() => subset(RANGE_B), []);
-  const modelA = useMemo(() => trainModel(rowsA), [rowsA]);
-  const modelB = useMemo(() => trainModel(rowsB), [rowsB]);
 
-  // 모델 평가 — 1980~2025 구간에서의 평균 절대오차 (공통 비교 구간)
-  const commonRows = useMemo(() => subset({ from: 1980, to: 2025 }), []);
-  const maeOn = (model: { w: number; b: number }, rows: { year: number; mean: number }[]) =>
-    rows.reduce((s, r) => s + Math.abs(predict(model.w, model.b, r.year) - r.mean), 0) / rows.length;
-  const maeA_recent = maeOn(modelA, commonRows);
-  const maeB_recent = maeOn(modelB, commonRows);
+  const [modelA, setModelA] = useState<ModelState>(() => initModel(rowsA));
+  const [modelB, setModelB] = useState<ModelState>(() => initModel(rowsB));
 
-  // 1℃ 상승까지 걸리는 햇수 (모델 기울기 기준)
+  const advance = (steps: number) => {
+    setModelA((m) => trainSteps(m, rowsA, steps));
+    setModelB((m) => trainSteps(m, rowsB, steps));
+  };
+  const reset = () => {
+    setModelA(initModel(rowsA));
+    setModelB(initModel(rowsB));
+  };
+
+  const maeA = mse(modelA, rowsA);
+  const maeB = mse(modelB, rowsB);
+
   const yearsPerDeg = (w: number) => (w > 0 ? 1 / w : Infinity);
 
-  const predA = predict(modelA.w, modelA.b, futureYear);
-  const predB = predict(modelB.w, modelB.b, futureYear);
+  const predA = predict(modelA, futureYear);
+  const predB = predict(modelB, futureYear);
 
   return (
     <article>
@@ -74,16 +100,42 @@ export function Phase5C() {
         </ul>
       </div>
 
-      <h2>1. 데이터 살펴보기</h2>
+      <h2>1. 두 모델을 직접 학습시키기</h2>
       <p className="text-sm text-muted">
-        파란 점이 서울의 연평균 기온, 두 직선이 각 모델이 학습한 결과예요.
-        두 직선은 다른 데이터로 학습됐으니 기울기와 절편이 다릅니다.
+        파란 점이 서울의 연평균 기온이에요. 두 직선은 처음엔 평평하게 누워 있다가, 아래 버튼으로 step을 진행할수록
+        각자의 데이터에 맞게 기울어집니다. <strong>+1 step</strong>씩 천천히 진행하면 학습이 어떻게 흘러가는지 보여요 —
+        급하면 +100, +1000으로 한 번에 수렴까지 가도 됩니다.
       </p>
       <ScatterWithLines
         modelA={modelA}
         modelB={modelB}
         focusFutureYear={futureYear}
       />
+
+      <div className="card p-3 mt-3 sticky bottom-2 z-20 bg-bg/85 backdrop-blur-md">
+        <div className="flex flex-wrap gap-2 items-center">
+          <span className="text-xs text-muted mr-2">학습 진행:</span>
+          <button onClick={() => advance(1)} className="btn-primary">+1 step</button>
+          <button onClick={() => advance(100)} className="btn-ghost">+100</button>
+          <button onClick={() => advance(1000)} className="btn-ghost">+1000</button>
+          <button onClick={reset} className="btn-ghost ml-auto">초기화</button>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-2 mt-3 text-xs font-mono">
+          <div className="card p-2" style={{ borderColor: 'rgb(96,165,250)' }}>
+            <div className="text-muted">모델 A — epoch <span className="font-bold" style={{ color: 'rgb(96,165,250)' }}>{modelA.epoch}</span></div>
+            <div>w = {modelA.w.toFixed(4)}, b = {modelA.b.toFixed(2)}</div>
+            <div>MSE = <span className="font-bold">{maeA.toFixed(4)}</span></div>
+          </div>
+          <div className="card p-2" style={{ borderColor: 'rgb(244,114,182)' }}>
+            <div className="text-muted">모델 B — epoch <span className="font-bold" style={{ color: 'rgb(244,114,182)' }}>{modelB.epoch}</span></div>
+            <div>w = {modelB.w.toFixed(4)}, b = {modelB.b.toFixed(2)}</div>
+            <div>MSE = <span className="font-bold">{maeB.toFixed(4)}</span></div>
+          </div>
+        </div>
+        <div className="text-xs text-muted mt-2">
+          학습률 η = {LR} (고정). 페이즈 5와 동일한 식 <code>w ← w − η · 평균(e·x)</code>, <code>b ← b − η · 평균(e)</code>를 매 step 적용합니다.
+        </div>
+      </div>
 
       <h2>2. 학습된 두 모델</h2>
       <div className="grid md:grid-cols-2 gap-3 mt-3 text-sm">
@@ -92,7 +144,7 @@ export function Phase5C() {
           color="rgb(96,165,250)"
           model={modelA}
           n={rowsA.length}
-          maeRecent={maeA_recent}
+          mseTrain={maeA}
           yearsPerDeg={yearsPerDeg(modelA.w)}
         />
         <ModelCard
@@ -100,7 +152,7 @@ export function Phase5C() {
           color="rgb(244,114,182)"
           model={modelB}
           n={rowsB.length}
-          maeRecent={maeB_recent}
+          mseTrain={maeB}
           yearsPerDeg={yearsPerDeg(modelB.w)}
         />
       </div>
@@ -191,18 +243,18 @@ export function Phase5C() {
   );
 }
 
-function ModelCard({ label, color, model, n, maeRecent, yearsPerDeg }: {
+function ModelCard({ label, color, model, n, mseTrain, yearsPerDeg }: {
   label: string; color: string;
-  model: { w: number; b: number };
-  n: number; maeRecent: number; yearsPerDeg: number;
+  model: ModelState;
+  n: number; mseTrain: number; yearsPerDeg: number;
 }) {
   return (
     <div className="card p-3">
       <div className="text-xs font-medium" style={{ color }}>{label}</div>
       <div className="font-mono text-sm mt-2 space-y-1">
-        <div>식: ŷ = <span style={{ color }}>{model.w.toFixed(4)}</span> · (연도 − 2000) + <span style={{ color }}>{model.b.toFixed(2)}</span></div>
-        <div className="text-xs text-muted">학습 데이터 N = {n}년</div>
-        <div className="text-xs text-muted">최근 46년(1980~2025) 평균오차 = {maeRecent.toFixed(3)} ℃</div>
+        <div>식: ŷ = <span style={{ color }}>{model.w.toFixed(4)}</span> · (연도 − {model.offset.toFixed(0)}) + <span style={{ color }}>{model.b.toFixed(2)}</span></div>
+        <div className="text-xs text-muted">학습 데이터 N = {n}년 · 진행 epoch = {model.epoch}</div>
+        <div className="text-xs text-muted">학습 데이터 MSE = {mseTrain.toFixed(4)} ℃²</div>
         <div className="text-xs text-muted">
           1℃ 오르는 데 약 <span className="text-accent">{isFinite(yearsPerDeg) ? yearsPerDeg.toFixed(1) : '∞'}년</span>
         </div>
@@ -212,8 +264,8 @@ function ModelCard({ label, color, model, n, maeRecent, yearsPerDeg }: {
 }
 
 function ScatterWithLines({ modelA, modelB, focusFutureYear }: {
-  modelA: { w: number; b: number };
-  modelB: { w: number; b: number };
+  modelA: ModelState;
+  modelB: ModelState;
   focusFutureYear: number;
 }) {
   const W = 720, H = 360, padL = 50, padR = 16, padT = 16, padB = 32;
@@ -222,13 +274,13 @@ function ScatterWithLines({ modelA, modelB, focusFutureYear }: {
   const sx = (v: number) => padL + ((v - xMin) / (xMax - xMin)) * (W - padL - padR);
   const sy = (v: number) => H - padB - ((v - yMin) / (yMax - yMin)) * (H - padT - padB);
 
-  const lineA1 = sy(modelA.w * (xMin - 2000) + modelA.b);
-  const lineA2 = sy(modelA.w * (xMax - 2000) + modelA.b);
-  const lineB1 = sy(modelB.w * (xMin - 2000) + modelB.b);
-  const lineB2 = sy(modelB.w * (xMax - 2000) + modelB.b);
+  const lineA1 = sy(predict(modelA, xMin));
+  const lineA2 = sy(predict(modelA, xMax));
+  const lineB1 = sy(predict(modelB, xMin));
+  const lineB2 = sy(predict(modelB, xMax));
 
   // 모델 B는 1980 이전엔 점선(외삽), 이후엔 실선
-  const lineB_fitX1 = sx(1980), lineB_fitY1 = sy(modelB.w * (1980 - 2000) + modelB.b);
+  const lineB_fitX1 = sx(1980), lineB_fitY1 = sy(predict(modelB, 1980));
 
   return (
     <div className="card p-2">
@@ -263,9 +315,12 @@ function ScatterWithLines({ modelA, modelB, focusFutureYear }: {
         <line x1={lineB_fitX1} y1={lineB_fitY1} x2={sx(xMax)} y2={lineB2}
           stroke="rgb(244,114,182)" strokeWidth={2} />
 
-        {/* 데이터 점 */}
+        {/* 데이터 점 — 실측은 파랑, 보간은 회색 빈 원 */}
         {SEOUL_TEMP.map((d) => (
-          <circle key={d.year} cx={sx(d.year)} cy={sy(d.mean)} r={2} fill="rgb(59,130,246)" opacity={0.65} />
+          d.interpolated
+            ? <circle key={d.year} cx={sx(d.year)} cy={sy(d.mean)} r={2.5}
+                fill="none" stroke="rgb(var(--color-muted))" strokeWidth={1} opacity={0.7} />
+            : <circle key={d.year} cx={sx(d.year)} cy={sy(d.mean)} r={2} fill="rgb(59,130,246)" opacity={0.65} />
         ))}
 
         {/* 미래 연도 세로선 */}
