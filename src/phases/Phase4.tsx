@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../store';
 
-// y = 2x + 1 데이터
+// y = 2x + 0.7 데이터.
+// 편향을 일부러 0.5의 배수가 아닌 값(0.7)으로 두어,
+// "큰칸 0.5"로는 정답에 정확히 도달할 수 없도록 만든다 (정답을 지나치는 경험).
 const DATA: [number, number][] = [
-  [1, 3], [2, 5], [3, 7], [4, 9], [5, 11],
+  [1, 2.7], [2, 4.7], [3, 6.7], [4, 8.7], [5, 10.7],
 ];
 
 export function Phase4() {
@@ -85,8 +87,8 @@ export function Phase4() {
               ))}
             </div>
             <div className="text-[11px] text-muted mt-2 leading-relaxed">
-              큰칸은 정답에 빠르게 다가가지만 근처에서 정착이 어렵고, 미세칸은 매끄럽지만 답답합니다.
-              직접 바꿔 가며 차이를 느껴 보세요.
+              큰칸은 정답에 빠르게 다가가지만 한 칸이 정답을 <strong>지나쳐</strong> 정착이 어렵고,
+              미세칸은 매끄럽지만 답답합니다. 직접 바꿔 가며 차이를 느껴 보세요.
             </div>
           </div>
 
@@ -100,7 +102,14 @@ export function Phase4() {
             </div>
             {total < 1 && (
               <div className="text-sm text-accent mt-2">
-                훌륭해요! 이게 바로 "학습"이에요. (정답: w=2, b=1)
+                훌륭해요! 이게 바로 "학습"이에요. (정답: w = 2, b = 0.7)
+              </div>
+            )}
+            {total >= 1 && stepSize >= 0.5 && (
+              <div className="text-xs text-amber-600 dark:text-amber-400 mt-2 leading-relaxed">
+                한 칸이 <strong>0.5</strong>로 너무 커서 정답을 정확히 짚을 수 없어요(정답의 <code>b</code>는 0.7이라
+                0.5 단위로는 0.5 또는 1.0만 가능). <strong>보통 0.1</strong> 이하로 바꿔야 도달할 수 있습니다.
+                페이즈 5의 학습률 <code>η</code>가 너무 클 때 일어나는 일과 같은 이치예요.
               </div>
             )}
           </div>
