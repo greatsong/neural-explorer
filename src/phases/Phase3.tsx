@@ -253,7 +253,7 @@ function ScatterView({ w, b, errs, mode }: {
         {b === null ? '검은 점 = 데이터 (x, y)' : (
           <>
             검은 점 = 데이터, 보라 직선 = 현재 모델 ŷ = {w.toFixed(1)}x + {b.toFixed(2)},
-            {' '}주황 = {mode === 'error' ? '점별 부호 있는 오차' : '오차²(정사각형 면적)'}.
+            {' '}주황 = {mode === 'error' ? '점별 부호 있는 오차' : '점별 오차 제곱(e²)'}.
           </>
         )}
       </div>
@@ -313,10 +313,14 @@ function LossCurveView({ b, mse, slope, showTangent }: {
             stroke="rgb(251,146,60)" strokeWidth={2} opacity={0.85} />
         )}
 
-        {/* 현재 점 */}
+        {/* 현재 점 — 오른쪽 가장자리 근처일 때 라벨을 왼쪽에 표시 */}
         <circle cx={sx(b)} cy={sy(mse)} r={6.5}
           fill="rgb(var(--color-accent))" stroke="white" strokeWidth={2} />
-        <text x={sx(b) + 10} y={sy(mse) - 8} fontSize={11} fill="rgb(var(--color-text))">
+        <text
+          x={b > bMax - 1.5 ? sx(b) - 10 : sx(b) + 10}
+          y={sy(mse) - 8}
+          textAnchor={b > bMax - 1.5 ? 'end' : 'start'}
+          fontSize={11} fill="rgb(var(--color-text))">
           b = {b.toFixed(2)}, MSE = {mse.toFixed(2)}
         </text>
       </svg>
@@ -425,12 +429,11 @@ function SquareExplain({ errs }: { errs: number[] }) {
       <div className="font-medium">3. 오차 제곱 — 부호를 없애고 큰 실수에 더 큰 페널티</div>
       <p className="text-sm mt-2 text-muted">
         각 오차에 자기 자신을 곱하면(<code>e² = e × e</code>) 부호가 사라지고, <strong>큰 오차일수록 훨씬 큰 값</strong>이 됩니다.
-        그림에서는 정사각형의 <strong>면적</strong>이 곧 e²예요.
       </p>
       <ul className="text-sm mt-2 space-y-1 list-disc pl-5 text-muted">
         <li>오차 ±1 → e² = 1. 오차 ±2 → e² = 4. <strong>2배가 4배</strong>가 됩니다.</li>
-        <li>주황 사각형들을 보세요 — 큰 오차의 사각형이 작은 것보다 훨씬 더 넓죠?</li>
-        <li>다섯 사각형의 면적 합 = <strong>{errs.reduce((s, e) => s + e * e, 0).toFixed(2)}</strong>. 이걸 평균내면 다음 단계.</li>
+        <li>큰 오차의 e²가 작은 것보다 훨씬 크죠? 큰 실수에 더 큰 페널티를 줍니다.</li>
+        <li>다섯 점의 e² 합 = <strong>{errs.reduce((s, e) => s + e * e, 0).toFixed(2)}</strong>. 이걸 평균내면 다음 단계.</li>
       </ul>
     </div>
   );

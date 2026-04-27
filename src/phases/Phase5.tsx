@@ -390,10 +390,10 @@ function NeuronView({ w, b, lr, pulseKey }: { w: number; b: number; lr: number; 
   const pred = Math.max(0, z);
   const e = pred - y;
 
-  const W = 760, H = 420;
-  const fwdY = 110;
+  const W = 760, H = 460;  // 위아래 여백 확보 (+40)
+  const fwdY = 130;
   const xCx = 80, sumCx = 260, reluCx = 420, predCx = 580;
-  const yCy = 240;
+  const yCy = 260;
   const bCx = sumCx, bCy = fwdY - 56; // Σ 위쪽에서 들어오는 편향 라벨 위치
   const wLabelX = (xCx + sumCx) / 2;
   const wLabelY = fwdY - 28;
@@ -430,12 +430,12 @@ function NeuronView({ w, b, lr, pulseKey }: { w: number; b: number; lr: number; 
   const startY = fwdY + 28;
   const wTargetX = wLabelX;
   const wTargetY = wLabelY + 14; // 가중치 라벨 바로 아래로 도달
-  const wPath = `M ${startX} ${startY} C ${startX - 60} 360, ${wTargetX + 60} 360, ${wTargetX} ${wTargetY}`;
+  const wPath = `M ${startX} ${startY} C ${startX - 60} 390, ${wTargetX + 60} 390, ${wTargetX} ${wTargetY}`;
 
   // (b) ŷ → 위쪽으로 솟아 b 라벨까지 (b로 가는 화살표)
   const bTargetX = bCx;
   const bTargetY = bCy + 12;
-  const bPath = `M ${startX} ${startY - 8} C ${startX} ${startY - 90}, ${bTargetX + 90} ${bTargetY - 40}, ${bTargetX + 28} ${bTargetY}`;
+  const bPath = `M ${startX} ${startY - 8} C ${startX} ${startY - 100}, ${bTargetX + 90} ${bTargetY - 50}, ${bTargetX + 28} ${bTargetY}`;
 
   return (
     <div className="card p-4 mt-3">
@@ -512,8 +512,8 @@ function NeuronView({ w, b, lr, pulseKey }: { w: number; b: number; lr: number; 
             stroke={backColor} strokeOpacity={wBackOpacity}
             strokeWidth={wBackStrokeW} strokeDasharray="7 5" strokeLinecap="round"
             markerEnd="url(#nv-back-w)" />
-          <ValueBadge2 cx={(startX + wTargetX) / 2} cy={395}
-            label={`w 변화량 = η × (e × x) = ${lr.toFixed(3)} × ${dwOnePoint.toFixed(2)} = ${(lr * dwOnePoint).toFixed(3)}`}
+          <ValueBadge2 cx={(startX + wTargetX) / 2} cy={425}
+            label={`Δw = −η×(e×x) = −${lr.toFixed(3)}×(${dwOnePoint.toFixed(3)}) = ${(-lr * dwOnePoint).toFixed(4)}`}
             color={backColor} />
 
           {/* (b) ŷ → b 라벨 (b로 가는 화살표) — |e|에 비례한 두께·진하기 */}
@@ -521,8 +521,8 @@ function NeuronView({ w, b, lr, pulseKey }: { w: number; b: number; lr: number; 
             stroke={backColor} strokeOpacity={bBackOpacity}
             strokeWidth={bBackStrokeW} strokeDasharray="7 5" strokeLinecap="round"
             markerEnd="url(#nv-back-b)" />
-          <ValueBadge2 cx={predCx - 70} cy={28}
-            label={`b 변화량 = η × e = ${lr.toFixed(3)} × ${dbOnePoint.toFixed(2)} = ${(lr * dbOnePoint).toFixed(3)}`}
+          <ValueBadge2 cx={predCx - 70} cy={46}
+            label={`Δb = −η×e = −${lr.toFixed(3)}×(${dbOnePoint.toFixed(3)}) = ${(-lr * dbOnePoint).toFixed(4)}`}
             color={backColor} />
 
           {/* 학습 단계 실행 시 펄스 — pulseKey가 바뀌면 두 path 리마운트로 CSS 애니메이션 재생 */}
