@@ -19,28 +19,28 @@ export function PageNav() {
   };
 
   return (
-    <nav className="mt-16 pt-6 border-t border-border flex justify-between gap-4 text-sm">
-      <div className="flex-1">
+    <nav className="mt-12 sm:mt-16 pt-6 border-t border-border flex flex-col sm:flex-row sm:justify-between gap-3 sm:gap-4 text-sm">
+      <div className="flex-1 min-w-0">
         {prev && (
           <button
             onClick={() => go(prev.id)}
             className="block w-full text-left p-3 rounded-md border border-border hover:bg-surface transition"
           >
             <div className="text-xs text-muted">← 이전</div>
-            <div className="font-medium mt-0.5">
+            <div className="font-medium mt-0.5 truncate">
               {prev.num}. {prev.title}
             </div>
           </button>
         )}
       </div>
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         {next && (
           <button
             onClick={() => go(next.id)}
-            className="block w-full text-right p-3 rounded-md border border-border hover:bg-surface transition"
+            className="block w-full text-left sm:text-right p-3 rounded-md border border-border hover:bg-surface transition"
           >
             <div className="text-xs text-muted">다음 →</div>
-            <div className="font-medium mt-0.5">
+            <div className="font-medium mt-0.5 truncate">
               {next.num}. {next.title}
             </div>
           </button>

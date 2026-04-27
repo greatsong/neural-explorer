@@ -32,9 +32,12 @@
 
   /* 프로젝터로 학생들이 보는 화면이라 기본 폰트를 키운다.
      Tailwind의 fontSize는 rem 기반이라 html font-size를 올리면 모든 텍스트가 비례 확대.
-     기본 16px → 18px (12.5% 확대). */
+     데스크톱 18px (12.5% 확대) — 모바일에선 16px로 되돌림. */
   html {
     font-size: 18px;
+  }
+  @media (max-width: 767px) {
+    html { font-size: 16px; }
   }
 
   body {
@@ -42,14 +45,18 @@
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
-  h1 { @apply text-3xl font-semibold tracking-tight text-text; }
-  h2 { @apply text-2xl font-semibold tracking-tight text-text mt-8 mb-3; }
-  h3 { @apply text-lg font-semibold text-text mt-6 mb-2; }
+  h1 { @apply text-2xl sm:text-3xl font-semibold tracking-tight text-text; }
+  h2 { @apply text-xl sm:text-2xl font-semibold tracking-tight text-text mt-6 sm:mt-8 mb-3; }
+  h3 { @apply text-base sm:text-lg font-semibold text-text mt-4 sm:mt-6 mb-2; }
   p  { @apply leading-7; }
 
   code {
     @apply font-mono text-[0.92em] bg-surface px-1.5 py-0.5 rounded border border-border;
   }
+
+  /* 모바일에서 시각화(SVG/이미지)가 부모를 비집고 나가 가로 스크롤을 만들지 않게.
+     viewBox 기반 SVG는 max-width만 잡으면 비율 유지하며 축소된다. */
+  img, svg, video { max-width: 100%; }
 }
 
 @layer components {
