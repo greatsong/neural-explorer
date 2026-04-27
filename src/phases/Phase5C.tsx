@@ -333,13 +333,22 @@ function ScatterWithLines({ modelA, modelB, focusFutureYear }: {
         <line x1={lineB_fitX1} y1={lineB_fitY1} x2={sx(xMax)} y2={lineB2}
           stroke="rgb(244,114,182)" strokeWidth={2} />
 
-        {/* 데이터 점 — 실측은 파랑, 보간은 회색 빈 원 */}
-        {SEOUL_TEMP.map((d) => (
-          d.interpolated
-            ? <circle key={d.year} cx={sx(d.year)} cy={sy(d.mean)} r={2.5}
-                fill="none" stroke="rgb(var(--color-muted))" strokeWidth={1} opacity={0.7} />
-            : <circle key={d.year} cx={sx(d.year)} cy={sy(d.mean)} r={2} fill="rgb(59,130,246)" opacity={0.65} />
-        ))}
+        {/* 데이터 점 — 실측은 파랑, 보간은 회색 빈 원. hover 시 native SVG title로 (연도, 기온) 표시 */}
+        {SEOUL_TEMP.map((d) => {
+          const tooltip = d.interpolated
+            ? `${d.year}년 · ${d.mean.toFixed(2)}℃ (보간 추정)`
+            : `${d.year}년 · ${d.mean.toFixed(2)}℃`;
+          return d.interpolated
+            ? <circle key={d.year} cx={sx(d.year)} cy={sy(d.mean)} r={3}
+                fill="none" stroke="rgb(var(--color-muted))" strokeWidth={1} opacity={0.75}
+                style={{ cursor: 'crosshair' }}>
+                <title>{tooltip}</title>
+              </circle>
+            : <circle key={d.year} cx={sx(d.year)} cy={sy(d.mean)} r={2.5} fill="rgb(59,130,246)" opacity={0.7}
+                style={{ cursor: 'crosshair' }}>
+                <title>{tooltip}</title>
+              </circle>;
+        })}
 
         {/* 미래 연도 세로선 */}
         <line x1={sx(focusFutureYear)} y1={padT} x2={sx(focusFutureYear)} y2={H - padB}

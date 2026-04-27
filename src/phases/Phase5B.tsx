@@ -155,12 +155,36 @@ export function DerivationContent() {
 
       <h2>여러 점이면? — 평균</h2>
       <p className="text-sm text-muted">
-        위는 한 점 기준 식. 데이터가 N개면 점마다 한 번씩 적용하고 평균을 내면 끝.
-        그게 페이즈 5의 <code>dw</code>·<code>db</code>입니다.
+        지금까지의 식은 모두 <strong>한 점</strong>에서 만들어진 거예요.
+        데이터가 <strong>N개</strong>이면 점마다 같은 식을 한 번씩 만든 뒤 그 값들을 <strong>평균</strong>낸 게
+        페이즈 5에서 보던 <code>dw</code>·<code>db</code>입니다.
       </p>
-      <div className="card p-3 mt-2 font-mono text-sm text-center space-y-1">
-        <div><code>dw</code> = 평균(<code>e · x</code>) → <code>w ← w − η · dw</code></div>
-        <div><code>db</code> = 평균(<code>e</code>) → <code>b ← b − η · db</code></div>
+      <div className="card p-4 mt-3 space-y-3">
+        <div>
+          <div className="text-xs text-muted mb-1.5">w의 변화량</div>
+          <div className="font-mono text-base">
+            <code>dw</code> = 평균(<span className="text-accent">e · x</span>) =
+            <span className="text-muted"> (e</span><sub>1</sub><span className="text-muted">·x</span><sub>1</sub>
+            <span className="text-muted"> + ⋯ + e</span><sub>N</sub><span className="text-muted">·x</span><sub>N</sub>
+            <span className="text-muted">) ÷ N</span>
+          </div>
+        </div>
+        <div className="border-t border-border pt-3">
+          <div className="text-xs text-muted mb-1.5">b의 변화량</div>
+          <div className="font-mono text-base">
+            <code>db</code> = 평균(<span className="text-accent">e</span>) =
+            <span className="text-muted"> (e</span><sub>1</sub>
+            <span className="text-muted"> + ⋯ + e</span><sub>N</sub>
+            <span className="text-muted">) ÷ N</span>
+          </div>
+        </div>
+        <div className="border-t border-border pt-3">
+          <div className="text-xs text-muted mb-1.5">최종 갱신 식 (페이즈 5의 한 step)</div>
+          <div className="font-mono text-base space-y-1">
+            <div>새 w = w − η · <span className="text-accent">dw</span></div>
+            <div>새 b = b − η · <span className="text-accent">db</span></div>
+          </div>
+        </div>
       </div>
     </>
   );

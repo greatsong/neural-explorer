@@ -41,8 +41,10 @@ export function Phase3() {
       <div className="text-xs font-mono text-muted">PHASE 3</div>
       <h1>손실함수와 경사하강법의 이해</h1>
       <p className="text-muted mt-2">
-        예측이 정답과 얼마나 멀리 떨어져 있는지 숫자로 표현하는 게 <strong>손실(loss)</strong>이에요.
-        가장 단순한 손실은 <code>(예측 − 정답)²</code>입니다.
+        이 페이지에서 두 가지를 한 번에 다뤄요. <strong>손실함수</strong> = 예측이 정답과 얼마나 멀리
+        떨어져 있는지를 한 숫자로 나타내는 식 (가장 단순한 형태는 <code>(예측 − 정답)²</code>).
+        <strong> 경사하강법</strong> = 그 손실을 줄이려고 손실 곡선의 <em>기울기 반대 방향</em>으로
+        매개변수를 한 발짝씩 옮기는 방법. 아래에서 두 개념이 어떻게 연결되는지 직접 확인해 보세요.
       </p>
 
       <div className="aside-tip">
@@ -105,7 +107,7 @@ export function Phase3() {
 
       {/* ── 직관 코너: 기울기 → 어느 쪽으로 줄여야 할까 ─────────── */}
       <div className="aside-tip mt-6">
-        <div className="font-medium">기울기를 보고 어느 쪽으로 옮기면 손실이 줄까?</div>
+        <div className="font-medium">경사하강법 직관 — 기울기를 보고 어느 쪽으로 옮길까?</div>
         <p className="text-sm mt-2 text-muted">
           이 페이지에서 슬라이더로 움직이는 값은 <strong>모델의 가중치</strong> 역할을 해요
           (가장 단순한 모델 — "가중치를 그대로 예측으로 쓰는 모델"이라 가중치 = 예측).

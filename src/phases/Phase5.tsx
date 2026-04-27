@@ -48,7 +48,6 @@ export function Phase5() {
   const [history, setHistory] = useState<{ w: number; b: number; loss: number }[]>([
     { w: 0, b: 0, loss: lossFn(0, 0) },
   ]);
-  const [prev, setPrev] = useState<{ w: number; b: number } | null>(null);
   const [pulseKey, setPulseKey] = useState(0);
   const markCompleted = useApp((s) => s.markCompleted);
 
@@ -58,7 +57,6 @@ export function Phase5() {
   const step = () => {
     const nw = w - lr * dw;
     const nb = b - lr * db;
-    setPrev({ w, b });
     setW(nw); setB(nb);
     setHistory((h) => [...h, { w: nw, b: nb, loss: lossFn(nw, nb) }]);
     setPulseKey((k) => k + 1);
@@ -74,7 +72,6 @@ export function Phase5() {
       cb -= lr * g.db;
       newH.push({ w: cw, b: cb, loss: lossFn(cw, cb) });
     }
-    setPrev({ w, b });
     setW(cw); setB(cb);
     setHistory((h) => [...h, ...newH]);
     setPulseKey((k) => k + 1);
@@ -83,7 +80,6 @@ export function Phase5() {
 
   const reset = () => {
     setW(0); setB(0);
-    setPrev(null);
     setHistory([{ w: 0, b: 0, loss: lossFn(0, 0) }]);
   };
 
@@ -225,26 +221,37 @@ export function Phase5() {
         </div>
       )}
 
-      {/* ── 탭 4: 전체 종합 ───────────────────────────────────────── */}
+      {/* ── 탭 4: 전체 종합 — 탭 1과 같은 2열 레이아웃 + 식 카드 ─── */}
       {tab === 'recap' && (
-        <div className="mt-6 space-y-5">
-          <p className="text-sm text-muted">
-            지금까지 본 것을 한 화면에 모으고, 식과 함께 다시 한 번 정리합니다. 다음 탭에서 실데이터에 적용하기 전 마지막 점검.
+        <div className="mt-6 space-y-3">
+          <p className="text-muted text-sm">
+            지금까지 본 것을 한 화면에 모읍니다 — <strong>다이어그램 + 학습 곡선 + 한 step의 식</strong>이
+            동시에 보이도록. 다음 탭(실생활 적용)으로 넘어가기 전 마지막 점검이에요.
           </p>
-          <NeuronView w={w} b={b} pulseKey={pulseKey} />
-          <UpdateFormulaCard w={w} b={b} dw={dw} db={db} lr={lr} />
-          <SlicePlot w={w} b={b} dw={dw} db={db} lr={lr} prev={prev} />
-          <div>
-            <div className="text-sm font-medium">학습 곡선</div>
-            <div className="mt-2">
-              <LossCurve history={history} />
+          <div className="grid xl:grid-cols-[2fr_1fr] gap-4 items-start">
+            <NeuronView w={w} b={b} pulseKey={pulseKey} />
+            <div className="card p-3">
+              <div className="text-sm font-medium">학습 진행 곡선</div>
+              <p className="text-xs text-muted mt-1">손실이 0으로 내려가면 학습 거의 끝.</p>
+              <div className="mt-2 grid grid-cols-3 gap-1 text-xs font-mono">
+                <div className="text-muted">step</div>
+                <div className="text-muted">손실</div>
+                <div className="text-muted text-right">↓ 줄어듦</div>
+                <div>{history.length - 1}</div>
+                <div>{loss.toFixed(4)}</div>
+                <div className="text-right text-accent">{history.length > 1 ? ((history[history.length - 2].loss - loss) >= 0 ? '−' : '+') + Math.abs(history[history.length - 2].loss - loss).toFixed(4) : '—'}</div>
+              </div>
+              <div className="mt-2">
+                <LossCurve history={history} />
+              </div>
             </div>
           </div>
+          <UpdateFormulaCard w={w} b={b} dw={dw} db={db} lr={lr} />
           <div className="aside-note text-sm">
             <div className="font-medium">한 줄로 정리</div>
             <p className="mt-1 text-muted">
-              <strong>매 step마다</strong> 다섯 점의 오차로 평균(오차 × 입력값)·평균(오차)을 만들어,
-              <strong> 새 w = w − 학습률 × dw</strong>, <strong>새 b = b − 학습률 × db</strong>로 갱신.
+              매 step마다 다섯 점의 오차로 <code>dw = 평균(e · x)</code>, <code>db = 평균(e)</code>를 만들어,
+              <strong> w ← w − η · dw</strong>, <strong>b ← b − η · db</strong>로 갱신.
               이걸 손실이 0에 가까워질 때까지 반복하면 끝.
             </p>
           </div>
@@ -583,71 +590,6 @@ function ValueBadge2({ cx, cy, label, color }: { cx: number; cy: number; label: 
   );
 }
 
-// 1D 단면: 한 축(w 또는 b)을 따라 잘라본 손실 곡선
-function SlicePlot({ w, b, dw, db, lr, prev }: { w: number; b: number; dw: number; db: number; lr: number; prev: { w: number; b: number } | null }) {
-  const [axis, setAxis] = useState<'w' | 'b'>('w');
-  const W = 480, H = 220, padL = 38, padR = 14, padT = 14, padB = 30;
-  const range = axis === 'w' ? [-1, 4] : [-3, 4];
-  const sx = (v: number) => padL + ((v - range[0]) / (range[1] - range[0])) * (W - padL - padR);
-
-  // 곡선 데이터
-  const N = 80;
-  const pts: { v: number; L: number }[] = [];
-  for (let i = 0; i <= N; i++) {
-    const v = range[0] + (i / N) * (range[1] - range[0]);
-    const L = axis === 'w' ? lossFn(v, b) : lossFn(w, v);
-    pts.push({ v, L });
-  }
-  const Lmax = Math.max(0.5, ...pts.map((p) => p.L));
-  const sy = (L: number) => H - padB - (L / Lmax) * (H - padT - padB);
-
-  let path = '';
-  pts.forEach((p, i) => { path += `${i === 0 ? 'M' : 'L'}${sx(p.v)},${sy(p.L)} `; });
-
-  // 지금 위치 / 한 step 후 위치
-  const cur = axis === 'w' ? w : b;
-  const nxt = axis === 'w' ? w - lr * dw : b - lr * db;
-  const Lcur = axis === 'w' ? lossFn(cur, b) : lossFn(w, cur);
-  const Lnxt = axis === 'w' ? lossFn(nxt, b) : lossFn(w, nxt);
-  const prv = prev ? (axis === 'w' ? prev.w : prev.b) : null;
-  const Lprv = prv != null ? (axis === 'w' ? lossFn(prv, b) : lossFn(w, prv)) : null;
-
-  return (
-    <div className="card p-4 mt-3">
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-sm font-medium">손실의 1차원 단면</div>
-        <div className="flex gap-1">
-          <button onClick={() => setAxis('w')} className={`text-xs px-2 py-1 rounded ${axis === 'w' ? 'bg-accent text-white' : 'border border-border'}`}>w 축</button>
-          <button onClick={() => setAxis('b')} className={`text-xs px-2 py-1 rounded ${axis === 'b' ? 'bg-accent text-white' : 'border border-border'}`}>b 축</button>
-        </div>
-      </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
-        <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="rgb(var(--color-border))" />
-        <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="rgb(var(--color-border))" />
-        <text x={W - padR} y={H - 8} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">{axis}</text>
-        <text x={padL - 4} y={padT + 10} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">손실</text>
-        <path d={path} fill="none" stroke="rgb(var(--color-text))" strokeOpacity={0.7} strokeWidth={1.5} />
-        {/* 직전 위치 */}
-        {prv != null && Lprv != null && (
-          <>
-            <line x1={sx(prv)} y1={sy(Lprv)} x2={sx(cur)} y2={sy(Lcur)}
-              stroke="rgb(96,165,250)" strokeWidth={1.6} strokeDasharray="4 3" />
-            <circle cx={sx(prv)} cy={sy(Lprv)} r={4} fill="rgb(96,165,250)" stroke="white" strokeWidth={1.2} />
-          </>
-        )}
-        {/* 지금 → 다음 */}
-        <line x1={sx(cur)} y1={sy(Lcur)} x2={sx(nxt)} y2={sy(Lnxt)}
-          stroke="rgb(251, 146, 60)" strokeWidth={2} />
-        <circle cx={sx(cur)} cy={sy(Lcur)} r={5} fill="rgb(var(--color-accent))" stroke="white" strokeWidth={1.5} />
-        <circle cx={sx(nxt)} cy={sy(Lnxt)} r={4} fill="rgb(251, 146, 60)" stroke="white" strokeWidth={1.5} />
-      </svg>
-      <div className="text-xs text-muted mt-2 leading-relaxed">
-        파란 점선 = 직전 step에서 출발한 위치, <span className="text-accent">파랑 ●</span> = 지금 위치,
-        <span className="text-amber-500"> 주황 ●</span> = 한 step 후 도착할 위치. 두 점 사이 길이가 <strong>η × |변화량|</strong>(= 보폭)이에요.
-      </div>
-    </div>
-  );
-}
 
 function Stat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
