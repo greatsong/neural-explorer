@@ -196,26 +196,33 @@ function ScenarioContent({
 
       <div className="aside-tip mt-6 text-sm space-y-4">
         <div className="text-xs text-muted -mb-2">
-          🎭 비유 설정 — 마피아 게임에서 "양성 = 마피아", "음성 = 시민". 모델은 "이 사람이 마피아!"라고 지목하는 탐정이에요.
+          🎭 마피아 게임 비유 — "양성 = 마피아", "음성 = 시민". 모델은 "이 사람이 마피아야!"라고 지목하는 플레이어예요.
         </div>
+
         <div>
-          <div><strong>📌 정밀도(precision)</strong> — "내가 마피아라고 지목한 사람 중, 진짜 마피아는 몇 %?"</div>
-          <ul className="list-disc list-inside text-xs mt-1 space-y-0.5 text-muted">
-            <li>식: TP / (TP + FP) — 지목한 사람 중 실제 마피아인 비율</li>
-            <li>🎭 낮으면: 시민을 자꾸 마피아로 몰아 처형 → 무고한 시민이 줄고, 결국 마피아가 이겨요.</li>
-            <li>🎯 높이려면: <em>확실할 때만</em> 지목 → 임계값 올리기. 대신 진짜 마피아를 살려둘 위험.</li>
+          <div><strong>🧐 정밀도가 높은 친구</strong> — "확실할 때만 손가락질하는 신중파"</div>
+          <div className="text-xs text-muted mt-0.5">정밀도 = TP/(TP+FP) — 지목한 사람 중 진짜 마피아 비율</div>
+          <ul className="list-none text-xs mt-2 space-y-0.5">
+            <li>👍 <strong>장점</strong> — 함부로 시민을 처형하지 않아요. 한 번 지목하면 다른 친구들도 "쟤가 그렇게 말한다면…" 하고 따라줘요. 신뢰가 쌓임.</li>
+            <li>👎 <strong>단점</strong> — 의심돼도 증거 부족이라며 가만히 있다가 <em>마피아를 살려두기</em> 쉬워요. 밤마다 시민이 한 명씩 사라지는데도 결단을 못 내림.</li>
           </ul>
         </div>
+
         <div>
-          <div><strong>📌 재현율(recall, sensitivity)</strong> — "실제 마피아 중에서, 내가 잡아낸 건 몇 %?"</div>
-          <ul className="list-disc list-inside text-xs mt-1 space-y-0.5 text-muted">
-            <li>식: TP / (TP + FN) — 진짜 마피아 중 내가 지목한 비율</li>
-            <li>🎭 낮으면: 마피아가 시민 사이에 숨어 살아남음 → 밤마다 시민이 한 명씩 죽어요.</li>
-            <li>🎯 높이려면: <em>조금이라도 의심되면 다</em> 지목 → 임계값 내리기. 대신 시민을 잘못 처형하는 일이 많아짐.</li>
+          <div><strong>🗣️ 재현율이 높은 친구</strong> — "조금만 수상해도 외치는 적극파"</div>
+          <div className="text-xs text-muted mt-0.5">재현율 = TP/(TP+FN) — 진짜 마피아 중 내가 잡은 비율</div>
+          <ul className="list-none text-xs mt-2 space-y-0.5">
+            <li>👍 <strong>장점</strong> — 마피아를 거의 놓치지 않아요. 분위기를 흔들어 마피아의 실수를 끌어냄. 결정적 순간에 망설이지 않음.</li>
+            <li>👎 <strong>단점</strong> — 시민을 자꾸 잘못 처형해 마을이 텅 비어가요. 자꾸 틀리면 다음에 진짜 마피아를 지목해도 <em>아무도 안 믿어줌</em>(양치기 소년).</li>
           </ul>
         </div>
-        <div className="text-xs text-muted">
-          ⚖️ 마피아 게임의 묘미가 바로 이 시소예요 — 너무 신중하면 마피아가 살아남고, 너무 의심 많으면 시민이 먼저 죽어요. 임계값을 어디에 둘지가 곧 게임 전략.
+
+        <div className="border-t border-border pt-3">
+          <div className="font-medium">🤔 여러분은 어느 쪽이 더 중요하다고 생각하나요?</div>
+          <p className="text-xs text-muted mt-1">
+            정답은 없어요. 상황에 따라 답이 달라집니다 — 마피아가 1명만 남았을 땐 정밀도가, 마피아가 절반일 땐 재현율이 더 절실해요.
+            의료·면접·메시지 필터에서도 똑같은 질문을 던지게 됩니다. <strong>어느 비용이 더 큰가?</strong> 그게 임계값을 결정해요.
+          </p>
         </div>
         <div className="border-t border-border pt-2 mt-2">
           <div><strong>{scenario.emoji} 이 시나리오의 비용</strong></div>
