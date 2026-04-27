@@ -107,7 +107,7 @@ export function Phase5() {
   return (
     <article>
       <div className="text-xs font-mono text-muted">PHASE 5</div>
-      <h1>자동으로 학습하기</h1>
+      <h1>오차 역전파의 이해</h1>
       <p className="text-muted mt-2">
         페이즈 4에서 슬라이더를 손으로 움직여 오차를 줄였다면, 이제는 컴퓨터가 어느 쪽으로 얼마만큼 움직여야 하는지
         스스로 알아냅니다. 아래 5개 탭을 순서대로 진행하면 됩니다 — <strong>직관 → 수식 → 유도 → 종합 → 실생활</strong>.

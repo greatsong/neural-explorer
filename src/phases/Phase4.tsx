@@ -35,7 +35,7 @@ export function Phase4() {
   return (
     <article>
       <div className="text-xs font-mono text-muted">PHASE 4</div>
-      <h1>수동 학습</h1>
+      <h1>학습률의 이해</h1>
       <p className="text-muted mt-2">
         데이터에 가장 잘 맞는 직선을 손으로 찾아봅시다. 가중치 <code>w</code>와 편향 <code>b</code>를 조절해서
         <strong> 총 오차</strong>를 가장 작게 만드는 게 목표예요.

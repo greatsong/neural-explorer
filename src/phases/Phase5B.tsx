@@ -65,6 +65,7 @@ const STEPS_LR: { id: number; expr: string; why: string; highlight?: boolean }[]
   {
     id: 11,
     expr: 'w ← w − η · (ŷ − y) · x',
+    highlight: true,
     why: '한 점의 기울기 (ŷ − y) · x를 그대로 빼면 한 step에 너무 멀리 튀어 나갈 수 있다. 보폭 조절을 위해 학습률 η(0~1 사이의 작은 양수)를 곱한다.',
   },
   {

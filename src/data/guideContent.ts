@@ -168,7 +168,7 @@ export const GROUPS: GroupGuide[] = [
       {
         id: 'p3',
         num: '3',
-        title: '오차 측정',
+        title: '손실함수와 경사하강법의 이해',
         goal: '예측과 정답의 거리를 (예측 − 정답)² 으로 한 숫자에 담는다.',
         cesi: 1,
         timeMin: 8,
@@ -207,7 +207,7 @@ export const GROUPS: GroupGuide[] = [
       {
         id: 'p4',
         num: '4',
-        title: '수동 학습',
+        title: '학습률의 이해',
         goal: 'y = 2x + 1 데이터에 W·b를 직접 맞춰 총 손실 ≤ 1 만들기.',
         cesi: 1,
         timeMin: 10,
@@ -248,7 +248,7 @@ export const GROUPS: GroupGuide[] = [
       {
         id: 'p5',
         num: '5',
-        title: '기울기와 수정',
+        title: '오차 역전파의 이해',
         goal: '경사 하강법 = "오차의 기울기 반대 방향으로 학습률만큼 이동"의 한 줄을 머릿속에 새기기.',
         cesi: 1,
         timeMin: 8,

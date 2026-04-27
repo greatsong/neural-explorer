@@ -22,9 +22,9 @@ export interface PhaseMeta {
 export const PHASES: PhaseMeta[] = [
   { id: 'p1',  num: '1',  title: '인공 뉴런 해부',          subtitle: '가중치·편향·활성화 함수', group: '1부 — 뉴런의 기초' },
   { id: 'p2',  num: '2',  title: '순전파 퀴즈',             subtitle: '직접 계산해보기',         group: '1부 — 뉴런의 기초' },
-  { id: 'p3',  num: '3',  title: '오차 측정',               subtitle: '예측과 정답의 거리',      group: '1부 — 뉴런의 기초' },
-  { id: 'p4',  num: '4',  title: '수동 학습',               subtitle: '슬라이더로 직접 맞추기',  group: '1부 — 뉴런의 기초' },
-  { id: 'p5',  num: '5',  title: '자동으로 학습하기',       subtitle: '직관 → 수식 → 유도 → 종합 → 실생활 (5탭)', group: '1부 — 뉴런의 기초' },
+  { id: 'p3',  num: '3',  title: '손실함수와 경사하강법의 이해', subtitle: '제곱 오차 + 기울기 → 갱신 직관', group: '1부 — 뉴런의 기초' },
+  { id: 'p4',  num: '4',  title: '학습률의 이해',           subtitle: '슬라이더 한 칸 크기 = 보폭',  group: '1부 — 뉴런의 기초' },
+  { id: 'p5',  num: '5',  title: '오차 역전파의 이해',      subtitle: '출력 오차 → w·b로 역방향 전파 (5탭)', group: '1부 — 뉴런의 기초' },
   { id: 'p6',  num: '6',  title: '입시 합격 예측',          subtitle: '정시 / 학종 시나리오',    group: '2부 — 분류와 평가' },
   { id: 'p7',  num: '7',  title: '데이터 추가 후 재학습',   subtitle: '10명 → 40명',             group: '2부 — 분류와 평가' },
   { id: 'p8',  num: '8',  title: '정확도',                  subtitle: '기본 평가 지표',          group: '2부 — 분류와 평가' },

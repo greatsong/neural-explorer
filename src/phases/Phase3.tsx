@@ -39,7 +39,7 @@ export function Phase3() {
   return (
     <article>
       <div className="text-xs font-mono text-muted">PHASE 3</div>
-      <h1>오차 측정</h1>
+      <h1>손실함수와 경사하강법의 이해</h1>
       <p className="text-muted mt-2">
         예측이 정답과 얼마나 멀리 떨어져 있는지 숫자로 표현하는 게 <strong>손실(loss)</strong>이에요.
         가장 단순한 손실은 <code>(예측 − 정답)²</code>입니다.
@@ -107,14 +107,16 @@ export function Phase3() {
       <div className="aside-tip mt-6">
         <div className="font-medium">기울기를 보고 어느 쪽으로 옮기면 손실이 줄까?</div>
         <p className="text-sm mt-2 text-muted">
-          위 그래프의 <span style={{ color: 'rgb(251,146,60)' }}>주황색 직선</span>이 지금 위치에서의 기울기예요.
-          포물선의 한 점에서 기울기는 <code>2 × (예측 − 정답)</code>으로 계산됩니다 — 지금은 <strong className="font-mono">{slope.toFixed(2)}</strong>.
+          이 페이지에서 슬라이더로 움직이는 값은 <strong>모델의 가중치</strong> 역할을 해요
+          (가장 단순한 모델 — "가중치를 그대로 예측으로 쓰는 모델"이라 가중치 = 예측).
+          위 그래프의 <span style={{ color: 'rgb(251,146,60)' }}>주황색 직선</span>이 지금 가중치에서의 기울기예요.
+          포물선의 한 점에서 기울기는 <code>2 × (가중치 − 정답)</code>으로 계산됩니다 — 지금은 <strong className="font-mono">{slope.toFixed(2)}</strong>.
         </p>
         <ul className="text-sm mt-2 space-y-1 list-disc pl-5 text-muted">
           {slope > 0.05 ? (
-            <li><strong>기울기 +</strong> → 오른쪽이 오르막. 예측을 <strong>왼쪽(작은 쪽)</strong>으로 옮기면 손실이 줄어요.</li>
+            <li><strong>기울기 +</strong> → 오른쪽이 오르막. 가중치를 <strong>왼쪽(작은 쪽)</strong>으로 옮기면 손실이 줄어요.</li>
           ) : slope < -0.05 ? (
-            <li><strong>기울기 −</strong> → 왼쪽이 오르막. 예측을 <strong>오른쪽(큰 쪽)</strong>으로 옮기면 손실이 줄어요.</li>
+            <li><strong>기울기 −</strong> → 왼쪽이 오르막. 가중치를 <strong>오른쪽(큰 쪽)</strong>으로 옮기면 손실이 줄어요.</li>
           ) : (
             <li><strong>기울기 ≈ 0</strong> → 거의 골짜기 바닥. 더 줄일 곳이 없어요.</li>
           )}
@@ -122,11 +124,11 @@ export function Phase3() {
         </ul>
         <div className="card p-3 mt-3 font-mono text-sm bg-bg/60">
           <div className="text-xs text-muted not-italic mb-1" style={{ fontFamily: 'system-ui' }}>
-            한 줄로 쓰면 (∂SE/∂w = "SE의 w에 대한 기울기"):
+            한 줄로 쓰면:
           </div>
-          <div>새 예측 = 지금 예측 − <span className="text-accent">기울기</span></div>
+          <div>수정된 가중치 = 지금 가중치 − <span className="text-accent">기울기</span></div>
           <div className="text-muted text-xs not-italic mt-1" style={{ fontFamily: 'system-ui' }}>
-            일반화: <code>w ← w − ∂SE/∂w</code> &nbsp; — 이게 페이즈 5의 자동 학습 출발 식이에요.
+            일반화: <code>w ← w − ∂SE/∂w</code> (∂SE/∂w = "SE의 w에 대한 기울기") — 페이즈 5의 자동 학습 출발 식이에요.
           </div>
         </div>
       </div>
