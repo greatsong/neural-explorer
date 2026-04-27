@@ -220,7 +220,8 @@ function Cell({ value, label, desc, tone }: { value: number; label: string; desc
 }
 
 function ScoreDistribution({ data, threshold }: { data: { score: number; positive: boolean }[]; threshold: number }) {
-  // 히스토그램: x = 점수 0..1 (20개 빈), y = 인원수
+  // 누적 히스토그램: x = 점수 0..1, y = 인원수 (음성 + 양성 같은 스케일).
+  // 임계값 오른쪽 영역은 "양성 판정" 영역으로 옅은 보라색 음영.
   const BINS = 30;
   const posBin = new Array(BINS).fill(0);
   const negBin = new Array(BINS).fill(0);
@@ -229,36 +230,70 @@ function ScoreDistribution({ data, threshold }: { data: { score: number; positiv
     if (c.positive) posBin[b]++;
     else negBin[b]++;
   });
-  const maxNeg = Math.max(...negBin, 1);
-  const W = 600, H = 160;
-  const sx = (i: number) => 30 + (i / BINS) * (W - 40);
-  const negH = (v: number) => (v / maxNeg) * (H - 30);
-  const posH = (v: number) => (v / Math.max(...posBin, 1)) * (H - 30);
+  const maxStack = Math.max(...posBin.map((p, i) => p + negBin[i]), 1);
+  const W = 600, H = 200;
+  const PAD_L = 30, PAD_R = 10, PAD_T = 30, PAD_B = 28;
+  const plotW = W - PAD_L - PAD_R;
+  const plotH = H - PAD_T - PAD_B;
+  const binW = plotW / BINS;
+  const sx = (i: number) => PAD_L + i * binW;
+  const sh = (v: number) => (v / maxStack) * plotH;
+  const thrX = PAD_L + threshold * plotW;
+
+  // 통계: 임계값 기준 좌/우 양성·음성 합계
+  let tp = 0, fp = 0, fn = 0, tn = 0;
+  data.forEach((c) => {
+    const pred = c.score >= threshold;
+    if (pred && c.positive) tp++;
+    else if (pred && !c.positive) fp++;
+    else if (!pred && c.positive) fn++;
+    else tn++;
+  });
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-4 border border-border rounded-md bg-surface/40">
-      <text x={20} y={14} fontSize={10} fill="rgb(var(--color-muted))">점수 분포 — 음성(회색) / 양성(주황)</text>
-      {/* axis */}
-      <line x1={30} y1={H - 20} x2={W - 10} y2={H - 20} stroke="rgb(var(--color-border))" />
-      {/* neg bars */}
-      {negBin.map((v, i) => (
-        <rect key={`n${i}`} x={sx(i)} y={H - 20 - negH(v)} width={(W - 40) / BINS - 0.5}
-          height={negH(v)} fill="rgb(var(--color-muted))" opacity={0.4} />
-      ))}
-      {/* pos bars (drawn on top, smaller scale) */}
-      {posBin.map((v, i) => (
-        <rect key={`p${i}`} x={sx(i)} y={H - 20 - posH(v)} width={(W - 40) / BINS - 0.5}
-          height={posH(v)} fill="rgb(251, 146, 60)" opacity={0.85} />
-      ))}
-      {/* threshold line */}
-      <line x1={sx(threshold * BINS)} y1={10} x2={sx(threshold * BINS)} y2={H - 20}
+      <text x={PAD_L - 6} y={14} fontSize={10} fill="rgb(var(--color-muted))">점수 분포 (같은 인원 스케일) — 음성(회색) · 양성(주황)</text>
+
+      {/* 양성 판정 영역 음영 (임계값 오른쪽) */}
+      <rect x={thrX} y={PAD_T} width={Math.max(0, W - PAD_R - thrX)} height={plotH}
+        fill="rgb(var(--color-accent))" opacity={0.08} />
+      <text x={(thrX + W - PAD_R) / 2} y={PAD_T - 4} fontSize={10}
+        textAnchor="middle" fill="rgb(var(--color-accent))">
+        ↓ 양성 판정 (TP {tp} · FP {fp})
+      </text>
+      <text x={(PAD_L + thrX) / 2} y={PAD_T - 4} fontSize={10}
+        textAnchor="middle" fill="rgb(var(--color-muted))">
+        음성 판정 (TN {tn} · FN {fn})
+      </text>
+
+      {/* 막대: 음성을 아래, 양성을 위에 누적 */}
+      {negBin.map((nv, i) => {
+        const pv = posBin[i];
+        const yNeg = H - PAD_B - sh(nv);
+        const yPos = yNeg - sh(pv);
+        return (
+          <g key={i}>
+            <rect x={sx(i) + 0.5} y={yNeg} width={binW - 1} height={sh(nv)}
+              fill="rgb(var(--color-muted))" opacity={0.45} />
+            <rect x={sx(i) + 0.5} y={yPos} width={binW - 1} height={sh(pv)}
+              fill="rgb(251, 146, 60)" opacity={0.9} />
+          </g>
+        );
+      })}
+
+      {/* x축 */}
+      <line x1={PAD_L} y1={H - PAD_B} x2={W - PAD_R} y2={H - PAD_B} stroke="rgb(var(--color-border))" />
+
+      {/* 임계값 선 */}
+      <line x1={thrX} y1={PAD_T} x2={thrX} y2={H - PAD_B}
         stroke="rgb(var(--color-accent))" strokeWidth={2} strokeDasharray="4 3" />
-      <text x={sx(threshold * BINS) + 4} y={20} fontSize={10} fill="rgb(var(--color-accent))">
+      <text x={thrX + 4} y={PAD_T + 12} fontSize={10} fill="rgb(var(--color-accent))">
         임계값 {threshold.toFixed(2)}
       </text>
-      {/* x labels */}
-      <text x={30} y={H - 5} fontSize={10} fill="rgb(var(--color-muted))">0.0</text>
-      <text x={W - 25} y={H - 5} fontSize={10} fill="rgb(var(--color-muted))">1.0</text>
+
+      {/* x 라벨 */}
+      <text x={PAD_L} y={H - 10} fontSize={10} fill="rgb(var(--color-muted))">0.0</text>
+      <text x={W - PAD_R - 16} y={H - 10} fontSize={10} fill="rgb(var(--color-muted))">1.0</text>
     </svg>
   );
 }
