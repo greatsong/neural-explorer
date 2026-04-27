@@ -26,9 +26,15 @@ export function Phase3() {
 
   // 손실 = (예측 − 정답)² 의 예측에 대한 기울기 = 2(예측 − 정답)
   const slope = 2 * (pred - TRUE);
-  // 현재 점 기준 접선 양 끝 (시각화용)
   const tanY = (x: number) => sqError + slope * (x - pred);
-  const tanX1 = pred - 2.5, tanX2 = pred + 2.5;
+  // 접선 길이를 viewBox(yMin~yMax, xMin~xMax) 안에 들어오게 동적으로 결정 —
+  // 길이를 임의로 잡고 clamp하면 직선이 변형되어 점과 어긋난다. 길이 자체를 잘라야 한다.
+  const baseLen = 2.5;
+  const dxFromYBound = Math.abs(slope) > 0.01
+    ? Math.min((yMax - sqError) / Math.abs(slope), sqError / Math.abs(slope))
+    : Infinity;
+  const tanLen = Math.max(0.3, Math.min(baseLen, dxFromYBound, pred - xMin, xMax - pred));
+  const tanX1 = pred - tanLen, tanX2 = pred + tanLen;
 
   return (
     <article>
@@ -58,11 +64,11 @@ export function Phase3() {
           <line x1={sx(TRUE)} y1={0} x2={sx(TRUE)} y2={H} stroke="rgb(var(--color-muted))" strokeDasharray="3 3" />
           <text x={sx(TRUE) + 4} y={14} fontSize={11} fill="rgb(var(--color-muted))">정답</text>
           <path d={path} stroke="rgb(var(--color-accent))" strokeWidth={2} fill="none" />
-          {/* 현재 점에서의 접선 — 기울기의 부호와 크기를 시각화 */}
+          {/* 현재 점에서의 접선 — clamp 없이 정확한 접선 식. 길이는 위에서 viewBox에 맞춰 잘려 있음. */}
           {Math.abs(error) > 0.05 && (
             <line
-              x1={sx(tanX1)} y1={sy(Math.max(yMin, Math.min(yMax, tanY(tanX1))))}
-              x2={sx(tanX2)} y2={sy(Math.max(yMin, Math.min(yMax, tanY(tanX2))))}
+              x1={sx(tanX1)} y1={sy(tanY(tanX1))}
+              x2={sx(tanX2)} y2={sy(tanY(tanX2))}
               stroke="rgb(251, 146, 60)" strokeWidth={2} opacity={0.85}
             />
           )}
