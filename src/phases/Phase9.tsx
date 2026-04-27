@@ -172,9 +172,9 @@ function ScenarioContent({
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 text-sm font-mono">
-        <Metric label="정확도" value={accuracy} note="(TP+TN)/전체" />
-        <Metric label="정밀도" value={precision} note="TP/(TP+FP)" highlight={precision >= 0.5} />
-        <Metric label="재현율" value={recall} note="TP/(TP+FN)" highlight={recall >= 0.5} />
+        <Metric label="정확도" value={accuracy} note="(TP+TN)/전체" plain="맞게 맞춘 사람 / 전체" />
+        <Metric label="정밀도" value={precision} note="TP/(TP+FP)" plain="진짜 양성 / 양성이라 부른 것" highlight={precision >= 0.5} />
+        <Metric label="재현율" value={recall} note="TP/(TP+FN)" plain="진짜 양성 / 실제 양성 전체" highlight={recall >= 0.5} />
         <div className="card p-3 text-center">
           <div className="text-xs text-muted">놓친 환자</div>
           <div className={`text-lg ${fn > 0 ? 'text-rose-600 dark:text-rose-400' : ''}`}>{fn}명</div>
@@ -210,12 +210,13 @@ function ScenarioContent({
   );
 }
 
-function Metric({ label, value, note, highlight }: { label: string; value: number; note: string; highlight?: boolean }) {
+function Metric({ label, value, note, plain, highlight }: { label: string; value: number; note: string; plain?: string; highlight?: boolean }) {
   return (
     <div className={`card p-3 text-center ${highlight ? 'border-accent bg-accent-bg' : ''}`}>
       <div className="text-xs text-muted">{label}</div>
       <div className={`text-lg ${highlight ? 'text-accent' : ''}`}>{(value * 100).toFixed(1)}%</div>
       <div className="text-xs text-muted mt-0.5">{note}</div>
+      {plain && <div className="text-[10px] text-muted/80 leading-tight mt-0.5">{plain}</div>}
     </div>
   );
 }
