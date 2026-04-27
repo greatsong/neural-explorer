@@ -2,6 +2,13 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "neural-explorer-textbook",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "4036", "--strictPort"],
+      "port": 4036,
+      "autoPort": false
+    },
+    {
       "name": "neural-explorer",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],

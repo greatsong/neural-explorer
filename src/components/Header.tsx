@@ -16,6 +16,13 @@ export function Header() {
       </span>
       <div className="ml-auto flex items-center gap-2">
         <a
+          href="#/textbook"
+          className="px-3 py-1.5 rounded-md border border-border hover:bg-surface text-sm"
+          title="이론·실습·수학 코너가 모두 들어 있는 웹 교과서"
+        >
+          📚 교과서
+        </a>
+        <a
           href="#/guide"
           className="px-3 py-1.5 rounded-md border border-border hover:bg-surface text-sm"
           title="화면 캡처가 포함된 전체 학습 가이드"

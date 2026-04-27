@@ -291,7 +291,7 @@ function ComparisonTable({ results }: { results: Record<string, StageResult> }) 
             <div className="font-medium">🌌 같은 원리, 다른 규모</div>
             <ul className="text-xs space-y-1 mt-1 font-mono">
               <li>우리 신경망 (단계 C): {results.C ? results.C.params.toLocaleString() : '—'}개 파라미터</li>
-              <li>GPT-4: 약 1,800,000,000,000개 (1.8조)</li>
+              <li>GPT-4: 추정치 1조개대 (공식 미공개 — 외부 연구·보도 추정)</li>
               <li>사람 뇌 시냅스: 약 100,000,000,000,000개 (100조)</li>
             </ul>
             <p className="text-xs text-muted mt-2">

@@ -130,6 +130,42 @@ function ScenarioContent({
       <h1>평가의 함정</h1>
       <p className="text-muted mt-2">{scenario.context}</p>
 
+      <div className="aside-tip mt-4 p-4">
+        <div className="font-medium mb-2">🔑 한 줄 약속 — "양성 = 이번에 찾고 싶은 것"</div>
+        <p className="text-sm">
+          본격적인 표를 보기 전에 한 가지를 못 박아둘게요. <strong>"양성(positive)"</strong>은 "좋은 일"이라는 뜻이 아니라
+          <strong> 이번에 우리가 찾아내고 싶은 사건</strong>입니다. 그 외 모두가 <strong>"음성(negative)"</strong>.
+          누가 양성인지 정하는 순간, 곧이어 등장할 TP·FP·FN·TN의 의미가 자동으로 결정돼요.
+        </p>
+        <div className="mt-3 text-xs grid sm:grid-cols-3 gap-2">
+          <div className="rounded-md border border-border p-2 bg-surface/40">
+            <div className="font-medium">🦠 코로나 진단</div>
+            <div className="text-muted mt-0.5">
+              양성 = <strong className="text-text">감염자</strong><br />
+              음성 = 비감염자
+            </div>
+          </div>
+          <div className="rounded-md border border-border p-2 bg-surface/40">
+            <div className="font-medium">🎗️ 암 조기검진</div>
+            <div className="text-muted mt-0.5">
+              양성 = <strong className="text-text">암 환자</strong><br />
+              음성 = 정상
+            </div>
+          </div>
+          <div className="rounded-md border border-border p-2 bg-surface/40">
+            <div className="font-medium">💬 스팸 필터</div>
+            <div className="text-muted mt-0.5">
+              양성 = <strong className="text-text">광고 메시지</strong><br />
+              음성 = 일반 메시지
+            </div>
+          </div>
+        </div>
+        <p className="text-xs text-muted mt-3">
+          이 페이지의 시나리오 ({scenario.emoji} <strong>{scenario.name}</strong>)에서 양성은 <strong className="text-text">{scenario.id === 'covid' ? '감염자' : '암 환자'}</strong>예요.
+          앞으로 나오는 TP·FN·정밀도·재현율 모두 "이 양성을 얼마나 잘 찾는가"로 해석하면 됩니다.
+        </p>
+      </div>
+
       <div className="aside-warn mt-4">
         <div className="font-medium">🤯 정확도의 함정</div>
         <p className="text-sm mt-1">

@@ -30,10 +30,15 @@ import { Phase20 } from './phases/Phase20';
 import { Phase21 } from './phases/Phase21';
 import { Phase22 } from './phases/Phase22';
 import { Stub } from './phases/Stub';
+import { Textbook } from './textbook/Textbook';
 
 const PHASE_IDS = new Set(PHASES.map((p) => p.id));
 
-type View = { kind: 'intro' } | { kind: 'guide' } | { kind: 'phase'; id: PhaseId };
+type View =
+  | { kind: 'intro' }
+  | { kind: 'guide' }
+  | { kind: 'phase'; id: PhaseId }
+  | { kind: 'textbook'; slug: string };
 
 export default function App() {
   const setCurrent = useApp((s) => s.setCurrent);
@@ -65,6 +70,16 @@ export default function App() {
 
   const wide = view.kind === 'phase' ? isWide(view.id) : true;
 
+  // 교과서 뷰는 자체 레이아웃(좌측 사이드바 + 본문 + 우측 TOC)을 가지므로 여기선 Header만 감싼다.
+  if (view.kind === 'textbook') {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <Textbook rawSlug={view.slug} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -87,8 +102,11 @@ export default function App() {
 }
 
 function readHash(): View {
-  const raw = window.location.hash.replace('#/', '');
+  // hash 점프(#h-foo)가 함께 붙는 경우가 있어 querystring/anchor를 분리한다.
+  const raw = window.location.hash.replace(/^#\/?/, '').split('#')[0];
   if (raw === 'guide') return { kind: 'guide' };
+  if (raw === 'textbook' || raw === 'textbook/') return { kind: 'textbook', slug: 'intro' };
+  if (raw.startsWith('textbook/')) return { kind: 'textbook', slug: raw.slice('textbook/'.length) };
   if (raw && PHASE_IDS.has(raw as PhaseId)) return { kind: 'phase', id: raw as PhaseId };
   return { kind: 'intro' };
 }
