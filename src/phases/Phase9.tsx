@@ -272,13 +272,13 @@ function ScoreDistribution({ data, threshold }: { data: { score: number; positiv
       {/* 양성 판정 영역 음영 (임계값 오른쪽) */}
       <rect x={thrX} y={PAD_T} width={Math.max(0, W - PAD_R - thrX)} height={plotH}
         fill="rgb(var(--color-accent))" opacity={0.08} />
-      <text x={(thrX + W - PAD_R) / 2} y={PAD_T - 4} fontSize={10}
-        textAnchor="middle" fill="rgb(var(--color-accent))">
-        ↓ 양성 판정 (TP {tp} · FP {fp})
+      <text x={W - PAD_R - 2} y={PAD_T - 4} fontSize={10}
+        textAnchor="end" fill="rgb(var(--color-accent))">
+        양성 판정 → (TP {tp} · FP {fp})
       </text>
-      <text x={(PAD_L + thrX) / 2} y={PAD_T - 4} fontSize={10}
-        textAnchor="middle" fill="rgb(var(--color-muted))">
-        음성 판정 (TN {tn} · FN {fn})
+      <text x={PAD_L + 2} y={PAD_T - 4} fontSize={10}
+        textAnchor="start" fill="rgb(var(--color-muted))">
+        ← 음성 판정 (TN {tn} · FN {fn})
       </text>
 
       {/* 막대: 음성을 아래, 양성을 위에 누적 */}
