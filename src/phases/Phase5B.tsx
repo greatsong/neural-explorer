@@ -1,17 +1,17 @@
 // 페이즈 5의 갱신 식 (w ← w − η · dw, dw = 평균(e·x))이 어디에서 왔는지를
-// PPTX "경사하강법원리" 자료와 같은 흐름으로 한 줄씩 풀어 보여준다.
+// 한 줄씩 풀어 보여준다. 부호 약속은 페이즈 5 본문과 동일하게 e = ŷ − y (예측 − 정답).
 // 미분이라는 단어는 사용하지 않고 "기울기"로 통일. (∂SE/∂w = "SE의 w에 대한 기울기")
 // 결론: 11단계의 복잡한 식이 마지막에 매우 깔끔한 한 줄로 정리된다.
 
 const STEPS: { id: number; expr: string; why: string; highlight?: boolean }[] = [
   {
     id: 1,
-    expr: 'SE = (y − ŷ)²',
-    why: '한 점의 오차의 제곱. 부호와 무관하게 "얼마나 어긋났는가"만 본다.',
+    expr: 'SE = (ŷ − y)²',
+    why: '한 점의 오차의 제곱. 부호와 무관하게 "얼마나 어긋났는가"만 본다. (ŷ − y가 이 페이지의 오차 e의 정의)',
   },
   {
     id: 2,
-    expr: 'SE = ½ × (y − ŷ)²',
+    expr: 'SE = ½ × (ŷ − y)²',
     why: '½을 곱해도 최소가 되는 위치는 똑같다. 나중에 기울기를 구할 때 2가 깔끔히 사라지게 하려는 약속.',
   },
   {
@@ -21,48 +21,43 @@ const STEPS: { id: number; expr: string; why: string; highlight?: boolean }[] = 
   },
   {
     id: 4,
-    expr: 'w ← w − ∂/∂w · ½ (y − ŷ)²',
+    expr: 'w ← w − ∂/∂w · ½ (ŷ − y)²',
     why: '③의 ∂SE/∂w 자리에 ②의 SE 정의를 그대로 끼워 넣는다.',
   },
   {
     id: 5,
-    expr: 'w ← w − ½ × 2(y − ŷ) · ∂/∂w (y − ŷ)',
-    why: '제곱 (□)²의 기울기는 2 × □. 그리고 그 안의 □가 또 w에 의존하므로 안쪽 (y − ŷ)의 기울기를 한 번 더 곱한다 (변화의 사슬).',
+    expr: 'w ← w − ½ × 2(ŷ − y) · ∂/∂w (ŷ − y)',
+    why: '제곱 (□)²의 기울기는 2 × □. 그리고 그 안의 □가 또 w에 의존하므로 안쪽 (ŷ − y)의 기울기를 한 번 더 곱한다 (변화의 사슬).',
   },
   {
     id: 6,
-    expr: 'w ← w − (y − ŷ) · ∂/∂w (y − wx − b)',
-    why: '½ × 2 = 1이라 깔끔히 사라진다. 그리고 ŷ = wx + b였으니 (y − ŷ) = (y − wx − b)로 바꿔 적는다.',
+    expr: 'w ← w − (ŷ − y) · ∂/∂w (wx + b − y)',
+    why: '½ × 2 = 1이라 깔끔히 사라진다. 그리고 ŷ = wx + b였으니 (ŷ − y) = (wx + b − y)로 바꿔 적는다.',
   },
   {
     id: 7,
-    expr: 'w ← w − (y − ŷ) · (−x)',
-    why: '(y − wx − b)에서 w가 1만큼 변하면 식 전체는 −x만큼 변한다 (b·y는 w와 무관).',
-  },
-  {
-    id: 8,
-    expr: 'w ← w + (y − ŷ) · x',
+    expr: 'w ← w − (ŷ − y) · x',
     highlight: true,
-    why: '두 개의 마이너스가 만나 플러스가 된다. — 매우 깔끔하다.',
+    why: '(wx + b − y)에서 w가 1만큼 변하면 식 전체는 x만큼 변한다 (b·y는 w와 무관). 결과는 매우 깔끔한 한 줄. e = ŷ − y이므로 곧 w ← w − e · x.',
   },
 ];
 
 const STEPS_B: { id: number; expr: string; why: string; highlight?: boolean }[] = [
   {
-    id: 9,
+    id: 8,
     expr: 'b ← b − ∂SE/∂b',
     why: 'b도 같은 방식. b의 갱신은 SE의 b에 대한 기울기의 반대 방향으로.',
   },
   {
-    id: 10,
-    expr: 'b ← b − (y − ŷ) · ∂/∂b (y − wx − b)',
-    why: 'w와 같은 절차. 안쪽 (y − wx − b)의 b에 대한 기울기는?',
+    id: 9,
+    expr: 'b ← b − (ŷ − y) · ∂/∂b (wx + b − y)',
+    why: 'w와 같은 절차. 안쪽 (wx + b − y)의 b에 대한 기울기는?',
   },
   {
-    id: 11,
-    expr: 'b ← b + (y − ŷ)',
+    id: 10,
+    expr: 'b ← b − (ŷ − y)',
     highlight: true,
-    why: '(y − wx − b)에서 b가 1만큼 변하면 −1만큼 변한다 → (y − ŷ) × (−1). 다시 두 마이너스가 만나 플러스. 결과는 단순히 (y − ŷ).',
+    why: '(wx + b − y)에서 b가 1만큼 변하면 식 전체도 1만큼 변한다 → (ŷ − y) × 1. 결과는 단순히 b ← b − e.',
   },
 ];
 
@@ -76,16 +71,18 @@ export function DerivationContent() {
       </p>
 
       <div className="aside-tip mt-3 text-sm">
-        <div className="font-medium">기호 약속</div>
+        <div className="font-medium">기호 약속 (페이즈 5 본문과 동일)</div>
         <ul className="mt-2 list-disc pl-5 space-y-1 text-muted">
-          <li><code>SE</code> (Squared Error) = 한 점의 오차 제곱</li>
           <li><code>y</code> = 정답, <code>ŷ = w · x + b</code> = 예측</li>
+          <li><code>e = ŷ − y</code> = 한 점의 오차 (예측 − 정답)</li>
+          <li><code>SE</code> (Squared Error) = <code>e²</code> = 한 점의 오차 제곱</li>
           <li>
             <code>∂SE/∂w</code> = "<strong>SE의 w에 대한 기울기</strong>" =
             "<code>w</code>를 살짝 바꿀 때 <code>SE</code>가 얼마나 변하는지의 비율"
           </li>
           <li>
-            <strong>출발 원리</strong>: 기울기는 SE가 가장 빠르게 <em>증가</em>하는 방향. 우리는 SE를 <em>감소</em>시키고 싶으니 그 <strong>반대 방향(=빼기)</strong>으로 옮긴다.
+            <strong>출발 원리</strong>: 기울기는 SE가 가장 빠르게 <em>증가</em>하는 방향.
+            우리는 SE를 <em>감소</em>시키고 싶으니 그 <strong>반대 방향(=빼기)</strong>으로 옮긴다.
           </li>
         </ul>
         <p className="mt-2 text-xs text-muted">
@@ -94,7 +91,7 @@ export function DerivationContent() {
         </p>
       </div>
 
-      <h2>w 업데이트 식 유도 — 8단계</h2>
+      <h2>w 업데이트 식 유도 — 7단계</h2>
       <p className="text-sm text-muted">
         그냥 위에서 아래로 쭉 훑어보세요. 회색 한 줄 설명만 곁눈질하면 "왜 이렇게 바뀌었구나"가 보입니다.
       </p>
@@ -115,15 +112,17 @@ export function DerivationContent() {
         <div className="text-center font-mono text-lg space-y-3">
           <div>
             <span className="text-muted text-sm">새 w =</span>{' '}
-            w + <span className="text-accent font-bold">(y − ŷ) · x</span>
+            w − <span className="text-accent font-bold">(ŷ − y) · x</span>{' '}
+            = w − <span className="text-accent font-bold">e · x</span>
           </div>
           <div>
             <span className="text-muted text-sm">새 b =</span>{' '}
-            b + <span className="text-accent font-bold">(y − ŷ)</span>
+            b − <span className="text-accent font-bold">(ŷ − y)</span>{' '}
+            = b − <span className="text-accent font-bold">e</span>
           </div>
         </div>
         <p className="text-sm text-muted mt-4 leading-relaxed">
-          11단계의 ∂·½·(−x) 같은 것들이 <strong>두 번의 약분(½×2 = 1, − × − = +)</strong>을 거치며 모두 사라지고,
+          10단계의 ∂·½ 같은 것들이 <strong>약분(½ × 2 = 1)</strong>을 거치며 모두 사라지고,
           남은 건 그저 <strong>"오차에 입력 x를 곱하기"</strong>(w 쪽)와 <strong>"오차 그대로"</strong>(b 쪽)입니다.
           이게 바로 페이즈 5에서 보던 <code>e × x</code>·<code>e</code>의 정체예요.
         </p>
@@ -134,11 +133,10 @@ export function DerivationContent() {
         위는 한 점 기준 식. 데이터가 N개면 점마다 한 번씩 적용하고 평균을 내면 끝.
         그게 페이즈 5의 <code>dw</code>·<code>db</code>입니다.
       </p>
-
-      <p className="text-xs text-muted mt-4">
-        ※ 부호 메모 — 이 풀이는 <code>오차 = y − ŷ</code>로 약속해 마지막이 <strong>덧셈</strong>(+),
-        페이즈 5 본문은 <code>e = ŷ − y</code>로 약속해 <strong>뺄셈</strong>(−). 약속만 뒤집혔을 뿐 결과는 동일.
-      </p>
+      <div className="card p-3 mt-2 font-mono text-sm text-center space-y-1">
+        <div><code>dw</code> = 평균(<code>e · x</code>) → <code>w ← w − η · dw</code></div>
+        <div><code>db</code> = 평균(<code>e</code>) → <code>b ← b − η · db</code></div>
+      </div>
     </>
   );
 }
