@@ -241,17 +241,18 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
 
   const fwdActive = stage === 'predict';
   const errActive = stage === 'error';
-  const outActive = stage === 'outputGrad';
-  const hsigActive = stage === 'hiddenSignal';
-  const hgActive = stage === 'hiddenGrad';
-  const updActive = stage === 'update';
 
-  // 비활성 역전파 라벨은 0 — 겹침 방지
-  const opE     = errActive || hsigActive || hgActive || outActive ? 1 : 0;
-  const opDw2   = outActive || updActive ? 1 : 0;
-  const opEh    = hsigActive || hgActive ? 1 : 0;
-  const opDw1   = hgActive || updActive ? 1 : 0;
-  const opFwd   = fwdActive ? 1 : 0.65;  // 항상 보이되 비활성일 때 흐림
+  // 단계 인덱스로 *누적* 표시 — 한 번 등장한 역전파 라벨은 갱신(stage 5)까지 사라지지 않음.
+  // 다음 사이클의 예측(stage 0)으로 돌아가면 모두 초기화된다.
+  const stageIdxMap: Record<StageId, number> = {
+    predict: 0, error: 1, outputGrad: 2, hiddenSignal: 3, hiddenGrad: 4, update: 5,
+  };
+  const sIdx = stageIdxMap[stage];
+  const opE   = sIdx >= 1 ? 1 : 0;  // 오차 — stage 1부터 끝까지
+  const opDw2 = sIdx >= 2 ? 1 : 0;  // dw₂·db₂ — stage 2부터
+  const opEh  = sIdx >= 3 ? 1 : 0;  // e_h — stage 3부터
+  const opDw1 = sIdx >= 4 ? 1 : 0;  // dw₁·db₁ — stage 4부터
+  const opFwd = fwdActive ? 1 : 0.65;
 
   const FWD = 'rgb(var(--color-accent))';
   const BACK = 'rgb(190, 18, 60)';
@@ -379,7 +380,7 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
             </text>
           </g>
         )}
-        {/* dw₂ — Σ₂ → ŷ 사이 */}
+        {/* dw₂ + db₂ — Σ₂ → ŷ 사이 */}
         {opDw2 > 0 && (
           <g>
             <line x1={yhCx - 24} y1={cy + 30} x2={sum2Cx + 28} y2={cy + 30}
@@ -391,7 +392,7 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
             </text>
             <text x={(sum2Cx + yhCx) / 2} y={cy + 96} textAnchor="middle"
                   fontSize={10} fontFamily="JetBrains Mono" fill={BACK}>
-              = e · h
+              db₂ = {t.db2.toFixed(2)}
             </text>
           </g>
         )}
@@ -408,7 +409,7 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
             </text>
           </g>
         )}
-        {/* dw₁ — x → Σ₁ 사이 */}
+        {/* dw₁ + db₁ — x → Σ₁ 사이 */}
         {opDw1 > 0 && (
           <g>
             <line x1={sum1Cx - 28} y1={cy + 30} x2={xCx + 24} y2={cy + 30}
@@ -420,7 +421,7 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
             </text>
             <text x={(xCx + sum1Cx) / 2} y={cy + 96} textAnchor="middle"
                   fontSize={10} fontFamily="JetBrains Mono" fill={BACK}>
-              = e_h · x
+              db₁ = {t.db1.toFixed(2)}
             </text>
           </g>
         )}
@@ -434,51 +435,22 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
         )}
       </svg>
 
-      {/* SVG 바로 아래 — 일반 식 블록(단계별 음영) + 활성 단계 숫자 대입 */}
-      <GeneralizedFormulaBlock stage={stage} />
+      {/* SVG 아래 — 갱신식 두 줄(stage='update'에서 음영 + 굵게) */}
+      <UpdateLines stage={stage} />
       {showFormula && <ActiveFormulaStrip W={W} t={t} stage={stage} />}
     </div>
   );
 }
 
-/* ════════════════════════════════════════════════════════════
-   일반 식 블록 — 단계별 *기호 식*을 한 곳에 모음.
-   현재 단계에 해당하는 행은 음영 + 굵게 → "지금 어떤 계산이 되고 있는지" 한눈에.
-══════════════════════════════════════════════════════════════ */
-function GeneralizedFormulaBlock({ stage }: { stage: StageId }) {
+/* 갱신 식 — w·b 4개 동시 갱신을 두 줄로. 갱신 단계에서 음영 + 굵게. */
+function UpdateLines({ stage }: { stage: StageId }) {
+  const active = stage === 'update';
   return (
-    <div className="border-t border-border mt-3 pt-2.5 px-1 font-mono text-[12px] leading-relaxed space-y-0.5">
-      <div className="text-[10px] text-muted font-sans mb-1.5">단계별 일반 식 — 지금 단계는 음영</div>
-      <FormulaRow active={stage === 'predict'} num="①">
-        z₁ = w₁·x + b₁ &nbsp; h = ReLU(z₁) &nbsp; z₂ = w₂·h + b₂ &nbsp; ŷ = z₂
-      </FormulaRow>
-      <FormulaRow active={stage === 'error'} num="②">
-        e = ŷ − y
-      </FormulaRow>
-      <FormulaRow active={stage === 'outputGrad'} num="③">
-        dw₂ = e · h &nbsp;&nbsp; db₂ = e
-      </FormulaRow>
-      <FormulaRow active={stage === 'hiddenSignal'} num="④">
-        e_h = e · w₂ · ReLU′(z₁) &nbsp; <span className="text-[10px]">← 역전파 핵심</span>
-      </FormulaRow>
-      <FormulaRow active={stage === 'hiddenGrad'} num="⑤">
-        dw₁ = e_h · x &nbsp;&nbsp; db₁ = e_h
-      </FormulaRow>
-      <FormulaRow active={stage === 'update'} num="⑥">
-        <span className="block">w₂ ← w₂ − η · dw₂ &nbsp;&nbsp; b₂ ← b₂ − η · db₂</span>
-        <span className="block">w₁ ← w₁ − η · dw₁ &nbsp;&nbsp; b₁ ← b₁ − η · db₁</span>
-      </FormulaRow>
-    </div>
-  );
-}
-
-function FormulaRow({ active, num, children }: { active: boolean; num: string; children: React.ReactNode }) {
-  return (
-    <div className={`rounded-md px-2 py-1 transition-colors ${
-      active ? 'bg-accent-bg/60 border-l-2 border-accent font-bold' : 'border-l-2 border-transparent'
+    <div className={`mt-3 px-2 py-1.5 font-mono text-[12px] leading-relaxed transition-colors ${
+      active ? 'bg-accent-bg/60 rounded-md font-bold border-l-2 border-accent' : 'border-l-2 border-transparent'
     }`}>
-      <span className={`mr-2 ${active ? 'text-accent' : 'text-muted font-normal'}`}>{num}</span>
-      <span>{children}</span>
+      <div>w₂ ← w₂ − η · dw₂ &nbsp;&nbsp;&nbsp; b₂ ← b₂ − η · db₂</div>
+      <div>w₁ ← w₁ − η · dw₁ &nbsp;&nbsp;&nbsp; b₁ ← b₁ − η · db₁</div>
     </div>
   );
 }
