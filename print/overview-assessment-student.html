@@ -80,7 +80,7 @@
   <div class="sub">1부 뉴런 · 2부 분류 · 3·4부 깊은 학습 · 5부 생성 · 6부 언어 — 전 영역 평가</div>
   <div class="meta">대상: 고등학생 · 시간 50~60분 · 총 102점 · 앱 사용 없이 푼다 (필요 시 손 계산기 허용)</div>
   <div class="obj"><strong>안내</strong> 7개 영역에서 객관식·단답·계산·서술이 균형 있게 출제됩니다. 모든 답안은 활동지에 직접 작성하세요. 객관식은 ●(채워서) 표시, 부분 점수 가능.</div>
-  <div class="name">학년 반 번호 <span></span> 이름 <span></span> <span class="total">총점 ____ / 102</span></div>
+  <div class="name">학번 <span></span> 이름 <span></span> <span class="total">총점 ____ / 102</span></div>
 </header>
 
 <div class="ib">
@@ -141,7 +141,7 @@
 
 <div class="qc">
   <div class="qh"><span><span class="num">6</span>객관식 — 정확도의 함정</span><span class="pt">3점</span></div>
-  <div class="qd">실제 양성이 1%인 검사에서 모델이 "전원 음성"이라고만 답한다. 이 모델의 정확도와 재현율은?</div>
+  <div class="qd">실제 양성이 1%인 검사에서 모델이 "전원 음성"이라고만 답한다(임계값을 1.0보다 크게 둔 셈). 이 모델의 정확도와 재현율은?</div>
   <span class="opt"><span class="o"></span>① 정확도 1%, 재현율 100%</span>
   <span class="opt"><span class="o"></span>② 정확도 99%, 재현율 100%</span>
   <span class="opt"><span class="o"></span>③ 정확도 99%, 재현율 0%</span>
@@ -149,13 +149,13 @@
 </div>
 
 <div class="qc">
-  <div class="qh"><span><span class="num">7</span>지표 선택 — 시나리오 매칭</span><span class="pt">6점</span></div>
-  <div class="qd">아래 세 시나리오에서 가장 중요한 지표를 보기에서 골라 적고, 이유를 한 문장으로 적으세요. 보기: <strong>정확도 / 정밀도 / 재현율</strong></div>
+  <div class="qh"><span><span class="num">7</span>지표 선택 — 마피아 게임 비유로</span><span class="pt">6점</span></div>
+  <div class="qd">정밀도가 높은 친구 = 🧐 신중파(확실할 때만 지목), 재현율이 높은 친구 = 🗣️ 적극파(조금만 수상해도 외침)예요. 아래 세 시나리오에 어느 친구가 더 적합한지 보기에서 골라 적고, 이유를 한 문장으로. 보기: <strong>정확도 / 정밀도 / 재현율</strong></div>
   <table class="tb">
-    <tr><th>시나리오</th><th>지표</th><th>한 줄 이유</th></tr>
-    <tr><td class="al">스팸 메일 분류 (정상 메일을 잘못 차단하면 큰 손해)</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="al">암 조기검진 (놓치면 생존율 급락)</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="al">동전 던지기 모델 (50:50 데이터, 두 오류 비용 같음)</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><th>시나리오 (양성 = 찾고 싶은 것)</th><th>지표</th><th>한 줄 이유</th></tr>
+    <tr><td class="al">스팸 메일 분류 — 양성 = 광고 (정상 메일을 잘못 차단하면 큰 손해)</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="al">암 조기검진 — 양성 = 암 환자 (놓치면 생존율 급락)</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="al">입시 합격 예측 — 양성 = 합격 (50:50, 두 오류 비용 같음)</td><td class="blank"></td><td class="blank"></td></tr>
   </table>
 </div>
 

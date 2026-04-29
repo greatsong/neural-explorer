@@ -81,29 +81,26 @@
   <div class="sub">평균과 분포 · 오토인코더와 잠재 공간</div>
   <div class="meta">앱 페이즈 13~14 (히든 스테이지) · 대상: 고등학생 · 활동 시간 약 60분</div>
   <div class="obj"><strong>학습 목표</strong> ① "분류기를 뒤집으면 생성기가 된다"는 발상을 평균/분포로 체감한다. ② 오토인코더의 인코더–잠재–디코더 구조를 설명한다. ③ 잠재 공간에서 점을 옮길 때 그림이 어떻게 변하는지 관찰하고, 이것이 현대 생성 AI의 출발점임을 안다.</div>
-  <div class="name">학년 반 번호 <span></span> 이름 <span></span></div>
+  <div class="name">학번 <span></span> 이름 <span></span></div>
 </header>
 
 <!-- ============================================================== -->
-<h2>STEP 1. 평균과 분포 — 가장 단순한 생성 모델 (Phase 13)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 13에서 두 라벨 데이터셋을 골라 ① 평균 이미지 → ② 분산 → ③ 보간·노이즈로 새 그림 생성을 진행.</div>
+<h2>STEP 1. 평균과 분포 — 가장 단순한 생성 모델</h2>
 
 <div class="ib">
-  <div class="t">생성 = 분포에서 점을 뽑는 일</div>
-  같은 라벨 그림을 여러 장 평균내면 "그 라벨의 중심"이 나옵니다. 거기에 약간의 흔들림(노이즈)을 더하면 매번 살짝 다른 새 그림이 나오고요. 이것이 <strong>가장 단순한 생성 모델</strong>입니다.
+  <div class="t">이 절의 목표</div>
+  같은 라벨 그림을 여러 장 평균내면 "그 라벨의 중심"이 나오고, 거기에 약간의 흔들림을 더하면 매번 살짝 다른 새 그림이 만들어진다는 사실을 손계산으로 확인한다. 이것이 <strong>가장 단순한 생성 모델</strong>이다.
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-1</span>평균 이미지 관찰</div>
-  <div class="qd">선택한 라벨 페어: A = <span class="bk lg"></span> &nbsp;&nbsp; B = <span class="bk lg"></span></div>
-  <div class="qd">앱이 보여준 두 평균 이미지를 그대로 따라 그려보세요. 밝은 픽셀 = 자주 칠해진 자리.</div>
+  <div class="qh"><span class="num">1-1</span>두 라벨의 평균 이미지 — 미리 제공</div>
+  <div class="qd">두 라벨 A·B의 학습 그림 10장씩을 평균낸 결과입니다. (A = 위쪽 가로줄, B = 왼쪽 세로줄. 3·4부 STEP 1과 동일한 단순 패턴.)</div>
   <table style="margin:0 auto"><tr>
     <td style="padding:0 16pt">
-      <div style="text-align:center;font-size:9pt;color:#555;margin-bottom:3pt">A 평균</div>
+      <div style="text-align:center;font-size:9pt;color:#555;margin-bottom:3pt">A 평균 (가로줄)</div>
       <table class="dot">
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td></tr>
         <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
         <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
         <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
@@ -113,51 +110,70 @@
       </table>
     </td>
     <td style="padding:0 16pt">
-      <div style="text-align:center;font-size:9pt;color:#555;margin-bottom:3pt">B 평균</div>
+      <div style="text-align:center;font-size:9pt;color:#555;margin-bottom:3pt">B 평균 (세로줄)</div>
       <table class="dot">
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
       </table>
     </td>
   </tr></table>
-</div>
-
-<div class="qc">
-  <div class="qh"><span class="num">1-2</span>분산이 의미하는 것</div>
-  <div class="qd">앱은 분산 이미지도 보여줍니다. 분산이 큰(밝은) 픽셀은 어떤 자리이고, 그게 의미하는 바는 무엇인가요?</div>
+  <div class="qd">평균이 곧 "그 라벨의 중심"인 이유를 한 줄로:</div>
   <div class="ans-area"></div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-3</span>보간 슬라이더 — A에서 B로 가는 길</div>
-  <div class="qd">앱에서 보간(blend) 슬라이더를 0 → 0.25 → 0.5 → 0.75 → 1로 옮기며 어떤 그림이 나오는지 관찰.</div>
-  <table class="tb">
-    <tr><th>blend</th><th>0</th><th>0.25</th><th>0.5</th><th>0.75</th><th>1</th></tr>
-    <tr><td class="lbl">한 줄 묘사</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-  </table>
-  <div class="qd">중간 그림(0.5)이 두 라벨 어느 쪽으로도 분류되지 않는 "어중간한 그림"인 이유는?</div>
+  <div class="qh"><span class="num">1-2</span>분산 이미지 — 의미 해석</div>
+  <div class="qd">학생들이 그린 A 패턴 10장이 매번 정확히 같지 않았다고 하자. 어떤 학생은 가로줄을 1·2행에 그렸고, 어떤 학생은 0·1행에. 이때 분산은 "각 픽셀이 그림마다 얼마나 변했는가"를 나타냅니다.</div>
+  <div class="qd">A 라벨 분산 이미지에서 가장 분산이 큰(밝은) 픽셀은 어디일까요? 그리고 그게 무엇을 의미할까요?</div>
+  <div class="ans-area"></div>
+  <div class="ib tip"><strong>참고</strong> 분산이 큰 자리 = 그 라벨 안에서 다양성이 발생하는 영역. 예: A의 경우 "가로줄이 어느 행에 그려졌는가"가 학생마다 달라서 1·2·3행 경계가 가장 분산이 크다.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-3</span>보간 — A에서 B로 가는 길 (직접 계산)</div>
+  <div class="qd">보간 식: <span class="mono">G(blend) = (1 − blend)·A + blend·B</span>. 즉 A와 B 평균을 가중평균. 위 가운데 칸 픽셀 한 개를 골라(예: 0행 0열) blend별 픽셀 값을 직접 계산하세요.</div>
+  <div class="qd">0행 0열 픽셀 — A에서 1, B에서 1 (둘 다 켜짐).</div>
+  <div class="fm">
+    blend = 0 → G = (1−0)·1 + 0·1 = <span class="bk"></span><br>
+    blend = 0.5 → G = 0.5·1 + 0.5·1 = <span class="bk"></span><br>
+    blend = 1 → G = 0·1 + 1·1 = <span class="bk"></span>
+  </div>
+  <div class="qd">0행 4열 픽셀 — A에서 1, B에서 0 (A에서만 켜짐).</div>
+  <div class="fm">
+    blend = 0 → G = <span class="bk"></span><br>
+    blend = 0.5 → G = <span class="bk"></span> &nbsp; <span style="color:#666">(중간값)</span><br>
+    blend = 1 → G = <span class="bk"></span>
+  </div>
+  <div class="qd">중간 그림(blend = 0.5)이 두 라벨 어느 쪽으로도 분류되지 않는 "어중간한 그림"이 되는 이유:</div>
   <div class="ans-area"></div>
 </div>
 
 <div class="qc">
   <div class="qh"><span class="num">1-4</span>노이즈 = 다양성</div>
-  <div class="qd">노이즈 슬라이더를 0 → 0.2로 올리고 "다시 뽑기"를 5번 누른 결과:</div>
-  <div class="ob">
-    <div class="lab">관찰 — 같은 blend·다른 노이즈로 뽑힌 5장은 어떻게 비슷하고 어떻게 다른가? "생성 모델이 만드는 다양성"이란 무엇인가?</div>
-    <div class="ans-area lg"></div>
-  </div>
+  <div class="qd">같은 blend(예: 0)에 노이즈를 더해 5번 다시 뽑은 결과를 묘사한 표:</div>
+  <table class="tb">
+    <tr><th>시도</th><th>노이즈 = 0</th><th>노이즈 = 0.2</th></tr>
+    <tr><td>1번째</td><td class="al">A 평균과 동일</td><td class="al">A 평균에 무작위 점이 흩뿌려진 그림</td></tr>
+    <tr><td>2번째</td><td class="al">A 평균과 동일</td><td class="al">또 다른 무작위 흩뿌림 패턴</td></tr>
+    <tr><td>3~5번째</td><td class="al">계속 동일</td><td class="al">매번 살짝씩 다른 그림</td></tr>
+  </table>
+  <div class="qd">"생성 모델이 만드는 다양성"이란 무엇인지 자기 말로 한 줄:</div>
+  <div class="ans-area"></div>
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 2. 오토인코더 — 잠재 공간으로 (Phase 14)</h2>
+<h2>STEP 2. 오토인코더 — 잠재 공간으로</h2>
 
-<div class="an"><span class="lab">앱</span>페이즈 14에서 ① 구조 이해 → ② 학습 → ③ 잠재 공간 탐험 순으로 진행. 학습은 데이터셋을 골라 자동으로 진행됩니다.</div>
+<div class="ib">
+  <div class="t">이 절의 목표</div>
+  그림 → 짧은 코드 → 그림으로 자기 자신을 복원하는 신경망(오토인코더)의 구조를 이해하고, 가운데 "짧은 코드"가 만드는 <strong>잠재 공간</strong>을 좌표별 그림 결과로 탐험한다.
+</div>
 
 <div class="ib">
   <div class="t">오토인코더(autoencoder)</div>
@@ -211,23 +227,32 @@
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">2-2</span>잠재 공간 탐험 — 좌표를 옮기며 관찰</div>
-  <div class="qd">앱 ③ 탭에서 z₁·z₂ 슬라이더(또는 평면 위 점)를 옮기며 9개 좌표에서 어떤 그림이 나오는지 묘사.</div>
+  <div class="qh"><span class="num">2-2</span>잠재 공간 탐험 — 9개 좌표 결과 미리 제공</div>
+  <div class="qd">두 라벨(가로줄 A·세로줄 B)로 학습된 오토인코더의 잠재 공간(z₁·z₂)에서, 9개 좌표를 디코더에 넣었을 때 나오는 그림을 묘사한 표:</div>
   <table class="tb">
     <tr><th>z₁ \ z₂</th><th>z₂ = −1.5</th><th>z₂ = 0</th><th>z₂ = +1.5</th></tr>
-    <tr><td>z₁ = −1.5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>z₁ = 0</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>z₁ = +1.5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>z₁ = −1.5</td><td class="al">진한 가로줄 A</td><td class="al">옅은 가로줄 A</td><td class="al">A·B 흐릿하게 겹친 모양</td></tr>
+    <tr><td>z₁ = 0</td><td class="al">옅은 A 흔적</td><td class="al">A·B 평균 (어중간)</td><td class="al">옅은 B 흔적</td></tr>
+    <tr><td>z₁ = +1.5</td><td class="al">A·B 흐릿하게 겹친 모양</td><td class="al">옅은 세로줄 B</td><td class="al">진한 세로줄 B</td></tr>
   </table>
-  <div class="qd">평면 위 한 방향(예: z₁이 커질수록)에 그림이 어떻게 변하는지 한 줄로:</div>
+  <div class="qd">표를 보고 빈칸을 채우세요.</div>
+  <div class="fm">
+    z₁이 −1.5에서 +1.5로 커질수록, 그림이 (라벨 A → 라벨 B)로 변한다 — z₁ 축이 잡고 있는 의미 = <span class="bk lg"></span><br>
+    z₂가 −1.5에서 +1.5로 변할 때 어떤 변화가 보이는가? <span class="bk xl"></span>
+  </div>
+  <div class="qd">평면 위 한 방향(예: z₁이 커질수록)에 그림이 어떻게 변하는지 한 줄로 정리:</div>
   <div class="ans-area"></div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">2-3</span>학습 데이터에 없던 좌표</div>
-  <div class="qd">학습 데이터의 z 위치에서 멀리 떨어진 좌표(예: z₁ = z₂ = 3)에 점을 두면 어떤 그림이 나오나요? 그 이유는?</div>
+  <div class="qh"><span class="num">2-3</span>학습 데이터에 없던 좌표 — 결과 미리 제공</div>
+  <div class="qd">학습 데이터의 z 분포는 z₁·z₂가 대략 [−1.5, +1.5] 안에 모여 있다. 그 영역 밖 좌표(예: z₁ = z₂ = 3)에 점을 두면?</div>
+  <div class="ex">
+    <strong>결과 묘사</strong> &nbsp; 어느 라벨에도 속하지 않는 <strong>이상하거나 깨진 그림</strong>이 나오는 경우가 많음. 픽셀이 무작위로 흩뿌려지거나, 잘못된 위치에 검은 칸이 생기는 식.
+  </div>
+  <div class="qd">왜 이런 결과가 나오는지, "디코더가 학습한 영역"의 관점에서 한 줄로:</div>
   <div class="ans-area"></div>
-  <div class="ib tip">현대 생성 AI(VAE, Stable Diffusion 등)는 훨씬 큰 잠재 공간(수백~수천 차원)에서 같은 일을 합니다 — 좌표를 잘 고르면 사진·그림·영상·음악도 만들 수 있어요.</div>
+  <div class="ib tip">현대 생성 AI(VAE, Stable Diffusion 등)는 훨씬 큰 잠재 공간(수백~수천 차원)에서 같은 일을 한다 — 좌표를 잘 고르면 사진·그림·영상·음악도 만들 수 있다.</div>
 </div>
 
 <!-- ============================================================== -->

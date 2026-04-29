@@ -76,99 +76,185 @@
 </header>
 
 <!-- ============================================================== -->
-<h2>STEP 1. 입시 합격 예측 (Phase 6)</h2>
+<h2>STEP 1. 입시 합격 예측 — 가중치 추적</h2>
 
-<div class="an"><span class="lab">앱 운영</span>학생들이 시나리오를 자유 선택. 한 반에서 A·B가 섞여도 좋다. <strong>둘 다 풀게 하면 시간 부족</strong>이므로 1개 선택 후 STEP 2~4까지 같은 시나리오 유지.</div>
+<div class="an"><span class="lab">활동지 운영</span>학생용은 정시 시나리오 6명·시험 4명을 활동지 안에 모두 적어두어 앱 없이 자력으로 풀 수 있게 만들었다. 학생들이 W1(균등)을 직접 손계산해 정확도 83%를 발견하고, W2·W3 결과(미리 제공)와 비교해 "수학 가중치가 큼"을 거꾸로 추적하는 흐름.</div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-1</span>변수 — 정답</div>
-  <div class="ans"><span class="lab">시나리오 A 정시</span>x₁ <span class="v">국어</span> · x₂ <span class="v">수학</span> · x₃ <span class="v">영어</span> · x₄ <span class="v">탐구</span> (모두 1~10점)</div>
-  <div class="ans"><span class="lab">시나리오 B 학종</span>x₁ <span class="v">학업역량</span> · x₂ <span class="v">진로역량</span> · x₃ <span class="v">공동체역량</span> · x₄ <span class="v">면접</span> (모두 1~10점)</div>
+  <div class="qh"><span class="num">1-1</span>합격자/불합격자 패턴 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>합격 3명의 수학 점수는 8·9·9, 불합격 3명의 수학 점수는 5·5·6. <strong>수학</strong>이 합·불을 가장 잘 가르는 변수로 보임. (국·영·탐은 합격자보다 불합격자에서 더 높게 나오는 경우도 있어 단독 변수로는 약함.)</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-2</span>가중치 조정 — 운영 가이드</div>
-  <div class="tt"><span class="lab">수업 팁</span>처음 슬라이더 위치는 모두 0.25(균등). 학생들이 무작정 올리지 않도록 <strong>"합격자에서 가장 높은 변수가 무엇인지"</strong>부터 명단을 들여다보고 시작하게 안내. 한 슬라이더만 0.5로 올려 변화 보고 → 다음 슬라이더 → 식으로 한 번에 한 변수만 움직이는 절차를 시범.</div>
-  <div class="tt"><span class="lab">관찰 포인트</span>학생들이 가중치를 키우다가 컷오프를 함께 올리지 않으면 <strong>전원 합격</strong>으로 정확도가 50% 부근에 멈춘다. "합격컷"의 역할을 짚어줄 시점.</div>
+  <div class="qh"><span class="num">1-2</span>W1 (균등) — 정답 (점수 = 네 과목 평균)</div>
+  <table class="tb">
+    <tr><th>학생</th><th>점수 = 평균</th><th>예측 (&gt;7 합격, ≤7 불합격)</th><th>실제</th><th>맞음/틀림</th></tr>
+    <tr><td class="al">김민서</td><td class="fa">7.75</td><td class="fa">합격</td><td>합격</td><td class="fa">✓</td></tr>
+    <tr><td class="al">이지우</td><td class="fa">7.25</td><td class="fa">합격</td><td>합격</td><td class="fa">✓</td></tr>
+    <tr><td class="al">박서연</td><td class="fa">7.00</td><td class="fa">불합격(경계, 7.0 그대로는 ≤이므로 불합격)</td><td>합격</td><td class="fa">✗</td></tr>
+    <tr><td class="al">최도윤</td><td class="fa">7.00</td><td class="fa">불합격(경계)</td><td>불합격</td><td class="fa">✓</td></tr>
+    <tr><td class="al">정하준</td><td class="fa">6.75</td><td class="fa">불합격</td><td>불합격</td><td class="fa">✓</td></tr>
+    <tr><td class="al">강시우</td><td class="fa">6.50</td><td class="fa">불합격</td><td>불합격</td><td class="fa">✓</td></tr>
+  </table>
+  <div class="ans"><span class="lab">정답</span>맞음 = <span class="v">5</span>개 → 정확도 = 5/6 ≈ <span class="v">83.3%</span></div>
+  <div class="pf"><span class="lab">자주 틀림</span>박서연·최도윤이 점수 7.0으로 동률인데 한쪽은 합격·한쪽은 불합격이라 균등 가중치로는 구별 불가. 앱과 동일한 규칙(<span class="mono">점수 &gt; 컷오프</span>)이므로 7.0은 모두 불합격으로 예측 → 박서연 한 명을 틀린다.</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-3</span>학습 vs 시험 정확도 — 모범 답안</div>
-  <div class="ans"><span class="lab">예시 결과</span>10명 학습 후 학습 정확도 ≈ 100%인데 시험 정확도는 70~80% 수준에 머무는 경우가 많음. 시나리오에 따라 차이.</div>
-  <div class="ans"><span class="lab">차이 원인</span>10명만 보고 정한 가중치는 그 10명의 우연한 패턴까지 외운 것이라, 새 20명에게는 잘 맞지 않는다. → <strong>과적합(overfitting)</strong>의 직관적 설명. (용어는 STEP 2에서 함께 도입.)</div>
+  <div class="qh"><span class="num">1-3</span>가중치 비교 + 비밀 공식 추적 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>가장 정확한 가중치는 <strong>W2 (수학 강조)</strong>로 100%. W1(균등) 83% &gt; W3(영어 강조) 33%.</div>
+  <div class="ans"><span class="lab">비밀 공식 추적 — 모범 답안</span>"여러 가중치 시도 결과의 정확도 차이를 비교하면, 가장 높은 정확도를 내는 비율이 진짜 합격 공식과 가장 가까울 것이다." 또는 "가중치 차이가 정확도 차이로 드러나기 때문에, 정확도 패턴을 보고 어느 변수가 큰지 추정한다."</div>
+  <div class="tt"><span class="lab">수업 팁</span>"비밀 공식을 정확히 알 수는 없어도, 결과로부터 비율 패턴을 좁힐 수 있다"는 점이 통계·머신러닝의 핵심 발상임을 짚을 것.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-4</span>학습 vs 시험 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>시험 4명 중 맞음 = <span class="v">3</span> → 시험 정확도 = 3/4 = <span class="v">75%</span>. (틀린 경우: 장이안 — W2로 6.5점이라 불합격 예측이지만 실제는 합격.)</div>
+  <div class="ans"><span class="lab">차이 원인 — 모범 답안</span>학습 6명에서 100%였던 가중치가 시험 4명에서 75%로 떨어진 이유: 학습 데이터가 너무 적어 그 6명의 우연한 패턴까지 외웠기 때문. → <strong>과적합(overfitting)</strong>의 직관적 설명. 새 학생 장이안처럼 "수학은 약하지만 다른 과목 우수"인 합격자는 W2로는 못 잡음.</div>
   <div class="pf"><span class="lab">자주 틀림</span>"학습 정확도가 높을수록 좋은 모델"이라는 오해. 실제 평가는 시험 정확도로만 한다는 점을 강조.</div>
 </div>
 
+<!-- ============================================================== -->
+<h2>STEP 2. 데이터 추가 후 재학습</h2>
+
 <div class="qc">
-  <div class="qh"><span class="num">1-4</span>비밀 공식 추적 — 모범 답안</div>
-  <div class="ans"><span class="lab">예시</span>합·불 결과는 가중치의 <strong>흔적</strong>이기 때문. 결과가 충분히 모이면 그 결과를 만들어낸 비율을 거꾸로 추정할 수 있다.</div>
+  <div class="qh"><span class="num">2-1</span>6명 → 30명 결과 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>학습 정확도는 100% → 93%로 <strong>내려갔다</strong>. 시험 정확도는 75% → 90%로 <strong>올라갔다</strong>. 두 정확도의 격차는 25%p → 3%p로 <strong>줄었다</strong>.</div>
+  <div class="ans"><span class="lab">의미</span>학습 데이터가 많아지면 "우연한 패턴 외우기"가 줄고 진짜 규칙이 드러난다. 시험에서 더 잘 맞히는 일반화로 이어진다.</div>
+  <div class="tt"><span class="lab">수업 팁</span>학생이 "학습 정확도가 떨어진 게 좋은 일?"이라고 의아해하면 OK 신호. <strong>"학습 정확도 = 외운 정도, 시험 정확도 = 진짜 실력"</strong>임을 짚어줄 것.</div>
 </div>
 
-<!-- ============================================================== -->
-<h2>STEP 2. 데이터 추가 후 재학습 (Phase 7)</h2>
-
 <div class="qc">
-  <div class="qh"><span class="num">2-1·2-2</span>예시 결과</div>
-  <div class="ans"><span class="lab">전형 패턴</span>10명 → 40명으로 늘리면 <strong>학습 정확도는 약간 떨어지고 시험 정확도는 올라간다</strong>. 즉 두 정확도가 가까워진다.</div>
-  <div class="ans"><span class="lab">가중치</span>10명 시점의 "외운 가중치"가 무너지고, 4영역 모두에 분산된 더 일반적인 비율로 이동.</div>
-  <div class="tt"><span class="lab">수업 팁</span>가상 인물 P1·P2·P3에서 <strong>한 영역만 약점인 학생</strong>이 합/불 어느 쪽으로 분류되는지를 비교하면, 그 시나리오에서 가장 큰 가중치가 어디 있는지 학생 스스로 발견할 수 있음.</div>
+  <div class="qh"><span class="num">2-2</span>가상 인물 P2 vs P3 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>P2(수학만 약점)는 사람이 보면 합격에 가깝게 보이지만, 모델은 7.0 경계로 합격(W2 수학 강조라 P2가 손해 봄). P3(수학만 강점)은 사람이 보면 합격에 가깝지 않지만, 모델은 7.0 경계로 합격으로 판정 — 수학 가중치가 크기 때문. <strong>모델이 "수학 가중치가 크다"는 학습된 패턴을 그대로 적용해 사람의 직관과 다른 판정을 낼 수 있음</strong>을 보여주는 사례.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>P2·P3의 점수가 같으니 "둘 다 같다"고만 답하는 경우. 같은 점수라도 점수 분포(어디가 강점이냐)가 모델 해석에 어떻게 영향을 주는지 짚을 것.</div>
 </div>
 
 <div class="qc">
   <div class="qh"><span class="num">2-3</span>일반화 — 모범 답안</div>
-  <div class="ans"><span class="lab">예시</span>데이터가 많아지면 우연한 잡음이 평균에 묻혀 사라지고, 데이터를 만든 진짜 규칙이 더 잘 드러난다. 그래서 새 데이터에도 통하는 모델이 된다.</div>
+  <div class="ans"><span class="lab">예시</span>학습 정확도가 떨어진 건 "외운 패턴이 부서진" 신호이고, 시험 정확도가 오른 건 "진짜 규칙에 가까워진" 신호다. 일반화 = 처음 보는 데이터에서도 맞히는 능력이라는 정의에 맞으므로 좋은 신호.</div>
   <div class="ib tip" style="margin-top:6pt"><strong>전이 메시지</strong> "데이터가 곧 권력이다." 이 직관이 거대 모델 시대의 핵심.</div>
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 3. 정확도와 혼동행렬 (Phase 8)</h2>
+<h2>STEP 3. 정확도와 혼동행렬</h2>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-1·3-2</span>혼동행렬 — 운영</div>
-  <div class="tt"><span class="lab">수업 팁</span>학생마다 페이즈 7 가중치가 다르므로 결과 값이 모두 다르다. 정답 숫자를 외우는 게 아니라 "<strong>네 칸이 합쳐져 20이 되는지</strong>"만 점검할 것. 정확도 = (TP+TN)/20.</div>
-  <div class="ans"><span class="lab">참고 범위</span>대부분 시험 정확도 70~95% 사이에 분포. TP+TN ≥ 14 면 우수 수준.</div>
+  <div class="qh"><span class="num">3-1·3-2</span>혼동행렬·정확도 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    실제 합계: 합격 8+2 = <span class="v">10</span>명, 불합격 1+9 = <span class="v">10</span>명. 총 20명.<br>
+    TP = <span class="v">8</span>, FP = <span class="v">1</span>, FN = <span class="v">2</span>, TN = <span class="v">9</span>.<br>
+    정확도 = (8 + 9) / 20 = <span class="v">17/20 = 85%</span>.
+  </div>
 </div>
 
 <div class="qc">
   <div class="qh"><span class="num">3-3</span>정확도 함정 — 정답</div>
-  <div class="ans"><span class="lab">정답</span>전원 불합격이라 외치면 정확도 = 99/100 = <span class="v">99%</span>.</div>
+  <div class="ans"><span class="lab">정답</span>전원 불합격이라 외치면 TP=0, TN=99, FP=0, FN=1. 정확도 = (0 + 99) / 100 = <span class="v">99%</span>.</div>
   <div class="ans"><span class="lab">비판 예시</span>합격자 1명을 100% 놓치는데도 정확도는 99%. 정확도 한 숫자만으로는 "쓸모"를 평가할 수 없다.</div>
-  <div class="pf"><span class="lab">자주 틀림</span>합격자 수를 1로 잡았는데 99%로 답하지 않고 100%로 답하는 경우. 분모 = 100명 임을 다시 확인.</div>
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 4. 평가의 함정 — 정밀도·재현율 (Phase 9)</h2>
+<h2>STEP 4. 평가의 함정 — 정밀도·재현율</h2>
+
+<div class="an"><span class="lab">앱 운영</span>Phase 9가 <strong>마피아 게임 비유</strong>(🧐 정밀도 = 신중파, 🗣️ 재현율 = 적극파)와 <strong>임계값 누적 히스토그램</strong>(임계값 오른쪽이 양성 판정 영역으로 음영)으로 재설계됐다. 활동지에는 마피아 비유 박스를 본문에 옮겨두었으니, 학생이 활동지의 비유로 정밀도·재현율의 성격을 먼저 파악한 뒤 앱에서 임계값 슬라이더를 직접 움직이며 두 친구의 변화를 관찰하게 운영하면 좋다. <strong>"양성 = 이번에 찾고 싶은 것"</strong>이라는 한 줄 약속을 칠판에 써둘 것 — 시나리오마다 양성의 정의가 바뀌어 헷갈리는 학생이 많다.</div>
+
+<div class="tt"><span class="lab">수업 팁</span>마피아 게임 경험이 있는 학급이라면 도입을 "이 친구는 어느 쪽에 가까워?"로 시작. <strong>한 친구가 무조건 옳은 게 아니라, 마을의 상황(마피아가 몇 명 남았는지)에 따라 답이 달라진다</strong>는 점이 임계값을 결정하는 비용 비대칭과 정확히 같음을 짚는다.</div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-1</span>코로나 — 임계값별 경향</div>
-  <div class="ans"><span class="lab">정성적 경향</span>임계값을 <strong>낮출수록</strong> TP·FP↑ / FN·TN↓ → 재현율↑, 정밀도↓. <br><strong>높일수록</strong> 반대 방향. 정확도는 임계값 0.4~0.6 부근에서 최대인 경우가 많음.</div>
+  <div class="qh"><span class="num">4-1</span>코로나 — 정답 (소수점 둘째 자리)</div>
   <table class="tb">
-    <tr><th>임계값</th><th>재현율 경향</th><th>정밀도 경향</th></tr>
-    <tr><td>0.3</td><td class="al">높음 (놓침 적음)</td><td class="al">낮음 (FP 많음)</td></tr>
-    <tr><td>0.5</td><td class="al">중간</td><td class="al">중간</td></tr>
-    <tr><td>0.7</td><td class="al">낮음 (놓침 많음)</td><td class="al">높음</td></tr>
+    <tr><th>임계값</th><th>정확도</th><th>정밀도</th><th>재현율</th></tr>
+    <tr><td>0.3</td><td class="fa">87.9%</td><td class="fa">19/139 ≈ 0.14</td><td class="fa">19/20 = 0.95</td></tr>
+    <tr><td>0.5</td><td class="fa">96.6%</td><td class="fa">16/46 ≈ 0.35</td><td class="fa">16/20 = 0.80</td></tr>
+    <tr><td>0.7</td><td class="fa">98.5%</td><td class="fa">10/15 ≈ 0.67</td><td class="fa">10/20 = 0.50</td></tr>
   </table>
+  <div class="ans"><span class="lab">트레이드오프</span>임계값을 <strong>낮출수록</strong> 재현율↑(놓침 적음), 정밀도↓(헛발질 많음). 정확도는 0.5 부근에서 최대.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>정확도가 99%에 가까운데 모델이 좋다고 단순화. 재현율(50~95%)을 함께 봐야 한다는 점을 짚을 것.</div>
 </div>
 
 <div class="qc">
   <div class="qh"><span class="num">4-2</span>코로나 임계값 결정 — 모범 답안</div>
-  <div class="ans"><span class="lab">정답</span>FN(놓침) 비용 ≫ FP 비용 → <strong>재현율을 우선</strong> → 임계값을 <strong>낮춘다</strong>. 약간의 오인(격리)은 감수하고 환자를 놓치지 않는 쪽.</div>
+  <div class="ans"><span class="lab">정답</span>FN(놓침) 비용 ≫ FP 비용 → <strong>재현율 우선</strong> → 임계값을 <strong>낮춘다</strong>(예: 0.3). 약간의 오인 격리는 감수하고 환자를 놓치지 않는 쪽.</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-3</span>암 검진 — 모범 답안</div>
-  <div class="ans"><span class="lab">정답</span>코로나와 같은 방향: 놓침이 더 큰 비용 → <strong>재현율 우선</strong>. 다만 암은 추가 검사 비용·환자 불안이 코로나의 격리보다 크므로 임계값을 무한정 낮추진 못함. <strong>1차 검진은 재현율 우선, 2차 정밀검사로 정밀도 회복</strong>이 실제 의료의 패턴.</div>
+  <div class="qh"><span class="num">4-3</span>암 검진 — 정답 (소수점 둘째 자리)</div>
+  <table class="tb">
+    <tr><th>임계값</th><th>정밀도</th><th>재현율</th></tr>
+    <tr><td>0.3</td><td class="fa">5/85 ≈ 0.06</td><td class="fa">5/5 = 1.00</td></tr>
+    <tr><td>0.5</td><td class="fa">4/24 ≈ 0.17</td><td class="fa">4/5 = 0.80</td></tr>
+    <tr><td>0.7</td><td class="fa">2/5 = 0.40</td><td class="fa">2/5 = 0.40</td></tr>
+  </table>
+  <div class="ans"><span class="lab">정답</span>코로나와 같은 방향: 놓침(FN)이 더 큰 비용 → <strong>재현율 우선</strong>. 다만 암은 추가 검사 비용·환자 불안 부담이 있어 임계값을 무한정 낮추진 못함. 실제 의료의 패턴은 <strong>1차 검진 재현율 우선 + 2차 정밀검사로 정밀도 회복</strong>의 단계적 검진.</div>
   <div class="tt"><span class="lab">전이</span>"단계적 검진 = 임계값을 다르게 둔 모델 두 개의 직렬 연결"이라는 메타 메시지를 함께 짚어주면 좋음.</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-4</span>모두 음성 모델의 정밀도·재현율 — 정답</div>
+  <div class="qh"><span class="num">4-4</span>모두 음성 모델 — 정답</div>
   <div class="ans"><span class="lab">계산</span>
     재현율 = TP / (TP + FN) = <span class="v">0</span> / (<span class="v">0</span> + <span class="v">5</span>) = <span class="v">0%</span><br>
     정밀도 = TP / (TP + FP) = 0 / 0 → <strong>정의 불가</strong> (양성이라 외친 적이 없으므로 분모 = 0).
   </div>
-  <div class="ans"><span class="lab">의미</span>이 모델은 양성 환자를 단 한 명도 못 잡았고(재현율 0), "양성"이라는 판정 자체를 한 적이 없어 정밀도는 정의되지 않는다. 정확도 99.5%라는 숫자가 얼마나 거짓 위안인지 한 번에 드러난다.</div>
+  <div class="ans"><span class="lab">의미</span>이 모델은 양성 환자를 단 한 명도 못 잡았고(재현율 0), "양성"이라는 판정 자체를 한 적이 없어 정밀도는 정의되지 않는다. 정확도 99.5%라는 숫자가 얼마나 거짓 위안인지 드러난다.</div>
   <div class="pf"><span class="lab">자주 틀림</span>정밀도를 0%로 답하는 경우. 0/0은 0이 아니라 "정의 불가"임을 짚을 것.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-5</span>시나리오 미니퀴즈 — 정답</div>
+  <div class="ans"><span class="lab">💼 회사 면접 — 선택별 효과</span>
+    재현율 ↑ (천재 놓치지 않기) → 임계값을 <strong>낮춤</strong> → 의심스러워도 일단 통과 → 천재는 거의 다 합격, 빌런도 일부 통과(FP↑).<br>
+    정밀도 ↑ (빌런 거르기) → 임계값을 <strong>높임</strong> → 확실한 사람만 통과 → 빌런은 거의 차단, 천재도 일부 떨어짐(FN↑).
+  </div>
+  <div class="ans"><span class="lab">현실 해법 — 모범 답안</span>1차는 재현율↑(서류 넓게), 2차는 정밀도↑(면접 깐깐하게). <strong>다단계 채용</strong>이 임계값을 다르게 둔 모델 두 개를 직렬 연결한 구조와 같다.</div>
+  <div class="ans"><span class="lab">💬 메시지 스팸 필터 — 모범 답안</span>대부분의 메시지 앱은 <strong>정밀도 우선</strong>. 친구의 중요한 안내(음성)를 광고함에 가두는 비용이 광고 한두 개 새는 비용보다 훨씬 크기 때문. (단체 톡방의 광고 차단보다는 일반 메일의 스팸 필터에서 더 엄격한 정책을 보임.)</div>
+  <div class="tt"><span class="lab">전이</span>4-5는 마피아 비유의 마지막 풀어내기. <strong>"마을의 상황(=문제 상황)에 따라 답이 다르다"</strong>는 한 줄을 학생이 자기 말로 옮길 수 있으면 4부 마무리. 다음 5부(생성)에서 평가 지표는 잠시 사라지지만, 6부(언어)에서 "다음 토큰 분포 평가"로 다시 돌아온다는 점 예고.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>두 시나리오 모두 "재현율 우선"으로 답하는 경우. 메시지 필터의 음성(정상 메시지) 손실이 양성(광고) 누락보다 비싸다는 점을 정성적으로 짚어줄 것.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>보충 활동 ★. 인간 혼동행렬 — 카드로 직접 나누기 (정답)</h2>
+
+<div class="an"><span class="lab">활동 의도</span>공식 TP/(TP+FP)를 외우는 대신, "양성이라 부른 묶음"과 "실제 양성인 묶음"을 손으로 나눠 분자·분모의 출처를 직관으로 잡게 한다. 모둠당 카드 20장이면 5분, 임계값 변화 ★4까지 묶어 10~15분 활동.</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★1</span>카드 구성 — 권장 분포 (TP=6, FN=3, FP=4, TN=7)</div>
+<div class="ans"><span class="lab">정답</span>학생용 활동지에 인쇄된 분포 그대로 운영. 권장 색지 — 합격은 흰색, 불합격은 노란색. 한 면(앞)은 실제, 뒷면은 예측. 카드 크기는 A6(105×148mm) 절반 정도.</div>
+<div class="tt"><span class="lab">운영 팁</span>모둠당 1세트(20장) 미리 절단해 봉투에 넣어 두면 활동 시간이 절반으로 줄어듦. 카드 분포는 일부러 "정확도는 높은데 정밀도는 그저 그런" 비대칭으로 골랐다 — 마지막 ★3에서 정확도와 정밀도가 다른 숫자가 나오는 게 학습 포인트.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★2</span>두 묶음 — 정답</div>
+<div class="ans"><span class="lab">정답 ⓐ "예측 = 합격"</span>카드 수 = TP + FP = 6 + 4 = <span class="v">10장</span>. 그중 실제도 합격(TP) = <span class="v">6장</span>. 정밀도 = 6 / 10 = <span class="v">60%</span>.</div>
+<div class="ans"><span class="lab">정답 ⓑ "실제 = 합격"</span>카드 수 = TP + FN = 6 + 3 = <span class="v">9장</span>. 그중 모델도 합격이라 부른 카드(TP) = <span class="v">6장</span>. 재현율 = 6 / 9 ≈ <span class="v">66.7%</span>.</div>
+<div class="tt"><span class="lab">학생 발견</span>두 묶음의 분자가 똑같이 TP=6인데 분모가 다르다는 사실을 학생이 직접 발견하게 두기. "분모만 다르다"는 한 줄이 P9 9.4의 Aside와 정확히 일치.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★3</span>혼동행렬·다섯 지표 — 정답</div>
+<div class="ans"><span class="lab">정답</span>
+  <table class="tb">
+    <tr><th></th><th>실제 합격</th><th>실제 불합격</th></tr>
+    <tr><td class="lbl">예측 합격</td><td class="fa">TP = 6</td><td class="fa">FP = 4</td></tr>
+    <tr><td class="lbl">예측 불합격</td><td class="fa">FN = 3</td><td class="fa">TN = 7</td></tr>
+  </table>
+  정확도 = (6 + 7) / 20 = <span class="v">65%</span> · 정밀도 = 6 / 10 = <span class="v">60%</span> · 재현율 = 6 / 9 ≈ <span class="v">66.7%</span> · F1 = 2·0.6·0.667 / (0.6 + 0.667) ≈ <span class="v">63.2%</span>.<br>
+  관찰: 묶음 ⓐ ∩ ⓑ = TP(=6장). 정밀도와 재현율이 같은 분자(TP)를 공유한다는 사실은 두 묶음의 교집합이라는 시각적 표현으로 가장 잘 잡힌다.
+</div>
+<div class="pf"><span class="lab">자주 틀림</span>① F1을 산술평균(0.633)으로 답 — 우연히 비슷한 숫자라 발견이 어려움. 정밀도가 낮은 케이스로 옮겨 차이를 보이거나, 단순 산술평균과 조화평균이 다른 식임을 짚어줄 것. ② 묶음 ⓐ ∩ ⓑ = "FP" 또는 "FN"으로 답 — 두 묶음에 모두 들어가려면 "예측도 합격 + 실제도 합격" → TP뿐이라는 점 강조.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★4</span>임계값 효과 — 정답</div>
+<div class="ans"><span class="lab">정답</span>
+  <table class="tb">
+    <tr><th>변화</th><th>묶음 ⓐ</th><th>TP</th><th>FP</th><th>정밀도</th><th>재현율</th></tr>
+    <tr><td>임계값 ↑</td><td class="fa">줄</td><td class="fa">줄(또는 같음)</td><td class="fa">줄</td><td class="fa">↑</td><td class="fa">↓</td></tr>
+    <tr><td>임계값 ↓</td><td class="fa">늘</td><td class="fa">늘(또는 같음)</td><td class="fa">늘</td><td class="fa">↓</td><td class="fa">↑</td></tr>
+  </table>
+  핵심: 임계값을 올리면 "양성이라 부른 카드"가 줄어드니 묶음 ⓐ가 줄고, FP가 먼저 빠져 정밀도가 오른다. 동시에 진짜 양성도 일부 놓치게 되어 TP가 줄고 재현율이 떨어진다.
+</div>
+<div class="tt"><span class="lab">전이</span>이 표가 그대로 P9 9.6의 "상황이 바뀌면 우선순위가 바뀐다"의 정량적 근거가 된다. 또 Phase 9 시뮬레이터에서 슬라이더를 움직이면서 metric 카드의 분자·분모(예: 19/39)가 바로 이 표대로 변하는 모습을 함께 보여 줄 것.</div>
 </div>
 
 <!-- ============================================================== -->

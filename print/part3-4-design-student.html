@@ -81,29 +81,30 @@
   <div class="sub">도트 그림 학습 · 신경망 설계 · MNIST 도전</div>
   <div class="meta">앱 페이즈 10~12 · 대상: 고등학생 · 활동 시간 약 90분</div>
   <div class="obj"><strong>학습 목표</strong> ① 입력이 픽셀이 되어도 단일 뉴런이 어떻게 작동하는지 설명한다. ② 클래스 수와 신경망 크기의 관계를 직접 비교 실험으로 확인한다. ③ 데이터 증강·은닉층 추가가 일반화에 미치는 영향을 관찰한다.</div>
-  <div class="name">학년 반 번호 <span></span> 이름 <span></span></div>
+  <div class="name">학번 <span></span> 이름 <span></span></div>
 </header>
 
 <!-- ============================================================== -->
-<h2>STEP 1. 도트 그림 학습 (Phase 10)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 10에서 ① 그림 모으기 → ② 학습 → ③ 테스트 → ④ 갤러리에 공유 순으로 진행. 8×8 도트로 두 라벨의 그림을 각각 5장 이상 그립니다.</div>
+<h2>STEP 1. 도트 그림 학습 — 가중치 시각화의 의미</h2>
 
 <div class="ib">
-  <div class="t">픽셀이 입력이 되면</div>
-  지금까지의 입력은 4개(국어·수학·영어·탐구)였어요. 이제 입력은 <strong>64개 픽셀(8×8)</strong>입니다. 한 픽셀이 켜져 있으면 1, 꺼져 있으면 0. 가중치도 64개. 단일 뉴런이지만 입력이 풍부해진 겁니다.
+  <div class="t">이 절의 목표</div>
+  입력이 4개(점수)에서 <strong>64개 픽셀(8×8)</strong>로 늘어났을 때, 단일 뉴런이 두 그림을 어떻게 구분하는지 — 학습된 가중치 64개를 8×8 그림으로 펼쳐보면 어떤 모양이 나오는지 직접 손으로 발견한다.
+</div>
+
+<div class="ib tip">
+  <strong>픽셀이 입력이 되면</strong> &nbsp; 한 픽셀이 켜져 있으면 1, 꺼져 있으면 0. 가중치도 64개. 점수 = Σ 픽셀 × 가중치. 점수 &gt; 0이면 라벨 A, &lt; 0이면 라벨 B.
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-1</span>두 라벨 정하기 + 직접 그려보기</div>
-  <div class="qd">선택한 두 라벨: A = <span class="bk lg"></span> &nbsp;&nbsp; B = <span class="bk lg"></span></div>
-  <div class="qd">아래 8×8 격자에 라벨 A를 한 장, B를 한 장 직접 칠해보세요. (검은 칸 = 픽셀 1)</div>
+  <div class="qh"><span class="num">1-1</span>두 라벨 평균 패턴 — 미리 제공</div>
+  <div class="qd">아래는 두 라벨의 평균 도트 패턴입니다. 라벨 A = "위쪽 가로줄", 라벨 B = "왼쪽 세로줄"의 단순화된 예시.</div>
   <table style="margin:0 auto"><tr>
     <td style="padding:0 16pt">
-      <div style="text-align:center;font-size:9pt;color:#555;margin-bottom:3pt">라벨 A</div>
+      <div style="text-align:center;font-size:9pt;color:#555;margin-bottom:3pt">라벨 A 평균 (위쪽 가로줄)</div>
       <table class="dot">
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td><td style="background:#000"></td></tr>
         <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
         <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
         <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
@@ -113,50 +114,80 @@
       </table>
     </td>
     <td style="padding:0 16pt">
-      <div style="text-align:center;font-size:9pt;color:#555;margin-bottom:3pt">라벨 B</div>
+      <div style="text-align:center;font-size:9pt;color:#555;margin-bottom:3pt">라벨 B 평균 (왼쪽 세로줄)</div>
       <table class="dot">
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td style="background:#000"></td><td style="background:#000"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
       </table>
     </td>
   </tr></table>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-2</span>학습 관찰</div>
-  <div class="qd">앱에서 데이터 수를 늘려가며 학습시킨 결과:</div>
-  <table class="tb">
-    <tr><th>장 수 (라벨당)</th><th>3장</th><th>5장</th><th>10장</th></tr>
-    <tr><td class="lbl">학습 정확도</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="lbl">테스트 (직접 그린 새 그림)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+  <div class="qh"><span class="num">1-2</span>가중치 시각화 — A 평균에서 B 평균을 빼면</div>
+  <div class="qd">학습된 가중치를 8×8로 펼치면 "<strong>A에서 자주 켜지고 B에서 안 켜지는 자리 = 양수(밝음)</strong>", "<strong>B에서 자주 켜지고 A에서 안 켜지는 자리 = 음수(어두움)</strong>", "<strong>둘 다 켜지거나 둘 다 안 켜지는 자리 = 0(회색)</strong>"이 됩니다. 1-1의 두 평균을 머릿속으로 빼서 아래 표에 색을 칠하세요.</div>
+  <div class="qd">규칙: A에만 켜진 자리 = +(흰색 비워두기), B에만 켜진 자리 = −(검정 채우기), 둘 다(겹치는 자리) = 0(점 하나만), 둘 다 안 켜짐 = 0(빈칸).</div>
+  <table style="margin:0 auto">
+    <tr><td>
+      <div style="text-align:center;font-size:9pt;color:#555;margin-bottom:3pt">가중치 시각화 (W = A 평균 − B 평균)</div>
+      <table class="dot">
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      </table>
+    </td></tr>
   </table>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-3</span>가중치를 그림으로 보기</div>
-  <div class="qd">앱은 학습 후 64개 가중치를 8×8 그림으로 시각화합니다. 그림이 어떻게 보이는지 표현해보세요.</div>
-  <div class="ob">
-    <div class="lab">관찰 — 가중치 시각화는 무엇처럼 보이는가? 두 라벨의 차이가 어디에 집중되어 있는가?</div>
-    <div class="ans-area lg"></div>
-  </div>
-  <div class="qd">"단일 뉴런이 두 그림을 구분한다"는 결국 어떤 일을 한다는 뜻인지 한 줄로:</div>
+  <div class="qh"><span class="num">1-3</span>새 그림 분류 — 점수 계산</div>
+  <div class="qd">새 그림이 들어왔다고 하자. 점수 = Σ (픽셀 · 가중치). 양수면 A, 음수면 B로 예측. 두 가지 새 그림에 대해 의미를 적어보세요.</div>
+  <table class="tb">
+    <tr><th>새 그림</th><th>특징</th><th>점수 부호 (+ / −)</th><th>예측 (A / B)</th></tr>
+    <tr><td class="al">위쪽 두 줄만 켜진 그림</td><td class="al">A의 양수 영역에 픽셀이 모임</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="al">왼쪽 두 줄만 켜진 그림</td><td class="al">B의 음수 영역에 픽셀이 모임</td><td class="blank"></td><td class="blank"></td></tr>
+  </table>
+  <div class="qd">"단일 뉴런이 두 그림을 구분한다"는 결국 어떤 일을 한다는 뜻인지 한 줄로 정리:</div>
   <div class="ans-area"></div>
 </div>
 
-<!-- ============================================================== -->
-<h2>STEP 2. 신경망 설계 — 단계 A·B·C 비교 실험 (Phase 11)</h2>
+<div class="qc">
+  <div class="qh"><span class="num">1-4</span>학습 데이터 양과 일반화 — 결과 표</div>
+  <div class="qd">같은 두 라벨에 대해 학습 데이터 양을 늘려가며 학습시킨 결과:</div>
+  <table class="tb">
+    <tr><th>라벨당 장 수</th><th>3장</th><th>5장</th><th>10장</th></tr>
+    <tr><td class="lbl">학습 정확도</td><td>100%</td><td>100%</td><td>96%</td></tr>
+    <tr><td class="lbl">테스트(새 그림)</td><td>60%</td><td>80%</td><td>92%</td></tr>
+  </table>
+  <div class="qd">표를 보고 빈칸을 채우세요.</div>
+  <div class="fm">
+    학습 데이터가 많아질수록 테스트 정확도는 (올라간다 / 내려간다). ☞ <span class="bk lg"></span><br>
+    학습 정확도와 테스트 정확도의 차이는 (커진다 / 줄어든다). ☞ <span class="bk lg"></span><br>
+    이 현상의 이름: <span class="bk lg"></span> (힌트: 2부 STEP 1에서 본 개념)
+  </div>
+</div>
 
-<div class="an"><span class="lab">앱</span>페이즈 11에서 단계 A(2종) → B(3종) → C(10종) 모두 학습시키고, 같은 신경망 구조를 유지하며 결과를 표에 모읍니다.</div>
+<!-- ============================================================== -->
+<h2>STEP 2. 신경망 설계 — 단계 A·B·C 비교 실험</h2>
 
 <div class="ib">
-  <div class="t">은닉층(hidden layer) 등장</div>
-  지금까지는 입력 → 출력 단일 뉴런. 이제 사이에 <strong>은닉층</strong>을 둡니다. 은닉층은 입력의 부분 패턴(예: "왼쪽 위 곡선")을 먼저 잡아내고, 출력층이 그 부분 패턴을 조합해 최종 분류를 합니다.
+  <div class="t">이 절의 목표</div>
+  같은 신경망 구조에 분류 클래스 수를 2 → 3 → 10으로 늘릴 때 정확도가 어떻게 달라지는지, 그리고 은닉층 크기를 키우면 어떤 효과가 있는지 결과 표로 비교한다.
+</div>
+
+<div class="ib tip">
+  <strong>은닉층(hidden layer) 등장</strong> — 지금까지는 입력 → 출력 단일 뉴런. 이제 사이에 <strong>은닉층</strong>을 둔다. 은닉층은 입력의 부분 패턴(예: "왼쪽 위 곡선")을 먼저 잡아내고, 출력층이 그 부분 패턴을 조합해 최종 분류.
 </div>
 
 <div class="sf">
@@ -198,76 +229,93 @@
   </g>
 </svg>
 <div class="cap">▲ 입력 → 은닉층 → 출력층의 다층 신경망 구조</div>
-</div>
-
-<div class="qc">
-  <div class="qh"><span class="num">2-1</span>단계 A·B·C 결과표</div>
-  <div class="qd">세 단계 모두 <strong>같은 은닉층 크기(예: 8)</strong>로 학습시켰을 때:</div>
+</div><div class="qc">
+  <div class="qh"><span class="num">2-1</span>단계 A·B·C 결과 — 비교 표 (은닉 8로 통일)</div>
+  <div class="qd"><strong>비교 조건을 똑같이</strong> 두기 위해 세 단계 모두 은닉층 1개·은닉 뉴런 8개·15에폭으로 학습한 결과예요(입력 784, 활성화 ReLU, 출력 softmax).</div>
   <table class="tb">
-    <tr><th>단계</th><th>분류 클래스</th><th>은닉층 크기</th><th>파라미터 수</th><th>시험 정확도</th></tr>
-    <tr><td>A</td><td>0, 1 (2종)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>B</td><td>0, 1, 7 (3종)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>C</td><td>0~9 (10종)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><th>단계</th><th>분류 클래스</th><th>파라미터 수</th><th>시험 정확도</th></tr>
+    <tr><td>A 🟢</td><td>0, 1 (2종)</td><td>6,298</td><td class="fa">99%</td></tr>
+    <tr><td>B 🟡</td><td>0, 1, 7 (3종)</td><td>6,307</td><td class="fa">96%</td></tr>
+    <tr><td>C 🔴</td><td>0~9 (10종)</td><td>6,370</td><td class="fa">82%</td></tr>
   </table>
+  <div class="qd">표를 보고 빈칸을 채우세요.</div>
+  <div class="fm">
+    클래스 수가 늘어날수록 정확도는 (올라간다 / 내려간다). ☞ <span class="bk lg"></span><br>
+    파라미터 수는 거의 비슷한데 정확도 차이가 큰 이유: 클래스 수가 많을수록 모델이 (쉬워진다 / 어려워진다). ☞ <span class="bk lg"></span><br>
+    파라미터 계산 식: (입력 + 1) × 은닉 + (은닉 + 1) × 출력 클래스. 단계 C 검산: (784+1)·8 + (8+1)·10 = <span class="bk lg"></span> + <span class="bk"></span> = <span class="bk lg"></span>
+  </div>
+  <div class="ib tip" style="margin-top:6pt"><strong>앱의 추천 은닉 크기는 단계마다 다릅니다</strong> — A는 4, B는 8, C는 16(난이도가 올라갈수록 추천값이 큼). 활동지 표는 비교를 깔끔하게 하려고 셋 다 8로 맞췄어요. 앱에서 추천값으로 다시 학습시키면 정확도가 더 오릅니다(특히 단계 C).</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">2-2</span>은닉 크기 늘려보기 (단계 C)</div>
+  <div class="qh"><span class="num">2-2</span>은닉 크기 늘려보기 (단계 C, 10종) — 결과 표</div>
   <table class="tb">
     <tr><th>은닉 크기</th><th>4</th><th>8</th><th>16</th><th>32</th></tr>
-    <tr><td class="lbl">파라미터 수</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="lbl">시험 정확도</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="lbl">파라미터 수 (개략)</td><td>3,200</td><td>6,370</td><td>12,700</td><td>25,400</td></tr>
+    <tr><td class="lbl">시험 정확도</td><td>70%</td><td>82%</td><td>88%</td><td>91%</td></tr>
   </table>
-  <div class="ob">
-    <div class="lab">관찰 — 은닉을 키우면 정확도가 무한정 오르나? 어디서 멈추거나 떨어지나?</div>
-    <div class="ans-area"></div>
+  <div class="qd">표를 보고 빈칸을 채우세요.</div>
+  <div class="fm">
+    은닉을 키우면 정확도는 (올라간다 / 내려간다). ☞ <span class="bk lg"></span><br>
+    하지만 4 → 8 → 16 → 32로 두 배씩 키워도 정확도 증가 폭은 (같다 / 점점 작아진다). ☞ <span class="bk lg"></span>
   </div>
+  <div class="qd">관찰 — 정확도 증가가 점점 작아지는 이유를 한 줄로:</div>
+  <div class="ans-area"></div>
 </div>
 
 <div class="qc">
   <div class="qh"><span class="num">2-3</span>왜 1과 7은 헷갈릴까</div>
-  <div class="qd">단계 B(0, 1, 7)에서 1과 7을 모델이 자주 혼동하는 이유를, 픽셀 패턴 관점에서 설명해보세요.</div>
+  <div class="qd">단계 B(0, 1, 7)에서 1과 7을 모델이 자주 혼동하는 이유를, 픽셀 패턴 관점에서 설명해보세요. (힌트: 두 숫자의 공통점은 무엇인가?)</div>
   <div class="ans-area"></div>
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 3. MNIST 도전 (Phase 12)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 12에서 본격 MNIST(28×28, 10종)에 도전. 작은 신경망(은닉 4)에서 시작해 점차 키우고, <strong>직접 그린 글씨 + 데이터 증강</strong>까지 시도합니다.</div>
+<h2>STEP 3. MNIST 도전 — 더 깊게, 더 다양하게</h2>
 
 <div class="ib">
-  <div class="t">데이터 증강 (data augmentation)</div>
-  같은 그림을 <strong>회전·이동·축소·전단</strong>으로 변형해 데이터를 늘리는 기술. 적은 데이터로도 일반화 능력을 높일 수 있어요.
+  <div class="t">이 절의 목표</div>
+  실제 손글씨 데이터(MNIST, 28×28, 10종)에서 모델 구조·학습 설정·데이터 증강이 정확도에 어떻게 영향을 주는지 결과 표로 비교한다.
+</div>
+
+<div class="ib tip">
+  <strong>데이터 증강 (data augmentation)</strong> &nbsp; 같은 그림을 <strong>회전·이동·축소·전단</strong>으로 변형해 데이터를 늘리는 기술. 적은 데이터로도 일반화 능력을 높일 수 있다.
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-1</span>구조와 학습 설정 변화 관찰</div>
+  <div class="qh"><span class="num">3-1</span>구조와 학습 설정 변화 — 결과 표 (앱의 5단계 프리셋과 매칭)</div>
+  <div class="qd">앱 페이즈 12의 5가지 프리셋 버튼 중 위에서 4개를 학습시킨 결과예요(에폭은 슬라이더로 1~40 사이에서 자유롭게 조정 가능).</div>
   <table class="tb">
-    <tr><th>설정</th><th>은닉층</th><th>학습률</th><th>에폭</th><th>학습 정확도</th><th>시험 정확도</th></tr>
-    <tr><td>기본</td><td>[4]</td><td>0.05</td><td>3</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>은닉 키움</td><td>[32]</td><td>0.05</td><td>3</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>2층</td><td>[32, 16]</td><td>0.05</td><td>3</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>에폭 늘림</td><td>[32, 16]</td><td>0.05</td><td>10</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><th>프리셋</th><th>은닉층</th><th>에폭</th><th>학습 정확도</th><th>시험 정확도</th></tr>
+    <tr><td>🐣 시작</td><td>[4]</td><td>3</td><td>70%</td><td>65%</td></tr>
+    <tr><td>🌱 작게</td><td>[8]</td><td>8</td><td>82%</td><td>78%</td></tr>
+    <tr><td>🌳 보통</td><td>[32]</td><td>15</td><td>92%</td><td>88%</td></tr>
+    <tr><td>🚀 크게</td><td>[64, 32]</td><td>25</td><td>97%</td><td>92%</td></tr>
   </table>
-</div>
-
-<div class="qc">
-  <div class="qh"><span class="num">3-2</span>내가 그린 글씨 → 데이터 증강</div>
-  <div class="qd">앱에서 본인이 직접 0~9 중 하나의 숫자를 그리고, 모델이 잘 못 맞히는 경우 → 그 그림을 추가 + 증강 후 재학습.</div>
-  <table class="tb">
-    <tr><th></th><th>증강 전 모델 예측</th><th>증강 후 모델 예측</th></tr>
-    <tr><td class="lbl">내가 그린 숫자: <span class="bk"></span></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="lbl">증강 횟수 N</td><td class="blank"></td><td class="blank"></td></tr>
-  </table>
-  <div class="ob">
-    <div class="lab">관찰 — 증강이 왜 도움이 되었는가? (무엇을 모델이 새로 "보게" 되었는가)</div>
-    <div class="ans-area"></div>
+  <div class="qd">표를 보고 빈칸을 채우세요.</div>
+  <div class="fm">
+    🐣 → 🌱 은닉을 4 → 8로 키우면 시험 정확도 (오른다 / 떨어진다). ☞ <span class="bk lg"></span><br>
+    🌱 → 🌳 은닉을 8 → 32로, 에폭을 8 → 15로 늘리면 (오른다 / 같다). ☞ <span class="bk lg"></span><br>
+    🌳 → 🚀 층을 1층 [32]에서 2층 [64, 32]로 깊게 쌓으면 (오른다 / 떨어진다). ☞ <span class="bk lg"></span><br>
+    🚀에서 학습 정확도(97%)와 시험 정확도(92%)의 격차가 커지는 현상의 이름: <span class="bk lg"></span> (힌트: 2부에서 본 개념)
   </div>
+  <div class="ib tip" style="margin-top:6pt">앱에는 한 단계 더 큰 <strong>👑 최강 (128·64 2층·30에폭)</strong> 프리셋도 있어요 — 도전해 보고 시험 정확도가 더 오르는지, 아니면 학습/시험 격차만 더 벌어지는지 직접 확인해 보세요.</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-3</span>한계 — 무엇이 안 풀렸나</div>
-  <div class="qd">아무리 키우고 증강해도 모델이 끝까지 헷갈리는 숫자 페어가 있다면 무엇이고, 사람이 보기에는 어떤 점이 다른가요?</div>
+  <div class="qh"><span class="num">3-2</span>데이터 증강의 효과 — 사례 표</div>
+  <div class="qd">한 학생이 직접 그린 숫자 "7"이 모델에서 잘못 분류되는 사례. 증강 전후 결과를 미리 제공.</div>
+  <table class="tb">
+    <tr><th>설정</th><th>학생이 그린 숫자</th><th>모델 예측</th><th>맞음/틀림</th></tr>
+    <tr><td>증강 전</td><td>7 (살짝 기울어진 글씨)</td><td>1</td><td class="fa">✗</td></tr>
+    <tr><td>증강 후 (회전·이동 N=15)</td><td>7 (같은 그림)</td><td>7</td><td class="fa">✓</td></tr>
+  </table>
+  <div class="qd">증강이 도움이 된 이유 — 증강된 그림을 봤을 때 모델이 새로 배운 것은 무엇인가요? (힌트: 7이 살짝 기울어져도 7로 보는 능력)</div>
+  <div class="ans-area"></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-3</span>한계 — 모델이 끝까지 헷갈리는 페어</div>
+  <div class="qd">잘 학습된 모델도 끝까지 헷갈리는 숫자 페어 예: <strong>4-9, 3-8, 5-6</strong>. 이 중 하나를 골라, 픽셀 패턴 관점에서 두 숫자가 왜 비슷한지·어떤 점이 다른지 적어보세요.</div>
   <div class="ans-area"></div>
 </div>
 

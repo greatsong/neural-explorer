@@ -91,13 +91,16 @@
   <div class="sub">인공 뉴런 해부 · 순전파 · 오차 측정 · 수동 학습 · 기울기와 수정</div>
   <div class="meta">앱 페이즈 1~5 · 대상: 고등학생 · 활동 시간 약 60분</div>
   <div class="obj"><strong>학습 목표</strong> ① 인공 뉴런의 세 부품(가중치·편향·활성화)을 설명한다. ② 순전파 z = Σwx+b를 직접 계산한다. ③ 오차 → 손실 → 기울기 → 수정으로 이어지는 학습 과정을 자기 말로 정리한다.</div>
-  <div class="name">학년 반 번호 <span></span> 이름 <span></span></div>
+  <div class="name">학번 <span></span> 이름 <span></span></div>
 </header>
 
 <!-- ============================================================== -->
 <h2>STEP 1. 인공 뉴런 해부 (Phase 1)</h2>
 
-<div class="an"><span class="lab">앱</span>페이즈 1을 열고 <strong>1-1 → 1-2 → 1-3 탭</strong>을 차례로 누르며 함께 풉니다. 입력은 <span class="mono">x₁ = 3, x₂ = 2</span>로 고정.</div>
+<div class="ib">
+  <div class="t">이 절의 목표</div>
+  인공 뉴런의 세 부품(가중치·편향·활성화)을 식 한 줄로 적고, 입력 <span class="mono">x₁ = 3, x₂ = 2</span>를 고정한 채 ① 가중치 → ② 편향 → ③ 활성화를 한 단계씩 더해 가며 결과가 어떻게 변하는지 직접 계산한다.
+</div>
 
 <div class="ib">
   <div class="t">개념 — 인공 뉴런의 세 부품</div>
@@ -146,9 +149,9 @@
 
 <div class="qc">
   <div class="qh"><span class="num">1-1</span>가중치만 있을 때</div>
-  <div class="qd">앱에서 <span class="mono">w₁ = 2, w₂ = 1</span>로 맞춰보세요.</div>
+  <div class="qd">먼저 시범 계산. <span class="mono">w₁ = 2, w₂ = 1</span>일 때:</div>
   <div class="fm">z = w₁·x₁ + w₂·x₂ = <span class="bk">2</span> · 3 + <span class="bk">1</span> · 2 = <span class="bk lg"></span></div>
-  <div class="qd">위와 같이 가중치를 바꿔가며 빈칸을 직접 채우세요.</div>
+  <div class="qd">같은 식에 가중치를 바꿔 넣으며 표를 직접 채우세요.</div>
   <table class="tb">
     <tr><th>w₁</th><th>w₂</th><th>z = w₁·3 + w₂·2</th></tr>
     <tr><td>1</td><td>1</td><td class="blank"></td></tr>
@@ -160,7 +163,7 @@
 
 <div class="qc">
   <div class="qh"><span class="num">1-2</span>편향이 더해지면</div>
-  <div class="qd">앱에서 <span class="mono">w₁ = 1, w₂ = 1</span>로 두고 b 슬라이더만 움직여보세요.</div>
+  <div class="qd"><span class="mono">w₁ = 1, w₂ = 1</span>로 고정한 채, b만 다음 세 값으로 바꿔 직접 계산하세요.</div>
   <table class="tb">
     <tr><th>b</th><th>z = 1·3 + 1·2 + b</th><th>b의 의미를 한 줄로</th></tr>
     <tr><td>0</td><td class="blank"></td><td class="blank"></td></tr>
@@ -196,48 +199,121 @@
 <!-- ============================================================== -->
 <h2>STEP 2. 순전파 퀴즈 (Phase 2)</h2>
 
-<div class="an"><span class="lab">앱</span>페이즈 2의 3문제를 함께 풀고, 활동지에는 <strong>계산 과정</strong>을 모두 적습니다.</div>
+<div class="ib">
+  <div class="t">이 절의 목표</div>
+  뉴런 하나에서 작은 신경망까지, <strong>입력에서 출력까지의 흐름(=순전파)</strong>을 한 단계씩 직접 계산해 봅니다. 앱의 세 탭과 같은 흐름 — <strong>① 단일 뉴런 → ② 뉴런 → 뉴런(직렬) → ③ 3×2×1 작은 신경망</strong>.
+</div>
 
 <div class="ib tip">
   <div class="t">순전파 (forward propagation)</div>
-  순전파 = 입력에서 출력으로 신호가 한 방향으로 흐르며 계산되는 과정. <span class="mono">곱셈 → 합산 → 활성화</span>의 3단계.
+  순전파 = 입력에서 출력으로 신호가 한 방향으로 흐르며 계산되는 과정. <span class="mono">곱셈 → 합산 → 활성화</span>의 3단계가 한 뉴런이든 작은 신경망이든 똑같이 반복됨.
 </div>
 
+<h3>2-A. 단일 뉴런</h3>
+
 <div class="qc">
-  <div class="qh"><span class="num">2-1</span>문제 ① &nbsp;<span class="mono">x₁=2, x₂=3, w₁=1, w₂=2, b=−1</span></div>
+  <div class="qh"><span class="num">2-1</span>입력 2개 → 1개 뉴런 → 출력 ŷ &nbsp;<span class="mono">x₁=2, x₂=3, w₁=1, w₂=2, b=−1</span></div>
   <div class="fm">
-    z = <span class="bk">1</span> · 2 + <span class="bk">2</span> · 3 + (<span class="bk">−1</span>) = <span class="bk lg"></span><br>
-    y = ReLU(z) = <span class="bk lg"></span>
+    z = w₁·x₁ + w₂·x₂ + b = <span class="bk">1</span>·2 + <span class="bk">2</span>·3 + (<span class="bk">−1</span>) = <span class="bk lg"></span><br>
+    ŷ = ReLU(z) = <span class="bk lg"></span>
   </div>
 </div>
 
-<div class="qc">
-  <div class="qh"><span class="num">2-2</span>문제 ② &nbsp;<span class="mono">x₁=4, x₂=1, w₁=−1, w₂=3, b=2</span></div>
-  <div class="fm">
-    z = (<span class="bk"></span>) · 4 + <span class="bk"></span> · 1 + <span class="bk"></span> = <span class="bk lg"></span><br>
-    y = ReLU(z) = <span class="bk lg"></span>
-  </div>
+<h3>2-B. 뉴런 → 뉴런 (직렬)</h3>
+
+<div class="ib tip">앞 뉴런의 출력 <span class="mono">h</span>가 곧 뒤 뉴런의 입력. <strong>같은 절차를 두 번 반복</strong>하면 됩니다.</div>
+
+<div class="sf">
+<svg viewBox="0 0 600 110" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+  <circle cx="40" cy="55" r="18" fill="#fff" stroke="#333" stroke-width="1.5"/>
+  <text x="40" y="59" text-anchor="middle" font-size="11">x=3</text>
+  <line x1="58" y1="55" x2="158" y2="55" stroke="#333" stroke-width="1.5"/>
+  <text x="108" y="48" text-anchor="middle" font-size="9" font-weight="600">w₁=2</text>
+  <circle cx="180" cy="55" r="20" fill="#fff" stroke="#000" stroke-width="2"/>
+  <text x="180" y="60" text-anchor="middle" font-size="13" font-weight="700">Σ</text>
+  <text x="180" y="28" text-anchor="middle" font-size="9" fill="#555">b₁=−1</text>
+  <line x1="180" y1="33" x2="180" y2="38" stroke="#555"/>
+  <rect x="220" y="40" width="56" height="30" rx="4" fill="#fff" stroke="#000" stroke-width="1.5"/>
+  <text x="248" y="59" text-anchor="middle" font-size="11" font-weight="700">ReLU</text>
+  <line x1="200" y1="55" x2="220" y2="55" stroke="#555"/>
+  <line x1="276" y1="55" x2="306" y2="55" stroke="#555"/>
+  <circle cx="328" cy="55" r="18" fill="#fff" stroke="#333" stroke-width="1.5"/>
+  <text x="328" y="59" text-anchor="middle" font-size="11">h=?</text>
+  <line x1="346" y1="55" x2="408" y2="55" stroke="#333" stroke-width="1.5"/>
+  <text x="378" y="48" text-anchor="middle" font-size="9" font-weight="600">w₂=1</text>
+  <circle cx="430" cy="55" r="20" fill="#fff" stroke="#000" stroke-width="2"/>
+  <text x="430" y="60" text-anchor="middle" font-size="13" font-weight="700">Σ</text>
+  <text x="430" y="28" text-anchor="middle" font-size="9" fill="#555">b₂=−3</text>
+  <line x1="430" y1="33" x2="430" y2="38" stroke="#555"/>
+  <rect x="468" y="40" width="56" height="30" rx="4" fill="#fff" stroke="#000" stroke-width="1.5"/>
+  <text x="496" y="59" text-anchor="middle" font-size="11" font-weight="700">ReLU</text>
+  <line x1="450" y1="55" x2="468" y2="55" stroke="#555"/>
+  <line x1="524" y1="55" x2="552" y2="55" stroke="#555"/>
+  <circle cx="572" cy="55" r="18" fill="#000" stroke="#000" stroke-width="1.5"/>
+  <text x="572" y="59" text-anchor="middle" font-size="11" fill="#fff">ŷ=?</text>
+</svg>
+<div class="cap">▲ 두 뉴런을 직렬로 연결 — 앞 출력 h가 다음 입력</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">2-3</span>문제 ③ &nbsp;<span class="mono">x₁=5, x₂=2, w₁=−2, w₂=−1, b=3</span></div>
+  <div class="qh"><span class="num">2-2</span>직렬 뉴런 — 4단계 빈칸 채우기 &nbsp;<span class="mono">x=3, w₁=2, b₁=−1, w₂=1, b₂=−3</span></div>
   <div class="fm">
-    z = <span class="bk lg"></span><br>
-    y = ReLU(z) = <span class="bk lg"></span>
+    뉴런 1 — z₁ = w₁·x + b₁ = 2·3 + (−1) = <span class="bk lg"></span><br>
+    뉴런 1 출력 — h = ReLU(z₁) = <span class="bk lg"></span><br>
+    뉴런 2 — z₂ = w₂·h + b₂ = <span class="bk"></span> · h + (−3) = <span class="bk lg"></span><br>
+    ŷ = ReLU(z₂) = <span class="bk lg"></span>
   </div>
-  <div class="qd">문제 ③에서 z가 음수가 되었어요. <strong>이 뉴런은 이번 입력에 대해 "반응했다 / 반응하지 않았다"</strong>. ☞ 답: <span class="bk lg"></span></div>
+</div>
+
+<h3>2-C. 작은 신경망 (3 × 2 × 1)</h3>
+
+<div class="ib tip">은닉층의 두 뉴런을 따로 계산해 <span class="mono">h₁, h₂</span>를 구한 뒤, 그 둘을 출력 뉴런의 입력으로 씁니다. 같은 절차의 반복일 뿐.</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-3</span>입력 3개 → 은닉 2개 → 출력 1개</div>
+  <div class="qd"><strong>주어진 값</strong> 입력 <span class="mono">x₁=1, x₂=2, x₃=1</span><br>
+    h₁ 가중치 <span class="mono">w(x₁)=1, w(x₂)=1, w(x₃)=0, b=0</span><br>
+    h₂ 가중치 <span class="mono">w(x₁)=0, w(x₂)=1, w(x₃)=1, b=−1</span><br>
+    출력층 <span class="mono">w(h₁)=1, w(h₂)=1, b=−2</span>
+  </div>
+  <div class="fm">
+    h₁ = ReLU(1·1 + 1·2 + 0·1 + 0) = ReLU(<span class="bk"></span>) = <span class="bk lg"></span><br>
+    h₂ = ReLU(0·1 + 1·2 + 1·1 + (−1)) = ReLU(<span class="bk"></span>) = <span class="bk lg"></span><br>
+    ŷ = ReLU(1·h₁ + 1·h₂ + (−2)) = ReLU(<span class="bk"></span>) = <span class="bk lg"></span>
+  </div>
+  <div class="qd">관찰 — 한 뉴런의 절차(곱셈 → 합산 → ReLU)가 신경망에서도 그대로 반복되나요? <strong>예 / 아니오</strong>. ☞ <span class="bk lg"></span></div>
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 3. 손실함수와 경사하강법의 이해 (Phase 3)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 3는 두 개념을 한 화면에서 동시에 보여줍니다. 슬라이더를 움직이며 ① <strong>왜 제곱을 할까?</strong> 탭 → ② <strong>경사하강법 직관</strong> 탭을 차례로 읽으세요.</div>
+<h2>STEP 3. 손실함수와 경사하강법의 이해</h2>
 
 <div class="ib">
-  <div class="t">손실함수와 경사하강법 — 한 묶음</div>
+  <div class="t">이 절의 목표</div>
+  ① 손실함수가 무엇이고, 왜 제곱 모양으로 만드는지 이해한다.<br>
+  ② 한 점에서의 "기울기"가 무엇을 가리키는지 직관으로 발견한다.<br>
+  ③ 경사하강법의 핵심 — <strong>기울기 반대 방향으로 아주 조금 이동</strong>한다는 발상을 자기 말로 설명한다. (한 발짝 크기는 STEP 4·5에서 학습률 η로 다룬다.)
+</div>
+
+<div class="ib tip">
+  <strong>손실함수와 경사하강법 — 한 묶음</strong><br>
   ▸ <strong>손실함수</strong> = 예측이 정답과 얼마나 멀리 떨어져 있는지를 한 숫자로 나타내는 식. 가장 단순한 형태 <span class="mono">L = (예측 − 정답)²</span>.<br>
   ▸ <strong>경사하강법</strong> = 손실 곡선의 <em>기울기 반대 방향</em>으로 매개변수를 한 발짝씩 옮겨 손실을 줄이는 방법.<br>
   ▸ 두 개념이 한 페이지에 함께 나오는 이유: <strong>매끄러운 곡선이어야 기울기를 정확히 잴 수 있고, 그 기울기가 "어느 쪽으로 옮길지"를 알려주기 때문</strong>.
+</div>
+
+<div class="ib">
+  <div class="t">📌 그런데 "모델"이 뭐예요?</div>
+  <strong>모델</strong>이란 입력 <span class="mono">x</span>가 들어왔을 때 출력 <span class="mono">ŷ</span>를 어떻게 예측할지에 대한 <strong>규칙(함수)</strong>이에요. 앱 페이즈 3에서 우리가 고른 규칙은 직선 <span class="mono">ŷ = w·x + b</span>고, 이 규칙의 모양을 결정하는 두 숫자 <span class="mono">w, b</span>를 <strong>매개변수(파라미터)</strong>라고 부릅니다.
+  <ul style="margin-top:4pt">
+    <li><strong>모델 구조</strong> = "직선이다"라는 가정 — 사람이 정함</li>
+    <li><strong>매개변수 w·b</strong> = 그 직선의 기울기와 높이 — 데이터로부터 찾음</li>
+    <li><strong>학습</strong> = w·b를 데이터에 가장 잘 맞도록 조정하는 일</li>
+  </ul>
+  앞으로 페이즈가 바뀌면 모델 구조도 바뀌어요(직선 → 곡선 → 신경망). 하지만 "구조 + 매개변수 + 학습"이라는 틀은 그대로입니다.
+</div>
+
+<div class="ib tip">
+  <strong>이번 STEP 한정 단순화 약속</strong> — 활동지의 STEP 3에서는 손계산을 깔끔하게 하기 위해 모델을 <span class="mono">L = (w − 5)²</span>로 단순화합니다(가중치 w 자체를 예측값으로 보는 가장 단순한 모델). 앱 페이즈 3은 다섯 점에 직선을 맞추는 정식 손실 <span class="mono">MSE = 평균(ŷ − y)²</span>을 보여줘요 — 두 형태가 같은 "포물선" 모양이라는 점만 짚어두면 됩니다.
 </div>
 
 <h3>3-A. 왜 제곱을 할까? — 손실함수의 모양</h3>
@@ -251,30 +327,9 @@
   </ol>
 </div>
 
-<div class="sf">
-<svg viewBox="0 0 360 200" xmlns="http://www.w3.org/2000/svg">
-  <line x1="30" y1="170" x2="340" y2="170" stroke="#333"/>
-  <line x1="30" y1="20" x2="30" y2="170" stroke="#333"/>
-  <text x="345" y="174" font-size="9">예측</text>
-  <text x="20" y="18" font-size="9">손실</text>
-  <!-- 포물선 (예측 1~10) -->
-  <path d="M 50 30 Q 185 280 320 30" fill="none" stroke="#000" stroke-width="2"/>
-  <!-- 정답 라인 -->
-  <line x1="185" y1="30" x2="185" y2="170" stroke="#666" stroke-dasharray="3 3"/>
-  <text x="170" y="185" font-size="9" fill="#555">정답 = 5</text>
-  <circle cx="185" cy="170" r="3" fill="#000"/>
-  <text x="195" y="168" font-size="9">손실=0</text>
-  <!-- 현재 위치 (예측=2)에서의 접선 (기울기 = 2(2-5) = -6) -->
-  <circle cx="95" cy="100" r="5" fill="#000"/>
-  <text x="55" y="95" font-size="9">예측=2</text>
-  <line x1="65" y1="125" x2="155" y2="78" stroke="#888" stroke-width="2" stroke-dasharray="6 3"/>
-  <text x="155" y="73" font-size="9" fill="#555">접선 (기울기)</text>
-</svg>
-<div class="cap">▲ 손실 = (예측 − 5)² 그래프 + 한 점에서의 접선(기울기)</div>
-</div>
-
 <div class="qc">
   <div class="qh"><span class="num">3-2</span>예측 → 손실 계산표 (정답 = 5)</div>
+  <div class="qd">정답이 5인 모델에서 예측을 5가지로 두었을 때, 오차와 손실을 직접 계산하세요.</div>
   <table class="tb">
     <tr><th>예측</th><th>1</th><th>3</th><th>5</th><th>7</th><th>10</th></tr>
     <tr><td class="lbl">오차 = 예측 − 5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
@@ -287,20 +342,20 @@
 <h3>3-B. 한 점 옆을 살짝 — "기울기"의 의미</h3>
 
 <div class="ib tip">
-  <strong>이번 페이지 한정 단순 비유</strong> — 슬라이더로 움직이는 값을 그대로 모델의 <strong>가중치 w</strong>로 본다. (가장 단순한 모델: 가중치 = 예측). 손실 식은 <span class="mono">L = (w − 5)²</span>.
+  <strong>이번 절 한정 단순 비유</strong> — 모델의 <strong>가중치 w</strong>를 그대로 예측값으로 본다. (가장 단순한 모델: 가중치 = 예측). 손실 식은 <span class="mono">L = (w − 5)²</span>.
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-3</span>한 점 옆의 손실을 살짝 비교 — 디딤돌</div>
-  <div class="qd">w = 2일 때 손실은 (2−5)² = <span class="bk"></span>. 그럼 w를 살짝 옆으로 움직이면 손실은 어떻게 될까? 두 옆을 직접 계산해보세요.</div>
+  <div class="qh"><span class="num">3-3</span>w를 한 칸씩 키워가며 손실 보기 — 디딤돌</div>
+  <div class="qd">w를 2에서 시작해 1씩 키우며 손실이 어떻게 변하는지 직접 계산하세요.</div>
   <div class="fm">
-    w = 1.9 → 손실 = (1.9 − 5)² = <span class="bk lg"></span><br>
-    w = 2.0 → 손실 = (2.0 − 5)² = <span class="bk lg"></span><br>
-    w = 2.1 → 손실 = (2.1 − 5)² = <span class="bk lg"></span>
+    w = 2 → 손실 = (2 − 5)² = <span class="bk lg"></span><br>
+    w = 3 → 손실 = (3 − 5)² = <span class="bk lg"></span><br>
+    w = 4 → 손실 = (4 − 5)² = <span class="bk lg"></span>
   </div>
-  <div class="qd">w를 1.9 → 2.0 → 2.1로 키울 때 손실은 (커진다 / 작아진다). ☞ <span class="bk lg"></span></div>
+  <div class="qd">w를 2 → 3 → 4로 키울 때 손실은 (커진다 / 작아진다). ☞ <span class="bk lg"></span></div>
   <div class="qd">결론: w = 2 근처에서 손실을 줄이려면 w를 (왼쪽 / 오른쪽)으로 옮겨야 한다. ☞ <span class="bk lg"></span></div>
-  <div class="ib"><strong>"기울기"의 정체</strong> — 이렇게 한 점 옆을 살짝 살펴서 손실이 어느 쪽으로 변하는지 잰 값이 그 점에서의 <strong>기울기</strong>다. 양수면 오른쪽이 오르막, 음수면 오른쪽이 내리막.</div>
+  <div class="ib"><strong>"기울기"의 정체</strong> — 이렇게 한 점 옆을 살펴 손실이 어느 쪽으로 변하는지 잰 값이 그 점에서의 <strong>기울기</strong>다. 양수면 오른쪽이 오르막, 음수면 오른쪽이 내리막.</div>
 </div>
 
 <div class="qc">
@@ -337,11 +392,15 @@
 <h3>3-D. 갱신 규칙 — 식으로 묶기</h3>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-6</span>"기울기를 빼면 손실이 줄어든다" — 단계별</div>
+  <div class="qh"><span class="num">3-6</span>"기울기 반대 방향으로 한 발짝" — 단계별</div>
   <div class="qd">3-5에서 발견한 규칙(부호가 반대)을 식으로 적으면 다음과 같습니다. 빈칸을 채워보세요.</div>
   <div class="fm">
-    수정된 w = 지금 w − ( <span class="bk lg"></span> )<br>
-    일반화: w ← w − <span class="bk lg"></span> &nbsp; (∂SE/∂w = "SE의 w에 대한 기울기")
+    수정된 w = 지금 w − ( 기울기 반대 방향으로 <span class="bk lg"></span> 한 발짝 )<br>
+    직관 식: <span class="mono">w ← w − (기울기 방향의 작은 보폭)</span>
+  </div>
+  <div class="ib tip">
+    <strong>한 발짝 크기는 따로 정한다</strong> — 기울기를 그대로 빼는 것이 아니라, 기울기에 작은 비율을 곱한다. 그 비율을 <strong>학습률 η(에타)</strong>라 하고, STEP 4·5에서 정식으로 다룰 거예요.<br>
+    정식 식: <span class="mono">w ← w − η · ∂L/∂w</span> &nbsp;(∂L/∂w = "L의 w에 대한 기울기")
   </div>
   <div class="qd">기울기가 양수(+)일 때 위 식대로 빼면, 새 w는 (커진다 / 작아진다). ☞ <span class="bk lg"></span></div>
   <div class="qd">왼쪽 = 작아지는 쪽이므로 w가 (왼쪽 / 오른쪽)으로 옮겨가는 셈. 3-5의 결론과 일치한다. ☞ <span class="bk lg"></span></div>
@@ -355,55 +414,24 @@
 
 <div class="qc">
   <div class="qh"><span class="num">3-8</span>학습 종료 신호</div>
-  <div class="qd">w = 5에서 기울기는 얼마이고, 갱신 식 w ← w − 기울기를 적용하면 새 w는 얼마인가요?</div>
+  <div class="qd">w = 5에서 기울기는 얼마이고, 갱신 식 <span class="mono">w ← w − η · 기울기</span>를 적용하면 새 w는 얼마인가요? (η은 0보다 큰 보폭이라고만 알아두세요.)</div>
   <div class="fm">
-    기울기 = 2(5 − 5) = <span class="bk"></span> &nbsp;/&nbsp; 새 w = 5 − <span class="bk"></span> = <span class="bk lg"></span>
+    기울기 = 2(5 − 5) = <span class="bk"></span> &nbsp;/&nbsp; 새 w = 5 − η · <span class="bk"></span> = <span class="bk lg"></span>
   </div>
   <div class="qd">즉 기울기가 0이면 더 이상 (<span class="bk lg"></span>) 않는다 → 학습 종료 신호.</div>
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 4. 학습률의 이해 (Phase 4)</h2>
+<h2>STEP 4. 학습률의 이해</h2>
 
-<div class="an"><span class="lab">앱</span>페이즈 4에서 데이터 5개에 가장 잘 맞는 직선이 되도록 <strong>w·b를 직접 조절</strong>해 총 오차를 최소화하세요. 슬라이더 한 칸 크기를 바꿔보며 <strong>학습률의 효과</strong>를 손으로 체험하는 게 이번 절의 핵심입니다.</div>
-
-<div class="ex">
-  <strong>데이터</strong> &nbsp; (1, 2.7), (2, 4.7), (3, 6.7), (4, 8.7), (5, 10.7) &nbsp;— 모두 직선 위에 있습니다 (y = 2x + 0.7).<br>
-  <strong>모델</strong> &nbsp; ŷ = w·x + b &nbsp; / &nbsp; <strong>총 손실</strong> = Σ (ŷ − y)²
+<div class="ib">
+  <div class="t">이 절의 목표</div>
+  데이터에 가장 잘 맞는 직선을 찾는 일을 <strong>w·b를 한 단계씩 바꿔가며 손실이 줄어드는지 확인</strong>하는 절차로 익힌다. 그리고 한 칸의 크기(보폭)가 결과에 어떻게 영향을 주는지 살핀다.
 </div>
 
-<div class="sf">
-<svg viewBox="0 0 360 220" xmlns="http://www.w3.org/2000/svg">
-  <line x1="40" y1="190" x2="340" y2="190" stroke="#333"/>
-  <line x1="40" y1="20" x2="40" y2="190" stroke="#333"/>
-  <text x="345" y="194" font-size="9">x</text>
-  <text x="32" y="18" font-size="9">y</text>
-  <!-- 격자: x 1~5. 변환: sx=40+x*55, sy=190-y*14.5 -->
-  <g stroke="#ddd" stroke-width="0.5">
-    <line x1="95" y1="20" x2="95" y2="190"/>
-    <line x1="150" y1="20" x2="150" y2="190"/>
-    <line x1="205" y1="20" x2="205" y2="190"/>
-    <line x1="260" y1="20" x2="260" y2="190"/>
-    <line x1="315" y1="20" x2="315" y2="190"/>
-  </g>
-  <!-- 데이터 점 (y=2.7,4.7,6.7,8.7,10.7) -->
-  <circle cx="95" cy="151" r="4" fill="#000"/>
-  <circle cx="150" cy="122" r="4" fill="#000"/>
-  <circle cx="205" cy="93" r="4" fill="#000"/>
-  <circle cx="260" cy="64" r="4" fill="#000"/>
-  <circle cx="315" cy="35" r="4" fill="#000"/>
-  <text x="100" y="149" font-size="8.5" fill="#444">(1, 2.7)</text>
-  <text x="155" y="120" font-size="8.5" fill="#444">(2, 4.7)</text>
-  <text x="210" y="91" font-size="8.5" fill="#444">(3, 6.7)</text>
-  <text x="265" y="62" font-size="8.5" fill="#444">(4, 8.7)</text>
-  <text x="265" y="35" font-size="8.5" fill="#444">(5, 10.7)</text>
-  <text x="93" y="202" font-size="8">1</text>
-  <text x="148" y="202" font-size="8">2</text>
-  <text x="203" y="202" font-size="8">3</text>
-  <text x="258" y="202" font-size="8">4</text>
-  <text x="313" y="202" font-size="8">5</text>
-</svg>
-<div class="cap">▲ 데이터 산점도 (직접 직선 ŷ = wx + b를 그어 보세요)</div>
+<div class="ex">
+  <strong>데이터 5개</strong> &nbsp; (1, 3), &nbsp; (2, 5), &nbsp; (3, 7), &nbsp; (4, 9), &nbsp; (5, 11) &nbsp;— 모두 직선 <span class="mono">y = 2x + 1</span> 위에 있다.<br>
+  <strong>모델</strong> &nbsp; ŷ = w · x + b &nbsp; / &nbsp; <strong>총 손실</strong> = Σ (ŷ − y)² &nbsp;(작을수록 데이터에 잘 맞는다)
 </div>
 
 <div class="qc">
@@ -411,11 +439,11 @@
   <div class="qd">한 점씩 ŷ → 오차 → 오차²을 차례로 계산해 마지막에 합산합니다. 같은 절차를 시도 B·C에도 반복할 거예요.</div>
   <table class="tb">
     <tr><th>x</th><th>실제 y</th><th>ŷ = 1·x + 0</th><th>오차 = ŷ − y</th><th>오차²</th></tr>
-    <tr><td>1</td><td>2.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>2</td><td>4.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>3</td><td>6.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>4</td><td>8.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>5</td><td>10.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>1</td><td>3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>2</td><td>5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>3</td><td>7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>4</td><td>9</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>5</td><td>11</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
     <tr><td colspan="4" class="lbl" style="text-align:right">합 (총 손실) =</td><td class="blank"></td></tr>
   </table>
 </div>
@@ -424,25 +452,25 @@
   <div class="qh"><span class="num">4-2</span>시도 B — 같은 절차 반복 (w = 2, b = 0)</div>
   <table class="tb">
     <tr><th>x</th><th>y</th><th>ŷ = 2·x + 0</th><th>오차</th><th>오차²</th></tr>
-    <tr><td>1</td><td>2.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>2</td><td>4.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>3</td><td>6.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>4</td><td>8.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>5</td><td>10.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>1</td><td>3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>2</td><td>5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>3</td><td>7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>4</td><td>9</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>5</td><td>11</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
     <tr><td colspan="4" class="lbl" style="text-align:right">합 =</td><td class="blank"></td></tr>
   </table>
   <div class="qd">시도 A와 비교: 손실이 (작아졌다 / 커졌다 / 같다). ☞ <span class="bk lg"></span></div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-3</span>시도 C — 정답 후보 (w = 2, b = 0.7)</div>
+  <div class="qh"><span class="num">4-3</span>시도 C — 정답 후보 (w = 2, b = 1)</div>
   <table class="tb">
-    <tr><th>x</th><th>y</th><th>ŷ = 2·x + 0.7</th><th>오차</th><th>오차²</th></tr>
-    <tr><td>1</td><td>2.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>2</td><td>4.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>3</td><td>6.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>4</td><td>8.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>5</td><td>10.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><th>x</th><th>y</th><th>ŷ = 2·x + 1</th><th>오차</th><th>오차²</th></tr>
+    <tr><td>1</td><td>3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>2</td><td>5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>3</td><td>7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>4</td><td>9</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>5</td><td>11</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
     <tr><td colspan="4" class="lbl" style="text-align:right">합 =</td><td class="blank"></td></tr>
   </table>
   <div class="qd">발견한 정답: <strong>w =</strong> <span class="bk"></span> &nbsp; <strong>b =</strong> <span class="bk"></span></div>
@@ -454,141 +482,230 @@
     <tr><th>시도</th><th>w</th><th>b</th><th>총 손실</th></tr>
     <tr><td>A</td><td>1</td><td>0</td><td class="blank"></td></tr>
     <tr><td>B</td><td>2</td><td>0</td><td class="blank"></td></tr>
-    <tr><td>C</td><td>2</td><td>0.7</td><td class="blank"></td></tr>
+    <tr><td>C</td><td>2</td><td>1</td><td class="blank"></td></tr>
   </table>
   <div class="qd">"학습"이란 결국 무엇을 하는 과정인지 30자 이내로 정의해 보세요.</div>
   <div class="ans-area"></div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-5</span>슬라이더 한 칸 크기 — "보폭"의 첫 등장</div>
-  <div class="qd">앱은 슬라이더 한 칸 크기를 <strong>큰칸 0.5 / 보통 0.1 / 미세 0.01</strong> 중에 고를 수 있어요. 각 설정에서 b를 0에서 출발해 한 칸씩 위로 누르며 b가 어떤 값들을 거치는지 적어보세요.</div>
+  <div class="qh"><span class="num">4-5</span>한 칸 크기 — "보폭"의 첫 등장</div>
+  <div class="qd">b를 0에서 시작해 정답 b = 1까지 도달한다고 하자. 한 칸 크기에 따라 거치는 값과 칸 수가 달라진다. 직접 채우세요.</div>
   <table class="tb">
-    <tr><th>한 칸 크기</th><th>b가 거치는 값들 (4번까지)</th><th>0.7에 정확히 도달 가능?</th></tr>
-    <tr><td>0.5 (큰칸)</td><td class="blank" style="text-align:left;padding-left:8pt"></td><td class="blank"></td></tr>
-    <tr><td>0.1 (보통)</td><td class="blank" style="text-align:left;padding-left:8pt"></td><td class="blank"></td></tr>
-    <tr><td>0.01 (미세)</td><td class="blank" style="text-align:left;padding-left:8pt"></td><td class="blank"></td></tr>
+    <tr><th>한 칸 크기</th><th>b가 거치는 값들 (정답 1까지)</th><th>몇 칸 만에 도달?</th></tr>
+    <tr><td>0.5 (큰칸)</td><td class="al">0 → 0.5 → <span class="bk"></span></td><td class="blank"></td></tr>
+    <tr><td>0.1 (보통)</td><td class="al">0 → 0.1 → 0.2 → … → <span class="bk"></span></td><td class="blank"></td></tr>
+    <tr><td>0.01 (미세)</td><td class="al">0 → 0.01 → 0.02 → … → 1.00</td><td class="blank"></td></tr>
   </table>
-  <div class="qd">큰칸 0.5로는 정답 b = 0.7에 도달할 수 없어요. 그 이유는 무엇인가요?</div>
-  <div class="ans-area"></div>
-  <div class="ib tip">한 칸 크기는 다음 단계(STEP 5)의 <strong>학습률 η(보폭)</strong>와 같은 발상이에요. "너무 크면 정답을 지나치고, 너무 작으면 답답하다"는 느낌을 손으로 먼저 익히는 활동.</div>
-</div>
+  <div class="qd">큰칸일수록 (빨리 / 느리게) 도달한다. ☞ <span class="bk lg"></span></div>
 
-<div class="qc">
-  <div class="qh"><span class="num">4-2</span>슬라이더 한 칸 크기 비교 — "보폭"의 첫 등장</div>
-  <div class="qd">앱은 슬라이더 한 칸 크기를 <strong>큰칸 0.5 / 보통 0.1 / 미세 0.01</strong> 중에 고를 수 있어요. 다음 단계(STEP 5)의 <strong>학습률 η(보폭)</strong>와 같은 발상입니다.</div>
-  <table class="tb">
-    <tr><th>한 칸 크기</th><th>관찰 — 정답에 도달했나? 도달 못했다면 왜?</th></tr>
-    <tr><td>0.5 (큰칸)</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
-    <tr><td>0.1 (보통)</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
-    <tr><td>0.01 (미세)</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
-  </table>
-  <div class="qd">큰칸 0.5로는 정답 b = 0.7에 도달할 수 없어요. 그 이유는 무엇인가요?</div>
+  <div class="ib tip"><strong>그렇다면 큰칸이 항상 좋은가? — 함정 시나리오</strong><br>
+  만약 정답 b가 1이 아니라 <strong>0.7</strong>이라면? 큰칸 0.5로는 b가 0, 0.5, 1.0, 1.5만 만들 수 있어 <strong>정답 0.7을 정확히 짚을 수 없다</strong>(0.5와 1.0 사이를 오갈 뿐). 이렇게 보폭이 너무 크면 정답을 <strong>지나친다(overshoot)</strong>.</div>
+  <div class="qd">위 시나리오에서 큰칸 0.5로 도달 불가능한 이유를 한 줄로 적어보세요.</div>
   <div class="ans-area"></div>
-</div>
-
-<div class="qc">
-  <div class="qh"><span class="num">4-3</span>학습이란?</div>
-  <div class="qd">"학습"이란 결국 무엇을 하는 과정인지, 위 활동을 토대로 30자 이내로 정의해 보세요.</div>
-  <div class="ans-area"></div>
+  <div class="ib tip">한 칸 크기는 다음 단계(STEP 5)의 <strong>학습률 η(보폭)</strong>와 같은 발상이다. 너무 크면 정답을 지나치고, 너무 작으면 답답하다.</div>
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 5. 오차 역전파의 이해 (Phase 5)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 5는 <strong>5개 탭</strong>으로 구성돼 있어요. <strong>① 직관 → ② 수식 이해 → ③ 수식 유도 → ④ 전체 종합 → ⑤ 실생활 적용</strong> 순서로 따라가며 활동지 문항을 풉니다. 데이터는 (1,3)~(5,11), 모델에 <strong>ReLU 활성화</strong>가 들어갑니다.</div>
+<h2>STEP 5. 오차 역전파의 이해</h2>
 
 <div class="ib">
-  <div class="t">5탭 한 줄 안내</div>
-  ① <strong>직관</strong> 다이어그램의 빨간 화살표 굵기와 손실 곡선이 함께 줄어드는 모습 보기<br>
-  ② <strong>수식 이해</strong> 한 step의 갱신 식 <span class="mono">w ← w − η·dw</span>와 다섯 점 평균 계산을 표로 따라가기<br>
-  ③ <strong>수식 유도</strong> "왜 dw가 e·x인가"를 11단계로 한 줄씩 풀어보기<br>
-  ④ <strong>전체 종합</strong> 다이어그램 + 곡선 + 식 한 화면에서 마지막 점검<br>
-  ⑤ <strong>실생활 적용</strong> 서울 기온 데이터로 두 모델 학습시켜 보기
+  <div class="t">이 절의 목표</div>
+  STEP 4의 슬라이더를 사람이 아닌 <strong>"식이 자동으로 옮기게"</strong> 만드는 과정을 직접 손으로 따라가며, ① 오차 → ② 변화량 → ③ 수정의 한 묶음(= 1 에포크)이 어떻게 작동하는지 이해한다.
 </div>
 
-<div class="ib">
-  <div class="t">자동 학습 = 나침반 + 보폭 + 한 step</div>
-  ▸ 모델: <span class="mono">z = w·x + b → ŷ = ReLU(z)</span>. (페이즈 1의 단일 뉴런이 그대로)<br>
-  ▸ 한 점의 오차 <span class="mono">e = ŷ − y</span><br>
-  ▸ <strong>나침반</strong>(어느 쪽이 내리막인가) = 다섯 점의 평균 변화량<br>
-  &nbsp;&nbsp;&nbsp;<span class="mono">dw = 평균(e · x)</span> &nbsp;/&nbsp; <span class="mono">db = 평균(e)</span><br>
-  ▸ <strong>보폭</strong> = 학습률 <span class="mono">η</span> (페이즈 4 슬라이더 한 칸 크기와 같은 발상)<br>
-  ▸ <strong>수정</strong>: <span class="mono">w ← w − η·dw</span> / <span class="mono">b ← b − η·db</span><br>
-  ▸ ①오차 → ②변화량 → ③수정의 한 묶음을 머신러닝에서 <strong>1 에포크(epoch) = 한 step</strong>이라 부름.
+<div class="ib tip">
+  <strong>기본 약속</strong><br>
+  ▸ 데이터: (1, 3), (2, 5), (3, 7), (4, 9), (5, 11) &nbsp;— y = 2x + 1, 정답 w=2·b=1<br>
+  ▸ 모델: <span class="mono">z = w·x + b → ŷ = ReLU(z)</span><br>
+  ▸ 한 점 오차: <span class="mono">e = ŷ − y</span><br>
+  ▸ 다섯 점 평균: <span class="mono">dw = 평균(e · x)</span> · <span class="mono">db = 평균(e)</span><br>
+  ▸ 한 step: <span class="mono">w ← w − η · dw</span>, <span class="mono">b ← b − η · db</span> (η = 학습률 = 보폭)
 </div>
+
+<h3>5-A. 한 step에 무슨 변화가 생기는가 — 결과 표로 먼저 보기</h3>
 
 <div class="qc">
-  <div class="qh"><span class="num">5-1</span>한 점에서의 변화량 — 직접 계산</div>
-  <div class="qd">데이터 점 (3, 7)에서 현재 <span class="mono">w = 1, b = 0</span>이라 하자.</div>
+  <div class="qh"><span class="num">5-1</span>학습 진행 결과 표 — 패턴 발견</div>
+  <div class="qd">아래 표는 η = 0.1, 시작 w = 0, b = 0에서 한 step씩 진행한 결과입니다. (이 절의 5-2~5-5에서 step 1 계산을 직접 확인할 거예요.)</div>
+  <table class="tb">
+    <tr><th>step</th><th>w</th><th>b</th><th>손실</th></tr>
+    <tr><td>0 (시작)</td><td>0.00</td><td>0.00</td><td>28.5</td></tr>
+    <tr><td>1</td><td>2.50</td><td>0.70</td><td>0.97</td></tr>
+    <tr><td>2</td><td>2.04</td><td>0.58</td><td>0.05</td></tr>
+    <tr><td>3</td><td>2.12</td><td>0.61</td><td>0.04</td></tr>
+    <tr><td>5</td><td>2.06</td><td>0.74</td><td>0.013</td></tr>
+  </table>
+  <div class="qd">표를 보고 빈칸을 채우세요.</div>
+  <div class="fm">
+    손실은 step이 진행될수록 (커진다 / 작아진다). ☞ <span class="bk lg"></span><br>
+    w는 시작 0에서 정답 2를 향해 (가까워진다 / 멀어진다). ☞ <span class="bk lg"></span><br>
+    한 칸당 변화 폭은 step 1에서 (큼 / 작음), step 5에서는 (큼 / 작음). ☞ <span class="bk lg"></span> · <span class="bk lg"></span>
+  </div>
+</div>
+
+<h3>5-B. 한 step을 손으로 — step 1을 직접 확인</h3>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-2</span>(디딤돌) 한 점 (3, 7)에서 z·ŷ·e 계산</div>
+  <div class="qd">현재 <span class="mono">w = 1, b = 0</span>이라 하자.</div>
   <div class="fm">
     z = w·x + b = 1·3 + 0 = <span class="bk"></span><br>
     ŷ = ReLU(z) = <span class="bk"></span> &nbsp;<span style="color:#666">(z가 양수면 그대로 통과)</span><br>
-    오차 e = ŷ − 7 = <span class="bk"></span><br>
-    이 한 점이 만드는 w 변화량 = e · x = <span class="bk"></span> · 3 = <span class="bk lg"></span><br>
-    이 한 점이 만드는 b 변화량 = e = <span class="bk lg"></span>
+    e = ŷ − y = <span class="bk"></span> − 7 = <span class="bk lg"></span>
   </div>
-  <div class="qd">학습률 η = 0.1, 그리고 이 한 점만으로 갱신한다고 가정하면:</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-3</span>이 한 점이 만드는 변화량</div>
   <div class="fm">
-    w ← 1 − 0.1 · (<span class="bk"></span>) = <span class="bk lg"></span><br>
-    b ← 0 − 0.1 · (<span class="bk"></span>) = <span class="bk lg"></span>
+    이 한 점의 w 변화량 = e · x = <span class="bk"></span> · 3 = <span class="bk lg"></span><br>
+    이 한 점의 b 변화량 = e = <span class="bk lg"></span>
   </div>
-  <div class="qd">정답은 w = 2, b = 1. <strong>가까워졌나요, 멀어졌나요?</strong> <span class="bk lg"></span></div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">5-2</span>앱 관찰 — "한 단계 진행"을 5번</div>
-  <div class="qd">앱은 <strong>다섯 점 모두의 평균</strong>으로 갱신해요. 학습률 η는 0.1, 시작값 w=0, b=0. 한 단계씩 누르며 표를 채우세요.</div>
+  <div class="qh"><span class="num">5-4</span>다섯 점 모두 — 평균이 진짜 변화량</div>
+  <div class="qd">시작 w = 1, b = 0일 때 다섯 점 모두 직접 채우세요. (모두 z &gt; 0이라 ŷ = z = 1·x + 0 = x.)</div>
   <table class="tb">
-    <tr><th>step</th><th>w</th><th>b</th><th>손실</th></tr>
-    <tr><td>0</td><td>0.000</td><td>0.000</td><td class="blank"></td></tr>
-    <tr><td>1</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>2</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><th>x</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>합</th></tr>
+    <tr><td class="lbl">y</td><td>3</td><td>5</td><td>7</td><td>9</td><td>11</td><td>—</td></tr>
+    <tr><td class="lbl">ŷ = x</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>—</td></tr>
+    <tr><td class="lbl">e = ŷ − y</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="lbl">e × x</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
   </table>
-  <div class="qd">손실 곡선의 모양은? (꾸준히 감소 / 진동 / 평탄)</div>
+  <div class="fm">
+    dw = (e × x의 합) ÷ 5 = <span class="bk lg"></span><br>
+    db = (e의 합) ÷ 5 = <span class="bk lg"></span>
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-5</span>한 step 적용 — w·b 갱신</div>
+  <div class="qd">학습률 η = 0.1로 한 step을 적용하면?</div>
+  <div class="fm">
+    새 w = w − η · dw = 1 − 0.1 · (<span class="bk"></span>) = <span class="bk lg"></span><br>
+    새 b = b − η · db = 0 − 0.1 · (<span class="bk"></span>) = <span class="bk lg"></span>
+  </div>
+  <div class="qd">정답 (w=2, b=1)에 (가까워졌다 / 멀어졌다). ☞ <span class="bk lg"></span></div>
+  <div class="ib"><strong>5-1 표와 비교</strong> — 표의 step 1은 시작 w=0, b=0에서 시작한 결과(w=2.50, b=0.70). 5-5는 시작 w=1, b=0에서의 결과라 숫자가 다름. <strong>같은 절차가 시작점에 따라 다른 결과를 낸다</strong>는 점만 확인.</div>
+</div>
+
+<h3>5-C. 왜 e × x인가 — 책임 분담의 직관</h3>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-6</span>책임 분담 — 한 줄 핵심</div>
+  <div class="ib">
+    <div class="t">핵심 한 줄</div>
+    같은 오차 e가 두 점에서 나왔다고 해도, <strong>x가 큰 점일수록 w를 살짝 흔들었을 때 출력이 더 크게 흔들린다</strong>. 그러므로 그 점이 w를 어긋나게 만든 책임도 더 크다 → 한 점의 w 책임 = <span class="mono">e · x</span>.
+  </div>
+  <div class="qd">위 한 줄의 의미를 자기 말로 풀어 적어보세요. ("곱셈에서 곱해지는 값이 클수록…" 식으로 시작해도 좋음)</div>
   <div class="ans-area"></div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">5-3</span>학습률 η(보폭) 바꿔보기</div>
-  <div class="qd">앱의 학습률 슬라이더는 <strong>0.001 ~ 0.1</strong> 범위. 몇 가지 값을 시도하며 관찰.</div>
+  <div class="qh"><span class="num">5-7</span>5-4 표로 확인</div>
+  <div class="qd">5-4 표에서 같은 오차라면 x가 큰 점이 |e × x|가 더 (큼 / 작음)을 확인하세요. ☞ <span class="bk lg"></span></div>
+  <div class="qd">예: 점 (1, 3)의 e × x와 점 (5, 11)의 e × x를 비교. (5, 11)이 더 (큼 / 작음). ☞ <span class="bk lg"></span></div>
+</div>
+
+<h3>5-D. 학습률(보폭)을 바꾸면</h3>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-8</span>학습률 비교표</div>
+  <div class="qd">아래는 같은 시작점에서 학습률 η만 바꿔 20 step을 진행한 결과입니다.</div>
   <table class="tb">
-    <tr><th>η (학습률)</th><th>20단계 후 손실</th><th>관찰 — 수렴 속도/진동</th></tr>
-    <tr><td>0.001</td><td class="blank"></td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
-    <tr><td>0.01</td><td class="blank"></td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
-    <tr><td>0.05</td><td class="blank"></td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
-    <tr><td>0.1</td><td class="blank"></td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
+    <tr><th>η (학습률)</th><th>20단계 후 손실</th><th>한 줄 묘사</th></tr>
+    <tr><td>0.001</td><td>≈ 17</td><td class="al">매우 느림. 정답 근처에 못 감.</td></tr>
+    <tr><td>0.01</td><td>≈ 1.5</td><td class="al">느림. 부드럽게 감소 중.</td></tr>
+    <tr><td>0.05</td><td>≈ 0.012</td><td class="al">적절. 거의 수렴.</td></tr>
+    <tr><td>0.1</td><td>≈ 0.005</td><td class="al">빠름. 큰 점프 후 미세 진동.</td></tr>
   </table>
-  <div class="qd">η가 작으면 ( <span class="bk lg"></span> ), 너무 크면 ( <span class="bk lg"></span> ). 페이즈 4의 슬라이더 한 칸 크기와 어떤 점이 같은가?</div>
+  <div class="qd">표를 보고 빈칸을 채우세요.</div>
+  <div class="fm">
+    η가 너무 작으면 (<span class="bk lg"></span>) 못 간다.<br>
+    η가 적절하면 빠르게 (<span class="bk lg"></span>)에 수렴한다.<br>
+    STEP 4의 한 칸 크기와 같은 점: <span class="bk xl"></span>
+  </div>
+  <div class="qd">표에는 없지만, 만약 η가 너무 크면(예: 1.5) 어떻게 될지 추측해 적어보세요.</div>
   <div class="ans-area"></div>
+
+  <div class="ib tip" style="margin-top:8pt">
+    <strong>⚠ 또 하나의 함정 — 뉴런 사망 (Dying ReLU)</strong><br>
+    학습률이 너무 커서 한 step에 <span class="mono">w·b</span>가 크게 음수로 튀면, 모든 점에서 <span class="mono">z = w·x + b &lt; 0</span>이 되어 ReLU(z) = 0. 이때 기울기도 0이 되어 <strong>아무리 step을 눌러도 갱신이 일어나지 않습니다</strong>. 앱에서 ⚠ 경고가 뜨면 <strong>초기화</strong> 버튼으로 처음부터 다시. — 도전: η를 0.3 이상으로 올리고 20단계 반복을 눌러 손실 곡선이 0으로 안 내려가거나 뉴런이 사망하는 모습을 직접 확인해 보세요.
+  </div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">5-4</span>왜 빼기인가 (한 줄 정리)</div>
-  <div class="qd">업데이트 식 <span class="mono">w ← w − η·dw</span>에서 빼기를 쓰는 이유는?</div>
+  <div class="qh"><span class="num">5-9</span>왜 빼기인가 — 한 줄로</div>
+  <div class="qd">업데이트 식 <span class="mono">w ← w − η · dw</span>에서 빼기(−)를 쓰는 이유는? (힌트: STEP 3-7에서 본 갱신 규칙과 같은 발상)</div>
   <div class="ans-area"></div>
 </div>
 
-<div class="qc">
-  <div class="qh"><span class="num">5-5</span>탭 ③ 수식 유도 — 한 줄 옮겨 적기</div>
-  <div class="qd">앱의 "수식 유도" 탭은 <strong>왜 dw = 평균(e·x)인가</strong>를 11단계로 풀어 보여줍니다. 가장 인상 깊은 한 단계를 그대로 옮겨 적고, 한 문장으로 의미를 정리하세요.</div>
-  <div class="ans-area"></div>
-  <div class="qd">"x가 큰 점일수록 w를 잘못 잡았을 때 더 크게 어긋난다 → 책임도 더 크게 묻는다"는 한 줄로 dw에 x가 곱해지는 이유를 설명할 수 있는지 자기 말로 적어보세요.</div>
-  <div class="ans-area"></div>
-</div>
+<h3>5-E. 실생활로 — 다른 데이터에 같은 절차</h3>
 
 <div class="qc">
-  <div class="qh"><span class="num">5-6</span>탭 ⑤ 실생활 적용 — 서울 기온 두 모델</div>
-  <div class="qd">앱의 마지막 탭에서 서울 기온 데이터에 두 가지 모델을 학습시킵니다. 두 모델의 차이를 짧게 적고, 어느 쪽이 데이터에 더 잘 맞는지 그 이유와 함께 적으세요.</div>
+  <div class="qh"><span class="num">5-10</span>두 모델 비교 — 표를 보고 해석</div>
+  <div class="qd">실제 데이터(예: 서울 월별 기온, 키와 몸무게 같은 곡선 추세 데이터)에 두 가지 모델을 학습시킨 결과를 미리 제공합니다.</div>
   <table class="tb">
-    <tr><th>모델</th><th>학습 후 손실</th><th>잘 맞는 곳 / 못 맞는 곳</th></tr>
-    <tr><td class="al">모델 A</td><td class="blank"></td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
-    <tr><td class="al">모델 B</td><td class="blank"></td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
+    <tr><th>모델</th><th>구조</th><th>최종 손실</th><th>한 줄 평</th></tr>
+    <tr><td class="al">A</td><td class="al">단일 뉴런 ŷ = w·x + b (직선)</td><td class="fa">≈ 50 (멈춤)</td><td class="al">추세는 잡지만 곡선을 못 따라감</td></tr>
+    <tr><td class="al">B</td><td class="al">은닉층 추가 (곡선 표현 가능)</td><td class="fa">≈ 5</td><td class="al">곡선까지 따라가며 잘 맞춤</td></tr>
   </table>
-  <div class="qd">교실 데이터(예: 우리 반 키와 몸무게, 시험 점수와 자습 시간 등)로 같은 절차를 적용한다면 어떤 변수를 입력 x, 어떤 변수를 정답 y로 두는 게 좋을지 한 가지 사례를 적어보세요.</div>
+  <div class="qd">표를 보고 어느 쪽이 데이터에 더 잘 맞는지, 그 이유가 무엇인지 한 줄로 적으세요.</div>
   <div class="ans-area"></div>
+  <div class="qd">"B가 무조건 좋다"고 결론 내리기 어려운 이유 한 가지를 추측해 보세요. (힌트: 더 큰 모델의 위험)</div>
+  <div class="ans-area"></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-11</span>교실 데이터로 옮긴다면</div>
+  <div class="qd">우리 반에서 측정 가능한 두 변수로 같은 학습 절차를 적용한다면, 어떤 변수를 입력 x, 어떤 변수를 정답 y로 두면 좋을지 한 가지 사례:</div>
+  <div class="fm">x = <span class="bk lg"></span> &nbsp;/&nbsp; y = <span class="bk lg"></span></div>
+  <div class="qd">왜 이 변수를 골랐는지 한 줄로:</div>
+  <div class="ans-area"></div>
+</div>
+
+<h3>5-F. 종합 응용 — 한 step 전 과정 손계산</h3>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-12</span>손실부터 가중치·편향 갱신까지 한 번에</div>
+  <div class="qd">시작 <span class="mono">w = 0, b = 0</span>, 학습률 <span class="mono">η = 0.1</span>로 한 step을 진행합니다. <strong>5-1 결과 표의 step 1 (w = 2.50, b = 0.70)이 이 식대로 나오는지 직접 확인</strong>하는 종합 문제예요. (모든 점에서 <span class="mono">z = 0·x + 0 = 0</span>이라 <span class="mono">ŷ = ReLU(0) = 0</span>.)</div>
+
+  <div class="sh">① 손실 계산표 — 빈칸을 모두 채우세요</div>
+  <table class="tb">
+    <tr><th>x (입력)</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>합계</th><th>평균</th></tr>
+    <tr><td class="lbl">y (정답)</td><td>3</td><td>5</td><td>7</td><td>9</td><td>11</td><td>—</td><td>—</td></tr>
+    <tr><td class="lbl">ŷ (출력)</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>—</td><td>—</td></tr>
+    <tr><td class="lbl">e = ŷ − y (오차)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="lbl">e² (오차 제곱)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+  </table>
+  <div class="fm">
+    오차 제곱의 합 = <span class="bk lg"></span> &nbsp;·&nbsp; 오차 제곱의 평균(MSE) = (오차 제곱의 합) ÷ 5 = <span class="bk lg"></span>
+  </div>
+
+  <div class="sh">② 업데이트 식 (학습률 포함) — 변하지 않는 약속</div>
+  <div class="ib tip">
+    가중치 갱신: <span class="mono">w ← w − η · dw</span>, &nbsp;여기서 <span class="mono">dw = 평균(e · x)</span><br>
+    편향 갱신: <span class="mono">b ← b − η · db</span>, &nbsp;여기서 <span class="mono">db = 평균(e)</span><br>
+    학습률: <span class="mono">η = 0.1</span>
+  </div>
+
+  <div class="sh">③ 가중치·편향 갱신 — 위 표의 e 값을 가져와 계산</div>
+  <table class="tb">
+    <tr><th>x</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>합계</th><th>평균</th></tr>
+    <tr><td class="lbl">e · x</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="lbl">e</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+  </table>
+  <div class="fm">
+    dw = 평균(e · x) = <span class="bk lg"></span><br>
+    db = 평균(e) = <span class="bk lg"></span><br>
+    Δw = − η · dw = − 0.1 · (<span class="bk"></span>) = <span class="bk lg"></span><br>
+    Δb = − η · db = − 0.1 · (<span class="bk"></span>) = <span class="bk lg"></span><br>
+    새 w = 0 + Δw = <span class="bk lg"></span> &nbsp;·&nbsp; 새 b = 0 + Δb = <span class="bk lg"></span>
+  </div>
+
+  <div class="qd">위에서 구한 새 w·b가 <strong>5-1 표의 step 1 (w = 2.50, b = 0.70)</strong>과 일치하는가? ☞ <span class="bk lg"></span></div>
 </div>
 
 <!-- ============================================================== -->

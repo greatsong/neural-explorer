@@ -91,114 +91,156 @@
   <div class="sub">입시 합격 예측 · 데이터 추가 후 재학습 · 정확도 · 평가의 함정</div>
   <div class="meta">앱 페이즈 6~9 · 대상: 고등학생 · 활동 시간 약 75분</div>
   <div class="obj"><strong>학습 목표</strong> ① 회귀에서 분류로 넘어갈 때 모델이 어떻게 달라지는지 설명한다. ② 학습 데이터의 양이 일반화에 미치는 영향을 관찰한다. ③ 정확도·정밀도·재현율을 구분해 사용하고, 어떤 상황에서 어떤 지표가 중요한지 판단한다.</div>
-  <div class="name">학년 반 번호 <span></span> 이름 <span></span></div>
+  <div class="name">학번 <span></span> 이름 <span></span></div>
 </header>
 
 <!-- ============================================================== -->
-<h2>STEP 1. 입시 합격 예측 (Phase 6)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 6에서 <strong>시나리오 A(정시) 또는 B(학종)</strong>을 골라 ① 데이터 → ② 가중치 조정 → ③ 시험 평가 순으로 진행합니다.</div>
+<h2>STEP 1. 입시 합격 예측 — 가중치 추적</h2>
 
 <div class="ib">
-  <div class="t">분류 = 0/1 결정의 학습</div>
-  1부에서는 연속 값(예: 11)을 맞히는 <strong>회귀</strong>를 했어요. 2부에서는 합격(1)인지 불합격(0)인지를 가르는 <strong>분류</strong>를 합니다.<br>
-  ▸ 단일 뉴런으로도 충분: <span class="mono">점수 = w₁·x₁ + w₂·x₂ + w₃·x₃ + w₄·x₄</span> → 점수가 <strong>임계값(컷오프)</strong>보다 크면 합격으로 예측.
+  <div class="t">이 절의 목표</div>
+  대학이 비공개한 합격 기준을 <strong>합격자/불합격자 명단의 점수</strong>로부터 거꾸로 추적할 수 있는지 직접 손계산으로 확인한다.
+</div>
+
+<div class="ib tip">
+  <strong>분류 = 0/1 결정</strong> — 1부에서는 연속 값을 맞히는 <strong>회귀</strong>였다. 2부는 합격(1)/불합격(0)을 가르는 <strong>분류</strong>.<br>
+  ▸ 점수 = w₁·국 + w₂·수 + w₃·영 + w₄·탐 → <span class="mono">점수 &gt; 컷오프</span>면 합격, <span class="mono">점수 ≤ 컷오프</span>면 불합격(앱과 동일한 규칙).<br>
+  ▸ 가중치(w)·컷오프는 비공개. 우리는 결과(합·불)만 보고 <strong>가중치 비율을 거꾸로 추정</strong>한다.
+</div>
+
+<div class="ib" style="border-style:dashed">
+  <strong>활동지 = 손계산용 축소판</strong> — 앱 페이즈 6은 학생 <strong>10명</strong>으로, 페이즈 7은 데이터를 <strong>40명</strong>까지 늘려가며 학습합니다. 활동지에서는 손으로 직접 채워넣을 수 있도록 <strong>6명 → 30명</strong>으로 줄였어요. 비율과 패턴이 잘 보이도록 일부러 깔끔한 숫자를 골랐습니다(앱은 더 풍부한 데이터로 같은 절차를 진행합니다).
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-1</span>시나리오 선택과 변수</div>
-  <div class="qd">선택한 시나리오: <strong>A 정시 / B 학종</strong> (하나에 동그라미)</div>
-  <div class="qd">이 시나리오의 4개 입력 변수와 의미:</div>
+  <div class="qh"><span class="num">1-1</span>학습 데이터 — 정시 시나리오 6명</div>
+  <div class="qd">○○대학교 정시 합격자 3명·불합격자 3명의 점수 (각 1~10점). 사람이 보면 어떤 과목이 큰 영향일 것 같은가?</div>
   <table class="tb">
-    <tr><th>변수</th><th>x₁</th><th>x₂</th><th>x₃</th><th>x₄</th></tr>
-    <tr><td class="lbl">이름</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><th>학생</th><th>국어</th><th>수학</th><th>영어</th><th>탐구</th><th>실제 결과</th></tr>
+    <tr><td class="al">김민서</td><td>8</td><td>9</td><td>7</td><td>7</td><td class="fa">합격</td></tr>
+    <tr><td class="al">이지우</td><td>6</td><td>9</td><td>6</td><td>8</td><td class="fa">합격</td></tr>
+    <tr><td class="al">박서연</td><td>7</td><td>8</td><td>6</td><td>7</td><td class="fa">합격</td></tr>
+    <tr><td class="al">최도윤</td><td>9</td><td>5</td><td>8</td><td>6</td><td class="fa">불합격</td></tr>
+    <tr><td class="al">정하준</td><td>7</td><td>5</td><td>8</td><td>7</td><td class="fa">불합격</td></tr>
+    <tr><td class="al">강시우</td><td>6</td><td>6</td><td>9</td><td>5</td><td class="fa">불합격</td></tr>
   </table>
+  <div class="qd">합격 3명과 불합격 3명을 가르는 가장 큰 차이는 어느 과목인 것 같나요? 한 줄로:</div>
+  <div class="ans-area"></div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-2</span>가중치 조정 — 5번 시도 기록</div>
-  <div class="qd">앱 ② 탭에서 슬라이더로 <strong>w₁~w₄와 컷오프</strong>를 조절하며 학습 정확도를 최대한 올려보세요. 시도할 때마다 표에 기록.</div>
+  <div class="qh"><span class="num">1-2</span>가중치 후보 W1 (균등) — 직접 계산</div>
+  <div class="qd">먼저 균등 가중치로 시도합니다. <span class="mono">w₁ = w₂ = w₃ = w₄ = 0.25, 컷오프 = 7.0</span>.</div>
+  <div class="qd">점수 = 0.25·국 + 0.25·수 + 0.25·영 + 0.25·탐 = (네 점수의 평균). 6명의 점수와 분류 결과를 채우세요.</div>
   <table class="tb">
-    <tr><th>시도</th><th>w₁</th><th>w₂</th><th>w₃</th><th>w₄</th><th>컷오프</th><th>학습 정확도(10명)</th></tr>
-    <tr><td>1</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>2</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>4</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><th>학생</th><th>점수 (네 과목 평균)</th><th>예측 (&gt;7 합격)</th><th>실제</th><th>맞음/틀림</th></tr>
+    <tr><td class="al">김민서</td><td class="blank"></td><td class="blank"></td><td>합격</td><td class="blank"></td></tr>
+    <tr><td class="al">이지우</td><td class="blank"></td><td class="blank"></td><td>합격</td><td class="blank"></td></tr>
+    <tr><td class="al">박서연</td><td class="blank"></td><td class="blank"></td><td>합격</td><td class="blank"></td></tr>
+    <tr><td class="al">최도윤</td><td class="blank"></td><td class="blank"></td><td>불합격</td><td class="blank"></td></tr>
+    <tr><td class="al">정하준</td><td class="blank"></td><td class="blank"></td><td>불합격</td><td class="blank"></td></tr>
+    <tr><td class="al">강시우</td><td class="blank"></td><td class="blank"></td><td>불합격</td><td class="blank"></td></tr>
   </table>
-  <div class="qd">최종으로 정한 값: w₁=<span class="bk"></span> w₂=<span class="bk"></span> w₃=<span class="bk"></span> w₄=<span class="bk"></span> 컷오프=<span class="bk"></span></div>
+  <div class="fm">정확도 = 맞음 개수 / 6 = <span class="bk lg"></span> / 6 = <span class="bk lg"></span>%</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-3</span>학습 정확도 vs 시험 정확도</div>
-  <div class="qd">앱 ③ 탭에서 학습에 쓰지 않은 새 학생 20명에 적용한 결과:</div>
-  <div class="fm">학습 정확도 = <span class="bk"></span>% &nbsp;&nbsp; 시험 정확도 = <span class="bk"></span>%</div>
-  <div class="ob">
-    <div class="lab">두 정확도가 차이 나는 이유는 무엇일까요?</div>
-    <div class="ans-area"></div>
+  <div class="qh"><span class="num">1-3</span>가중치 후보 W2·W3 — 결과 비교</div>
+  <div class="qd">두 가지 다른 가중치로 같은 6명을 분류한 결과를 미리 제공합니다.</div>
+  <table class="tb">
+    <tr><th>가중치</th><th>w₁ 국</th><th>w₂ 수</th><th>w₃ 영</th><th>w₄ 탐</th><th>정확도 (6명 학습)</th></tr>
+    <tr><td class="al">W1 균등</td><td>0.25</td><td>0.25</td><td>0.25</td><td>0.25</td><td class="blank">(1-2에서)</td></tr>
+    <tr><td class="al">W2 수학 강조</td><td>0.10</td><td>0.50</td><td>0.20</td><td>0.20</td><td class="fa">100%</td></tr>
+    <tr><td class="al">W3 영어 강조</td><td>0.20</td><td>0.20</td><td>0.40</td><td>0.20</td><td class="fa">33%</td></tr>
+  </table>
+  <div class="qd">세 가중치 중 어느 게 가장 잘 분류했나요? <span class="bk lg"></span></div>
+  <div class="qd">"비밀 공식"을 어떻게 추적했나요? 한 줄로 적어보세요.</div>
+  <div class="ans-area"></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-4</span>학습 vs 시험 — 새 데이터 4명</div>
+  <div class="qd">학습에 쓰지 않은 새 학생 4명 데이터에 W2(수학 강조)를 적용한 결과:</div>
+  <table class="tb">
+    <tr><th>학생</th><th>국</th><th>수</th><th>영</th><th>탐</th><th>점수 (W2)</th><th>예측</th><th>실제</th><th>맞음?</th></tr>
+    <tr><td class="al">윤서아</td><td>7</td><td>8</td><td>7</td><td>8</td><td>7.4</td><td>합격</td><td>합격</td><td class="fa">✓</td></tr>
+    <tr><td class="al">장이안</td><td>9</td><td>6</td><td>7</td><td>6</td><td>6.5</td><td>불합격</td><td>합격</td><td class="fa">✗</td></tr>
+    <tr><td class="al">임채원</td><td>5</td><td>5</td><td>6</td><td>6</td><td>5.4</td><td>불합격</td><td>불합격</td><td class="fa">✓</td></tr>
+    <tr><td class="al">한수아</td><td>6</td><td>7</td><td>7</td><td>5</td><td>6.5</td><td>불합격</td><td>불합격</td><td class="fa">✓</td></tr>
+  </table>
+  <div class="fm">학습 정확도(6명) = <span class="bk">100</span>%, 시험 정확도(4명) = <span class="bk lg"></span> / 4 = <span class="bk lg"></span>%</div>
+  <div class="qd">두 정확도가 차이 나는 이유는 무엇일까요? 한 줄로:</div>
+  <div class="ans-area"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 2. 데이터 추가 후 재학습</h2>
+
+<div class="ib">
+  <div class="t">이 절의 목표</div>
+  학습 데이터를 6명 → 30명으로 늘리면 <strong>가중치·정확도가 어떻게 달라지는지</strong> 결과를 비교하며 일반화의 의미를 짚는다.
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-1</span>6명 → 30명, 결과 비교</div>
+  <div class="qd">아래는 같은 시나리오에서 학습 데이터를 늘려 학습한 결과입니다.</div>
+  <table class="tb">
+    <tr><th></th><th>6명일 때</th><th>30명일 때</th></tr>
+    <tr><td class="lbl">최적 가중치 (국·수·영·탐)</td><td class="al">0.10·<strong>0.50</strong>·0.20·0.20</td><td class="al">0.15·<strong>0.45</strong>·0.20·0.20</td></tr>
+    <tr><td class="lbl">학습 정확도</td><td class="fa">100%</td><td class="fa">93%</td></tr>
+    <tr><td class="lbl">시험 정확도(새 학생 20명)</td><td class="fa">75%</td><td class="fa">90%</td></tr>
+  </table>
+  <div class="qd">표를 보고 빈칸을 채우세요.</div>
+  <div class="fm">
+    학습 정확도는 (올라갔다 / 내려갔다). ☞ <span class="bk lg"></span><br>
+    시험 정확도는 (올라갔다 / 내려갔다). ☞ <span class="bk lg"></span><br>
+    두 정확도의 격차가 (커졌다 / 줄었다). ☞ <span class="bk lg"></span>
   </div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-4</span>"비밀 공식"을 추적한다는 것</div>
-  <div class="qd">대학은 가중치를 공개하지 않지만, 합격자/불합격자 명단의 점수만으로 그 비율을 거꾸로 찾을 수 있었습니다. 이것이 가능한 이유를 30자 이내로 적어보세요.</div>
-  <div class="ans-area"></div>
-</div>
-
-<!-- ============================================================== -->
-<h2>STEP 2. 데이터 추가 후 재학습 (Phase 7)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 7에서 동일 시나리오로 진행. 학습 데이터가 <strong>10명 → 40명</strong>으로 늘어납니다.</div>
-
-<div class="qc">
-  <div class="qh"><span class="num">2-1</span>10명 → 40명, 무엇이 달라졌나</div>
-  <table class="tb">
-    <tr><th></th><th>10명일 때 (Phase 6 결과)</th><th>40명일 때 (Phase 7 결과)</th></tr>
-    <tr><td class="lbl">최종 가중치 (w₁~w₄)</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="lbl">학습 정확도</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="lbl">시험 정확도</td><td class="blank"></td><td class="blank"></td></tr>
-  </table>
-</div>
-
-<div class="qc">
   <div class="qh"><span class="num">2-2</span>가상 인물 합·불 통지</div>
-  <div class="qd">앱 ③ 탭에서 가상 학생을 만들고 모델이 합·불을 어떻게 판단하는지 관찰.</div>
+  <div class="qd">30명 학습 후 W2(수학 강조)로 가상 학생 3명을 분류한 결과를 미리 제공합니다.</div>
   <table class="tb">
-    <tr><th>가상 학생</th><th>x₁</th><th>x₂</th><th>x₃</th><th>x₄</th><th>모델 판정</th><th>그 이유 (어떤 변수의 영향이 컸나)</th></tr>
-    <tr><td>P1 (전체 우수)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>P2 (한 영역 약점)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>P3 (경계선)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><th>가상 학생</th><th>국</th><th>수</th><th>영</th><th>탐</th><th>점수</th><th>모델 판정</th></tr>
+    <tr><td class="al">P1 (전체 우수)</td><td>9</td><td>9</td><td>9</td><td>9</td><td class="fa">9.0</td><td class="fa">합격</td></tr>
+    <tr><td class="al">P2 (수학 약점)</td><td>9</td><td>5</td><td>9</td><td>9</td><td class="fa">7.0</td><td class="fa">경계 (합격)</td></tr>
+    <tr><td class="al">P3 (수학 강점만)</td><td>5</td><td>9</td><td>5</td><td>5</td><td class="fa">7.0</td><td class="fa">경계 (합격)</td></tr>
   </table>
+  <div class="qd">P2와 P3의 점수가 같은데, 사람이 보기엔 어느 쪽이 더 합격에 가까울까요? 그 직관과 모델의 판정을 비교하면?</div>
+  <div class="ans-area"></div>
 </div>
 
 <div class="qc">
   <div class="qh"><span class="num">2-3</span>일반화 (generalization)</div>
-  <div class="ib tip">학습한 데이터에서 잘 맞히는 것보다, <strong>처음 보는 데이터에서 잘 맞히는 능력</strong>이 진짜 실력이에요. 이걸 일반화라고 합니다.</div>
-  <div class="qd">데이터를 10명에서 40명으로 늘렸을 때 시험 정확도가 어떻게 달라졌고, 그 이유는 무엇인가요?</div>
+  <div class="ib tip">학습한 데이터에서 잘 맞히는 것보다, <strong>처음 보는 데이터에서 잘 맞히는 능력</strong>이 진짜 실력. 이걸 <strong>일반화</strong>라 한다.</div>
+  <div class="qd">2-1 표에서 학습 정확도는 떨어졌는데 시험 정확도는 올랐어요. 이게 왜 일반화 관점에서 좋은 신호인가요?</div>
   <div class="ans-area"></div>
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 3. 정확도와 혼동행렬 (Phase 8)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 8에서 페이즈 7 모델을 시험 데이터 20명에 적용한 결과를 표로 옮깁니다.</div>
+<h2>STEP 3. 정확도와 혼동행렬</h2>
 
 <div class="ib">
-  <div class="t">혼동행렬 (confusion matrix)</div>
-  예측과 실제를 2×2로 나눈 표. 정확도 한 숫자로는 보이지 않는 것을 드러내요.<br>
+  <div class="t">이 절의 목표</div>
+  분류 결과를 4가지로 나누는 <strong>혼동행렬</strong>을 직접 채우고, 정확도 한 숫자만 보면 무엇을 놓치는지 사고 실험으로 확인한다.
+</div>
+
+<div class="ib tip">
+  <strong>혼동행렬 (confusion matrix)</strong> &nbsp; 예측과 실제를 2×2로 나눈 표.<br>
   ▸ <span class="mono">TP</span>(진짜 양성) · <span class="mono">FP</span>(거짓 양성, 오인) · <span class="mono">FN</span>(거짓 음성, 놓침) · <span class="mono">TN</span>(진짜 음성)
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-1</span>혼동행렬 채우기</div>
-  <div class="cm">
-    <div class="h"></div><div class="h">실제 합격</div><div class="h">실제 불합격</div>
-    <div class="rh">예측<br>합격</div>
-    <div class="cell good"><div class="lab">TP</div><div class="v">__</div><div class="d">합격을 합격으로</div></div>
-    <div class="cell bad"><div class="lab">FP</div><div class="v">__</div><div class="d">불합격을 합격으로 (오인)</div></div>
-    <div class="rh">예측<br>불합격</div>
-    <div class="cell bad"><div class="lab">FN</div><div class="v">__</div><div class="d">합격을 불합격으로 (놓침)</div></div>
-    <div class="cell good"><div class="lab">TN</div><div class="v">__</div><div class="d">불합격을 불합격으로</div></div>
+  <div class="qh"><span class="num">3-1</span>시험 데이터 20명 결과 — 혼동행렬 채우기</div>
+  <div class="qd">시험 학생 20명에게 모델을 적용한 결과를 분류해 둔 표입니다. 빈칸의 4가지 합계를 채우세요.</div>
+  <table class="tb">
+    <tr><th>실제 / 예측</th><th>예측 합격</th><th>예측 불합격</th><th>실제 합계</th></tr>
+    <tr><td class="lbl">실제 합격</td><td class="al">진짜 합격을 합격으로 8명</td><td class="al">합격을 놓침 2명</td><td class="blank"></td></tr>
+    <tr><td class="lbl">실제 불합격</td><td class="al">불합격을 합격으로 오인 1명</td><td class="al">진짜 불합격을 불합격으로 9명</td><td class="blank"></td></tr>
+  </table>
+  <div class="fm">
+    TP = <span class="bk"></span> · FP = <span class="bk"></span> · FN = <span class="bk"></span> · TN = <span class="bk"></span>
   </div>
 </div>
 
@@ -212,50 +254,62 @@
 <div class="qc">
   <div class="qh"><span class="num">3-3</span>정확도의 함정 — 사고 실험</div>
   <div class="qd">합격자 1명 · 불합격자 99명인 시험에서 모델이 "<strong>전원 불합격</strong>"이라고만 외친다면?</div>
-  <div class="fm">정확도 = <span class="bk lg"></span>%</div>
-  <div class="qd">이 모델은 쓸모가 있나요? 한 줄로 비판하세요.</div>
+  <div class="fm">정확도 = (TP + TN) / 100 = ( <span class="bk"></span> + <span class="bk"></span> ) / 100 = <span class="bk lg"></span>%</div>
+  <div class="qd">이 모델이 정확도가 매우 높음에도 쓸모없는 이유를 한 줄로:</div>
   <div class="ans-area"></div>
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 4. 평가의 함정 — 정밀도와 재현율 (Phase 9)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 9에서 <strong>코로나 진단(2%) / 암 검진(0.5%)</strong> 두 시나리오의 임계값을 움직이며 지표를 관찰합니다.</div>
+<h2>STEP 4. 평가의 함정 — 정밀도와 재현율</h2>
 
 <div class="ib">
-  <div class="t">정밀도 vs 재현율</div>
-  ▸ <strong>정밀도</strong> = TP / (TP + FP) &nbsp;— 양성이라 외친 것 중 <strong>진짜 양성</strong> 비율. "헛발질이 적은가?"<br>
-  ▸ <strong>재현율</strong> = TP / (TP + FN) &nbsp;— 진짜 양성 중 <strong>잡아낸</strong> 비율. "놓침이 적은가?"<br>
-  → 둘은 보통 <strong>한쪽을 올리면 다른 쪽이 내려가요</strong>(트레이드오프).
+  <div class="t">이 절의 목표</div>
+  코로나·암 검진처럼 <strong>"놓치면 큰일 / 오인하면 큰일"의 비용 비대칭</strong>이 있는 분야에서 정밀도·재현율을 직접 계산해 어느 쪽을 우선해야 하는지 판단한다.
 </div>
 
-<div class="sf">
-<svg viewBox="0 0 360 130" xmlns="http://www.w3.org/2000/svg">
-  <!-- 양성 분포 (오른쪽) -->
-  <path d="M 200 110 Q 250 30 300 110 Z" fill="#bbb" stroke="#333" stroke-width="1.2"/>
-  <text x="250" y="22" font-size="9" fill="#333" text-anchor="middle">실제 양성 점수 분포</text>
-  <!-- 음성 분포 (왼쪽) -->
-  <path d="M 50 110 Q 100 30 150 110 Z" fill="#fff" stroke="#333" stroke-width="1.2" stroke-dasharray="3 3"/>
-  <text x="100" y="22" font-size="9" fill="#333" text-anchor="middle">실제 음성 점수 분포</text>
-  <!-- 임계값 -->
-  <line x1="180" y1="20" x2="180" y2="115" stroke="#000" stroke-width="2"/>
-  <text x="183" y="28" font-size="9">임계값</text>
-  <line x1="20" y1="110" x2="340" y2="110" stroke="#333"/>
-  <text x="20" y="125" font-size="9" fill="#555">낮은 점수</text>
-  <text x="290" y="125" font-size="9" fill="#555">높은 점수</text>
-</svg>
-<div class="cap">▲ 임계값을 좌우로 움직이면 TP/FP/FN/TN 비율이 모두 바뀐다</div>
+<div class="ib tip">
+  <strong>한 줄 약속 — "양성 = 이번에 찾고 싶은 것"</strong><br>
+  "양성(positive)"은 좋은 일이 아니라 <strong>이번에 우리가 찾아내고 싶은 사건</strong>이에요. 코로나에서는 감염자, 암 검진에서는 암 환자, 스팸 필터에서는 광고 메시지가 양성. 누가 양성인지 정해지면 TP·FP·FN·TN의 의미가 자동으로 결정됩니다.
+</div>
+
+<div class="ib tip">
+  <strong>정밀도 vs 재현율</strong><br>
+  ▸ <strong>정밀도(Precision)</strong> = TP / (TP + FP) &nbsp;— 양성이라 외친 것 중 <strong>진짜 양성</strong> 비율. "헛발질이 적은가?"<br>
+  ▸ <strong>재현율(Recall)</strong> = TP / (TP + FN) &nbsp;— 진짜 양성 중 <strong>잡아낸</strong> 비율. "놓침이 적은가?"<br>
+  → 둘은 보통 <strong>한쪽을 올리면 다른 쪽이 내려간다</strong>(트레이드오프).
+</div>
+
+<div class="ib">
+  <div class="t">🎭 마피아 게임 비유 — 두 친구의 성격 차이</div>
+  같은 마피아 게임을 한다고 합시다. 양성 = 마피아, 음성 = 시민. 모델은 "이 사람이 마피아야!"라고 지목하는 플레이어예요. 두 친구의 성격이 정밀도·재현율과 그대로 대응합니다.
+  <ul style="margin-top:6pt">
+    <li><strong>🧐 정밀도가 높은 친구 — "신중파"</strong> &nbsp;확실할 때만 손가락질해요.<br>
+      &nbsp;&nbsp;👍 함부로 시민을 처형하지 않아 신뢰가 쌓임. 한 번 지목하면 다른 친구들도 따라줌.<br>
+      &nbsp;&nbsp;👎 의심돼도 증거 부족이라며 가만히 있다가 <em>마피아를 살려두기</em> 쉬움.
+    </li>
+    <li style="margin-top:4pt"><strong>🗣️ 재현율이 높은 친구 — "적극파"</strong> &nbsp;조금만 수상해도 외쳐요.<br>
+      &nbsp;&nbsp;👍 마피아를 거의 놓치지 않아요. 결정적 순간에 망설이지 않음.<br>
+      &nbsp;&nbsp;👎 시민을 자꾸 잘못 처형해 마을이 텅 비고, 자꾸 틀리면 진짜 마피아를 지목해도 <em>아무도 안 믿어줌</em>(양치기 소년).
+    </li>
+  </ul>
+  <div style="margin-top:6pt"><strong>🤔 어느 쪽이 더 중요할까?</strong> 정답은 없어요. 마피아가 1명만 남았을 땐 정밀도가, 절반일 땐 재현율이 더 절실해요. 의료·면접·메시지 필터에서도 같은 질문 — <strong>어느 비용이 더 큰가?</strong> 그게 임계값을 결정해요.</div>
+</div>
+
+<div class="ib">
+  <div class="t">🎚️ 임계값(threshold)이란?</div>
+  모델은 각 사람에게 <strong>0~1 사이 양성 확률</strong>을 출력해요(1에 가까울수록 양성 확실). 그런데 확률만으로는 양/음을 결정 못 하니, <strong>어디서 자를지</strong>를 정해야 합니다 — 이 자르는 위치가 임계값. 예: 임계값 0.5 → 0.5 이상이면 양성. 임계값을 <strong>낮추면</strong> 양성이라 부르는 사람이 늘어나 재현율↑·정밀도↓, <strong>높이면</strong> 그 반대.
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-1</span>코로나 진단 — 임계값 변화 관찰</div>
-  <div class="qd">앱에서 임계값을 0.3 / 0.5 / 0.7로 바꾸며 기록.</div>
+  <div class="qh"><span class="num">4-1</span>코로나 진단 시나리오 — 임계값 변화</div>
+  <div class="qd">인구 1000명 검사. 실제 양성 20명, 음성 980명. 임계값을 바꿔가며 분류한 결과:</div>
   <table class="tb">
     <tr><th>임계값</th><th>TP</th><th>FP</th><th>FN</th><th>TN</th><th>정확도</th><th>정밀도</th><th>재현율</th></tr>
-    <tr><td>0.3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>0.5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>0.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>0.3 (낮음)</td><td>19</td><td>120</td><td>1</td><td>860</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>0.5 (중간)</td><td>16</td><td>30</td><td>4</td><td>950</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>0.7 (높음)</td><td>10</td><td>5</td><td>10</td><td>975</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
   </table>
+  <div class="qd">소수점 둘째 자리까지 계산. (정확도 = (TP+TN)/1000, 정밀도 = TP/(TP+FP), 재현율 = TP/(TP+FN))</div>
 </div>
 
 <div class="qc">
@@ -269,12 +323,13 @@
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-3</span>암 조기검진 — 같은 비교</div>
+  <div class="qh"><span class="num">4-3</span>암 조기검진 시나리오 — 직접 계산</div>
+  <div class="qd">인구 1000명 정기검진. 실제 양성 5명, 음성 995명. 임계값별 결과:</div>
   <table class="tb">
-    <tr><th>임계값</th><th>정밀도</th><th>재현율</th></tr>
-    <tr><td>0.3</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>0.5</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>0.7</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><th>임계값</th><th>TP</th><th>FP</th><th>FN</th><th>TN</th><th>정밀도</th><th>재현율</th></tr>
+    <tr><td>0.3 (낮음)</td><td>5</td><td>80</td><td>0</td><td>915</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>0.5 (중간)</td><td>4</td><td>20</td><td>1</td><td>975</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>0.7 (높음)</td><td>2</td><td>3</td><td>3</td><td>992</td><td class="blank"></td><td class="blank"></td></tr>
   </table>
   <div class="qd">암 검진은 어느 쪽을 더 중요하게 봐야 할까요? 코로나와 비교해 같은가, 다른가?</div>
   <div class="ans-area"></div>
@@ -288,6 +343,33 @@
     이 모델의 정밀도 = TP / (TP + FP) = <span class="bk lg"></span> &nbsp; (계산 불가? 그 이유는?)
   </div>
   <div class="ans-area"></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-5</span>시나리오 미니퀴즈 — 어느 쪽에 무게를?</div>
+  <div class="qd">상황이 바뀌면 같은 모델이라도 임계값을 다르게 잘라야 해요. 두 시나리오를 골라 직접 판단해 보세요.</div>
+
+  <div class="ex" style="margin-top:6pt">
+    <strong>💼 회사 면접</strong> &nbsp;진짜 천재(양성)는 한 명도 놓치고 싶지 않은데, 회사에 해를 끼칠 빌런은 절대 들이면 안 돼요. 어디에 무게를 둘까?
+    <table class="tb" style="margin-top:4pt">
+      <tr><th>선택</th><th>효과</th><th>예상 결과 (한 줄)</th></tr>
+      <tr><td class="al">재현율 ↑ (천재 놓치지 않기)</td><td class="al">임계값을 (낮춤 / 높임) ☞ <span class="bk"></span></td><td class="blank"></td></tr>
+      <tr><td class="al">정밀도 ↑ (빌런 거르기)</td><td class="al">임계값을 (낮춤 / 높임) ☞ <span class="bk"></span></td><td class="blank"></td></tr>
+    </table>
+    <div class="qd" style="margin-top:4pt">현실 해법은? — 1차 서류, 2차 면접의 다단계 채용이 등장하는 이유를 한 줄로 적으세요.</div>
+    <div class="ans-area"></div>
+  </div>
+
+  <div class="ex" style="margin-top:8pt">
+    <strong>💬 메시지 스팸 필터</strong> &nbsp;단체 채팅방에 광고가 섞여 와요(양성=광고). 친구의 중요한 안내(음성)는 절대 가리면 안 되고, 광고는 짜증나요. 어디에 무게를 둘까?
+    <table class="tb" style="margin-top:4pt">
+      <tr><th>선택</th><th>FN의 비용 (놓침)</th><th>FP의 비용 (오인)</th></tr>
+      <tr><td class="al">재현율 ↑ (광고 다 잡기)</td><td class="al">광고 새는 일 적음</td><td class="al">친구 메시지가 가끔 광고함으로</td></tr>
+      <tr><td class="al">정밀도 ↑ (확실한 광고만)</td><td class="al">일부 광고가 새어 들어옴</td><td class="al">친구 메시지는 안전</td></tr>
+    </table>
+    <div class="qd" style="margin-top:4pt">대부분의 메시지 앱은 어느 쪽을 우선할까요? 그 이유를 한 줄로:</div>
+    <div class="ans-area"></div>
+  </div>
 </div>
 
 <!-- ============================================================== -->

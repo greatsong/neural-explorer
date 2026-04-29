@@ -81,64 +81,77 @@
   <div class="sub">텍스트 인코딩 · 토큰 · 원-핫에서 임베딩으로 · Word2Vec 미니</div>
   <div class="meta">앱 페이즈 15~18 (히든 스테이지) · 대상: 고등학생 · 활동 시간 약 90분</div>
   <div class="obj"><strong>학습 목표</strong> ① 글자가 어떻게 숫자가 되는지(코드포인트, UTF-8) 설명한다. ② 토큰의 단위와 한·영 토큰 수 차이의 원인을 설명한다. ③ 원-핫의 한계와 임베딩의 등장 이유를 안다. ④ Word2Vec의 "왕 − 남자 + 여자 = 여왕" 같은 의미 연산을 직접 확인하고 의미를 해석한다.</div>
-  <div class="name">학년 반 번호 <span></span> 이름 <span></span></div>
+  <div class="name">학번 <span></span> 이름 <span></span></div>
 </header>
 
 <!-- ============================================================== -->
-<h2>STEP 1. 텍스트가 숫자가 되기까지 (Phase 15)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 15에서 ① 글자 → 코드포인트 → ② 직접 입력 → ③ 한글·영어·이모지 비교를 따라가며 숫자 변환 과정을 관찰합니다.</div>
+<h2>STEP 1. 텍스트가 숫자가 되기까지</h2>
 
 <div class="ib">
-  <div class="t">코드포인트와 UTF-8</div>
-  ▸ 모든 글자는 <strong>유니코드 코드포인트</strong>(고유 번호)를 가짐. 예: 'A' = 65, '안' = 50504(U+C548).<br>
+  <div class="t">이 절의 목표</div>
+  사람이 보는 글자가 컴퓨터에 들어가기까지 <strong>고유 번호(코드포인트) → 0과 1의 묶음(UTF-8)</strong>으로 어떻게 변환되는지 직접 표를 비교하며 확인한다.
+</div>
+
+<div class="ib tip">
+  <strong>코드포인트와 UTF-8</strong><br>
+  ▸ 모든 글자는 <strong>유니코드 코드포인트</strong>(고유 번호)를 가짐. 예: 'A' = 65, '안' = 50504.<br>
   ▸ 저장·전송할 때 <strong>UTF-8</strong> 규칙으로 1~4 바이트의 0/1 묶음으로 펼쳐짐.<br>
   ▸ 영어 알파벳 = 1바이트, 한글 = 3바이트, 이모지 = 4바이트가 일반적.
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-1</span>"안녕하세요" 코드포인트 기록</div>
-  <div class="qd">앱이 보여주는 다섯 글자의 코드포인트와 UTF-8 바이트 수를 표에 옮겨 적으세요.</div>
+  <div class="qh"><span class="num">1-1</span>"안녕하세요" — 코드포인트 표</div>
+  <div class="qd">아래는 다섯 글자의 코드포인트(10진)와 UTF-8 바이트 수입니다. 표를 보고 빈칸을 채우세요.</div>
   <table class="tb">
     <tr><th>글자</th><th>안</th><th>녕</th><th>하</th><th>세</th><th>요</th></tr>
-    <tr><td class="lbl">코드포인트(10진)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="lbl">UTF-8 바이트 수</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="lbl">코드포인트(10진)</td><td>50504</td><td>45397</td><td>54616</td><td>49464</td><td>50836</td></tr>
+    <tr><td class="lbl">UTF-8 바이트 수</td><td>3</td><td>3</td><td>3</td><td>3</td><td>3</td></tr>
   </table>
+  <div class="fm">
+    "안녕하세요"는 글자 수 = <span class="bk"></span>개, 총 UTF-8 바이트 = <span class="bk"></span> × 3 = <span class="bk lg"></span> 바이트.
+  </div>
+  <div class="qd">한글 음절은 모두 UTF-8에서 정확히 3바이트라는 사실이 위 표에서 확인된다. 그 이유를 한 줄로:</div>
+  <div class="ans-area"></div>
 </div>
 
 <div class="qc">
   <div class="qh"><span class="num">1-2</span>한·영·이모지 길이 비교</div>
   <table class="tb">
     <tr><th>문자열</th><th>글자 수</th><th>UTF-8 총 바이트</th></tr>
-    <tr><td class="al">"AI"</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="al">"인공지능"</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="al">"🤖🧠"</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="al">"AI"</td><td>2</td><td class="blank"></td></tr>
+    <tr><td class="al">"인공지능"</td><td>4</td><td class="blank"></td></tr>
+    <tr><td class="al">"🤖🧠"</td><td>2</td><td class="blank"></td></tr>
   </table>
-  <div class="qd">한글이나 이모지가 영어보다 바이트를 더 많이 쓰는 이유는 무엇일까요?</div>
+  <div class="qd">참고 — 영어 1바이트, 한글 3바이트, 이모지 4바이트로 가정하고 빈칸을 직접 곱셈으로 채우세요.</div>
+  <div class="qd">한글이나 이모지가 영어보다 바이트를 더 많이 쓰는 이유는?</div>
   <div class="ans-area"></div>
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 2. 토큰 — 단어보다 작고 글자보다 큰 조각 (Phase 16)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 16에서 ① 토크나이저 시연 → ② BPE 미니 시뮬레이터 → ③ 영어 vs 한글 비교를 진행.</div>
+<h2>STEP 2. 토큰 — 단어보다 작고 글자보다 큰 조각</h2>
 
 <div class="ib">
-  <div class="t">토큰(token)</div>
-  모델은 글자도 단어도 아닌 토큰 단위로 문장을 받음. 자주 등장하는 조합은 <strong>한 토큰</strong>으로, 드물게 등장하는 조합은 <strong>글자 단위</strong>까지 쪼개짐.<br>
-  ▸ 토큰화 규칙: <strong>BPE</strong>(Byte-Pair Encoding) 등 — "가장 자주 붙어 다니는 두 조각을 한 토큰으로 합친다"를 반복.
+  <div class="t">이 절의 목표</div>
+  GPT 같은 모델이 글자도 단어도 아닌 <strong>토큰</strong> 단위로 문장을 받는 이유와, 한·영 토큰 수가 왜 차이 나는지 결과 표로 비교한다.
+</div>
+
+<div class="ib tip">
+  <strong>토큰(token)</strong> &nbsp; 자주 등장하는 조합은 <strong>한 토큰</strong>으로, 드물게 등장하는 조합은 <strong>글자 단위</strong>까지 쪼개진다.<br>
+  ▸ 토큰화 규칙: <strong>BPE</strong>(Byte-Pair Encoding) — "가장 자주 붙어 다니는 두 조각을 한 토큰으로 합친다"를 반복.
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">2-1</span>토큰 수 비교 — 앱 시연 결과 기록</div>
+  <div class="qh"><span class="num">2-1</span>토큰 수 비교 — 결과 표</div>
+  <div class="qd">GPT 계열 토크나이저 기준의 토큰 수입니다. 글자 수와 비교하며 패턴을 발견하세요.</div>
   <table class="tb">
-    <tr><th>예문</th><th>글자 수</th><th>토큰 수</th></tr>
-    <tr><td class="al">Hello world</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="al">Tokenization is fun</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="al">안녕하세요</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="al">공부했어요</td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="al">GPT는 한글을 잘게 쪼개요</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><th>예문</th><th>글자 수</th><th>토큰 수</th><th>글자/토큰 비율</th></tr>
+    <tr><td class="al">Hello world</td><td>11</td><td>2</td><td class="blank"></td></tr>
+    <tr><td class="al">Tokenization is fun</td><td>19</td><td>4</td><td class="blank"></td></tr>
+    <tr><td class="al">안녕하세요</td><td>5</td><td>약 6</td><td class="blank"></td></tr>
+    <tr><td class="al">공부했어요</td><td>5</td><td>약 7</td><td class="blank"></td></tr>
+    <tr><td class="al">GPT는 한글을 잘게 쪼개요</td><td>15</td><td>약 18</td><td class="blank"></td></tr>
   </table>
+  <div class="qd">영어는 글자 수 ≫ 토큰 수, 한글은 글자 수 ≈ 또는 ≪ 토큰 수. 누가 더 많은 토큰을 쓰는가? <span class="bk lg"></span></div>
 </div>
 
 <div class="qc">
@@ -164,33 +177,47 @@
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 3. 원-핫에서 임베딩으로 (Phase 17)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 17에서 ① 원-핫의 한계 → ② 임베딩 행렬 W → ③ 직접 만져보기를 진행.</div>
+<h2>STEP 3. 원-핫에서 임베딩으로</h2>
 
 <div class="ib">
-  <div class="t">원-핫 vs 임베딩</div>
+  <div class="t">이 절의 목표</div>
+  단어를 신경망 입력으로 만드는 가장 단순한 방법(원-핫)의 한계를 직접 코사인 계산으로 확인하고, 학습되는 임베딩 벡터로 옮겨가는 이유를 이해한다.
+</div>
+
+<div class="ib tip">
+  <strong>원-핫 vs 임베딩</strong><br>
   ▸ <strong>원-핫</strong>: 어휘가 V개면 V차원 벡터. 단어 i는 i번째 자리만 1, 나머지 0.<br>
   ▸ <strong>임베딩</strong>: 학습되는 작은 차원(예: 3, 50, 768) 벡터. <strong>의미가 비슷한 단어가 가까이</strong> 배치되도록 학습됨.
 </div>
 
 <div class="qc">
   <div class="qh"><span class="num">3-1</span>원-핫의 한계 — 직접 계산</div>
-  <div class="qd">어휘 V = 6일 때 두 단어의 원-핫 벡터를 적고, 코사인 유사도를 계산해보세요.</div>
+  <div class="qd">어휘 V = 6 (1번 고양이, 2번 강아지, 3번 호랑이, 4번 사과, 5번 바나나, 6번 컴퓨터)일 때 두 단어의 원-핫 벡터:</div>
   <div class="fm">
-    "고양이" = ( <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span> )<br>
-    "강아지" = ( <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span> )<br>
-    cos = (내적) / (크기 × 크기) = <span class="bk lg"></span>
+    "고양이" (1번 자리) = ( <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span> )<br>
+    "강아지" (2번 자리) = ( <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span> )<br>
+    내적 = 1·0 + 0·1 + 0·0 + 0·0 + 0·0 + 0·0 = <span class="bk"></span><br>
+    cos(고양이, 강아지) = 내적 / (크기 × 크기) = <span class="bk"></span> / (1 × 1) = <span class="bk lg"></span>
   </div>
-  <div class="qd">"고양이"와 "강아지"는 사람 보기에 매우 비슷한 단어인데, 원-핫에서는 모든 다른 단어 쌍과 똑같이 cos = 0이 됩니다. 이 현상이 왜 문제가 될까요?</div>
+  <div class="qd">"고양이"와 "강아지"는 사람 보기에 매우 비슷한 단어인데, cos = 0이 나왔다. 같은 어휘 안의 다른 단어 쌍(예: 고양이-컴퓨터)도 cos = 0. 즉 원-핫에서는 모든 다른 단어 쌍이 똑같이 cos = 0. 이 현상이 왜 문제가 될까요?</div>
   <div class="ans-area"></div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-2</span>임베딩 — 차원 줄이고 의미 담기</div>
-  <div class="qd">앱은 V = 6 단어를 3차원 벡터로 임베딩한 결과를 보여줍니다. 그림에서 가까이 모인 단어 그룹과 멀리 떨어진 그룹을 적어보세요.</div>
+  <div class="qh"><span class="num">3-2</span>임베딩 결과 — 미리 제공</div>
+  <div class="qd">위 6개 단어를 학습된 3차원 임베딩으로 옮긴 결과를 표로 제공:</div>
   <table class="tb">
-    <tr><th>가까이 모인 그룹</th><th>왜 가깝게 학습됐을까 (의미적으로)</th></tr>
+    <tr><th>단어</th><th>z₁</th><th>z₂</th><th>z₃</th></tr>
+    <tr><td class="al">고양이</td><td>0.8</td><td>0.6</td><td>0.1</td></tr>
+    <tr><td class="al">강아지</td><td>0.7</td><td>0.7</td><td>0.1</td></tr>
+    <tr><td class="al">호랑이</td><td>0.9</td><td>0.5</td><td>0.2</td></tr>
+    <tr><td class="al">사과</td><td>0.1</td><td>0.2</td><td>0.9</td></tr>
+    <tr><td class="al">바나나</td><td>0.2</td><td>0.1</td><td>0.8</td></tr>
+    <tr><td class="al">컴퓨터</td><td>−0.5</td><td>−0.4</td><td>−0.3</td></tr>
+  </table>
+  <div class="qd">표를 보고 "가까이 모인 그룹"을 찾아보세요.</div>
+  <table class="tb">
+    <tr><th>가까이 모인 그룹</th><th>의미적 공통점</th></tr>
     <tr><td class="blank"></td><td class="blank"></td></tr>
     <tr><td class="blank"></td><td class="blank"></td></tr>
   </table>
@@ -198,7 +225,7 @@
 
 <div class="qc">
   <div class="qh"><span class="num">3-3</span>임베딩 행렬 W의 정체</div>
-  <div class="qd">앱에서 단어 → 임베딩 벡터로 가는 과정은 결국 <strong>원-핫 × W</strong>의 곱셈입니다. W의 크기는 V × d (어휘 × 임베딩 차원).</div>
+  <div class="qd">단어 → 임베딩 벡터로 가는 과정은 결국 <strong>원-핫 × W</strong>의 곱셈. W의 크기는 V × d (어휘 × 임베딩 차원).</div>
   <div class="fm">
     어휘 V = 6, 임베딩 차원 d = 3일 때 W의 크기 = <span class="bk"></span> × <span class="bk"></span> = 학습할 숫자 <span class="bk lg"></span>개
   </div>
@@ -207,39 +234,62 @@
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 4. Word2Vec 미니 — 의미 연산 (Phase 18)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 18에서 ① 학습 → ② 잠재 공간 → ③ 의미 산수를 진행. 영어/한국어 코퍼스 둘 다 시도 권장.</div>
+<h2>STEP 4. Word2Vec 미니 — 의미 연산</h2>
 
 <div class="ib">
-  <div class="t">Word2Vec의 발견</div>
-  단어 임베딩 공간에서 <strong>벡터 덧셈/뺄셈이 의미 연산이 된다</strong>는 사실. <br>
+  <div class="t">이 절의 목표</div>
+  학습된 단어 임베딩 공간에서 <strong>벡터의 덧셈·뺄셈이 곧 의미 연산이 된다</strong>는 발견을 결과 표와 직접 손계산으로 확인한다.
+</div>
+
+<div class="ib tip">
+  <strong>Word2Vec의 발견</strong><br>
   ▸ <span class="mono">vec(king) − vec(man) + vec(woman) ≈ vec(queen)</span><br>
   → 학습된 임베딩 공간이 "왕족 vs 일반 / 남성 vs 여성" 같은 <strong>의미의 축</strong>을 자동으로 잡았다는 증거.
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-1</span>학습 후 의미 산수 결과 기록</div>
+  <div class="qh"><span class="num">4-1</span>의미 산수 결과 — 미리 제공</div>
+  <div class="qd">잘 학습된 Word2Vec 모델이 다음 식을 계산하면 가장 가까운 단어가 다음과 같이 나옵니다.</div>
   <table class="tb">
-    <tr><th>식</th><th>가장 가까운 단어 (앱 출력)</th><th>기대 답</th></tr>
-    <tr><td class="al">king − man + woman</td><td class="blank"></td><td>queen</td></tr>
-    <tr><td class="al">prince − man + woman</td><td class="blank"></td><td>princess</td></tr>
-    <tr><td class="al">왕 − 남자 + 여자</td><td class="blank"></td><td>여왕</td></tr>
-    <tr><td class="al">아빠 − 남자 + 여자</td><td class="blank"></td><td>엄마</td></tr>
+    <tr><th>식</th><th>1순위 결과</th><th>기대 답</th><th>적중?</th></tr>
+    <tr><td class="al">king − man + woman</td><td class="fa">queen</td><td>queen</td><td class="fa">✓</td></tr>
+    <tr><td class="al">prince − man + woman</td><td class="fa">princess</td><td>princess</td><td class="fa">✓</td></tr>
+    <tr><td class="al">왕 − 남자 + 여자</td><td class="fa">여왕</td><td>여왕</td><td class="fa">✓</td></tr>
+    <tr><td class="al">아빠 − 남자 + 여자</td><td class="fa">엄마</td><td>엄마</td><td class="fa">✓</td></tr>
   </table>
-</div>
-
-<div class="qc">
-  <div class="qh"><span class="num">4-2</span>왜 이런 산수가 가능한가</div>
-  <div class="qd">"king"과 "queen"은 의미상 한 가지(성별)만 다르다. 임베딩 공간에서 두 단어를 잇는 화살표가 의미하는 것이 무엇인지 적어보세요.</div>
-  <div class="ans-area"></div>
-  <div class="qd">"father → mother"의 화살표와 "king → queen"의 화살표는 임베딩 공간에서 어떻게 비슷할까?</div>
+  <div class="qd">위 4문제 모두 정답이 1순위로 나왔다. 한국어·영어가 모두 가능하다는 뜻은 임베딩이 어떤 능력을 가졌다는 것인가? 한 줄로:</div>
   <div class="ans-area"></div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-3</span>실패 사례도 적어보기</div>
-  <div class="qd">앱에서 결과가 "기대 답과 다른" 경우도 있나요? 한 가지 사례와 그 이유 추측을 적어보세요.</div>
+  <div class="qh"><span class="num">4-2</span>의미 차 = 벡터 차 — 직접 계산</div>
+  <div class="qd">간단한 2차원 임베딩 예시. (실제 학습 결과를 단순화한 값.)</div>
+  <table class="tb">
+    <tr><th>단어</th><th>z₁</th><th>z₂</th></tr>
+    <tr><td>king</td><td>0.8</td><td>0.6</td></tr>
+    <tr><td>man</td><td>0.5</td><td>0.4</td></tr>
+    <tr><td>woman</td><td>0.5</td><td>0.8</td></tr>
+    <tr><td>queen</td><td>0.8</td><td>1.0</td></tr>
+  </table>
+  <div class="qd">vec(king) − vec(man) + vec(woman) 을 직접 계산해 vec(queen)과 비교하세요.</div>
+  <div class="fm">
+    z₁: 0.8 − 0.5 + 0.5 = <span class="bk lg"></span><br>
+    z₂: 0.6 − 0.4 + 0.8 = <span class="bk lg"></span><br>
+    결과 ( <span class="bk"></span>, <span class="bk"></span> ) ≈ vec(queen) = (0.8, 1.0). 같은가? <span class="bk lg"></span>
+  </div>
+  <div class="qd">"king → queen"의 화살표(벡터 차)와 "man → woman"의 화살표를 두 단어 좌표 차로 계산해보세요.</div>
+  <div class="fm">
+    queen − king = (0.8−0.8, 1.0−0.6) = ( <span class="bk"></span>, <span class="bk"></span> )<br>
+    woman − man = (0.5−0.5, 0.8−0.4) = ( <span class="bk"></span>, <span class="bk"></span> )<br>
+    두 화살표는 (같다 / 다르다). ☞ <span class="bk lg"></span>
+  </div>
+  <div class="qd">두 화살표가 같다는 사실이 의미하는 바는?</div>
+  <div class="ans-area"></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-3</span>실패 사례 — 추측</div>
+  <div class="qd">의미 산수가 잘 안 통하는 경우도 있다. 예: 학습 코퍼스에 거의 등장하지 않은 단어("호랑이")로 같은 산수를 시도하면 1순위가 다른 단어로 나오기 쉽다. 이유를 한 줄로:</div>
   <div class="ans-area"></div>
 </div>
 

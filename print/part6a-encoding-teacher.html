@@ -76,16 +76,12 @@
 </header>
 
 <!-- ============================================================== -->
-<h2>STEP 1. 텍스트 인코딩 (Phase 15)</h2>
+<h2>STEP 1. 텍스트가 숫자가 되기까지</h2>
 
 <div class="qc">
   <div class="qh"><span class="num">1-1</span>"안녕하세요" — 정답</div>
-  <table class="tb">
-    <tr><th>글자</th><th>안</th><th>녕</th><th>하</th><th>세</th><th>요</th></tr>
-    <tr><td class="lbl">코드포인트(10진)</td><td class="fa">50504</td><td class="fa">45397</td><td class="fa">54616</td><td class="fa">49464</td><td class="fa">50836</td></tr>
-    <tr><td class="lbl">UTF-8 바이트 수</td><td class="fa">3</td><td class="fa">3</td><td class="fa">3</td><td class="fa">3</td><td class="fa">3</td></tr>
-  </table>
-  <div class="ans"><span class="lab">참고</span>한글 음절(가~힣) 영역은 U+AC00 ~ U+D7A3. 모든 한글 음절이 UTF-8에서 정확히 3바이트.</div>
+  <div class="ans"><span class="lab">정답</span>글자 수 = <span class="v">5</span>개, 총 UTF-8 바이트 = <span class="v">5</span> × 3 = <span class="v">15</span> 바이트.</div>
+  <div class="ans"><span class="lab">한글 음절이 모두 3바이트인 이유</span>한글 완성형 음절(가~힣) 영역은 유니코드 U+AC00 ~ U+D7A3 (코드포인트 약 44032~55203 범위). 이 범위의 코드포인트는 UTF-8 인코딩 규칙상 모두 정확히 3바이트로 펼쳐진다.</div>
 </div>
 
 <div class="qc">
@@ -167,9 +163,19 @@
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-2</span>화살표의 의미 — 모범 답안</div>
-  <div class="ans"><span class="lab">예시</span>"king → queen" 화살표는 <strong>"왕족이라는 속성은 유지한 채 성별만 남→여로 바꾸는 변환"</strong>을 가리킨다. 같은 의미를 가진 "father → mother" 화살표는 임베딩 공간에서 <strong>방향과 크기가 거의 같다</strong>(평행이동에 가깝다).</div>
-  <div class="ans"><span class="lab">메시지</span>"의미 = 위치"가 아니라 "<strong>의미 차이 = 벡터 차</strong>". 이 발상이 LLM의 의미 처리의 출발점.</div>
+  <div class="qh"><span class="num">4-2</span>의미 차 = 벡터 차 — 정답</div>
+  <div class="ans"><span class="lab">계산</span>
+    z₁: 0.8 − 0.5 + 0.5 = <span class="v">0.8</span><br>
+    z₂: 0.6 − 0.4 + 0.8 = <span class="v">1.0</span><br>
+    결과 (0.8, 1.0) = vec(queen). <strong>같다</strong>.
+  </div>
+  <div class="ans"><span class="lab">두 화살표 정답</span>
+    queen − king = (0.8−0.8, 1.0−0.6) = <span class="v">(0, 0.4)</span><br>
+    woman − man = (0.5−0.5, 0.8−0.4) = <span class="v">(0, 0.4)</span><br>
+    두 화살표는 <strong>같다</strong> (방향·크기 모두 동일).
+  </div>
+  <div class="ans"><span class="lab">의미</span>"king → queen"과 "man → woman"이 임베딩 공간에서 <strong>같은 방향·같은 크기의 평행이동</strong>이라는 뜻. 즉 두 변환이 모두 "남성 → 여성"이라는 동일한 의미 차이를 표현한다. 이것이 "<strong>의미 차이 = 벡터 차</strong>"라는 발상의 본질이고, LLM의 의미 처리의 출발점.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>두 벡터가 시작점이 다르니 다르다고 답하는 경우. <strong>벡터(화살표)는 시작점이 아니라 방향·크기로 정의됨</strong>을 짚을 것.</div>
 </div>
 
 <div class="qc">

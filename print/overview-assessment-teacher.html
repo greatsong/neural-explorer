@@ -130,13 +130,14 @@
 </div>
 
 <div class="qc">
-  <div class="qh"><span><span class="num">7</span>지표 매칭</span><span class="pt">6점</span></div>
+  <div class="qh"><span><span class="num">7</span>지표 매칭 — 마피아 비유 활용</span><span class="pt">6점</span></div>
   <div class="ans"><span class="lab">정답</span>
-    스팸 메일: <span class="v">정밀도</span> — 정상 메일을 스팸으로 잘못 분류하면(FP) 사용자가 중요한 메일 놓침. FP 비용↑.<br>
-    암 검진: <span class="v">재현율</span> — 진짜 환자를 놓치면(FN) 생존율 급락. FN 비용↑.<br>
-    동전 던지기: <span class="v">정확도</span> — 클래스 비율과 두 오류 비용이 같아 단순 정확도가 충분.
+    스팸 메일: <span class="v">정밀도</span> — 정상 메일을 스팸으로 잘못 분류하면(FP) 사용자가 중요한 메일 놓침. FP 비용↑ → 🧐 신중파 친구.<br>
+    암 검진: <span class="v">재현율</span> — 진짜 환자를 놓치면(FN) 생존율 급락. FN 비용↑ → 🗣️ 적극파 친구.<br>
+    입시 합격 예측: <span class="v">정확도</span> — 합·불 비율이 비슷하고 두 오류 비용이 비슷하면 단순 정확도가 충분.
   </div>
-  <div class="pt-rule"><span class="lab">부분점수</span>지표 1점 + 이유 1점, 행마다 총 2점. 이유에 "FP/FN 중 어느 쪽이 비싼가" 언급이 있으면 만점.</div>
+  <div class="pt-rule"><span class="lab">부분점수</span>지표 1점 + 이유 1점, 행마다 총 2점. 이유에 "FP/FN 중 어느 쪽이 비싼가" 또는 "신중파/적극파 친구" 언급이 있으면 만점.</div>
+  <div class="tt"><span class="lab">채점 안내</span>Phase 9가 마피아 게임 비유로 재설계됐다(🧐 정밀도 = 신중파, 🗣️ 재현율 = 적극파). 학생이 "신중파 친구를 보내자"·"적극파 친구가 어울려요" 같은 비유 답안을 적었을 때, 비용 비대칭의 방향만 맞으면 만점으로 처리. 마피아 비유로 답하면 더 깊은 이해 신호.</div>
 </div>
 
 <div class="qc">
@@ -267,6 +268,57 @@
   <div class="qh"><span><span class="num">24</span>객관식 — 온도</span><span class="pt">3점</span></div>
   <div class="ans"><span class="lab">정답</span>② 분포가 더 평탄해지고 결과의 다양성·의외성이 커짐</div>
   <div class="pf"><span class="lab">자주 틀림</span>① 선택 — T 작을 때와 클 때를 반대로 이해.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>보충 진단 ★. 모델 진단 카드 — 과적합 vs 과소적합 (정답)</h2>
+
+<div class="an"><span class="lab">활동 의도</span>학습/시험 정확도 두 숫자만으로 진단명을 떠올리는 능력은 1~4부 전체를 묶는 핵심 통찰. 형식 평가 점수에는 포함하지 않고 보충 진단 형태로 운영해, 학생이 마지막 통합 서술에 들어가기 전 자기 점검을 하게 함.</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★1</span>두 진단명 — 정답</div>
+<div class="ans"><span class="lab">정답</span>
+  <table class="tb">
+    <tr><th>진단명</th><th>정의</th><th>비유</th></tr>
+    <tr><td><strong>과적합</strong></td><td class="fa">학습 데이터에는 잘 맞는데 새 데이터에서는 못 맞히는 상태</td><td>모범답안만 통째로 외운 학생</td></tr>
+    <tr><td><strong>과소적합</strong></td><td class="fa">학습·시험 모두 정확도가 낮은 상태</td><td>공식을 외우지 못한 학생</td></tr>
+  </table>
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★2</span>네 사례 진단 — 정답</div>
+<div class="ans"><span class="lab">정답</span>
+  <table class="tb">
+    <tr><th>사례</th><th>학습</th><th>시험</th><th>진단</th><th>처방 한 줄</th></tr>
+    <tr><td>A</td><td>99%</td><td>62%</td><td class="fa">과적합</td><td class="fa">데이터 추가·다양화 + 모델 축소 또는 Early stop</td></tr>
+    <tr><td>B</td><td>45%</td><td>43%</td><td class="fa">과소적합</td><td class="fa">모델 키우기 + 에폭·η 조정 (모델 표현력 부족)</td></tr>
+    <tr><td>C</td><td>91%</td><td>89%</td><td class="fa">건강</td><td class="fa">유지. 더 큰 모델은 과적합 위험</td></tr>
+    <tr><td>D</td><td>55%</td><td>54%</td><td class="fa">과소적합</td><td class="fa">모델 키우기 또는 학습 조건 점검 (둘 다 낮고 차이도 작음)</td></tr>
+  </table>
+</div>
+<div class="tt"><span class="lab">수업 팁</span>D를 "건강"으로 답하는 학생이 많음. 두 정확도가 비슷하다는 점에만 주목하면 그렇게 보이지만, 절대 수치(55%)가 낮다는 점을 짚어줄 것. 진단의 두 축은 <strong>(1) 두 수치의 차이</strong>와 <strong>(2) 절대 수준</strong>임을 한 번 더 강조.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★3</span>처방전 — 정답</div>
+<div class="ans"><span class="lab">정답</span>
+  <table class="tb">
+    <tr><th>처방</th><th>A 과적합</th><th>B 과소적합</th></tr>
+    <tr><td style="text-align:left">데이터 추가·다양화</td><td class="fa">✓ (강력 추천)</td><td class="fa">△ (도움 제한적)</td></tr>
+    <tr><td style="text-align:left">은닉 늘리기</td><td class="fa">✗ (악화)</td><td class="fa">✓</td></tr>
+    <tr><td style="text-align:left">은닉 줄이기</td><td class="fa">✓</td><td class="fa">✗ (악화)</td></tr>
+    <tr><td style="text-align:left">학습 에폭 늘리기</td><td class="fa">✗ (악화)</td><td class="fa">✓</td></tr>
+    <tr><td style="text-align:left">Early stopping</td><td class="fa">✓</td><td class="fa">✗ (학습 더 필요)</td></tr>
+  </table>
+</div>
+<div class="pf"><span class="lab">자주 틀림</span>① 과적합에 "에폭 더 학습"을 처방. ② 과소적합에 "데이터 추가"를 강력 처방. 데이터 추가는 모델 표현력이 충분할 때 빛을 발하므로, 표현력 자체가 부족한 과소적합에서는 우선순위가 낮다는 점을 강조.</div>
+<div class="tt"><span class="lab">전이</span>이 처방 표가 곧 11장(P11) "신경망 설계"의 가이드. 학습/시험 정확도 두 숫자를 보고 다음 한 수를 정하는 사고 패턴은 실제 ML 엔지니어의 일상이라는 한 마디로 마무리.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★4</span>한 줄 정리 — 정답</div>
+<div class="ans"><span class="lab">정답</span>"학습 정확도와 시험 정확도의 <strong>차이가 크면</strong> <span class="v">과적합</span>, <strong>둘 다 낮으면</strong> <span class="v">과소적합</span>."</div>
 </div>
 
 <!-- ============================================================== -->

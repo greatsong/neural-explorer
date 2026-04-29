@@ -75,31 +75,45 @@
 </header>
 
 <!-- ============================================================== -->
-<h2>STEP 1. 평균과 분포 (Phase 13)</h2>
+<h2>STEP 1. 평균과 분포 — 가장 단순한 생성 모델</h2>
 
-<div class="an"><span class="lab">앱 운영</span>이 페이즈는 5부 시작점이라 학생이 처음 보면 "이게 왜 생성이지?"라고 헷갈릴 수 있음. 도입을 <strong>"평균을 새 그림으로 보면 어떨까"</strong>로 잡고 시작.</div>
+<div class="an"><span class="lab">활동지 운영</span>학생용은 두 라벨(가로줄 A·세로줄 B) 평균 패턴을 미리 그려 제공하고, 보간 G(blend) = (1−blend)·A + blend·B 식의 가중평균을 한 픽셀씩 직접 계산하게 만들었다. 정수 픽셀(0/1) + blend 0/0.5/1로 단순화해 손계산 부담을 최소화.</div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-1·1-2</span>평균과 분산 — 모범 답안</div>
-  <div class="ans"><span class="lab">분산의 의미</span>분산이 큰 픽셀 = 그림마다 칠해졌다 안 칠해졌다 변화가 큰 자리. <strong>같은 라벨 안에서도 다양성이 발생하는 영역</strong>(예: ⬜ 네모는 가장자리는 일정하나 안쪽이 그림마다 다를 수 있음).</div>
-  <div class="tt"><span class="lab">수업 팁</span>"평균이 곧 생성"이라는 말은 다소 도발적이라 보충 설명 필요. <strong>"분포의 중심점을 새 샘플로 가져다 쓴다"</strong>가 정확한 표현.</div>
+  <div class="qh"><span class="num">1-1</span>평균이 곧 중심 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>"여러 장 그림에서 각 픽셀이 켜진 횟수를 세어 평균낸 것이 평균 이미지. 그래서 가장 일반적이고 흔한 모양 = 그 라벨의 중심." 또는 "분포의 중심점."</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-3</span>보간 — 모범 답안</div>
-  <div class="ans"><span class="lab">예시</span>blend 0~0.25는 A 그대로, 0.5는 두 그림이 겹친 흐릿한 형태, 0.75~1은 B 형태. 양 끝은 라벨 평균, 중간은 두 평균의 가중합.</div>
-  <div class="ans"><span class="lab">중간 그림이 어중간한 이유</span>분류기는 결정 경계를 기준으로 판단하는데, 두 평균을 잇는 선분의 중간점은 두 클래스의 거리가 같은 지점, 즉 <strong>결정 경계 위</strong>에 있어 어느 쪽으로도 분류되지 않는다.</div>
-  <div class="pf"><span class="lab">자주 틀림</span>"중간 그림은 그냥 두 그림을 겹친 거다"라고만 답하는 경우. <strong>"왜 어중간한가"</strong>는 결정 경계의 위치로 설명되어야 한다는 점 짚기.</div>
+  <div class="qh"><span class="num">1-2</span>분산의 의미 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>분산이 큰 자리 = 학생마다 칠했다 안 칠했다 변화가 큰 자리. A 라벨에서 가로줄을 0·1행에 그린 학생도 있고 1·2행에 그린 학생도 있다면, 1·2·3행 경계 근처가 가장 분산이 크다. 즉 <strong>같은 라벨 안에서도 다양성이 생기는 영역</strong>.</div>
+  <div class="tt"><span class="lab">수업 팁</span>"평균이 곧 생성"이라는 말은 다소 도발적. <strong>"분포의 중심점을 새 샘플로 가져다 쓴다"</strong>가 정확한 표현이라는 보충.</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-4</span>노이즈 — 모범 답안</div>
-  <div class="ans"><span class="lab">관찰</span>5장 모두 같은 평균 주변에서 흔들리지만 픽셀 패턴이 매번 미세하게 다름. <strong>다양성</strong>은 "평균(중심)에서 분산(허용 오차)만큼 벗어난 다른 점들을 뽑아내는 일"로 이해된다.</div>
+  <div class="qh"><span class="num">1-3</span>보간 — 정답</div>
+  <div class="ans"><span class="lab">0행 0열 (A=1, B=1, 둘 다 켜짐)</span>
+    blend = 0 → G = 1·1 + 0·1 = <span class="v">1</span><br>
+    blend = 0.5 → G = 0.5·1 + 0.5·1 = <span class="v">1</span><br>
+    blend = 1 → G = 0·1 + 1·1 = <span class="v">1</span>
+  </div>
+  <div class="ans"><span class="lab">0행 4열 (A=1, B=0, A에서만 켜짐)</span>
+    blend = 0 → G = 1·1 + 0·0 = <span class="v">1</span><br>
+    blend = 0.5 → G = 0.5·1 + 0.5·0 = <span class="v">0.5</span> (중간값)<br>
+    blend = 1 → G = 0·1 + 1·0 = <span class="v">0</span>
+  </div>
+  <div class="ans"><span class="lab">중간이 어중간한 이유 — 모범 답안</span>blend = 0.5 그림은 두 라벨의 평균을 정확히 반반 섞은 것. A에만 있던 픽셀과 B에만 있던 픽셀이 모두 0.5 같은 <strong>중간값</strong>이 되어, 어느 라벨로도 분명하게 분류할 수 없는 어중간한 모양이 된다.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>"중간은 그냥 두 그림을 겹친 거다"로만 답하는 경우. <strong>"중간값(0.5)이 만들어내는 흐릿함"</strong>이 핵심임을 짚기.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-4</span>노이즈 = 다양성 — 모범 답안</div>
+  <div class="ans"><span class="lab">정답</span>"평균(중심)에서 분산(허용 오차)만큼 벗어난 다른 점들을 매번 다시 뽑아내 새 그림을 만드는 일." 즉 같은 분포 안에서 서로 다른 샘플을 생성하는 능력.</div>
   <div class="tt"><span class="lab">전이</span>이 직관이 그대로 VAE의 sampling으로 이어진다 — 평균과 분산을 학습해 그 안에서 점을 뽑는다. 5부 마지막에서 짧게 언급.</div>
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 2. 오토인코더 (Phase 14)</h2>
+<h2>STEP 2. 오토인코더 — 잠재 공간으로</h2>
 
 <div class="qc">
   <div class="qh"><span class="num">2-1</span>구조 — 정답</div>
@@ -112,15 +126,18 @@
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">2-2</span>잠재 공간 탐험 — 전형 결과</div>
-  <div class="ans"><span class="lab">예시</span>학습이 잘 되면 평면의 한 축(z₁)을 따라 그림이 한 라벨에서 다른 라벨로 점진적으로 변하고, 다른 축(z₂)은 굵기·기울기 같은 부차 특성 변화로 잡히는 경우가 많음. (학습마다 축의 의미는 달라질 수 있음을 안내.)</div>
-  <div class="ans"><span class="lab">한 줄 설명</span>"z₁이 커질수록 그림이 라벨 A → B로 변한다"처럼 <strong>잠재 좌표 = 의미의 다이얼</strong>이라는 표현이면 OK.</div>
+  <div class="qh"><span class="num">2-2</span>잠재 공간 탐험 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    z₁ 축 의미 = <strong>라벨 A에서 B로의 변환 다이얼</strong>(왼쪽 끝 → A, 오른쪽 끝 → B).<br>
+    z₂ 축 의미 = (학습된 보조 특성) 진하기·흐릿함·세부 패턴 등. 9칸 표에서 가운데 행(z₁=0)일수록 라벨 구분이 흐릿해진다.
+  </div>
+  <div class="ans"><span class="lab">한 줄 정리</span>"잠재 좌표 = <strong>의미의 다이얼</strong>이며, 한 축이 한 가지 의미 차원을 잡고 있다." z₁이 커질수록 A → B로 의미가 점진적으로 변환된다.</div>
+  <div class="pf"><span class="lab">참고</span>실제 학습 결과는 시드에 따라 축의 의미가 달라질 수 있음. 활동지 표는 "z₁ = A↔B 다이얼"이라고 가정한 단순화된 결과를 미리 제공한 것.</div>
 </div>
 
 <div class="qc">
   <div class="qh"><span class="num">2-3</span>학습 외 좌표 — 모범 답안</div>
-  <div class="ans"><span class="lab">예시</span>z₁ = z₂ = 3처럼 학습 데이터가 모이지 않은 영역의 좌표를 디코더에 넣으면, 어느 라벨에도 속하지 않는 <strong>이상하거나 깨진 그림</strong>이 나오는 경우가 많다.</div>
-  <div class="ans"><span class="lab">이유</span>디코더는 학습 데이터가 분포한 영역에서만 "옳은 그림"을 만들도록 훈련됐다. 빈 영역은 한 번도 학습된 적이 없는 입력이므로, 출력의 품질이 보장되지 않는다.</div>
+  <div class="ans"><span class="lab">정답</span>"디코더는 학습 데이터가 모인 영역(z₁·z₂가 [−1.5, +1.5] 안)에서만 의미 있는 그림을 복원하도록 학습됐다. 그 영역 밖은 한 번도 본 적 없는 입력이라 출력 품질이 보장되지 않는다." 즉 <strong>학습된 적 없는 좌표 = 디코더의 외삽 영역</strong>.</div>
   <div class="tt"><span class="lab">전이</span>이것이 "왜 좋은 잠재 공간을 만들기 어려운가"의 핵심. VAE·정규화 같은 후속 기법은 모두 <strong>잠재 공간을 매끈하게 채우려는 시도</strong>로 이해할 수 있음.</div>
 </div>
 

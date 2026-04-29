@@ -76,50 +76,93 @@
 </header>
 
 <!-- ============================================================== -->
-<h2>STEP 1. 도트 그림 학습 (Phase 10)</h2>
+<h2>STEP 1. 도트 그림 학습 — 가중치 시각화의 의미</h2>
 
-<div class="an"><span class="lab">앱 운영</span>한 라벨당 <strong>최소 5장</strong>을 권장. 시간이 부족하면 앱의 "프리셋 불러오기"로 기본 데이터셋을 채운 뒤 학생이 1~2장만 추가하게 한다.</div>
+<div class="an"><span class="lab">활동지 운영</span>학생용은 두 라벨 평균 패턴(가로줄 A·세로줄 B)을 미리 그려 제공한다. 학생들이 직접 도트 캔버스에 그리지 않고, 두 평균을 머릿속으로 빼서 가중치 시각화 결과를 칸별로 채우는 활동.</div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-2</span>학습 관찰 — 전형 패턴</div>
-  <div class="ans"><span class="lab">예시</span>
-    라벨당 3장: 학습 정확도 100% / 새 그림 적중 50~70%<br>
-    라벨당 5장: 학습 정확도 100% / 새 그림 적중 70~85%<br>
-    라벨당 10장: 학습 정확도 95% 부근(소폭 하락) / 새 그림 적중 85~95%
-  </div>
-  <div class="tt"><span class="lab">수업 팁</span>3장에서 학습 정확도가 100%인데 테스트가 50%라면 <strong>외운 모델</strong>임을 강조 — 2부에서 다룬 일반화 개념의 자연스러운 복습.</div>
+  <div class="qh"><span class="num">1-1</span>두 라벨 패턴 — 운영</div>
+  <div class="tt"><span class="lab">수업 팁</span>"위쪽 가로줄(A) vs 왼쪽 세로줄(B)"은 <strong>대조가 강하고 겹치는 영역이 작은</strong> 의도적 단순 사례. 시간 여유가 있으면 다른 페어("원 vs X" 등)를 추가로 제시해 같은 분석을 반복.</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-3</span>가중치 시각화 — 모범 답안</div>
-  <div class="ans"><span class="lab">관찰 예시</span>가중치 그림은 <strong>두 라벨의 평균 차이</strong>처럼 보인다. 라벨 A가 자주 켜진 자리는 양수(밝음), B가 자주 켜진 자리는 음수(어두움). 두 그림이 겹치는 부분은 0(회색).</div>
-  <div class="ans"><span class="lab">한 줄 정의</span>"단일 뉴런이 두 그림을 구분한다 = <strong>두 라벨의 픽셀 차이를 평균낸 패턴과 입력의 내적을 보고, 양수면 A·음수면 B로 결정하는 일</strong>." (학생 답이 "비슷한 무늬가 그림을 구분한다"라는 직관 수준이어도 인정.)</div>
-  <div class="tt"><span class="lab">수업 팁</span>학생들이 "고양이 vs 강아지"처럼 너무 자유로운 라벨을 고르면 학습이 안 된다. 처음에는 <strong>대조가 강한 라벨</strong>(원 vs X, 가로줄 vs 세로줄)을 권하고, 그다음에 자유 주제로.</div>
+  <div class="qh"><span class="num">1-2</span>가중치 시각화 — 정답</div>
+  <div class="ans"><span class="lab">정답 — 8×8 칸별 분류</span>
+    위쪽 두 줄(0·1행) 중 왼쪽 두 칸(0·1열) 4개 = <strong>둘 다 켜짐 → 0(점)</strong><br>
+    위쪽 두 줄의 나머지 12칸(0·1행 × 2~7열) = <strong>A에만 켜짐 → 양수(흰색)</strong><br>
+    왼쪽 두 열의 나머지 12칸(2~7행 × 0·1열) = <strong>B에만 켜짐 → 음수(검정)</strong><br>
+    그 외 36칸 = 둘 다 안 켜짐 → 0(빈칸)
+  </div>
+  <div class="ans"><span class="lab">한 줄 의미</span>"가중치 시각화 = <strong>두 라벨의 평균 픽셀 차이</strong>가 된다."</div>
+  <div class="pf"><span class="lab">자주 틀림</span>겹치는 4칸을 양수로 채우는 경우. <strong>"둘 다 켜진 자리는 분류에 도움 안 됨 → 0"</strong>임을 짚을 것.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-3</span>새 그림 분류 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    "위쪽 두 줄만 켜진 그림": A 양수 영역에 픽셀이 모임 → 점수 부호 = <strong>+</strong> → 예측 = <strong>A</strong>.<br>
+    "왼쪽 두 줄만 켜진 그림": B 음수 영역에 픽셀이 모임 → 점수 부호 = <strong>−</strong> → 예측 = <strong>B</strong>.
+  </div>
+  <div class="ans"><span class="lab">한 줄 정의</span>"단일 뉴런이 두 그림을 구분한다 = <strong>두 라벨의 평균 차이 패턴과 입력의 내적을 보고, 양수면 A·음수면 B로 결정하는 일</strong>." 학생 답이 "비슷한 무늬가 그림을 구분한다"는 직관 수준이어도 인정.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-4</span>학습 데이터 양과 일반화 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    테스트 정확도는 <strong>올라간다</strong> (60→80→92%).<br>
+    학습 정확도와 테스트 정확도의 차이는 <strong>줄어든다</strong> (40%p → 20%p → 4%p).<br>
+    이 현상의 이름: <strong>과적합(overfitting)</strong> 해소 / 또는 <strong>일반화 향상</strong>. (2부 STEP 2에서 본 개념의 반복.)
+  </div>
+  <div class="tt"><span class="lab">수업 팁</span>"학습 정확도가 100% → 96%로 떨어진 게 좋은 신호"라는 점을 다시 한 번 짚어주면, 2부에서 본 일반화 개념이 픽셀 분류에서도 그대로 적용됨이 명확해짐.</div>
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 2. 신경망 설계 (Phase 11)</h2>
+<h2>보충 활동 ★. 평균 그림 빼기 — 가중치 색지도 예측 (정답)</h2>
+
+<div class="an"><span class="lab">활동 의도</span>학습 후 앱이 보여주는 "가중치 색지도"가 두 라벨의 <strong>평균 그림 차이</strong>와 닮아 있다는 사실을 학생이 손으로 먼저 예측하고, 앱과 비교하게 한다. "신경망이 무엇을 본 것인가"를 시각적으로 잡는 활동.</div>
 
 <div class="qc">
-  <div class="qh"><span class="num">2-1</span>단계 A·B·C — 전형 결과</div>
-  <div class="tt"><span class="lab">앱 운영</span>각 단계 학습은 수십 초 ~ 1분. 한 단계가 끝나면 같은 신경망 구조로 다음 단계 진행. 시간이 부족하면 단계 A·C 두 개만 비교해도 메시지는 전달됨.</div>
-  <table class="tb">
-    <tr><th>단계</th><th>클래스</th><th>은닉 = 8 일 때 파라미터 수(개략)</th><th>전형 시험 정확도</th></tr>
-    <tr><td>A</td><td>2</td><td class="fa">6,298</td><td class="fa">99% 부근</td></tr>
-    <tr><td>B</td><td>3</td><td class="fa">6,307</td><td class="fa">95~98%</td></tr>
-    <tr><td>C</td><td>10</td><td class="fa">6,370</td><td class="fa">75~85%</td></tr>
-  </table>
-  <div class="ans"><span class="lab">파라미터 계산법</span>층 사이 파라미터 = (in+1) × out. 입력 784, 은닉 8, 출력 c일 때 = 785·8 + 9·c = 6280 + 9c. 단계 A(c=2)=6298, B(c=3)=6307, C(c=10)=6370. (학생이 정확한 수치 대신 "약 6,300으로 비슷하다"고 답해도 OK.)</div>
+<div class="qh"><span class="num">★1·★2</span>평균 격자 만들기 — 운영 정답</div>
+<div class="ans"><span class="lab">예시 정답 (라벨 ●(채움 동그라미) vs 라벨 ○(빈 동그라미))</span>
+<ul>
+<li>평균 ● 격자: 동그라미의 가장자리 8칸은 5에 가깝고(거의 모두 칠해짐), 안쪽 칸도 4~5에 가깝다(채움형이라 안쪽도 칠해짐).</li>
+<li>평균 ○ 격자: 가장자리 8칸은 5에 가깝지만, 안쪽 칸은 0~1에 가깝다(빈 동그라미라 안쪽이 거의 비었음).</li>
+<li>차이 격자(A − B): 가장자리는 0 근처(서로 비슷), <strong>안쪽 칸은 +4 근처</strong>로 큰 양수가 나옴 → 진한 파랑.</li>
+</ul>
+</div>
+<div class="tt"><span class="lab">수업 팁</span>차이가 0 근처인 가장자리 칸은 "두 라벨이 똑같이 갖는 신호"라 분류에 도움이 안 된다는 점을 짚어 주면, "신경망이 의미 있는 차이만 가중치로 학습한다"는 한 줄 통찰로 이어짐.</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">2-2</span>은닉 키우기 (단계 C) — 전형 결과</div>
-  <table class="tb">
-    <tr><th>은닉 크기</th><th>4</th><th>8</th><th>16</th><th>32</th></tr>
-    <tr><td class="lbl">파라미터 수</td><td class="fa">≈ 3.2k</td><td class="fa">≈ 6.4k</td><td class="fa">≈ 12.7k</td><td class="fa">≈ 25.4k</td></tr>
-    <tr><td class="lbl">시험 정확도</td><td class="fa">≈ 70%</td><td class="fa">≈ 82%</td><td class="fa">≈ 88%</td><td class="fa">≈ 91%</td></tr>
-  </table>
-  <div class="ans"><span class="lab">관찰 모범 답안</span>은닉을 키우면 정확도가 오르지만 <strong>증가폭이 점점 작아진다</strong>(수확체감). 매우 작은 데이터로 너무 키우면 학습 정확도와 시험 정확도가 벌어지는 <strong>과적합</strong>이 보이기 시작한다.</div>
+<div class="qh"><span class="num">★3</span>앱과 비교 — 일치도 패턴</div>
+<div class="ans"><span class="lab">예시 정답</span>대부분 학생은 ② 부분적으로 비슷하다로 답함. 안쪽 칸은 학생 예측대로 큰 양수가 나오지만, 가장자리 일부 칸은 시그모이드의 비선형성과 24장이라는 작은 데이터 양 때문에 예상과 어긋날 수 있음. 결론 한 줄 예시: "<strong>두 라벨의 평균 그림 차이를 학습이 자동으로 찾아낸 결과</strong>"라고 답하면 만점.</div>
+<div class="pf"><span class="lab">자주 틀림</span>① "완전히 같다"고 답 — 시그모이드 출력의 0~1 짓누름 효과를 무시한 답. ② "전혀 다르다"고 답 — 24장이라는 작은 데이터로 인한 잡음을 패턴 자체의 어긋남으로 오해. 학습 데이터를 더 많이 모으면 일치도가 ②→①로 옮겨감을 함께 안내할 것.</div>
+<div class="tt"><span class="lab">전이</span>이 활동이 P10 10.4 "다양성이 곧 일반화 능력"의 직관 근거가 됨. 평균 그림이 잘 잡히려면 한 사람의 그림이 아니라 여러 사람의 그림이 필요하다는 점이 자연스럽게 도출됨.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 2. 신경망 설계 — 단계 A·B·C 비교 (Phase 11)</h2>
+
+<div class="an"><span class="lab">앱 운영</span>Phase 11은 <strong>난이도 단계 3개(🟢 A=2종 / 🟡 B=3종 / 🔴 C=10종)</strong>를 차례로 학습시키며 비교표를 채우는 구조. 단계마다 <strong>추천 은닉 크기가 다름</strong>(A=4, B=8, C=16). 활동지 표는 셋 다 <strong>은닉 8로 통일</strong>해 클래스 수 변화의 영향만 따로 보게 만든 의도적 단순화. 학생이 앱에서 추천값으로 다시 학습시키면 정확도가 더 오르는 모습(특히 C)을 추가로 관찰하게 안내할 것. 학습 식 (페이즈 5의 갱신식 <span class="mono">w ← w − η · dw</span>)이 다층에서도 그대로 적용된다는 점이 페이지 상단 박스에 명시돼 있음.</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-1</span>단계 A·B·C — 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    클래스 수가 늘어날수록 정확도는 <strong>내려간다</strong>.<br>
+    파라미터 수가 비슷한데 정확도 차이가 큰 이유: 클래스 수가 많을수록 모델이 <strong>어려워진다</strong>(같은 표현력으로 더 많은 결정 경계를 만들어야 함).<br>
+    단계 C 검산: (784+1)·8 + (8+1)·10 = <span class="v">6280</span> + <span class="v">90</span> = <span class="v">6,370</span>.
+  </div>
+  <div class="tt"><span class="lab">수업 팁</span>"같은 신경망에 더 어려운 문제를 던지면 정확도가 떨어진다"는 직관이 핵심. 다음 2-2에서 "그럼 신경망을 키우면?"으로 자연스럽게 이어진다. 도전 활동: 앱에서 단계 C에 은닉 16(추천값)·24·32로 학습시켜 정확도 향상을 직접 관찰.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-2</span>은닉 크기 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    은닉을 키우면 정확도는 <strong>올라간다</strong>(70→82→88→91%).<br>
+    하지만 두 배씩 키워도 증가 폭(12 → 6 → 3)은 <strong>점점 작아진다</strong>(수확체감).<br>
+    <span class="lab" style="background:#000;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:8.5pt;font-weight:600">이유</span> 작은 모델이 못 잡던 패턴을 큰 모델이 잡으면서 정확도가 빠르게 오르지만, 이미 잡힌 패턴 위에 더 큰 모델을 얹어도 새로 잡을 패턴이 적기 때문. 또한 <strong>과적합</strong>이 시작되어 학습 정확도만 오르고 시험 정확도는 멈출 수 있음.
+  </div>
+  <div class="pf"><span class="lab">자주 틀림</span>"키우면 무조건 좋다"는 답. <strong>"증가 폭이 줄어든다"</strong>는 점과 <strong>과적합 위험</strong>을 함께 짚을 것.</div>
 </div>
 
 <div class="qc">
@@ -128,29 +171,82 @@
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 3. MNIST 도전 (Phase 12)</h2>
+<h2>STEP 3. MNIST 도전</h2>
+
+<div class="an"><span class="lab">앱 운영</span>Phase 12에는 <strong>5단계 프리셋</strong>(🐣 시작·🌱 작게·🌳 보통·🚀 크게·👑 최강) 버튼이 있다. 학생이 한 번 클릭하면 <strong>은닉층 구성 + 에폭이 동시에</strong> 셋업되는 구조. 활동지 표는 위쪽 4단계에 매칭. <strong>👑 최강(128·64 2층·30에폭)</strong>은 도전 과제로 남겨두고, 학생들이 시험 정확도가 더 오르는지 / 아니면 학습-시험 격차만 더 벌어지는지(과적합) 직접 비교하게 운영. 에폭 슬라이더는 1~40까지 자유롭게 조정 가능하니 프리셋 외 임의 설정도 가능.</div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-1</span>구조·설정 변화 — 전형 결과</div>
-  <table class="tb">
-    <tr><th>설정</th><th>은닉</th><th>학습 정확도</th><th>시험 정확도</th></tr>
-    <tr><td class="al">기본</td><td>[4]</td><td class="fa">≈ 70%</td><td class="fa">≈ 65%</td></tr>
-    <tr><td class="al">은닉 키움</td><td>[32]</td><td class="fa">≈ 92%</td><td class="fa">≈ 88%</td></tr>
-    <tr><td class="al">2층</td><td>[32, 16]</td><td class="fa">≈ 95%</td><td class="fa">≈ 90%</td></tr>
-    <tr><td class="al">에폭 늘림</td><td>[32, 16] · 10ep</td><td class="fa">≈ 99%</td><td class="fa">≈ 92%</td></tr>
-  </table>
-  <div class="ans"><span class="lab">관찰</span>2층 + 충분한 에폭에서 시험 정확도 90% 안팎. 학습 ≫ 시험 차이가 벌어지는 마지막 행이 <strong>과적합 시작점</strong>. 학생이 직접 그 차이를 발견하도록 유도.</div>
+  <div class="qh"><span class="num">3-1</span>구조·설정 변화 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    🐣 → 🌱 은닉 4 → 8로 키우면 시험 정확도 <strong>오른다</strong>(65 → 78%).<br>
+    🌱 → 🌳 은닉 8 → 32, 에폭 8 → 15로 키우면 <strong>오른다</strong>(78 → 88%).<br>
+    🌳 → 🚀 1층 [32]에서 2층 [64, 32]로 깊게 쌓으면 <strong>오른다</strong>(88 → 92%).<br>
+    🚀에서 학습 97%·시험 92%로 격차가 커지는 현상: <strong>과적합(overfitting)</strong>.
+  </div>
+  <div class="tt"><span class="lab">수업 팁</span>🐣 → 🌱·🌳 단계는 "표현력 부족" 해소, 🚀 → 👑 단계는 "표현력 과잉" 시작. 👑 최강을 직접 돌려본 학생이 시험 정확도가 92~93%에서 멈추거나 오히려 떨어지는 모습을 발견하면 매우 좋은 신호. <strong>"무한정 키우면 학습 정확도만 99%로 가고 시험 정확도는 천장에 부딪힌다"</strong>를 자기 말로 정리시킬 것.</div>
 </div>
 
 <div class="qc">
   <div class="qh"><span class="num">3-2</span>증강의 효과 — 모범 답안</div>
-  <div class="ans"><span class="lab">예시</span>증강 전: 학생이 그린 글씨가 평소 MNIST 데이터보다 살짝 기울거나 두꺼워서 모델이 헛다리. 증강 후(같은 그림을 회전·이동·축소 N번): 모델이 "이 그림은 위치·각도가 변해도 같은 숫자다"라는 불변성을 배워 적중.</div>
-  <div class="pf"><span class="lab">자주 틀림</span>"증강 = 데이터를 늘린 것 자체가 좋다"로 단순화하는 답. <strong>"같은 라벨의 다양한 변형을 보게 한다"</strong>는 점이 핵심임을 짚어줄 것.</div>
+  <div class="ans"><span class="lab">예시</span>증강 전: 학생이 그린 7이 살짝 기울어져 모델이 1로 오인. 증강 후(같은 7을 회전·이동·축소 15번): 모델이 "이 그림은 <strong>각도·위치·크기가 변해도 같은 7이다</strong>"라는 <strong>불변성</strong>을 학습 → 적중.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>"증강 = 데이터를 늘린 것 자체가 좋다"는 답. <strong>"같은 라벨의 다양한 변형을 보게 해 모델이 본질적인 패턴(7의 모양)에 집중하도록 한다"</strong>는 점이 핵심.</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-3</span>모델이 끝까지 헷갈리는 페어 — 예시</div>
-  <div class="ans"><span class="lab">예시</span>4-9, 3-8, 5-6 등이 자주 등장. 사람이 보면 닫힘/열림 곡선이 한두 픽셀 차이지만, 신경망에는 매우 비슷하게 매핑됨. <strong>특징을 더 잘 잡는 구조(CNN)가 필요하다는 동기부여</strong>가 됨 — 이번 과정 범위 밖이지만 관심 학생에게 한 마디 짚어줄 만함.</div>
+  <div class="qh"><span class="num">3-3</span>한계 페어 — 모범 답안</div>
+  <div class="ans"><span class="lab">예시</span>
+    <strong>4-9</strong>: 둘 다 위쪽에 닫힌 곡선·아래쪽에 세로 직선. 차이는 4의 위쪽 곡선이 한 점에서 살짝 열려 있다는 정도. 글씨 두께·기울기에 따라 그 한 점이 흐려지면 구별 불가.<br>
+    <strong>3-8</strong>: 두 곡선이 닫힘 vs 열림. 8의 두 원이 모두 닫혀 있고 3은 오른쪽만 곡선. 픽셀 단위로는 한두 칸 차이.<br>
+    <strong>5-6</strong>: 위쪽 가로획·중간 곡선이 거의 같고, 차이는 5의 위쪽이 직각인지 둥근지.
+  </div>
+  <div class="tt"><span class="lab">전이</span>이런 픽셀 단위 미세 차이는 단순 MLP가 잘 못 잡고, <strong>지역 특징을 잡는 구조(CNN)</strong>가 필요하다는 동기부여로 연결. 관심 있는 학생에게 한 마디 짚어줄 만함.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>보충 활동 ★. 파라미터 예산 챌린지 — 1만 개 이하 (정답)</h2>
+
+<div class="an"><span class="lab">활동 의도</span>"무작정 키우기" 대신 "예산 안에서 잘 쓰기"를 한 번 직접 경험. 같은 1만 개 이하라도 학습률·에폭에 따라 정확도 차이가 큼을 보여 주면, 모델 크기와 학습 조건이 별개임을 자연스럽게 잡음.</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★1</span>파라미터 수 계산 — 정답 (입력 784, 출력 10)</div>
+<div class="ans"><span class="lab">정답</span>
+  <table class="tb">
+    <tr><th>은닉 H</th><th>입력측 (784·H)</th><th>출력측 (H·10)</th><th>편향 (H+10)</th><th>합계</th><th>≤ 1만?</th></tr>
+    <tr><td>8</td><td class="fa">6,272</td><td class="fa">80</td><td class="fa">18</td><td class="fa">6,370</td><td class="fa">✓</td></tr>
+    <tr><td>12</td><td class="fa">9,408</td><td class="fa">120</td><td class="fa">22</td><td class="fa">9,550</td><td class="fa">✓</td></tr>
+    <tr><td>16</td><td class="fa">12,544</td><td class="fa">160</td><td class="fa">26</td><td class="fa">12,730</td><td class="fa">✗</td></tr>
+    <tr><td>32</td><td class="fa">25,088</td><td class="fa">320</td><td class="fa">42</td><td class="fa">25,450</td><td class="fa">✗</td></tr>
+  </table>
+  1만 개 이하 가장 큰 H = <span class="v">12</span> 정도. (정확 한도는 H = 12.59 부근.)
+</div>
+<div class="pf"><span class="lab">자주 틀림</span>① 편향(H + 10)을 빠뜨리고 가중치만 셈. 정답에서 한 자리 차이가 발생하지만 ≤ 1만 판정은 바뀌지 않음. ② 출력측을 (입력 + 출력 모두 H에 연결)로 잘못 계산. ③ 입력 수 784(=28·28)를 64로 혼동(P10의 8×8 도트와 헷갈림).</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★2</span>예산 안에서 정확도 최대화 — 운영 정답</div>
+<div class="ans"><span class="lab">예시 결과 (H = 12, MNIST 300장 샘플 기준)</span>
+  <table class="tb">
+    <tr><th>시도</th><th>η</th><th>에폭</th><th>훈련</th><th>시험</th></tr>
+    <tr><td>1</td><td>0.001</td><td>50</td><td class="fa">~78%</td><td class="fa">~75%</td></tr>
+    <tr><td>2</td><td>0.01</td><td>50</td><td class="fa">~92%</td><td class="fa">~85%</td></tr>
+    <tr><td>3</td><td>0.1</td><td>50</td><td class="fa">진동/발산 가능</td><td class="fa">~70%</td></tr>
+  </table>
+  학생이 직접 만난 결과는 데이터 시드와 초기화에 따라 ±5% 정도 흔들릴 수 있음.
+</div>
+<div class="tt"><span class="lab">수업 팁</span>같은 모델 크기인데 학습률만 바꿔도 정확도가 10%p 이상 흔들린다는 점이 이 활동의 결정적 발견. "구조 + 학습 조건"이 함께 정확도를 결정한다는 한 줄을 학생이 직접 발화하게 두기.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★3</span>"키우기" vs "잘 쓰기" 비교 — 정답 패턴</div>
+<div class="ans"><span class="lab">예시 정답</span>
+  <table class="tb">
+    <tr><th>모델</th><th>H</th><th>파라미터</th><th>시험</th><th>1%당 파라미터</th></tr>
+    <tr><td>예산형</td><td>12</td><td class="fa">9,550</td><td class="fa">85%</td><td class="fa">112</td></tr>
+    <tr><td>풀 사이즈</td><td>64</td><td class="fa">50,890</td><td class="fa">90%</td><td class="fa">565</td></tr>
+  </table>
+  결론 예시: "더 큰 모델은 <strong>약간 더 정확한</strong> 만큼 <strong>다섯 배 무거워진다</strong>" 또는 "<strong>정확도 1%p를 더 짜내려면 파라미터를 다섯 배 더 써야 한다</strong>".
+</div>
+<div class="tt"><span class="lab">전이</span>이 비교 표가 그대로 "왜 모바일·웹 환경에서는 작은 모델을 쓰는가"의 답이 됨. 학생이 ChatGPT 같은 거대 모델과 휴대폰 음성 비서의 크기 차이를 떠올리게 되면 보너스.</div>
 </div>
 
 <!-- ============================================================== -->

@@ -92,16 +92,19 @@
   <div class="sub">시퀀스 · 어텐션 · 멀티헤드 트랜스포머 · GPT 샘플링</div>
   <div class="meta">앱 페이즈 19~22 (히든 스테이지) · 대상: 고등학생 · 활동 시간 약 90분</div>
   <div class="obj"><strong>학습 목표</strong> ① 단어 순서가 의미를 만든다는 점을 평균 임베딩의 한계로 설명한다. ② 어텐션의 기본 식(점수 → 가중치 → 가중합)을 직접 손으로 계산한다. ③ 멀티헤드와 깊이가 표현력을 어떻게 늘리는지 설명한다. ④ 샘플링 온도(temperature)와 top-k가 생성 결과에 미치는 영향을 관찰한다.</div>
-  <div class="name">학년 반 번호 <span></span> 이름 <span></span></div>
+  <div class="name">학번 <span></span> 이름 <span></span></div>
 </header>
 
 <!-- ============================================================== -->
-<h2>STEP 1. 시퀀스 — 순서가 의미를 만드는 순간 (Phase 19)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 19에서 ① 순서가 왜 중요한가 → ② 평균 임베딩의 한계 → ③ RNN 직관을 따라갑니다.</div>
+<h2>STEP 1. 시퀀스 — 순서가 의미를 만드는 순간</h2>
 
 <div class="ib">
-  <div class="t">평균(BoW)의 한계와 RNN의 발상</div>
+  <div class="t">이 절의 목표</div>
+  단어 순서가 의미를 어떻게 만드는지를 직접 손계산으로 확인하고, 평균만 쓰는 단순 모델의 한계와 RNN의 발상을 이해한다.
+</div>
+
+<div class="ib tip">
+  <strong>평균(BoW)의 한계와 RNN의 발상</strong><br>
   ▸ <strong>평균 임베딩</strong>: 문장의 모든 단어 벡터를 평균. → 단어 순서가 사라짐.<br>
   ▸ <strong>RNN</strong>: 단어를 한 개씩 순서대로 받으며 <strong>이전 상태</strong>를 다음으로 전달. 순서가 보존됨.
 </div>
@@ -133,18 +136,26 @@
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">1-3</span>RNN의 직관</div>
-  <div class="qd">앱 ③ 탭에서 RNN이 단어를 한 개씩 받으며 상태(hidden state)를 갱신하는 모습을 봅니다.</div>
-  <div class="ob">
-    <div class="lab">관찰 — 같은 단어 집합이라도 RNN의 마지막 상태가 다르게 나오는 이유는 무엇인가?</div>
-    <div class="ans-area"></div>
-  </div>
+  <div class="qh"><span class="num">1-3</span>RNN의 직관 — 상태 갱신 표</div>
+  <div class="qd">RNN은 단어를 한 개씩 받으며 hidden state h를 갱신합니다. 단순화 규칙: <span class="mono">새 h = 0.5·이전 h + 0.5·현재 단어</span>. (가중치는 학습되는 값이지만 여기서는 단순 평균.)</div>
+  <div class="qd">"I love you" (I=0.9, love=0.0, you=−0.9)와 "You love I" (you=−0.9, love=0.0, I=0.9)의 마지막 상태를 직접 계산하세요. 시작 h₀ = 0.</div>
+  <table class="tb">
+    <tr><th></th><th>"I love you"</th><th>"You love I"</th></tr>
+    <tr><td class="lbl">h₀</td><td>0</td><td>0</td></tr>
+    <tr><td class="lbl">h₁ = 0.5·h₀ + 0.5·첫 단어</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="lbl">h₂ = 0.5·h₁ + 0.5·둘째 단어</td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td class="lbl">h₃ = 0.5·h₂ + 0.5·셋째 단어 (마지막 상태)</td><td class="blank"></td><td class="blank"></td></tr>
+  </table>
+  <div class="qd">두 마지막 상태는 (같다 / 다르다). ☞ <span class="bk lg"></span> &nbsp; 평균 임베딩과 달리 RNN은 순서 정보를 (잃는다 / 보존한다). ☞ <span class="bk lg"></span></div>
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 2. 어텐션 — 어디에 집중할지 (Phase 20)</h2>
+<h2>STEP 2. 어텐션 — 어디에 집중할지</h2>
 
-<div class="an"><span class="lab">앱</span>페이즈 20에서 ① 핵심 아이디어 → ② 어텐션 행렬 만지기 → ③ 가중 합 결과를 진행. 슬라이더로 점수를 직접 만져보며 결과 변화를 관찰.</div>
+<div class="ib">
+  <div class="t">이 절의 목표</div>
+  단어들끼리 서로 점수를 매기는 어텐션의 핵심 절차(점수 → 가중치 → 가중합)를 직접 손계산으로 따라가며, 트랜스포머의 심장이 어떤 일을 하는지 이해한다.
+</div>
 
 <div class="ib">
   <div class="t">어텐션 한 줄 식</div>
@@ -198,25 +209,37 @@
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 3. 멀티헤드와 트랜스포머 블록 (Phase 21)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 21에서 ① 4개 헤드의 시선 → ② 트랜스포머 블록 → ③ 1층 vs 6층을 진행.</div>
+<h2>STEP 3. 멀티헤드와 트랜스포머 블록</h2>
 
 <div class="ib">
-  <div class="t">멀티헤드 = 동시에 여러 관계를 보기</div>
-  한 어텐션은 한 가지 관계만 봅니다. 트랜스포머는 <strong>여러 헤드</strong>를 두고 각자 다른 관점(주격·대상·목적어 등)을 동시에 학습합니다. 결과를 이어 붙여 다음 층으로.
+  <div class="t">이 절의 목표</div>
+  한 어텐션이 한 관계만 본다는 한계를 <strong>여러 헤드</strong>로 극복하는 방법을 직접 행렬에서 찾고, 어텐션 + FFN을 한 블록으로 묶은 트랜스포머의 구성 요소를 식별한다.
+</div>
+
+<div class="ib tip">
+  <strong>멀티헤드 = 동시에 여러 관계를 보기</strong> &nbsp; 한 어텐션은 한 가지 관계만 본다. 트랜스포머는 여러 헤드를 두고 각자 다른 관점(주격·대상·목적어 등)을 동시에 학습. 결과를 이어 붙여 다음 층으로.
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-1</span>"철수가 영희에게 책을 줬다" — 4개 헤드 관찰</div>
-  <div class="qd">앱이 보여주는 4개 어텐션 헤드의 행렬을 보고, "줬다" 행에서 가장 큰 가중치가 어느 단어로 향하는지 적어보세요.</div>
+  <div class="qh"><span class="num">3-1</span>"철수가 영희에게 책을 줬다" — 4개 헤드 행렬</div>
+  <div class="qd">아래 4개 헤드의 어텐션 행렬은 모두 "줬다" 행만 표시한 것. 각 헤드에서 가장 큰 가중치가 어느 단어로 향하는지 동그라미하세요. (단어: 철수가, 영희에게, 책을, 줬다)</div>
   <table class="tb">
-    <tr><th>헤드 이름</th><th>"줬다"가 가장 주목하는 단어</th><th>그 헤드가 잡는 의미 관계</th></tr>
-    <tr><td class="al">주격 헤드</td><td class="blank"></td><td class="al">누가 ____ ?</td></tr>
-    <tr><td class="al">대상 헤드</td><td class="blank"></td><td class="al">누구에게 ____ ?</td></tr>
-    <tr><td class="al">목적어 헤드</td><td class="blank"></td><td class="al">무엇을 ____ ?</td></tr>
-    <tr><td class="al">전체 문장 헤드</td><td class="blank"></td><td class="al">전체 문맥</td></tr>
+    <tr><th>헤드</th><th>철수가</th><th>영희에게</th><th>책을</th><th>줬다(자기)</th></tr>
+    <tr><td class="al">① 주격 헤드</td><td>0.6</td><td>0.1</td><td>0.1</td><td>0.2</td></tr>
+    <tr><td class="al">② 대상 헤드</td><td>0.1</td><td>0.6</td><td>0.1</td><td>0.2</td></tr>
+    <tr><td class="al">③ 목적어 헤드</td><td>0.1</td><td>0.1</td><td>0.7</td><td>0.1</td></tr>
+    <tr><td class="al">④ 전체 문장 헤드</td><td>0.25</td><td>0.25</td><td>0.25</td><td>0.25</td></tr>
   </table>
+  <div class="qd">표를 보고 빈칸을 채우세요.</div>
+  <table class="tb">
+    <tr><th>헤드</th><th>가장 주목하는 단어</th><th>그 헤드가 잡는 의미 관계</th></tr>
+    <tr><td class="al">① 주격 헤드</td><td class="blank"></td><td class="al">누가 ____ ?</td></tr>
+    <tr><td class="al">② 대상 헤드</td><td class="blank"></td><td class="al">누구에게 ____ ?</td></tr>
+    <tr><td class="al">③ 목적어 헤드</td><td class="blank"></td><td class="al">무엇을 ____ ?</td></tr>
+    <tr><td class="al">④ 전체 문장 헤드</td><td class="blank"></td><td class="al">전체 문맥 (특정 단어에 쏠리지 않음)</td></tr>
+  </table>
+  <div class="qd">한 어텐션 헤드만 있다면 ①~③ 중 하나의 관계만 잡힌다. 멀티헤드가 필요한 이유를 한 줄로:</div>
+  <div class="ans-area"></div>
 </div>
 
 <div class="qc">
@@ -254,61 +277,74 @@
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-3</span>1층 vs 6층 — 깊이의 의미</div>
+  <div class="qh"><span class="num">3-3</span>1층 vs 6층 — 깊이의 의미 (결과 표)</div>
   <table class="tb">
-    <tr><th>깊이</th><th>관찰 — 무엇을 더 잘 잡아내나</th></tr>
-    <tr><td>1층</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
-    <tr><td>3층</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
-    <tr><td>6층</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
+    <tr><th>깊이</th><th>잡아내는 패턴</th></tr>
+    <tr><td>1층</td><td class="al">바로 옆 단어와의 관계만 (주어-동사 등)</td></tr>
+    <tr><td>3층</td><td class="al">두 단계 떨어진 관계도 잡힘. 문장의 일부 의미 구조</td></tr>
+    <tr><td>6층</td><td class="al">문장 전체의 의미·역할 구조가 한 표현으로 통합</td></tr>
   </table>
-  <div class="ib tip">실제 GPT-3는 96층, GPT-4는 그보다 더 깊다고 알려져 있어요. 깊이가 늘어나면 <strong>긴 문맥과 추상 패턴</strong>을 다룰 수 있게 됩니다.</div>
+  <div class="qd">표를 보고 한 줄로 정리:</div>
+  <div class="fm">깊이가 늘어날수록 모델은 <span class="bk lg"></span> 단어 관계와 더 <span class="bk lg"></span>한 패턴을 잡는다.</div>
+  <div class="ib tip">실제 GPT-3는 96층, GPT-4는 그보다 더 깊다. 깊이가 늘어나면 <strong>긴 문맥과 추상 패턴</strong>을 다룰 수 있게 된다.</div>
 </div>
 
 <!-- ============================================================== -->
-<h2>STEP 4. GPT의 다음 토큰 — 샘플링이 곧 창의성 (Phase 22)</h2>
-
-<div class="an"><span class="lab">앱</span>페이즈 22에서 ① 어휘 분포 → ② 샘플링 슬라이더(temperature, top-k) → ③ 자기회귀 생성을 진행.</div>
+<h2>STEP 4. GPT의 다음 토큰 — 샘플링이 곧 창의성</h2>
 
 <div class="ib">
-  <div class="t">한 토큰씩 — 자기회귀 생성</div>
-  GPT는 한 번에 한 토큰씩 출력합니다. 매 단계: 어휘 전체에 대한 <strong>점수(logit)</strong> → softmax → 확률 분포 → <strong>샘플링</strong> → 다음 토큰. 그 토큰을 입력 끝에 붙이고 다시 반복.<br>
+  <div class="t">이 절의 목표</div>
+  GPT가 매 단계 어휘 전체에 대한 확률 분포를 만들고 그 안에서 다음 토큰을 뽑는 절차를, 분포 표·온도 비교 표로 직접 해석한다.
+</div>
+
+<div class="ib tip">
+  <strong>한 토큰씩 — 자기회귀 생성</strong> &nbsp; 매 단계: 어휘 전체에 대한 <strong>점수(logit)</strong> → softmax → 확률 분포 → <strong>샘플링</strong> → 다음 토큰. 그 토큰을 입력 끝에 붙이고 다시 반복.<br>
   ▸ <strong>temperature(온도)</strong>: softmax 전에 logit을 T로 나눔. 낮으면 보수적·반복, 높으면 다양·산만.<br>
   ▸ <strong>top-k</strong>: 상위 k개 토큰만 후보로 두고 그 안에서 샘플링.
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-1</span>"고양이는" 다음 — 분포 관찰</div>
-  <div class="qd">앱이 보여주는 상위 5개 후보 토큰과 확률을 적어보세요.</div>
+  <div class="qh"><span class="num">4-1</span>"고양이는" 다음 — 분포 표</div>
+  <div class="qd">"고양이는" 뒤에 올 다음 토큰의 상위 5개 후보와 확률 (T = 1.0):</div>
   <table class="tb">
-    <tr><th>순위</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
-    <tr><td class="lbl">토큰</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td class="lbl">확률</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><th>순위</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>합</th></tr>
+    <tr><td class="lbl">토큰</td><td>귀엽다</td><td>잔다</td><td>쥐를</td><td>동물</td><td>집사</td><td>—</td></tr>
+    <tr><td class="lbl">확률</td><td>0.27</td><td>0.16</td><td>0.05</td><td>0.04</td><td>0.03</td><td class="blank"></td></tr>
   </table>
+  <div class="qd">상위 5개 확률의 합 = <span class="bk lg"></span>. 나머지(다른 토큰들의 확률 합) = 1 − 합 = <span class="bk lg"></span>. 즉 어휘는 5개보다 훨씬 많고, 확률은 모든 토큰에 분산되어 있다.</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-2</span>온도(temperature) 변화 관찰</div>
+  <div class="qh"><span class="num">4-2</span>온도(temperature) 변화 — 결과 표</div>
+  <div class="qd">같은 logit 분포에 온도 T만 바꿔 softmax를 적용한 결과:</div>
   <table class="tb">
     <tr><th>T</th><th>1순위 확률</th><th>분포 모양</th><th>한 줄 묘사</th></tr>
-    <tr><td>0.2</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>1.0</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-    <tr><td>2.0</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    <tr><td>0.2 (낮음)</td><td>0.85</td><td class="al">매우 뾰족 (1순위에 거의 몰림)</td><td class="al">반복·뻔함</td></tr>
+    <tr><td>1.0 (기본)</td><td>0.27</td><td class="al">중간 (위 4-1 분포)</td><td class="al">자연스러움</td></tr>
+    <tr><td>2.0 (높음)</td><td>0.08</td><td class="al">평탄 (거의 균등)</td><td class="al">엉뚱·환각</td></tr>
   </table>
-  <div class="qd">T가 작을수록 (보수적 / 다양). T가 클수록 (예측 가능 / 의외성↑). 동그라미하기.</div>
+  <div class="qd">표를 보고 빈칸을 채우세요.</div>
+  <div class="fm">
+    T가 작을수록 (보수적 / 다양). ☞ <span class="bk lg"></span><br>
+    T가 클수록 (예측 가능 / 의외성↑). ☞ <span class="bk lg"></span><br>
+    "GPT가 너무 똑같은 답만 한다" 싶으면 T를 (낮춰야 / 높여야) 한다. ☞ <span class="bk lg"></span>
+  </div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-3</span>자기회귀 생성 5번 — 같은 시작으로 다른 결과</div>
-  <div class="qd">앱에서 같은 시작 문장으로 5번 연속 생성한 결과를 적어보세요. (T = 1.0 권장)</div>
+  <div class="qh"><span class="num">4-3</span>자기회귀 생성 — 결과 표</div>
+  <div class="qd">같은 시작 "고양이는"으로 5번 연속 생성한 결과 (T = 1.0):</div>
   <table class="tb">
     <tr><th>시도</th><th>생성된 문장</th></tr>
-    <tr><td>1</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
-    <tr><td>2</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
-    <tr><td>3</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
-    <tr><td>4</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
-    <tr><td>5</td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
+    <tr><td>1</td><td class="al">고양이는 귀엽다.</td></tr>
+    <tr><td>2</td><td class="al">고양이는 잔다.</td></tr>
+    <tr><td>3</td><td class="al">고양이는 쥐를 잡는다.</td></tr>
+    <tr><td>4</td><td class="al">고양이는 귀엽다.</td></tr>
+    <tr><td>5</td><td class="al">고양이는 동물이다.</td></tr>
   </table>
-  <div class="qd">결과들이 다른 이유를 한 줄로 적어보세요.</div>
+  <div class="qd">5번 모두 "고양이는"으로 시작했지만 결과가 다른 이유를 한 줄로:</div>
+  <div class="ans-area"></div>
+  <div class="qd">시도 1과 4에서 같은 결과가 나온 이유는?</div>
   <div class="ans-area"></div>
 </div>
 

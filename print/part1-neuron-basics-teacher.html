@@ -130,25 +130,43 @@
 <!-- ============================================================== -->
 <h2>STEP 2. 순전파 퀴즈 (Phase 2)</h2>
 
+<div class="an"><span class="lab">앱 운영</span>Phase 2가 <strong>3탭(① 단일 뉴런 → ② 직렬 뉴런 → ③ 3×2×1 작은 신경망)</strong>으로 구성. 활동지의 STEP 2도 같은 흐름. 빈칸(?)을 맞히면 다이어그램에 값이 나타나는 점진적 공개 방식이라, 학생이 한 단계 정답을 확인한 뒤 다음 단계로 넘어가게 운영할 것. 핵심 메시지는 <strong>"한 뉴런이든 작은 신경망이든 곱셈 → 합산 → ReLU의 절차는 똑같다"</strong>.</div>
+
 <div class="qc">
-  <div class="qh"><span class="num">2-1</span>문제 ① 정답</div>
-  <div class="ans"><span class="lab">정답</span>z = 1·2 + 2·3 + (−1) = <span class="v">7</span> &nbsp;/&nbsp; y = ReLU(7) = <span class="v">7</span></div>
+  <div class="qh"><span class="num">2-1</span>단일 뉴런 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>z = 1·2 + 2·3 + (−1) = <span class="v">7</span> &nbsp;/&nbsp; ŷ = ReLU(7) = <span class="v">7</span></div>
 </div>
+
 <div class="qc">
-  <div class="qh"><span class="num">2-2</span>문제 ② 정답</div>
-  <div class="ans"><span class="lab">정답</span>z = (−1)·4 + 3·1 + 2 = <span class="v">1</span> &nbsp;/&nbsp; y = ReLU(1) = <span class="v">1</span></div>
+  <div class="qh"><span class="num">2-2</span>직렬 뉴런 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    z₁ = 2·3 + (−1) = <span class="v">5</span><br>
+    h = ReLU(5) = <span class="v">5</span><br>
+    z₂ = 1·5 + (−3) = <span class="v">2</span><br>
+    ŷ = ReLU(2) = <span class="v">2</span>
+  </div>
+  <div class="tt"><span class="lab">수업 팁</span>앞 뉴런의 출력 h가 다음 뉴런의 입력으로 들어가는 그림을 칠판에 한 번 더 그려서, "층(layer)"이라는 말을 자연스럽게 도입. 직렬 두 개를 푸는 절차가 곧 다음 문제(MLP)의 은닉층 → 출력층의 절차와 같다는 점을 짚을 것.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>z₁이 음수일 때 h를 그대로 음수로 적는 경우(이번 문제는 z₁=5라 발생 안 하지만, 학생이 일반화할 수 있도록 ReLU의 "음수면 0" 규칙을 한 번 더 짚어줄 것).</div>
 </div>
+
 <div class="qc">
-  <div class="qh"><span class="num">2-3</span>문제 ③ 정답</div>
-  <div class="ans"><span class="lab">정답</span>z = (−2)·5 + (−1)·2 + 3 = <span class="v">−9</span> &nbsp;/&nbsp; y = ReLU(−9) = <span class="v">0</span> &nbsp; → "<strong>반응하지 않았다</strong>"</div>
-  <div class="pf"><span class="lab">자주 틀림</span>음수 z를 그대로 답으로 적는 경우. ReLU 단계에서 <strong>0으로 잘림</strong>을 한 번 더 강조.</div>
-  <div class="tt"><span class="lab">수업 팁</span>"이 뉴런은 이번 입력에 침묵했다"라는 표현으로 정리하면, 뒤에 나올 <strong>희소 활성</strong> 개념의 토대가 된다.</div>
+  <div class="qh"><span class="num">2-3</span>3×2×1 작은 신경망 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    h₁ = ReLU(1·1 + 1·2 + 0·1 + 0) = ReLU(<span class="v">3</span>) = <span class="v">3</span><br>
+    h₂ = ReLU(0·1 + 1·2 + 1·1 + (−1)) = ReLU(<span class="v">2</span>) = <span class="v">2</span><br>
+    ŷ = ReLU(1·3 + 1·2 + (−2)) = ReLU(<span class="v">3</span>) = <span class="v">3</span>
+  </div>
+  <div class="ans"><span class="lab">관찰</span>한 뉴런 절차의 <strong>반복</strong>이 곧 신경망 — 정답.</div>
+  <div class="tt"><span class="lab">수업 팁</span>가중치 0인 연결(h₁ ← x₃, h₂ ← x₁)은 앱에서 흐린 점선으로 표시 — "기여 없음"을 시각적으로 보여주는 장치. 학생이 "왜 어떤 선은 흐려요?"라고 물으면 좋은 신호. 이 관찰이 페이즈 11(신경망 설계)에서 "모든 입력이 모든 뉴런에 연결되지만 가중치 크기로 영향력이 다르다"라는 포인트로 자연스럽게 연결됨.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>은닉층 두 뉴런을 한꺼번에 계산하려다 항을 빠뜨리는 경우. <strong>한 뉴런씩 따로</strong> 식을 쓰게 시범 보일 것.</div>
 </div>
 
 <!-- ============================================================== -->
 <h2>STEP 3. 손실함수와 경사하강법의 이해 (Phase 3)</h2>
 
-<div class="an"><span class="lab">앱 운영</span>Phase 3가 두 개념을 한 페이지에 묶도록 재구성됐다. 슬라이더로 움직이는 값이 이번 페이지에서는 <strong>"가중치 w"</strong>로 비유된다는 점을 먼저 칠판에 적어둘 것 — STEP 5의 자동 학습으로 자연스럽게 이어진다.</div>
+<div class="an"><span class="lab">앱 운영</span>Phase 3가 <strong>5탭(① 데이터 → ② 오차 → ③ 오차² → ④ 손실(MSE) → ⑤ 경사하강법)</strong>으로 재구성됐다. 같은 다섯 점에 가장 잘 맞는 직선을 찾는 단일 흐름. 활동지의 STEP 3은 손계산을 깔끔하게 하기 위해 손실식을 <span class="mono">L = (w − 5)²</span>로 단순화함을 학생에게 먼저 안내할 것 — 앱은 다섯 점에 직선을 맞추는 정식 MSE를, 활동지는 가장 단순한 포물선을 다루지만 <strong>"포물선 모양 + 기울기 반대 방향으로 이동"</strong>이라는 핵심 발상은 같다.</div>
+
+<div class="tt"><span class="lab">앱의 모델 개념</span>Phase 3 데이터 탭에 "📌 모델이 뭐예요?" 박스가 새로 들어왔다 — <strong>모델 구조 + 매개변수 + 학습</strong>의 3단 분리. 활동지 STEP 3 도입에도 같은 박스가 들어 있으니 학생이 활동지 박스를 먼저 읽고 앱에서 같은 박스를 발견하게 운영하면 인지 부담이 적다.</div>
 
 <div class="qc">
   <div class="qh"><span class="num">3-1</span>제곱 3가지 이유 — 정답</div>
@@ -169,66 +187,130 @@
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-3</span>현재 가중치에서의 기울기 — 정답</div>
+  <div class="qh"><span class="num">3-3</span>w를 한 칸씩 키우며 손실 보기 (디딤돌) — 정답</div>
   <div class="ans"><span class="lab">정답</span>
-    w = 2: 손실 = (2−5)² = <span class="v">9</span>, 기울기 = 2(2−5) = <span class="v">−6</span>, 옮길 방향 = <strong>오른쪽(+)</strong>(왼쪽이 오르막).<br>
-    w = 5: 손실 = <span class="v">0</span>, 기울기 = <span class="v">0</span>, 옮길 방향 = <strong>정지</strong>.<br>
-    w = 8: 손실 = (8−5)² = <span class="v">9</span>, 기울기 = 2(8−5) = <span class="v">+6</span>, 옮길 방향 = <strong>왼쪽(−)</strong>(오른쪽이 오르막).
+    w = 2 → 손실 = (2−5)² = <span class="v">9</span><br>
+    w = 3 → 손실 = (3−5)² = <span class="v">4</span><br>
+    w = 4 → 손실 = (4−5)² = <span class="v">1</span><br>
+    2 → 3 → 4로 갈수록 손실이 <strong>작아진다</strong>. → w를 <strong>오른쪽</strong>으로 옮기면 손실이 줄어든다.
   </div>
-  <div class="pf"><span class="lab">자주 틀림</span>기울기 부호와 옮길 방향이 헷갈려 같은 방향(+→오른쪽)으로 답하는 경우. <strong>"기울기와 옮길 방향은 부호가 반대"</strong>를 칠판 상단에 고정 표기.</div>
+  <div class="tt"><span class="lab">수업 팁</span>"기울기"라는 말을 미분으로 정의하기 전에, <strong>실제로 옆 점들의 손실을 비교한 결과</strong>가 곧 기울기의 의미라는 것을 정수 손계산으로 먼저 보여준다. 다음 3-4에서 식이 등장할 때 학생이 "이미 본 그것"으로 받아들임.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>w=4에서 손실이 1이 아니라 0이라고 답하는 경우(정답 5에 가깝지만 같지는 않음을 강조).</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-4</span>갱신 규칙 — 정답</div>
+  <div class="qh"><span class="num">3-4</span>기울기 식으로 — 정답</div>
   <div class="ans"><span class="lab">정답</span>
-    수정된 가중치 = 지금 가중치 − ( <span class="v">기울기</span> )<br>
-    일반화: w ← w − <span class="v">∂SE/∂w</span> (SE의 w에 대한 기울기)
+    w = 2 → 기울기 = 2 · (2 − 5) = <span class="v">−6</span><br>
+    부호 = <strong>−</strong> &nbsp;/&nbsp; 오른쪽이 <strong>내리막</strong> → 3-3과 같은 결론.
   </div>
-  <div class="ans"><span class="lab">왜 빼기인가</span>기울기는 손실이 가장 빠르게 <strong>증가</strong>하는 방향을 가리킨다. 우리는 손실의 <strong>감소</strong>를 원하니 그 반대 방향으로 가야 하므로 빼기를 쓴다. 그래서 기울기가 양수면 w는 작아지는 방향(왼쪽)으로, 음수면 커지는 방향(오른쪽)으로 자동 정정.</div>
-  <div class="tt"><span class="lab">전이</span>이 식이 STEP 5의 <span class="mono">w ← w − η·dw</span>로 곧장 이어진다. 이 페이지에는 학습률 η가 아직 등장하지 않았다는 점을 짚어둘 것.</div>
+  <div class="ans"><span class="lab">메시지</span>"매번 옆을 재지 않아도 된다"가 식의 효용. 디딤돌(3-3)과 식(3-4)의 결론이 일치함을 학생이 직접 확인하는 게 핵심.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>"미분이라서 식이 그렇다"고 외워서 답하는 경우. 식의 결과는 옆을 재서 비교한 결과와 같다는 점을 짚어두면 다음 페이즈의 e·x도 같은 방식으로 받아들인다.</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">3-5</span>학습 종료 신호 — 모범 답안</div>
-  <div class="ans"><span class="lab">예시</span>"기울기가 0이라는 것은 어느 쪽으로도 옮겨도 손실이 줄어들지 않는다는 뜻 → 더 학습할 곳이 없다." 또는 "포물선의 골짜기 바닥에 도달했다는 뜻."</div>
+  <div class="qh"><span class="num">3-5</span>점마다 기울기 — 정답</div>
+  <table class="tb">
+    <tr><th>w</th><th>2</th><th>5</th><th>8</th></tr>
+    <tr><td class="lbl">손실</td><td class="fa">9</td><td class="fa">0</td><td class="fa">9</td></tr>
+    <tr><td class="lbl">기울기 2(w−5)</td><td class="fa">−6</td><td class="fa">0</td><td class="fa">+6</td></tr>
+    <tr><td class="lbl">기울기 부호</td><td class="fa">−</td><td class="fa">0</td><td class="fa">+</td></tr>
+    <tr><td class="lbl">옮길 방향</td><td class="fa">→</td><td class="fa">정지</td><td class="fa">←</td></tr>
+  </table>
+  <div class="ans"><span class="lab">규칙</span>"<strong>기울기 부호와 옮길 방향의 부호는 반대</strong>." 이 한 줄이 다음 절(3-D 갱신 식)의 빼기 부호로 자연스럽게 이어진다.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>기울기 부호와 옮길 방향이 같다고(+→오른쪽) 답하는 경우. 3-3 디딤돌의 결론과 일관되게 잡도록 안내.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-6</span>갱신 식 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    수정된 w = 지금 w − ( 기울기 반대 방향으로 <span class="v">작은</span> 한 발짝 )<br>
+    직관 식: <span class="mono">w ← w − (기울기 방향의 작은 보폭)</span><br>
+    정식 식(STEP 4·5에서 도입): <span class="mono">w ← w − η · ∂L/∂w</span><br>
+    기울기가 양수일 때 위 식대로 빼면 새 w는 <strong>작아진다</strong> → <strong>왼쪽</strong>으로 옮겨감 → 3-5의 양수 기울기 행과 일치.
+  </div>
+  <div class="tt"><span class="lab">전이 핵심</span>이번 절은 "기울기 반대 방향으로 한 발짝"이라는 발상까지만 굳힌다. 한 발짝의 크기(학습률 η)는 STEP 4·5에서 본격적으로. <strong>"기울기를 그대로 빼면 손실이 줄어든다"는 강한 진술은 피한다(η 없으면 발산할 수 있음).</strong></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-7</span>왜 빼기인가 — 모범 답안</div>
+  <div class="ans"><span class="lab">정답</span>기울기는 손실이 가장 빠르게 <strong>증가</strong>하는 방향을 가리킨다. 손실의 <strong>감소</strong>를 원하니 부호를 뒤집기 위해 빼기를 쓴다.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-8</span>학습 종료 신호 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>w = 5에서 기울기 = <span class="v">0</span>이므로 갱신 식 <span class="mono">w ← w − η · 기울기</span>에 넣으면 새 w = 5 − η · 0 = <span class="v">5</span> → η가 어떤 값이든 더 이상 <strong>변하지</strong> 않는다. 골짜기 바닥에 도달했다는 뜻.</div>
 </div>
 
 <!-- ============================================================== -->
 <h2>STEP 4. 학습률의 이해 (Phase 4)</h2>
 
-<div class="an"><span class="lab">앱 운영</span>Phase 4가 데이터 y = 2x + <strong>0.7</strong>로 바뀌었음을 칠판에 먼저 적어둘 것. 정답 b가 0.5의 배수가 아니라 <strong>큰칸 0.5로는 절대 도달 불가</strong>한 함정이 의도적으로 들어가 있다.</div>
+<div class="an"><span class="lab">앱 운영</span>활동지의 데이터는 정수(1,3)~(5,11), 정답 w=2·b=1로 단순화돼 있다(앱 페이즈 4의 0.7 데이터와 다름 — "원리 확인용 손계산"이 목적이라 일부러 깔끔한 정수). 시도 A를 <strong>점별 절차 시범</strong>으로 학생이 한 줄씩 풀게 하고, 시도 B·C는 같은 절차를 학생이 반복.</div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-1</span>w·b 시도별 손실 — 정답 (y = 2x + 0.7)</div>
+  <div class="qh"><span class="num">4-1</span>시도 A — 절차 시범 정답 (w = 1, b = 0)</div>
   <table class="tb">
-    <tr><th>시도</th><th>w</th><th>b</th><th>x=1, ŷ</th><th>x=3, ŷ</th><th>x=5, ŷ</th><th>총 손실</th></tr>
-    <tr><td>A</td><td>1</td><td>0</td><td class="fa">1</td><td class="fa">3</td><td class="fa">5</td><td class="fa">78.45</td></tr>
-    <tr><td>B</td><td>2</td><td>0</td><td class="fa">2</td><td class="fa">6</td><td class="fa">10</td><td class="fa">2.45</td></tr>
-    <tr><td>C</td><td>2</td><td>0.7</td><td class="fa">2.7</td><td class="fa">6.7</td><td class="fa">10.7</td><td class="fa">0</td></tr>
+    <tr><th>x</th><th>y</th><th>ŷ = 1·x + 0</th><th>오차 = ŷ−y</th><th>오차²</th></tr>
+    <tr><td>1</td><td>3</td><td class="fa">1</td><td class="fa">−2</td><td class="fa">4</td></tr>
+    <tr><td>2</td><td>5</td><td class="fa">2</td><td class="fa">−3</td><td class="fa">9</td></tr>
+    <tr><td>3</td><td>7</td><td class="fa">3</td><td class="fa">−4</td><td class="fa">16</td></tr>
+    <tr><td>4</td><td>9</td><td class="fa">4</td><td class="fa">−5</td><td class="fa">25</td></tr>
+    <tr><td>5</td><td>11</td><td class="fa">5</td><td class="fa">−6</td><td class="fa">36</td></tr>
+    <tr><td colspan="4" class="lbl" style="text-align:right">합 (총 손실) =</td><td class="fa">90</td></tr>
   </table>
-  <div class="ans"><span class="lab">상세 계산</span>
-    시도 A (w=1, b=0): ŷ−y = (−1.7, −2.7, −3.7, −4.7, −5.7) → 손실 = 2.89+7.29+13.69+22.09+32.49 = <span class="v">78.45</span><br>
-    시도 B (w=2, b=0): ŷ−y = (−0.7, −0.7, −0.7, −0.7, −0.7) → 손실 = 5 × 0.49 = <span class="v">2.45</span><br>
-    시도 C (w=2, b=0.7): ŷ−y = (0, 0, 0, 0, 0) → 손실 = <span class="v">0</span> &nbsp; ← <strong>정답 w=2, b=0.7</strong>
-  </div>
-  <div class="pf"><span class="lab">자주 틀림</span>총 손실을 5개 점 모두에 대해 합산해야 하는데 표에 표시된 3개(x=1,3,5)만 더하는 경우.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>오차의 부호를 잘못 잡아 +로 답하는 경우. ŷ−y이지 y−ŷ가 아님을 강조.</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-2</span>슬라이더 한 칸 크기 — 모범 답안</div>
+  <div class="qh"><span class="num">4-2</span>시도 B — 정답 (w = 2, b = 0)</div>
   <table class="tb">
-    <tr><th>한 칸 크기</th><th>관찰</th></tr>
-    <tr><td>0.5 (큰칸)</td><td class="al">b가 0, 0.5, 1.0, 1.5만 가능 → <strong>0.7에 도달 불가</strong>. 0.5와 1.0을 오가는 진동.</td></tr>
-    <tr><td>0.1 (보통)</td><td class="al">b를 0.7로 정확히 맞춰 정답 도달. 손실 = 0.</td></tr>
-    <tr><td>0.01 (미세)</td><td class="al">정답 도달은 가능하지만 같은 거리를 가는 데 칸 수가 많아 답답함.</td></tr>
+    <tr><th>x</th><th>y</th><th>ŷ = 2·x + 0</th><th>오차</th><th>오차²</th></tr>
+    <tr><td>1</td><td>3</td><td class="fa">2</td><td class="fa">−1</td><td class="fa">1</td></tr>
+    <tr><td>2</td><td>5</td><td class="fa">4</td><td class="fa">−1</td><td class="fa">1</td></tr>
+    <tr><td>3</td><td>7</td><td class="fa">6</td><td class="fa">−1</td><td class="fa">1</td></tr>
+    <tr><td>4</td><td>9</td><td class="fa">8</td><td class="fa">−1</td><td class="fa">1</td></tr>
+    <tr><td>5</td><td>11</td><td class="fa">10</td><td class="fa">−1</td><td class="fa">1</td></tr>
+    <tr><td colspan="4" class="lbl" style="text-align:right">합 =</td><td class="fa">5</td></tr>
   </table>
-  <div class="ans"><span class="lab">큰칸 0.5로 못 가는 이유</span>한 칸이 0.5의 배수만 만들 수 있는데 정답 b = 0.7은 0.5의 배수가 아니다. 보폭 자체가 정답을 <strong>지나치게(overshoot)</strong> 만든다.</div>
-  <div class="tt"><span class="lab">전이 메시지</span>슬라이더 한 칸 크기 = STEP 5의 <strong>학습률 η(보폭)</strong>. "너무 크면 정답을 지나친다"는 감각을 학생이 손으로 먼저 체험하게 하는 의도된 함정.</div>
+  <div class="ans"><span class="lab">관찰 포인트</span>모든 점의 오차가 동일하게 −1. <strong>"기울기는 정확하지만 절편이 모자란다"</strong>는 진단을 학생이 직접 발견하도록 유도. 손실이 90 → 5로 18배 감소.</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">4-3</span>학습 정의 — 모범 답안</div>
-  <div class="ans"><span class="lab">예시</span>"학습이란 <strong>총 손실이 가장 작아지는 w·b를 찾는 일</strong>이다." (다른 표현 허용: "데이터에 가장 잘 맞는 직선의 기울기와 절편을 정하는 일".)</div>
+  <div class="qh"><span class="num">4-3</span>시도 C — 정답 (w = 2, b = 1)</div>
+  <table class="tb">
+    <tr><th>x</th><th>y</th><th>ŷ = 2·x + 1</th><th>오차</th><th>오차²</th></tr>
+    <tr><td>1</td><td>3</td><td class="fa">3</td><td class="fa">0</td><td class="fa">0</td></tr>
+    <tr><td>2</td><td>5</td><td class="fa">5</td><td class="fa">0</td><td class="fa">0</td></tr>
+    <tr><td>3</td><td>7</td><td class="fa">7</td><td class="fa">0</td><td class="fa">0</td></tr>
+    <tr><td>4</td><td>9</td><td class="fa">9</td><td class="fa">0</td><td class="fa">0</td></tr>
+    <tr><td>5</td><td>11</td><td class="fa">11</td><td class="fa">0</td><td class="fa">0</td></tr>
+    <tr><td colspan="4" class="lbl" style="text-align:right">합 =</td><td class="fa">0</td></tr>
+  </table>
+  <div class="ans"><span class="lab">정답</span>w = 2, b = 1. 데이터가 정확히 y = 2x + 1 위에 있어 손실 = 0.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-4</span>세 시도 한눈에 + 학습 정의 — 정답</div>
+  <table class="tb">
+    <tr><th>시도</th><th>w</th><th>b</th><th>총 손실</th></tr>
+    <tr><td>A</td><td>1</td><td>0</td><td class="fa">90</td></tr>
+    <tr><td>B</td><td>2</td><td>0</td><td class="fa">5</td></tr>
+    <tr><td>C</td><td>2</td><td>1</td><td class="fa">0</td></tr>
+  </table>
+  <div class="ans"><span class="lab">학습 정의 — 예시</span>"학습이란 <strong>총 손실이 가장 작아지는 w·b를 찾는 일</strong>이다." (다른 표현 허용: "데이터에 가장 잘 맞는 직선의 기울기와 절편을 정하는 일".)</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">4-5</span>한 칸 크기 — 정답</div>
+  <table class="tb">
+    <tr><th>한 칸 크기</th><th>b가 거치는 값들</th><th>몇 칸 만에 도달?</th></tr>
+    <tr><td>0.5 (큰칸)</td><td class="al">0 → 0.5 → <span class="v">1.0</span></td><td class="fa">2칸</td></tr>
+    <tr><td>0.1 (보통)</td><td class="al">0 → 0.1 → 0.2 → … → <span class="v">1.0</span></td><td class="fa">10칸</td></tr>
+    <tr><td>0.01 (미세)</td><td class="al">0 → 0.01 → 0.02 → … → 1.00</td><td class="fa">100칸</td></tr>
+  </table>
+  <div class="ans"><span class="lab">정답</span>큰칸일수록 <strong>빨리</strong> 도달.</div>
+  <div class="ans"><span class="lab">함정 시나리오 정답</span>정답이 b=0.7이라면 큰칸 0.5는 0, 0.5, 1.0만 만들 수 있어 정답을 정확히 짚을 수 없다. → <strong>한 칸 크기가 정답 위치의 단위를 못 맞추면 정답을 지나친다(overshoot)</strong>.</div>
+  <div class="tt"><span class="lab">전이 메시지</span>한 칸 크기 = STEP 5의 <strong>학습률 η(보폭)</strong>. 너무 크면 정답을 지나치고, 너무 작으면 답답하다는 감각을 학생이 손으로 먼저 체험하는 의도된 활동.</div>
 </div>
 
 <!-- ============================================================== -->
@@ -238,70 +320,164 @@
 
 <div class="tt"><span class="lab">수업 팁</span>탭 이름이 "수식 유도"·"실생활 적용"으로 무거워 보이지만, 학생이 직접 식을 세우는 건 아니다. 앱이 11단계로 풀어주는 걸 따라 읽고 핵심 한 줄을 옮겨 적는 활동, 두 모델의 결과를 비교 관찰하는 활동이다.</div>
 
+<div class="ib"><strong>학생용 5-A~5-E 절 매칭</strong> &nbsp; 5-1(결과 표 패턴 발견) · 5-2~5-5(한 step 손계산) · 5-6~5-7(책임 분담 직관) · 5-8~5-9(학습률·빼기) · 5-10~5-11(실생활 적용). 활동지가 앱 없이 자력으로 풀 수 있도록 결과 표·시나리오를 모두 활동지 안에 직접 제공.</div>
+
 <div class="qc">
-  <div class="qh"><span class="num">5-1</span>한 점 변화량 — 정답</div>
-  <div class="ans"><span class="lab">계산</span>
+  <div class="qh"><span class="num">5-1</span>학습 진행 결과 표 — 정답</div>
+  <div class="ans"><span class="lab">패턴 발견 — 정답</span>
+    손실: 28.5 → 0.97 → 0.05 → 0.04 → 0.013 → <strong>작아진다</strong>.<br>
+    w: 0 → 2.50 → 2.04 → 2.12 → 2.06 → 정답 2에 <strong>가까워진다</strong>.<br>
+    한 칸당 변화 폭: step 1에서 <strong>큼</strong>, step 5에서는 <strong>작음</strong>.
+  </div>
+  <div class="tt"><span class="lab">수업 팁</span>이 절은 식 없이 <strong>표의 패턴만 발견</strong>시키는 게 핵심. 다음 5-B에서 step 1을 손으로 직접 확인할 거라는 예고를 짧게.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-2</span>한 점 z·ŷ·e — 정답 (w=1, b=0, 점=(3,7))</div>
+  <div class="ans"><span class="lab">정답</span>
     z = 1·3 + 0 = <span class="v">3</span><br>
-    ŷ = ReLU(3) = <span class="v">3</span> &nbsp;(z > 0이라 그대로 통과)<br>
-    e = 3 − 7 = <span class="v">−4</span><br>
-    w 변화량 = e · x = (−4)·3 = <span class="v">−12</span><br>
-    b 변화량 = e = <span class="v">−4</span><br>
-    업데이트: w ← 1 − 0.1·(−12) = <span class="v">2.2</span>, &nbsp; b ← 0 − 0.1·(−4) = <span class="v">0.4</span><br>
-    → 정답 (2, 1)에 <strong>가까워졌다</strong>.
+    ŷ = ReLU(3) = <span class="v">3</span> (z &gt; 0이라 그대로 통과)<br>
+    e = 3 − 7 = <span class="v">−4</span>
   </div>
-  <div class="pf"><span class="lab">자주 틀림</span>① 부호 약속(e = ŷ − y) 헷갈려 부호 반대로. ② 마이너스 학습률 부분을 빼먹어 발산 방향으로 업데이트. → <strong>"오차 = 예측 − 정답, 업데이트는 −η·변화량"</strong>을 칠판 상단에 고정.</div>
-  <div class="tt"><span class="lab">수업 팁</span>"한 점만으로 갱신"은 단순화된 시나리오. 실제 앱은 <strong>다섯 점 평균</strong>으로 갱신한다는 점을 STEP 5-2 진행 직전에 짚을 것.</div>
 </div>
 
 <div class="qc">
-  <div class="qh"><span class="num">5-2</span>앱 관찰 기록 — 정답 (η = 0.1, 시작 w=0, b=0, 다섯 점 평균)</div>
-  <div class="ans"><span class="lab">참고: 손실 정의</span>L = Σ ½·(ŷ−y)² / N (코드의 lossFn). N=5.</div>
-  <table class="tb">
-    <tr><th>step</th><th>w</th><th>b</th><th>손실</th></tr>
-    <tr><td>0</td><td class="fa">0.000</td><td class="fa">0.000</td><td class="fa">28.5</td></tr>
-    <tr><td>1</td><td class="fa">≈ 2.500</td><td class="fa">≈ 0.700</td><td class="fa">≈ 0.97</td></tr>
-    <tr><td>2</td><td class="fa">≈ 2.040</td><td class="fa">≈ 0.580</td><td class="fa">≈ 0.047</td></tr>
-    <tr><td>3</td><td class="fa">≈ 2.122</td><td class="fa">≈ 0.610</td><td class="fa">≈ 0.040</td></tr>
-    <tr><td>5</td><td class="fa">≈ 2.06</td><td class="fa">≈ 0.74</td><td class="fa">≈ 0.013</td></tr>
-  </table>
-  <div class="ans"><span class="lab">손실 곡선</span>step 0에서 28.5라는 큰 값에서 시작 → step 1에서 1 미만으로 급락 → 이후 0에 수렴하며 미세 진동. <strong>꾸준한 감소(단조 감소는 아니지만 추세 감소)</strong>가 정답.</div>
-  <div class="tt"><span class="lab">수업 팁</span>학생이 적은 값이 정확하지 않아도 OK. "step 1에서 큰 점프 → step 2부터 미세 조정"이라는 패턴만 확인.</div>
-</div>
-
-<div class="qc">
-  <div class="qh"><span class="num">5-3</span>학습률 비교 — 정답 (앱 슬라이더 범위 0.001 ~ 0.1)</div>
-  <table class="tb">
-    <tr><th>η</th><th>20단계 후 손실</th><th>현상</th></tr>
-    <tr><td>0.001</td><td class="fa">≈ 14~20</td><td class="al">매우 느림. 20단계로는 정답 근처에 못 감.</td></tr>
-    <tr><td>0.01</td><td class="fa">≈ 1~2</td><td class="al">느린 수렴. 손실이 부드럽게 감소하지만 시간이 걸림.</td></tr>
-    <tr><td>0.05</td><td class="fa">≈ 0.01 부근</td><td class="al">적절. 약 10~15단계 안에 거의 수렴.</td></tr>
-    <tr><td>0.1</td><td class="fa">≈ 0.005 이하</td><td class="al">빠름. 1~2단계의 큰 점프 후 미세 진동하며 수렴.</td></tr>
-  </table>
-  <div class="ans"><span class="lab">한 줄 정리</span>η가 작으면 <strong>답답하고</strong>, 너무 크면 <strong>정답을 지나쳐 못 멈춘다</strong>. → STEP 4의 큰칸 0.5가 b=0.7에 못 닿던 일과 정확히 같은 현상.</div>
-  <div class="pf"><span class="lab">앱 제약</span>앱의 학습률 최대값이 0.1로 제한돼 있어 "발산"을 직접 시연할 수는 없다. 발산을 보여주려면 칠판에서 η = 1.5로 한 step을 손계산해 손실이 폭발적으로 커지는 모습을 보여줄 것.</div>
-</div>
-
-<div class="qc">
-  <div class="qh"><span class="num">5-4</span>왜 빼기인가 — 모범 답안</div>
-  <div class="ans"><span class="lab">정답</span>변화량(dw, db)은 손실이 가장 빠르게 <strong>증가</strong>하는 방향을 가리키는 나침반이다. 우리는 손실의 <strong>감소</strong>를 원하니 그 반대 방향으로 가야 하므로 부호를 뒤집기 위해 빼기를 쓴다. (STEP 3-4에서 이미 같은 식을 학습률 없이 본 적 있음 — η가 추가됐을 뿐.)</div>
-</div>
-
-<div class="qc">
-  <div class="qh"><span class="num">5-5</span>수식 유도 (탭 ③) — 모범 답안</div>
-  <div class="ans"><span class="lab">핵심 한 줄</span>"<strong>x가 큰 점일수록 w를 잘못 잡았을 때 출력의 어긋남이 더 크다 → 책임도 더 크게 묻는다</strong>." → 그래서 한 점의 w 책임 = e × x. 다섯 점 책임을 평균낸 것이 dw.</div>
-  <div class="ans"><span class="lab">수업 팁</span>11단계 모두를 학생이 외울 필요는 없다. <strong>"e × x의 x가 어디서 왔는가"</strong>라는 한 질문에 답할 수 있으면 충분.</div>
-  <div class="pf"><span class="lab">자주 틀림</span>"미분이라서 x가 곱해진다"고만 답하는 경우. 미분의 결과로 등장하지만, 그 결과가 갖는 <strong>의미(책임 분담)</strong>를 자기 말로 설명할 수 있어야 만점.</div>
-</div>
-
-<div class="qc">
-  <div class="qh"><span class="num">5-6</span>실생활 적용 (탭 ⑤) — 운영 가이드</div>
-  <div class="ans"><span class="lab">두 모델 비교 — 예시</span>
-    모델 A (단일 뉴런 ŷ = w·x + b): 직선 한 줄로 추세는 잡지만 계절 곡선을 못 따라감 → 손실이 일정 수준에서 멈춤.<br>
-    모델 B (은닉층 추가 또는 비선형 항): 곡선 추세를 잡아내며 손실이 더 낮게 떨어짐.
+  <div class="qh"><span class="num">5-3</span>한 점 변화량 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    이 한 점의 w 변화량 = e · x = (−4) · 3 = <span class="v">−12</span><br>
+    이 한 점의 b 변화량 = e = <span class="v">−4</span>
   </div>
-  <div class="ans"><span class="lab">교실 데이터 사례 — 예시</span>① 자습 시간(x) → 시험 점수(y) ② 키(x) → 몸무게(y) ③ 이번 주 출석일(x) → 다음 주 자습 시간(y). 단순 회귀로 풀 수 있는 한 변수–한 정답 구조면 OK.</div>
-  <div class="tt"><span class="lab">수업 팁</span>이 탭은 <strong>"방금 배운 식이 학습 데이터에서 진짜 통하는가"</strong>를 확인시키는 의도. 정확한 손실 수치보다 <strong>"단일 뉴런으로 표현 못 하는 패턴이 있다 → 더 큰 신경망의 동기"</strong>로 마무리하면 자연스럽게 STEP 6과 2부로 이어진다.</div>
-  <div class="pf"><span class="lab">자주 틀림</span>학생이 "B가 무조건 좋은 모델"로 단순화. <strong>"표현력이 클수록 과적합 위험도 커진다"</strong>는 단서를 한 마디 보태두면 STEP 3·4부의 일반화 논의가 미리 자연스러워진다.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>e의 부호를 잘못 잡거나, e·x를 e·y로 헷갈려 (−4·7 = −28)로 답하는 경우. <strong>곱하는 건 입력 x</strong>임을 칠판에 고정 표기.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-4</span>다섯 점 평균 — 정답 (w=1, b=0)</div>
+  <table class="tb">
+    <tr><th>x</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>합</th></tr>
+    <tr><td class="lbl">e = ŷ − y</td><td class="fa">−2</td><td class="fa">−3</td><td class="fa">−4</td><td class="fa">−5</td><td class="fa">−6</td><td class="fa">−20</td></tr>
+    <tr><td class="lbl">e × x</td><td class="fa">−2</td><td class="fa">−6</td><td class="fa">−12</td><td class="fa">−20</td><td class="fa">−30</td><td class="fa">−70</td></tr>
+  </table>
+  <div class="ans"><span class="lab">정답</span>
+    dw = (−70) ÷ 5 = <span class="v">−14</span><br>
+    db = (−20) ÷ 5 = <span class="v">−4</span>
+  </div>
+  <div class="tt"><span class="lab">수업 팁</span>5-3의 한 점(x=3)에서 e·x = −12였던 값이 표의 가운데 칸에 그대로 들어옴을 짚어주면 "한 점 → 평균"의 구조가 자연스럽게 보임.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-5</span>한 step 적용 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    새 w = 1 − 0.1 · (<span class="v">−14</span>) = <span class="v">2.4</span><br>
+    새 b = 0 − 0.1 · (<span class="v">−4</span>) = <span class="v">0.4</span><br>
+    정답 (w=2, b=1)에 <strong>가까워졌다</strong>. (w가 1 → 2.4로 정답 2를 살짝 지나쳤지만 0보다 훨씬 가깝고, b도 0 → 0.4로 정답 1 쪽으로 이동.)
+  </div>
+  <div class="ans"><span class="lab">5-1 표와의 차이 짚기</span>5-1 표의 step 1은 시작점이 (w=0, b=0)이라 결과가 (w=2.50, b=0.70). 5-5는 시작점이 (w=1, b=0)이라 (w=2.4, b=0.4). <strong>같은 절차가 시작점에 따라 다른 결과</strong>를 낸다는 점을 짚어줄 것.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>업데이트 식의 빼기 부호를 빼먹어 1+0.1·(−14) = −0.4 같은 발산 방향으로 답하는 경우.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-6·5-7</span>책임 분담 — 모범 답안</div>
+  <div class="ans"><span class="lab">5-6 자기 말로 풀이 — 예시</span>"<strong>곱셈에서 곱해지는 수가 클수록 w가 흔들렸을 때 결과 변화가 크니까, x가 큰 점이 w를 더 강하게 끌어당긴다</strong>." 또는 "x=5인 점에서 w를 0.1 흔들면 출력이 0.5 흔들리지만, x=1에서는 0.1만 흔들리니, 그만큼 책임이 다르다."</div>
+  <div class="ans"><span class="lab">5-7 5-4 표로 확인 — 정답</span>같은 오차 −1이라도 x=1에서 e×x = −1이지만 x=5에서 e×x = −5. <strong>x가 큰 점이 |e×x|가 더 크다</strong>. 점 (5, 11)이 점 (1, 3)보다 더 <strong>큼</strong>.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>"미분이라서 x가 곱해진다"고만 답하는 경우. <strong>의미(책임 분담)</strong>를 자기 말로 설명할 수 있어야 만점.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-8</span>학습률 비교 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>
+    η가 너무 작으면 (<strong>느려서 / 답답해서</strong>) 못 간다.<br>
+    η가 적절하면 빠르게 (<strong>0 / 정답</strong>)에 수렴한다.<br>
+    STEP 4의 한 칸 크기와 같은 점: 한 발짝의 크기가 <strong>너무 크면 정답을 지나치고 너무 작으면 답답하다</strong>는 동일한 트레이드오프.
+  </div>
+  <div class="ans"><span class="lab">η가 너무 크면 (예: 1.5) — 모범 답안</span>한 step에서 정답을 크게 지나쳐 반대편으로 튕겨 나감. 다시 돌아오려 해도 더 멀리 튕겨 손실이 매번 커지는 <strong>발산</strong> 발생.</div>
+  <div class="tt"><span class="lab">Dying ReLU 시연</span>Phase 5 컨트롤 패널에 <strong>"⚠ 뉴런 사망 (Dying ReLU)" 경고 UI</strong>가 있다. 학습률을 0.3 이상으로 올리고 20단계 반복을 누르면 한 step에서 w·b가 크게 음수로 튀어 모든 점에서 z &lt; 0 → ReLU(z)=0 → 기울기 0 → 학습 영구 정지. 경고가 뜨면 초기화 버튼이 강조 표시로 바뀐다. <strong>"발산만 위험한 게 아니라 죽는 것도 위험"</strong>이라는 점을 한 번 시연으로 보여주면 학습률 튜닝의 의미가 강해진다.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-9</span>왜 빼기인가 — 정답</div>
+  <div class="ans"><span class="lab">정답</span>변화량(dw, db)은 손실이 가장 빠르게 <strong>증가</strong>하는 방향을 가리키는 나침반. 손실의 <strong>감소</strong>를 원하니 그 반대 방향으로 가야 하므로 빼기를 쓴다. (STEP 3-7에서 본 식과 같은 발상이며, 학습률 η가 추가됐을 뿐.)</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-10</span>두 모델 비교 — 예시 답안</div>
+  <div class="ans"><span class="lab">정답</span>모델 B가 더 잘 맞는다. 이유: 직선만으로는 표현할 수 없는 곡선 패턴을 은닉층이 잡아낼 수 있기 때문(표현력이 더 큼).</div>
+  <div class="ans"><span class="lab">"B가 무조건 좋다"고 결론 못 짓는 이유 — 모범 답안</span>모델이 커질수록 학습 데이터를 너무 잘 외워버리는 <strong>과적합(overfitting)</strong> 위험이 커진다. 새 데이터에서는 오히려 손실이 클 수 있다.</div>
+  <div class="pf"><span class="lab">자주 틀림</span>"B가 무조건 좋은 모델"로 단순화. <strong>"표현력이 클수록 과적합 위험도 커진다"</strong>는 단서를 한 마디 보태두면 3·4부의 일반화 논의가 미리 자연스러워진다.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-11</span>교실 데이터 사례 — 예시 답안</div>
+  <div class="ans"><span class="lab">예시</span>① x = 자습 시간 / y = 시험 점수 ② x = 키 / y = 몸무게 ③ x = 이번 주 출석일 / y = 다음 주 자습 시간. <strong>한 변수–한 정답</strong> 구조이면 OK.</div>
+  <div class="tt"><span class="lab">전이</span>이 절은 "방금 배운 절차가 다른 데이터에서도 그대로 통한다"는 점을 학생이 자기 말로 정리하게 하는 마무리. 정확한 손실 수치보다 "<strong>단일 뉴런으로 표현 못 하는 패턴 → 더 큰 신경망의 동기</strong>"로 닫으면 STEP 6·2부로 자연스럽게 이어진다.</div>
+</div>
+
+<h3>5-F. 종합 응용 — 한 step 전 과정 손계산</h3>
+
+<div class="qc">
+  <div class="qh"><span class="num">5-12</span>손실부터 가중치·편향 갱신까지 — 정답</div>
+  <div class="ans"><span class="lab">설정</span>시작 (w=0, b=0), η=0.1, 데이터 (1,3)·(2,5)·(3,7)·(4,9)·(5,11). 모든 점에서 z = 0이라 ŷ = ReLU(0) = 0.</div>
+
+  <table class="tb">
+    <tr><th>x</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>합계</th><th>평균</th></tr>
+    <tr><td class="lbl">y</td><td>3</td><td>5</td><td>7</td><td>9</td><td>11</td><td>—</td><td>—</td></tr>
+    <tr><td class="lbl">ŷ</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>—</td><td>—</td></tr>
+    <tr><td class="lbl">e = ŷ − y</td><td class="fa">−3</td><td class="fa">−5</td><td class="fa">−7</td><td class="fa">−9</td><td class="fa">−11</td><td class="fa">−35</td><td class="fa">−7</td></tr>
+    <tr><td class="lbl">e²</td><td class="fa">9</td><td class="fa">25</td><td class="fa">49</td><td class="fa">81</td><td class="fa">121</td><td class="fa">285</td><td class="fa">57</td></tr>
+    <tr><td class="lbl">e · x</td><td class="fa">−3</td><td class="fa">−10</td><td class="fa">−21</td><td class="fa">−36</td><td class="fa">−55</td><td class="fa">−125</td><td class="fa">−25</td></tr>
+  </table>
+
+  <div class="ans"><span class="lab">정답</span>
+    오차 제곱의 합 = <span class="v">285</span> &nbsp;·&nbsp; 오차 제곱의 평균(MSE) = <span class="v">57</span><br>
+    dw = 평균(e · x) = <span class="v">−25</span> &nbsp;·&nbsp; db = 평균(e) = <span class="v">−7</span><br>
+    Δw = − 0.1 · (−25) = <span class="v">2.5</span> &nbsp;·&nbsp; Δb = − 0.1 · (−7) = <span class="v">0.7</span><br>
+    새 w = 0 + 2.5 = <span class="v">2.5</span> &nbsp;·&nbsp; 새 b = 0 + 0.7 = <span class="v">0.7</span><br>
+    → 5-1 표 step 1의 (w = 2.50, b = 0.70)과 <strong>정확히 일치</strong>.
+  </div>
+
+  <div class="tt"><span class="lab">수업 팁</span>1부 전체의 <strong>검증 문제</strong>다. 5-1 표의 결과 (2.50, 0.70)이 마법이 아니라 ① 오차 e → ② 오차 제곱 e²(=손실의 기본 재료) → ③ 평균(MSE) → ④ 평균(e·x)로 만든 dw → ⑤ −η·dw로 만든 Δw 라는 다섯 단계의 식 묶음에서 그대로 나온다는 점을 학생이 직접 확인하게 한다. 시간 여유가 있으면 같은 절차로 step 2(시작 w=2.5·b=0.7 → 결과 w=2.04·b=0.58)까지 평가 문항으로 출제하면 좋다.</div>
+
+  <div class="an"><span class="lab">앱과의 미세한 차이</span>위 표의 MSE = 57은 앱 페이즈 5의 손실 표시 28.5의 정확히 두 배다. 앱은 미분 식이 깔끔해지도록 관습적으로 <span class="mono">손실 = 평균(e²/2)</span>를 쓰기 때문(0.5를 곱해도 최솟점 위치는 동일하므로 학습 결과는 같다). 활동지의 MSE는 표준 정의 <span class="mono">평균(e²)</span>를 따른다.</div>
+
+  <div class="pf"><span class="lab">자주 틀림</span>① e의 부호 누락(0 − 7 = −7을 7로 답). ② e·x를 e·y로 헷갈림. ③ 평균을 ÷4로 계산(점이 5개임을 놓침). ④ Δw 계산 시 −η·dw의 빼기 부호 누락 → 2.5가 아니라 −2.5로 답.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>보충 활동 ★. 한 스텝 역전파 손계산표 — 정답</h2>
+
+<div class="an"><span class="lab">활동 의도</span>앱이 자동으로 처리하는 한 step을 학생이 직접 따라가게 한다. 점 1개로 식의 흐름을 보고, 점 5개 평균으로 확장해 "기울기 = 평균(e·x)"의 의미를 잡는다. STEP 5의 e·x 직관에 손계산을 얹는 보충 활동.</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★1</span>점 하나로 한 사이클 — η = 0.1, 시작 w = 0, 점 (3, 6)</div>
+<div class="ans"><span class="lab">정답</span>
+  <table class="tb">
+    <tr><th>① ŷ</th><th>② e = ŷ − y</th><th>③ e · x</th><th>④ η · e · x</th><th>⑤ 새 w</th></tr>
+    <tr><td class="fa">w · x = 0 · 3 = 0</td><td class="fa">0 − 6 = −6</td><td class="fa">−6 × 3 = −18</td><td class="fa">0.1 × (−18) = −1.8</td><td class="fa">0 − (−1.8) = 1.8</td></tr>
+  </table>
+  관찰: 새 w는 <span class="v">양수</span>이고, 절댓값은 처음(0)보다 <span class="v">커졌다</span>. 한 step 더 진행하면 ŷ = 1.8·3 = 5.4 → 정답 6에 <span class="v">가까워진다</span>.
+</div>
+<div class="pf"><span class="lab">자주 틀림</span>① e의 부호 — ŷ − y의 순서 거꾸로 적어 +6으로 답. ② 갱신식의 빼기 누락 — 0 + (−1.8) = −1.8로 답(부호 두 번 빠짐). ③ η의 자릿수 — 0.1을 1로 처리해 새 w = 18로 답(완전 발산).</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★2</span>점 5개의 평균으로 확장 — η = 0.1, w = 0, 정답 y = 2x</div>
+<div class="ans"><span class="lab">정답</span>
+  <table class="tb">
+    <tr><th>점</th><th>x</th><th>y</th><th>ŷ = 0·x</th><th>e = ŷ − y</th><th>e · x</th></tr>
+    <tr><td>P1</td><td>1</td><td>2</td><td class="fa">0</td><td class="fa">−2</td><td class="fa">−2</td></tr>
+    <tr><td>P2</td><td>2</td><td>4</td><td class="fa">0</td><td class="fa">−4</td><td class="fa">−8</td></tr>
+    <tr><td>P3</td><td>3</td><td>6</td><td class="fa">0</td><td class="fa">−6</td><td class="fa">−18</td></tr>
+    <tr><td>P4</td><td>4</td><td>8</td><td class="fa">0</td><td class="fa">−8</td><td class="fa">−32</td></tr>
+    <tr><td>P5</td><td>5</td><td>10</td><td class="fa">0</td><td class="fa">−10</td><td class="fa">−50</td></tr>
+    <tr><td class="lbl" colspan="5" style="text-align:right">평균 (e · x)</td><td class="fa">−22</td></tr>
+  </table>
+  새 w = 0 − 0.1 × (−22) = <span class="v">2.2</span>. 정답 2.0에 <span class="v">가까워졌다</span>(살짝 오버슛). η = 1.0이면 새 w = 0 − 1.0 × (−22) = <span class="v">22</span> — 완전 발산.
+</div>
+<div class="tt"><span class="lab">수업 팁</span>한 step만 했는데 2.0이 아니라 2.2가 나오는 작은 오버슛이 "학습률을 더 작게 하면 정답에 살살 가까워질 텐데" 라는 4장의 동기로 자연스럽게 이어진다. η=1.0의 22는 "한 발에 산을 뛰어넘은" 진동 사례로 강조.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★3</span>학습 한 사이클 6단계 짚기 — 정답</div>
+<div class="ans"><span class="lab">정답</span>이 활동에서 직접 계산한 단계: ④ 기울기(평균 e·x), ⑤ η · 기울기, ⑥ w 갱신. 다루지 않은 단계: ② 오차² · ③ 평균 손실 L. 두 단계는 <strong>3장(P3)</strong>에서 가장 자세히 다룬다 — 부호 상쇄를 막기 위해 제곱 → 평균 내 한 숫자로 모으는 발상.</div>
 </div>
 
 <!-- ============================================================== -->
