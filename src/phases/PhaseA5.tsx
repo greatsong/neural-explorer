@@ -534,14 +534,16 @@ function NeuronView({
           />
         </g>
       </svg>
-      <div className="border-t border-border mt-2 pt-2.5 px-1 font-mono text-[12px] leading-relaxed space-y-0.5">
-        <div className="text-[10px] text-muted font-sans mb-1">갱신 식 — 한 step 후 새 값</div>
-        <div>
-          w ← <span className="text-muted">{w.toFixed(3)} − {LR}·{grad.dw.toFixed(3)}</span> = <span style={{ color: 'rgb(var(--color-accent))', fontWeight: 600 }}>{(w - LR * grad.dw).toFixed(3)}</span>
+      <div className={`mt-2 pt-2 px-2 font-mono text-[12px] leading-relaxed space-y-0.5 transition-colors ${
+        stage === 'update'
+          ? 'border-2 border-accent bg-accent-bg/50 rounded-md py-2 font-bold'
+          : 'border-t border-border'
+      }`}>
+        <div className={`text-[10px] font-sans mb-1 ${stage === 'update' ? 'text-accent font-semibold' : 'text-muted font-normal'}`}>
+          {stage === 'update' ? '★ 지금 — 갱신 식이 적용되는 단계' : '갱신 식 (일반형) — 한 step에 w·b 동시 적용'}
         </div>
-        <div>
-          b ← <span className="text-muted">{b.toFixed(3)} − {LR}·{grad.db.toFixed(3)}</span> = <span style={{ color: 'rgb(var(--color-accent))', fontWeight: 600 }}>{(b - LR * grad.db).toFixed(3)}</span>
-        </div>
+        <div>w ← w − η · dw</div>
+        <div>b ← b − η · db</div>
       </div>
       <div className="text-[10.5px] text-muted px-1 leading-snug mt-1.5">
         대표 점 x = 3 (정답 y = 7)으로 그렸어요. 가중치 선 굵기는 |w|, 파란 화살표 굵기는 다섯 점 평균 |dw|·|db|에 비례.

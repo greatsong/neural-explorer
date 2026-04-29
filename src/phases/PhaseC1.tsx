@@ -1,5 +1,5 @@
 // PhaseC1 — 역전파 알고리즘의 이해
-// 입력 1 · 은닉 1 · 출력 1, 데이터 1쌍(x=2, y=5)으로 한 step의 6단계를 따라간다.
+// 인공 뉴런 2개 직렬(입력 → 뉴런 1 → 뉴런 2 → 출력), 데이터 1쌍(x=2, y=5)으로 한 step의 6단계를 따라간다.
 // 1쌍으로 단순화 — 평균 없이 e, e_h, dw가 직관적으로 이어진다.
 // 다이어그램은 단계마다 *그 단계에서 새로 등장하는 라벨만* 보여 글자 겹침을 제거.
 
@@ -55,8 +55,8 @@ const STAGES: { id: StageId; num: number; label: string; sub: string }[] = [
   { id: 'predict',      num: 1, label: '예측',          sub: 'x → z₁ → h → z₂ → ŷ' },
   { id: 'error',        num: 2, label: '오차',          sub: 'e = ŷ − y' },
   { id: 'outputGrad',   num: 3, label: '출력층 기울기', sub: 'dw₂ = e·h,  db₂ = e' },
-  { id: 'hiddenSignal', num: 4, label: '은닉층 신호',   sub: 'e_h = e · w₂ · ReLU′(z₁)  ← 역전파 핵심' },
-  { id: 'hiddenGrad',   num: 5, label: '은닉층 기울기', sub: 'dw₁ = e_h·x,  db₁ = e_h' },
+  { id: 'hiddenSignal', num: 4, label: '거꾸로 흐른 신호',   sub: 'e_h = e · w₂ · ReLU′(z₁)  ← 역전파 핵심' },
+  { id: 'hiddenGrad',   num: 5, label: '뉴런 1 기울기', sub: 'dw₁ = e_h·x,  db₁ = e_h' },
   { id: 'update',       num: 6, label: '갱신',          sub: 'w ← w − η·dw' },
 ];
 
@@ -138,10 +138,10 @@ export function PhaseC1() {
       <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
       <h1>{meta.title}</h1>
       <p className="text-muted mt-2 text-sm leading-relaxed">
-        가장 단순한 *2층 망*(입력 1 · 은닉 1 · 출력 1)에 *데이터 1쌍*(x = {SAMPLE.x}, y = {SAMPLE.y})만 두고
+        A1에서 본 *인공 뉴런이 2개 직렬*(입력 → 뉴런 1 → 뉴런 2 → 출력)로 연결된 가장 작은 망에 *데이터 1쌍*(x = {SAMPLE.x}, y = {SAMPLE.y})만 두고
         한 step의 6단계를 따라가요. <strong>다음 단계 →</strong>를 한 번씩 누르며
-        예측 → 오차 → 출력층 기울기 → 은닉층 신호 → 은닉층 기울기 → 갱신이 어떤 숫자로 이어지는지 직접 보세요.
-        <strong> 은닉층 신호</strong> 단계가 역전파의 핵심입니다.
+        예측 → 오차 → 뉴런 2 기울기 → 거꾸로 흐른 신호 → 뉴런 1 기울기 → 갱신이 어떤 숫자로 이어지는지 직접 보세요.
+        <strong> 거꾸로 흐른 신호</strong> 단계가 역전파의 핵심입니다.
       </p>
 
       {/* 모드 토글 */}
@@ -212,10 +212,10 @@ export function PhaseC1() {
           역전파 (backpropagation)
         </div>
         <p className="mb-2">
-          은닉층이 생기면 가중치가 여러 층에 흩어져 있어, 어느 가중치를 얼마나 고쳐야 할지 한눈에 알기 어려워요.
+          뉴런이 *직렬로 여러 개* 있으면 가중치가 층마다 흩어져 있어, 어느 가중치를 얼마나 고쳐야 할지 한눈에 알기 어려워요.
         </p>
         <p className="mb-2">
-          출력층의 오차는 <strong>A4에서 본 그대로</strong> (예측 − 정답)예요. 은닉층은 자기 정답이 없지만,
+          출력 쪽 오차는 <strong>A4에서 본 그대로</strong> (예측 − 정답)예요. 안쪽 뉴런(여기선 뉴런 1)은 자기 정답이 없지만,
           {' '}<em>바로 뒷층의 오차</em>를 받아 자기 몫으로 나눠 가집니다 — 그래서 화살이 <strong>거꾸로</strong> 흘러요.
           이 거꾸로 흐름이 <strong>역전파(backpropagation)</strong>예요.
         </p>
@@ -229,14 +229,15 @@ export function PhaseC1() {
 }
 
 /* ════════════════════════════════════════════════════════════
-   다이어그램 — 입1·은1·출1
+   다이어그램 — A5에서 본 인공 뉴런이 *2개 직렬*로 연결된 구조.
+   [x] →×w₁→ [Σ₁ +b₁] → ReLU → [Σ₂ +b₂] → 선형 → [ŷ]
    각 단계에서 *새로 등장하는 라벨만* 보여 글자 겹침을 제거.
-   SVG 바로 아래에 *활성 단계의 수식 풀이*를 함께 띄워, 그림과 식이 한 시야에 들어오게 함.
 ══════════════════════════════════════════════════════════════ */
 function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: StageId; showFormula: boolean }) {
-  const W_SVG = 720, H_SVG = 260;
-  const cy = 110;
-  const xCx = 60, z1Cx = 220, hCx = 360, z2Cx = 500, yhCx = 640;
+  const W_SVG = 720, H_SVG = 280;
+  const cy = 130;
+  // x → Σ₁ → ReLU 박스 → Σ₂ → ŷ (선형은 Σ₂→ŷ 화살표 위 라벨로 표기)
+  const xCx = 60, sum1Cx = 210, reluCx = 340, sum2Cx = 470, yhCx = 640;
 
   const fwdActive = stage === 'predict';
   const errActive = stage === 'error';
@@ -275,168 +276,209 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
           </marker>
         </defs>
 
+        {/* ── 뉴런 그룹 라벨 (점선 테두리 + "뉴런 1"/"뉴런 2") ── */}
+        {/* 뉴런 1: Σ₁ + ReLU */}
+        <rect x={sum1Cx - 38} y={cy - 36} width={(reluCx + 36) - (sum1Cx - 38)} height={72} rx={10}
+              fill="none" stroke="rgb(var(--color-muted))" strokeWidth={1} strokeDasharray="3 3"
+              opacity={0.6} />
+        <text x={(sum1Cx + reluCx) / 2 - 4} y={cy - 44} textAnchor="middle"
+              fontSize={10} fill="rgb(var(--color-muted))">뉴런 1</text>
+        {/* 뉴런 2: Σ₂ (활성화 = 선형) */}
+        <rect x={sum2Cx - 38} y={cy - 36} width={(yhCx - 26) - (sum2Cx - 38)} height={72} rx={10}
+              fill="none" stroke="rgb(var(--color-muted))" strokeWidth={1} strokeDasharray="3 3"
+              opacity={0.6} />
+        <text x={(sum2Cx + yhCx) / 2 - 16} y={cy - 44} textAnchor="middle"
+              fontSize={10} fill="rgb(var(--color-muted))">뉴런 2</text>
+
         {/* ── 순전파 엣지 (구조는 항상) ── */}
-        <line x1={xCx + 22} y1={cy} x2={z1Cx - 28} y2={cy}
+        <line x1={xCx + 22} y1={cy} x2={sum1Cx - 26} y2={cy}
               stroke={FWD} strokeWidth={2} strokeOpacity={opFwd} markerEnd="url(#c1-arr)" />
-        <line x1={z1Cx + 22} y1={cy} x2={hCx - 28} y2={cy}
+        <line x1={sum1Cx + 26} y1={cy} x2={reluCx - 32} y2={cy}
               stroke={FWD} strokeWidth={2} strokeOpacity={opFwd} markerEnd="url(#c1-arr)" />
-        <line x1={hCx + 22} y1={cy} x2={z2Cx - 28} y2={cy}
+        <line x1={reluCx + 32} y1={cy} x2={sum2Cx - 26} y2={cy}
               stroke={FWD} strokeWidth={2} strokeOpacity={opFwd} markerEnd="url(#c1-arr)" />
-        <line x1={z2Cx + 22} y1={cy} x2={yhCx - 28} y2={cy}
+        <line x1={sum2Cx + 26} y1={cy} x2={yhCx - 24} y2={cy}
               stroke={FWD} strokeWidth={2} strokeOpacity={opFwd} markerEnd="url(#c1-arr)" />
 
-        {/* ── 가중치/편향 라벨 (위쪽) ── */}
-        {/* w₁ */}
-        <text x={(xCx + z1Cx) / 2} y={cy - 14} textAnchor="middle"
-              fontSize={12} fontFamily="JetBrains Mono" fill={FWD} opacity={opFwd}>
+        {/* ── 위쪽 라벨: × w₁ / × w₂ / + b₁ / + b₂ ── */}
+        {/* × w₁ (x → Σ₁) */}
+        <text x={(xCx + sum1Cx) / 2} y={cy - 8} textAnchor="middle"
+              fontSize={11} fontFamily="JetBrains Mono" fill={FWD} opacity={opFwd}>
           × w₁ = {W.w1.toFixed(2)}
         </text>
-        {/* b₁ (z₁ 위쪽 ↓) */}
-        <text x={z1Cx} y={cy - 46} textAnchor="middle"
-              fontSize={11} fontFamily="JetBrains Mono" fill={FWD} opacity={opFwd}>
+        {/* + b₁ (Σ₁ 위에서 내려옴) */}
+        <text x={sum1Cx} y={cy - 60} textAnchor="middle"
+              fontSize={10} fontFamily="JetBrains Mono" fill={FWD} opacity={opFwd}>
           + b₁ = {W.b1.toFixed(2)}
         </text>
-        <line x1={z1Cx} y1={cy - 36} x2={z1Cx} y2={cy - 24}
+        <line x1={sum1Cx} y1={cy - 50} x2={sum1Cx} y2={cy - 30}
               stroke={FWD} strokeWidth={1.4} strokeOpacity={opFwd} />
-        {/* ReLU 라벨 */}
-        <text x={(z1Cx + hCx) / 2} y={cy - 14} textAnchor="middle"
-              fontSize={12} fontFamily="JetBrains Mono" fill={FWD} opacity={opFwd}>
-          ReLU
-        </text>
-        {/* w₂ */}
-        <text x={(hCx + z2Cx) / 2} y={cy - 14} textAnchor="middle"
-              fontSize={12} fontFamily="JetBrains Mono" fill={FWD} opacity={opFwd}>
+        {/* × w₂ (ReLU → Σ₂)  — h 값을 함께 표시 */}
+        <text x={(reluCx + sum2Cx) / 2} y={cy - 8} textAnchor="middle"
+              fontSize={11} fontFamily="JetBrains Mono" fill={FWD} opacity={opFwd}>
           × w₂ = {W.w2.toFixed(2)}
         </text>
-        {/* b₂ */}
-        <text x={z2Cx} y={cy - 46} textAnchor="middle"
-              fontSize={11} fontFamily="JetBrains Mono" fill={FWD} opacity={opFwd}>
+        {/* + b₂ */}
+        <text x={sum2Cx} y={cy - 60} textAnchor="middle"
+              fontSize={10} fontFamily="JetBrains Mono" fill={FWD} opacity={opFwd}>
           + b₂ = {W.b2.toFixed(2)}
         </text>
-        <line x1={z2Cx} y1={cy - 36} x2={z2Cx} y2={cy - 24}
+        <line x1={sum2Cx} y1={cy - 50} x2={sum2Cx} y2={cy - 30}
               stroke={FWD} strokeWidth={1.4} strokeOpacity={opFwd} />
+        {/* 선형 — Σ₂ → ŷ 화살표 위 (출력층 활성화 = 선형) */}
+        <text x={(sum2Cx + yhCx) / 2} y={cy - 8} textAnchor="middle"
+              fontSize={11} fontFamily="JetBrains Mono" fill={FWD} opacity={opFwd}>
+          선형 (= 그대로)
+        </text>
 
         {/* ── 노드 ── */}
         {/* x */}
         <circle cx={xCx} cy={cy} r={22} fill="white" stroke={MUTED} strokeWidth={2} />
-        <text x={xCx} y={cy + 4} textAnchor="middle" fontSize={12} fontFamily="JetBrains Mono"
+        <text x={xCx} y={cy + 5} textAnchor="middle" fontSize={13} fontFamily="JetBrains Mono"
               fill="rgb(var(--color-text))" fontWeight={600}>x</text>
         <text x={xCx} y={cy + 42} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono"
               fill="rgb(var(--color-muted))">= {SAMPLE.x}</text>
-        {/* z₁ */}
-        <circle cx={z1Cx} cy={cy} r={22} fill="white" stroke={FWD} strokeWidth={2} opacity={opFwd} />
-        <text x={z1Cx} y={cy + 4} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono"
-              fill={FWD} fontWeight={600} opacity={opFwd}>z₁</text>
-        <text x={z1Cx} y={cy + 42} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono"
-              fill={FWD} opacity={opFwd}>= {t.z1.toFixed(2)}</text>
-        {/* h */}
-        <circle cx={hCx} cy={cy} r={22} fill="white" stroke={FWD} strokeWidth={2} opacity={opFwd} />
-        <text x={hCx} y={cy + 4} textAnchor="middle" fontSize={12} fontFamily="JetBrains Mono"
-              fill={FWD} fontWeight={600} opacity={opFwd}>h</text>
-        <text x={hCx} y={cy + 42} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono"
-              fill={FWD} opacity={opFwd}>= {t.h.toFixed(2)}</text>
-        {/* z₂ */}
-        <circle cx={z2Cx} cy={cy} r={22} fill="white" stroke={FWD} strokeWidth={2} opacity={opFwd} />
-        <text x={z2Cx} y={cy + 4} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono"
-              fill={FWD} fontWeight={600} opacity={opFwd}>z₂</text>
-        <text x={z2Cx} y={cy + 42} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono"
-              fill={FWD} opacity={opFwd}>= {t.z2.toFixed(2)}</text>
+        {/* Σ₁ — A5 스타일 합산 노드 */}
+        <circle cx={sum1Cx} cy={cy} r={26} fill="rgb(var(--color-accent-bg))" stroke={FWD} strokeWidth={2} opacity={opFwd} />
+        <text x={sum1Cx} y={cy + 7} textAnchor="middle" fontSize={20} fontWeight={700}
+              fill={FWD} opacity={opFwd}>Σ</text>
+        <text x={sum1Cx} y={cy + 48} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono"
+              fill={FWD} opacity={opFwd}>z₁ = {t.z1.toFixed(2)}</text>
+        {/* ReLU 박스 — A5 스타일 활성화 박스 */}
+        <rect x={reluCx - 32} y={cy - 18} width={64} height={36} rx={6}
+              fill="rgb(var(--color-accent-bg))" stroke={FWD} strokeWidth={1.5}
+              opacity={opFwd} />
+        <text x={reluCx} y={cy + 5} textAnchor="middle" fontSize={13} fontWeight={700}
+              fill={FWD} opacity={opFwd}>ReLU</text>
+        <text x={reluCx} y={cy + 42} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono"
+              fill={FWD} opacity={opFwd}>h = {t.h.toFixed(2)}</text>
+        {/* Σ₂ */}
+        <circle cx={sum2Cx} cy={cy} r={26} fill="rgb(var(--color-accent-bg))" stroke={FWD} strokeWidth={2} opacity={opFwd} />
+        <text x={sum2Cx} y={cy + 7} textAnchor="middle" fontSize={20} fontWeight={700}
+              fill={FWD} opacity={opFwd}>Σ</text>
+        <text x={sum2Cx} y={cy + 48} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono"
+              fill={FWD} opacity={opFwd}>z₂ = {t.z2.toFixed(2)}</text>
         {/* ŷ */}
         <circle cx={yhCx} cy={cy} r={24} fill="rgb(var(--color-accent-bg))" stroke={FWD} strokeWidth={2.5} opacity={opFwd} />
-        <text x={yhCx} y={cy + 4} textAnchor="middle" fontSize={12} fontFamily="JetBrains Mono"
+        <text x={yhCx} y={cy + 5} textAnchor="middle" fontSize={13} fontFamily="JetBrains Mono"
               fill={FWD} fontWeight={700} opacity={opFwd}>ŷ</text>
-        <text x={yhCx} y={cy + 44} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono"
+        <text x={yhCx} y={cy + 48} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono"
               fill={FWD} opacity={opFwd}>= {t.yhat.toFixed(2)}</text>
 
-        {/* ── 역전파 라벨 (아래쪽) — 단계별로 *하나씩만* ── */}
+        {/* ── 역전파 라벨 (아래쪽) — 단계별로 활성 라벨만 ── */}
         {/* 오차 e — ŷ 아래 */}
         {opE > 0 && (
           <g>
-            <text x={yhCx} y={cy + 78} textAnchor="middle"
+            <text x={yhCx} y={cy + 80} textAnchor="middle"
                   fontSize={12} fontFamily="JetBrains Mono" fill={BACK} fontWeight={600}>
               e = {t.e.toFixed(2)}
             </text>
-            <text x={yhCx} y={cy + 94} textAnchor="middle"
+            <text x={yhCx} y={cy + 96} textAnchor="middle"
                   fontSize={10} fontFamily="JetBrains Mono" fill={BACK}>
               = ŷ − y
             </text>
           </g>
         )}
-
-        {/* 출력층 기울기 dw₂ — h↔z₂ 사이 (3단계·6단계만) */}
+        {/* dw₂ — Σ₂ → ŷ 사이 */}
         {opDw2 > 0 && (
           <g>
-            <line x1={z2Cx - 24} y1={cy + 26} x2={hCx + 24} y2={cy + 26}
+            <line x1={yhCx - 24} y1={cy + 30} x2={sum2Cx + 28} y2={cy + 30}
                   stroke={BACK} strokeWidth={1.5} strokeDasharray="4 3"
                   markerEnd="url(#c1-back)" />
-            <text x={(hCx + z2Cx) / 2} y={cy + 78} textAnchor="middle"
+            <text x={(sum2Cx + yhCx) / 2} y={cy + 80} textAnchor="middle"
                   fontSize={12} fontFamily="JetBrains Mono" fill={BACK} fontWeight={600}>
               dw₂ = {t.dw2.toFixed(2)}
             </text>
-            <text x={(hCx + z2Cx) / 2} y={cy + 94} textAnchor="middle"
+            <text x={(sum2Cx + yhCx) / 2} y={cy + 96} textAnchor="middle"
                   fontSize={10} fontFamily="JetBrains Mono" fill={BACK}>
               = e · h
             </text>
           </g>
         )}
-
-        {/* 은닉층 신호 e_h — h 아래 (4·5단계만) */}
+        {/* e_h — ReLU 박스 아래 */}
         {opEh > 0 && (
           <g>
-            <text x={hCx} y={cy + 78} textAnchor="middle"
+            <text x={reluCx} y={cy + 80} textAnchor="middle"
                   fontSize={12} fontFamily="JetBrains Mono" fill={BACK} fontWeight={600}>
               e_h = {t.eh.toFixed(2)}
             </text>
-            <text x={hCx} y={cy + 94} textAnchor="middle"
-                  fontSize={10} fontFamily="JetBrains Mono" fill={BACK}>
+            <text x={reluCx} y={cy + 96} textAnchor="middle"
+                  fontSize={9} fontFamily="JetBrains Mono" fill={BACK}>
               = e · w₂ · ReLU′(z₁)
             </text>
           </g>
         )}
-
-        {/* 은닉층 기울기 dw₁ — x↔z₁ 사이 (5·6단계만) */}
+        {/* dw₁ — x → Σ₁ 사이 */}
         {opDw1 > 0 && (
           <g>
-            <line x1={z1Cx - 24} y1={cy + 26} x2={xCx + 24} y2={cy + 26}
+            <line x1={sum1Cx - 28} y1={cy + 30} x2={xCx + 24} y2={cy + 30}
                   stroke={BACK} strokeWidth={1.5} strokeDasharray="4 3"
                   markerEnd="url(#c1-back)" />
-            <text x={(xCx + z1Cx) / 2} y={cy + 78} textAnchor="middle"
+            <text x={(xCx + sum1Cx) / 2} y={cy + 80} textAnchor="middle"
                   fontSize={12} fontFamily="JetBrains Mono" fill={BACK} fontWeight={600}>
               dw₁ = {t.dw1.toFixed(2)}
             </text>
-            <text x={(xCx + z1Cx) / 2} y={cy + 94} textAnchor="middle"
+            <text x={(xCx + sum1Cx) / 2} y={cy + 96} textAnchor="middle"
                   fontSize={10} fontFamily="JetBrains Mono" fill={BACK}>
               = e_h · x
             </text>
           </g>
         )}
 
-        {/* 정답 y — error 단계에서만 표시 (다른 단계의 b₂ 라벨과 겹치지 않게) */}
+        {/* 정답 y — error 단계 (ŷ 위 작게) */}
         {errActive && (
-          <text x={yhCx} y={cy - 38} textAnchor="middle"
-                fontSize={11} fontFamily="JetBrains Mono" fill={MUTED}>
+          <text x={yhCx} y={cy - 36} textAnchor="middle"
+                fontSize={10} fontFamily="JetBrains Mono" fill={MUTED}>
             정답 y = {SAMPLE.y}
           </text>
         )}
       </svg>
 
+      {/* SVG 바로 아래 — 일반 식 블록(단계별 음영) + 활성 단계 숫자 대입 */}
+      <GeneralizedFormulaBlock stage={stage} />
       {showFormula && <ActiveFormulaStrip W={W} t={t} stage={stage} />}
-
-      <UpdatePreview W={W} t={t} />
     </div>
   );
 }
 
-/* 다이어그램 카드 하단 — 4개 가중치 갱신식 항상 표시 (단계 무관) */
-function UpdatePreview({ W, t }: { W: Weights; t: Trace }) {
-  const newW = applyStep(W, t);
+/* ════════════════════════════════════════════════════════════
+   일반 식 블록 — 단계별 *기호 식*을 한 곳에 모음.
+   현재 단계에 해당하는 행은 음영 + 굵게 → "지금 어떤 계산이 되고 있는지" 한눈에.
+══════════════════════════════════════════════════════════════ */
+function GeneralizedFormulaBlock({ stage }: { stage: StageId }) {
   return (
-    <div className="border-t border-border mt-3 pt-2.5 px-1 font-mono text-[11.5px] leading-relaxed space-y-0.5">
-      <div className="text-[10px] text-muted font-sans mb-1">갱신 식 — 한 step 후 새 값 (4개 동시 적용)</div>
-      <div>w₂ ← <Sub>{W.w2.toFixed(2)} − {LR}·{t.dw2.toFixed(2)}</Sub> = <Acc>{newW.w2.toFixed(3)}</Acc></div>
-      <div>b₂ ← <Sub>{W.b2.toFixed(2)} − {LR}·{t.db2.toFixed(2)}</Sub> = <Acc>{newW.b2.toFixed(3)}</Acc></div>
-      <div>w₁ ← <Sub>{W.w1.toFixed(2)} − {LR}·{t.dw1.toFixed(2)}</Sub> = <Acc>{newW.w1.toFixed(3)}</Acc></div>
-      <div>b₁ ← <Sub>{W.b1.toFixed(2)} − {LR}·{t.db1.toFixed(2)}</Sub> = <Acc>{newW.b1.toFixed(3)}</Acc></div>
+    <div className="border-t border-border mt-3 pt-2.5 px-1 font-mono text-[12px] leading-relaxed space-y-0.5">
+      <div className="text-[10px] text-muted font-sans mb-1.5">단계별 일반 식 — 지금 단계는 음영</div>
+      <FormulaRow active={stage === 'predict'} num="①">
+        z₁ = w₁·x + b₁ &nbsp; h = ReLU(z₁) &nbsp; z₂ = w₂·h + b₂ &nbsp; ŷ = z₂
+      </FormulaRow>
+      <FormulaRow active={stage === 'error'} num="②">
+        e = ŷ − y
+      </FormulaRow>
+      <FormulaRow active={stage === 'outputGrad'} num="③">
+        dw₂ = e · h &nbsp;&nbsp; db₂ = e
+      </FormulaRow>
+      <FormulaRow active={stage === 'hiddenSignal'} num="④">
+        e_h = e · w₂ · ReLU′(z₁) &nbsp; <span className="text-[10px]">← 역전파 핵심</span>
+      </FormulaRow>
+      <FormulaRow active={stage === 'hiddenGrad'} num="⑤">
+        dw₁ = e_h · x &nbsp;&nbsp; db₁ = e_h
+      </FormulaRow>
+      <FormulaRow active={stage === 'update'} num="⑥">
+        <span className="block">w₂ ← w₂ − η · dw₂ &nbsp;&nbsp; b₂ ← b₂ − η · db₂</span>
+        <span className="block">w₁ ← w₁ − η · dw₁ &nbsp;&nbsp; b₁ ← b₁ − η · db₁</span>
+      </FormulaRow>
+    </div>
+  );
+}
+
+function FormulaRow({ active, num, children }: { active: boolean; num: string; children: React.ReactNode }) {
+  return (
+    <div className={`rounded-md px-2 py-1 transition-colors ${
+      active ? 'bg-accent-bg/60 border-l-2 border-accent font-bold' : 'border-l-2 border-transparent'
+    }`}>
+      <span className={`mr-2 ${active ? 'text-accent' : 'text-muted font-normal'}`}>{num}</span>
+      <span>{children}</span>
     </div>
   );
 }
@@ -512,10 +554,10 @@ function whyFor(stage: StageId, t: Trace): string {
     : t.e > 0
       ? 'e의 부호가 모든 기울기의 부호를 결정. 양수라 모든 가중치가 *작아지는* 방향으로 움직일 예정.'
       : 'e가 0이라 갱신 없음 — 이미 정답.';
-  if (stage === 'outputGrad') return 'A4의 dw = e·x 식 그대로. 출력층 입장에서 그 층의 입력은 은닉 출력 h.';
+  if (stage === 'outputGrad') return 'A4의 dw = e·x 식 그대로. 출력층 입장에서 그 층의 입력은 뉴런 1 출력 h.';
   if (stage === 'hiddenSignal') return t.reluP === 0
-    ? 'ReLU′(z₁)=0 — 길이 막혀 신호 끊김 (Dying ReLU). 은닉층 가중치는 갱신 안 됨.'
-    : '출력의 e가 w₂를 거꾸로 곱해져 은닉층까지 전달. 이 거꾸로 흐름이 곧 *역전파*.';
+    ? 'ReLU′(z₁)=0 — 길이 막혀 신호 끊김 (Dying ReLU). 뉴런 1 가중치는 갱신 안 됨.'
+    : '출력의 e가 w₂를 거꾸로 곱해져 뉴런 1까지 전달. 이 거꾸로 흐름이 곧 *역전파*.';
   if (stage === 'hiddenGrad') return 'A4의 dw = e·x 식이 다시. e 자리에 e_h(전달받은 오차), x 자리에 이 층의 입력 x.';
   return '모든 기울기에 η를 곱해 *반대 방향*으로 4개 가중치를 동시에 움직임. 다음 step에서 ŷ이 정답에 더 가까워져 손실이 줄어요.';
 }
@@ -564,7 +606,7 @@ function FormulaCard({ W, t, stage }: { W: Weights; t: Trace; stage: StageId }) 
       </StageBox>
 
       <StageBox id="outputGrad" num={3} label="출력층 기울기 — w₂·b₂를 얼마나" stage={stage}
-        why="A4의 dw = e·x 식 그대로. 출력층 입장에서 *그 층의 입력*은 은닉 출력 h.">
+        why="A4의 dw = e·x 식 그대로. 출력층 입장에서 *그 층의 입력*은 뉴런 1 출력 h.">
         <Line>
           dw₂ = e·h = <Sub><Err>{t.e.toFixed(2)}</Err>·{t.h.toFixed(2)}</Sub> = <Acc>{t.dw2.toFixed(2)}</Acc>
         </Line>
@@ -574,16 +616,16 @@ function FormulaCard({ W, t, stage }: { W: Weights; t: Trace; stage: StageId }) 
         </Line>
       </StageBox>
 
-      <StageBox id="hiddenSignal" num={4} label="은닉층 신호 e_h ★ 역전파 핵심" stage={stage}
+      <StageBox id="hiddenSignal" num={4} label="거꾸로 흐른 신호 e_h ★ 역전파 핵심" stage={stage}
         why={t.reluP === 0
-          ? 'ReLU′(z₁)=0 — z₁이 음수라 길이 막힘. 신호가 끊겨 e_h=0 (Dying ReLU). 은닉층 가중치는 갱신 안 됨.'
-          : '출력의 e가 w₂를 *거꾸로 곱해져* 은닉층까지 전달. ReLU′(z₁)=1이라 길이 열림. — 이 거꾸로 흐름이 곧 *역전파*.'}>
+          ? 'ReLU′(z₁)=0 — z₁이 음수라 길이 막힘. 신호가 끊겨 e_h=0 (Dying ReLU). 뉴런 1 가중치는 갱신 안 됨.'
+          : '출력의 e가 w₂를 *거꾸로 곱해져* 뉴런 1까지 전달. ReLU′(z₁)=1이라 길이 열림. — 이 거꾸로 흐름이 곧 *역전파*.'}>
         <Line>
           e_h = e·w₂·ReLU′(z₁) = <Sub><Err>{t.e.toFixed(2)}</Err>·{W.w2.toFixed(2)}·{t.reluP}</Sub> = <Err>{t.eh.toFixed(2)}</Err>
         </Line>
       </StageBox>
 
-      <StageBox id="hiddenGrad" num={5} label="은닉층 기울기 — w₁·b₁를 얼마나" stage={stage}
+      <StageBox id="hiddenGrad" num={5} label="뉴런 1 기울기 — w₁·b₁를 얼마나" stage={stage}
         why="A4의 dw = e·x 식이 다시. e 자리에 e_h(전달받은 오차), x 자리에 이 층의 입력 x. 깊은 망에서도 모든 층이 같은 모양.">
         <Line>
           dw₁ = e_h·x = <Sub><Err>{t.eh.toFixed(2)}</Err>·{SAMPLE.x}</Sub> = <Acc>{t.dw1.toFixed(2)}</Acc>
