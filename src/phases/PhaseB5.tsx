@@ -483,40 +483,51 @@ export function PhaseB5() {
             )}
           </div>
 
-          {/* 단계별 결과 요약 */}
-          <div className="card p-3">
-            <div className="text-sm font-medium">현재 단계 결과</div>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <BigStat
-                label="train acc"
-                value={
-                  stage === 1
-                    ? stage1Result?.trainAcc ?? null
-                    : stage2Result?.trainAcc ?? null
-                }
-                color="rgb(var(--color-accent))"
-              />
-              <BigStat
-                label="eval acc"
-                value={
-                  stage === 1
-                    ? stage1Result?.evalAcc ?? null
-                    : stage2Result?.evalAcc ?? null
-                }
-                color={COLORS.square}
-              />
-            </div>
-            <div className="mt-2 text-[11px] text-muted font-mono">
-              최종 CE 손실:{' '}
-              {stage === 1
-                ? stage1Result
-                  ? stage1Result.finalLoss.toFixed(4)
-                  : '—'
-                : stage2Result
-                  ? stage2Result.finalLoss.toFixed(4)
-                  : '—'}
-            </div>
-          </div>
+          {/* 단계별 결과 요약 — 학습 종료 직후 강조 */}
+          {(() => {
+            const cur = stage === 1 ? stage1Result : stage2Result;
+            const done = !!cur && !running;
+            return (
+              <div
+                className="card p-3 transition"
+                style={done ? {
+                  borderColor: 'rgb(16,185,129)',
+                  background: 'rgba(16,185,129,0.06)',
+                  borderWidth: 1.5,
+                } : undefined}
+              >
+                <div className="flex items-baseline justify-between">
+                  <div className="text-sm font-medium">
+                    {running
+                      ? <>학습 중… <span className="text-muted text-[11px]">({stage}단계)</span></>
+                      : done
+                        ? <>✅ 학습 완료 — 평가 결과 <span className="text-muted text-[11px]">({stage}단계)</span></>
+                        : <>현재 단계 결과 <span className="text-muted text-[11px]">(아직 학습 전)</span></>}
+                  </div>
+                </div>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <BigStat
+                    label="train acc"
+                    value={cur?.trainAcc ?? null}
+                    color="rgb(var(--color-accent))"
+                  />
+                  <BigStat
+                    label="eval acc"
+                    value={cur?.evalAcc ?? null}
+                    color={done ? 'rgb(16,185,129)' : COLORS.square}
+                  />
+                </div>
+                <div className="mt-2 text-[11px] text-muted font-mono">
+                  최종 CE 손실: {cur ? cur.finalLoss.toFixed(4) : '—'}
+                </div>
+                {done && (
+                  <div className="mt-2 text-[11px] leading-snug" style={{ color: 'rgb(16,185,129)' }}>
+                    ↓ 아래 평가 그림을 클릭해 모델이 그 그림을 어느 라벨로 분류하는지 확인해 보세요.
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </div>
 
