@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../store';
 
 interface MedicalScenario {
@@ -68,18 +68,15 @@ export function Phase9() {
   const [idx, setIdx] = useState(0);
   const scenario = SCENARIOS[idx];
   const [threshold, setThreshold] = useState(scenario.threshold.default);
-  const [data] = useState(() => makeData(scenario, 42));
+  const data = useMemo(() => makeData(scenario, 42), [scenario]);
   const markCompleted = useApp((s) => s.markCompleted);
-
-  // 시나리오 바뀌면 데이터/임계값도 바꿔야 — useState로 새로 만들기 위해 키 사용
-  // 위 useState(()=>) 1회만 실행 → 시나리오 바꿀 때마다 unmount/remount하기 위해 key 사용
   return (
     <div>
       <div className="flex gap-2 mb-6">
         {SCENARIOS.map((s, i) => (
           <button
             key={s.id}
-            onClick={() => { setIdx(i); }}
+            onClick={() => { setIdx(i); setThreshold(SCENARIOS[i].threshold.default); }}
             className={`px-3 py-1.5 rounded-md text-sm border ${
               idx === i ? 'border-accent text-accent bg-accent-bg' : 'border-border text-muted'
             }`}
@@ -116,12 +113,16 @@ function ScenarioContent({
   }
   const total = tp + fp + tn + fn;
   const accuracy = (tp + tn) / total;
-  const precision = tp + fp > 0 ? tp / (tp + fp) : 0;
-  const recall = tp + fn > 0 ? tp / (tp + fn) : 0;
+  const precision = tp + fp > 0 ? tp / (tp + fp) : null;
+  const recall = tp + fn > 0 ? tp / (tp + fn) : null;
+  const f1 =
+    precision !== null && recall !== null && precision + recall > 0
+      ? (2 * precision * recall) / (precision + recall)
+      : null;
   const allNegAcc = (data.filter((c) => !c.positive).length) / total;
 
   useEffect(() => {
-    if (recall > 0.5 && precision > 0.5) onPass();
+    if (recall !== null && precision !== null && recall > 0.5 && precision > 0.5) onPass();
   }, [recall, precision, onPass]);
 
   return (
@@ -207,14 +208,18 @@ function ScenarioContent({
         <span>막대 색: 실제 정답 (회색=음성 / 주황=양성)</span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 text-sm font-mono">
-        <Metric label="정확도" value={accuracy} note="(TP+TN)/전체" plain="맞게 맞춘 사람 / 전체" />
-        <Metric label="정밀도" value={precision} note="TP/(TP+FP)" plain="진짜 양성 / 양성이라 부른 것" highlight={precision >= 0.5} />
-        <Metric label="재현율" value={recall} note="TP/(TP+FN)" plain="진짜 양성 / 실제 양성 전체" highlight={recall >= 0.5} />
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-4 text-sm font-mono">
+        <Metric label="정확도" value={accuracy} note="(TP+TN)/전체" frac={{ num: tp + tn, den: total }} plain="맞게 맞춘 사람 / 전체" />
+        <Metric label="정밀도" value={precision} note="TP/(TP+FP)" frac={{ num: tp, den: tp + fp }} plain="진짜 양성 / 양성이라 부른 것" highlight={precision !== null && precision >= 0.5} />
+        <Metric label="재현율" value={recall} note="TP/(TP+FN)" frac={{ num: tp, den: tp + fn }} plain="진짜 양성 / 실제 양성 전체" highlight={recall !== null && recall >= 0.5} />
+        <Metric label="F1 점수" value={f1} note="2·P·R/(P+R)" plain="정밀도와 재현율의 조화평균" highlight={f1 !== null && f1 >= 0.5} />
         <div className="card p-3 text-center">
           <div className="text-xs text-muted">놓친 환자</div>
           <div className={`text-lg ${fn > 0 ? 'text-rose-600 dark:text-rose-400' : ''}`}>{fn}명</div>
         </div>
+      </div>
+      <div className="text-[11px] text-muted mt-2 px-1 leading-snug">
+        💡 임계값을 옮길 때 카드의 <span className="text-emerald-600 dark:text-emerald-400 font-semibold">분자</span>와 <span className="text-rose-600 dark:text-rose-400 font-semibold">분모</span>가 어떻게 변하는지 살펴보세요. 임계값↑ → 양성으로 부르는 사람이 줄어 정밀도 분모(TP+FP)가 줄어들고, 재현율 분자(TP)도 같이 줄어요.
       </div>
 
       <h2>혼동 행렬</h2>
@@ -361,13 +366,22 @@ function ScenarioQuiz({
   );
 }
 
-function Metric({ label, value, note, plain, highlight }: { label: string; value: number; note: string; plain?: string; highlight?: boolean }) {
+function Metric({ label, value, note, plain, highlight, frac }: { label: string; value: number | null; note: string; plain?: string; highlight?: boolean; frac?: { num: number; den: number } }) {
+  const display = value === null ? '정의 불가' : `${(value * 100).toFixed(1)}%`;
   return (
     <div className={`card p-3 text-center ${highlight ? 'border-accent bg-accent-bg' : ''}`}>
       <div className="text-xs text-muted">{label}</div>
-      <div className={`text-lg ${highlight ? 'text-accent' : ''}`}>{(value * 100).toFixed(1)}%</div>
+      <div className={`text-lg ${highlight ? 'text-accent' : ''} ${value === null ? 'text-muted' : ''}`}>{display}</div>
       <div className="text-xs text-muted mt-0.5">{note}</div>
+      {frac && (
+        <div className="text-[10px] mt-0.5 leading-tight">
+          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{frac.num}</span>
+          <span className="text-muted"> / </span>
+          <span className={`font-semibold ${frac.den === 0 ? 'text-muted' : 'text-rose-600 dark:text-rose-400'}`}>{frac.den}</span>
+        </div>
+      )}
       {plain && <div className="text-[10px] text-muted/80 leading-tight mt-0.5">{plain}</div>}
+      {value === null && <div className="text-[10px] text-muted/80 mt-0.5">분모가 0 — 계산할 수 없어요</div>}
     </div>
   );
 }
