@@ -423,35 +423,123 @@ function Diagram({ W, t, stage }: { W: Weights; t: Trace; stage: StageId }) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   식·풀이 카드 — 각 단계의 식을 *대입 → 결과 → 의미* 3줄로 풀어쓴다
+   식·풀이 카드 — 6단계의 식을 *한 번에* 보여주고, 모든 숫자가
+   현재 가중치로 실시간 업데이트. 활성 단계에는 배경 강조 + 'why' 노트.
 ══════════════════════════════════════════════════════════════ */
 function FormulaCard({ W, t, stage }: { W: Weights; t: Trace; stage: StageId }) {
+  const newW = applyStep(W, t);
+
   return (
-    <div className="card p-3 space-y-2.5 text-sm">
-      {stage === 'predict' && <PredictStage W={W} t={t} />}
-      {stage === 'error' && <ErrorStage t={t} />}
-      {stage === 'outputGrad' && <OutGradStage t={t} />}
-      {stage === 'hiddenSignal' && <HSigStage W={W} t={t} />}
-      {stage === 'hiddenGrad' && <HGradStage t={t} />}
-      {stage === 'update' && <UpdateStage W={W} t={t} />}
+    <div className="card p-3 space-y-2 text-sm">
+      <div className="font-medium">한 step의 6단계 — 모든 숫자가 *지금의 가중치*로 다시 계산</div>
+      <p className="text-[11px] text-muted leading-snug">
+        x = {SAMPLE.x}, y = {SAMPLE.y}, η = {LR}. 다음 단계 →나 자동 학습을 누르면 가중치가 갱신되고 6단계 모든 칸이 새 값으로 다시 채워져요.
+        {' '}<span style={{ color: 'rgb(var(--color-accent))' }}>강조된 칸</span>이 지금 단계.
+      </p>
+
+      <StageBox id="predict" num={1} label="예측 — x를 두 층 통과" stage={stage}
+        why="A1에서 본 곱·합·활성화 한 묶음을 *두 번* 적용. 출력층은 회귀라 ReLU 없이 그대로.">
+        <Line>
+          z₁ = w₁·x + b₁ = <Sub>{W.w1}·{SAMPLE.x} + {W.b1}</Sub> = <Acc>{t.z1.toFixed(2)}</Acc>
+        </Line>
+        <Line>
+          h = ReLU(z₁) = <Sub>max(0, {t.z1.toFixed(2)})</Sub> = <Acc>{t.h.toFixed(2)}</Acc>
+          {' '}<Note>{t.reluP === 1 ? '(z₁ > 0 → 그대로 통과, ReLU′=1)' : '(z₁ ≤ 0 → 0으로 막힘, ReLU′=0)'}</Note>
+        </Line>
+        <Line>
+          z₂ = w₂·h + b₂ = <Sub>{W.w2}·{t.h.toFixed(2)} + {W.b2}</Sub> = <Acc>{t.z2.toFixed(2)}</Acc>
+        </Line>
+        <Line>
+          ŷ = z₂ = <Acc>{t.yhat.toFixed(2)}</Acc>
+        </Line>
+      </StageBox>
+
+      <StageBox id="error" num={2} label="오차 — 예측과 정답의 차" stage={stage}
+        why={`e의 부호가 모든 기울기의 부호를 결정. ${t.e < 0 ? '음수 → 모든 가중치가 *커지는* 방향.' : t.e > 0 ? '양수 → 모든 가중치가 *작아지는* 방향.' : '0이라 갱신 없음.'}`}>
+        <Line>
+          e = ŷ − y = <Sub>{t.yhat.toFixed(2)} − {SAMPLE.y}</Sub> = <Err>{t.e.toFixed(2)}</Err>
+        </Line>
+        <Line>
+          <Note>참고: 손실 ½·e² = {t.loss.toFixed(2)} (실제 갱신에는 e만 필요 — ½·e²의 미분이 e)</Note>
+        </Line>
+      </StageBox>
+
+      <StageBox id="outputGrad" num={3} label="출력층 기울기 — w₂·b₂를 얼마나" stage={stage}
+        why="A4의 dw = e·x 식 그대로. 출력층 입장에서 *그 층의 입력*은 은닉 출력 h.">
+        <Line>
+          dw₂ = e·h = <Sub><Err>{t.e.toFixed(2)}</Err>·{t.h.toFixed(2)}</Sub> = <Acc>{t.dw2.toFixed(2)}</Acc>
+        </Line>
+        <Line>
+          db₂ = e = <Err>{t.db2.toFixed(2)}</Err>
+          {' '}<Note>(b는 1이 곱해지는 상수항)</Note>
+        </Line>
+      </StageBox>
+
+      <StageBox id="hiddenSignal" num={4} label="은닉층 신호 e_h ★ 역전파 핵심" stage={stage}
+        why={t.reluP === 0
+          ? 'ReLU′(z₁)=0 — z₁이 음수라 길이 막힘. 신호가 끊겨 e_h=0 (Dying ReLU). 은닉층 가중치는 갱신 안 됨.'
+          : '출력의 e가 w₂를 *거꾸로 곱해져* 은닉층까지 전달. ReLU′(z₁)=1이라 길이 열림. — 이 거꾸로 흐름이 곧 *역전파*.'}>
+        <Line>
+          e_h = e·w₂·ReLU′(z₁) = <Sub><Err>{t.e.toFixed(2)}</Err>·{W.w2}·{t.reluP}</Sub> = <Err>{t.eh.toFixed(2)}</Err>
+        </Line>
+      </StageBox>
+
+      <StageBox id="hiddenGrad" num={5} label="은닉층 기울기 — w₁·b₁를 얼마나" stage={stage}
+        why="A4의 dw = e·x 식이 다시. e 자리에 e_h(전달받은 오차), x 자리에 이 층의 입력 x. 깊은 망에서도 모든 층이 같은 모양.">
+        <Line>
+          dw₁ = e_h·x = <Sub><Err>{t.eh.toFixed(2)}</Err>·{SAMPLE.x}</Sub> = <Acc>{t.dw1.toFixed(2)}</Acc>
+        </Line>
+        <Line>
+          db₁ = e_h = <Err>{t.db1.toFixed(2)}</Err>
+        </Line>
+      </StageBox>
+
+      <StageBox id="update" num={6} label={`갱신 — w ← w − η·dw  (η=${LR})`} stage={stage}
+        why="모든 기울기에 η를 곱해 *반대 방향*으로 4개 가중치를 동시에 움직임. 다음 step에서 ŷ이 정답 y에 더 가까워져 손실이 줄어요.">
+        <Line>
+          w₂ ← <Sub>{W.w2.toFixed(2)} − {LR}·{t.dw2.toFixed(2)}</Sub> = <Acc>{newW.w2.toFixed(3)}</Acc>
+        </Line>
+        <Line>
+          b₂ ← <Sub>{W.b2.toFixed(2)} − {LR}·{t.db2.toFixed(2)}</Sub> = <Acc>{newW.b2.toFixed(3)}</Acc>
+        </Line>
+        <Line>
+          w₁ ← <Sub>{W.w1.toFixed(2)} − {LR}·{t.dw1.toFixed(2)}</Sub> = <Acc>{newW.w1.toFixed(3)}</Acc>
+        </Line>
+        <Line>
+          b₁ ← <Sub>{W.b1.toFixed(2)} − {LR}·{t.db1.toFixed(2)}</Sub> = <Acc>{newW.b1.toFixed(3)}</Acc>
+        </Line>
+      </StageBox>
+
+      <div className="text-[10.5px] text-muted leading-snug pt-1 border-t border-border">
+        색 안내 — <Err>e·e_h·db</Err>(오차 계열) · <Acc>dw·새 가중치</Acc>(갱신 계열) · <Note>대입한 숫자</Note>는 흐림.
+      </div>
     </div>
   );
 }
 
-function StepBox({
-  title, formula, subs, result, why,
+/* 단계 박스 — 활성 시 배경 강조 + why 노트 펼침 */
+function StageBox({
+  id, num, label, stage, why, children,
 }: {
-  title: string; formula: string; subs: string; result: string; why?: string;
+  id: StageId; num: number; label: string; stage: StageId; why: string; children: React.ReactNode;
 }) {
+  const active = stage === id;
   return (
-    <div className="rounded-md border border-border bg-bg/40 px-3 py-2 leading-snug">
-      <div className="text-[11px] text-muted mb-0.5">{title}</div>
-      <div className="font-mono text-[12.5px] font-semibold">{formula}</div>
-      <div className="font-mono text-[11px] text-muted">
-        ↓ 값 대입: <span className="text-text">{subs}</span>
+    <div className={`rounded-md border px-3 py-2 transition-colors ${
+      active ? 'border-accent bg-accent-bg/50' : 'border-border bg-bg/30'
+    }`}>
+      <div className="flex items-baseline gap-2 mb-1">
+        <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded ${
+          active ? 'bg-accent text-white' : 'bg-surface text-muted'
+        }`}>
+          {num}
+        </span>
+        <span className={`text-[12px] font-medium ${active ? 'text-text' : 'text-muted'}`}>
+          {label}
+        </span>
       </div>
-      <div className="font-mono text-[12.5px] text-accent font-semibold mt-0.5">= {result}</div>
-      {why && (
+      <div className="font-mono text-[11.5px] leading-relaxed space-y-0.5">{children}</div>
+      {active && (
         <div className="text-[11px] text-muted leading-snug pt-1.5 border-t border-border/60 mt-1.5">
           → {why}
         </div>
@@ -460,188 +548,21 @@ function StepBox({
   );
 }
 
-function PredictStage({ W, t }: { W: Weights; t: Trace }) {
-  return (
-    <>
-      <div className="font-medium">1. 예측 — 입력을 한 층씩 통과</div>
-      <p className="text-[11.5px] text-muted leading-relaxed">
-        x = {SAMPLE.x}을 *은닉층 → 출력층* 두 번 통과시켜 ŷ을 만들어요. 곱·합·활성화 한 묶음을 *두 번* 적용한다고 보면 돼요.
-      </p>
-      <StepBox
-        title="① 첫째 층의 곱·합 (z₁)"
-        formula="z₁ = w₁ · x + b₁"
-        subs={`${W.w1} · ${SAMPLE.x} + ${W.b1}`}
-        result={t.z1.toFixed(2)}
-        why="A1에서 본 인공 뉴런 한 개의 곱·합. 입력 x를 가중치로 키우고 편향을 더해요."
-      />
-      <StepBox
-        title="② 활성화 (h)"
-        formula="h = ReLU(z₁) = max(0, z₁)"
-        subs={`max(0, ${t.z1.toFixed(2)})`}
-        result={t.h.toFixed(2)}
-        why={t.z1 > 0
-          ? `z₁ = ${t.z1.toFixed(2)} > 0 → 그대로 통과 (ReLU′ = 1).`
-          : `z₁ = ${t.z1.toFixed(2)} ≤ 0 → 0으로 막힘 (ReLU′ = 0, 일명 Dying ReLU).`}
-      />
-      <StepBox
-        title="③ 둘째 층의 곱·합 (z₂)"
-        formula="z₂ = w₂ · h + b₂"
-        subs={`${W.w2} · ${t.h.toFixed(2)} + ${W.b2}`}
-        result={t.z2.toFixed(2)}
-        why="은닉 출력 h를 *다시 한 번* 가중치로 키우고 편향을 더해요. — 이게 '2층'."
-      />
-      <StepBox
-        title="④ 출력 (ŷ)"
-        formula="ŷ = z₂"
-        subs="(회귀 — 출력층은 활성화 없이 그대로)"
-        result={t.yhat.toFixed(2)}
-        why={`정답은 y = ${SAMPLE.y}. 차이가 다음 단계의 오차 e가 돼요.`}
-      />
-    </>
-  );
+/* 색 헬퍼 — 식 안에서 숫자 부류를 시각적으로 구분 */
+function Line({ children }: { children: React.ReactNode }) {
+  return <div>{children}</div>;
 }
-
-function ErrorStage({ t }: { t: Trace }) {
-  const sign = t.e < 0 ? '음수' : (t.e > 0 ? '양수' : '0');
-  const direction = t.e < 0 ? '*작게*' : '*크게*';
-  return (
-    <>
-      <div className="font-medium">2. 오차 — 예측과 정답의 차</div>
-      <p className="text-[11.5px] text-muted leading-relaxed">
-        오차 e의 *부호*가 곧 모든 기울기의 부호를 결정해요. 음수면 모든 가중치가 커지는 방향, 양수면 작아지는 방향.
-      </p>
-      <StepBox
-        title="① 오차"
-        formula="e = ŷ − y"
-        subs={`${t.yhat.toFixed(2)} − ${SAMPLE.y}`}
-        result={t.e.toFixed(2)}
-        why={`${sign} → 모델이 정답보다 ${direction} 예측 중. 다음 단계부터는 이 e 한 숫자가 모든 기울기를 통해 흘러요.`}
-      />
-      <div className="text-[11px] text-muted">
-        참고: 손실 ½·e² = ½·{t.e.toFixed(2)}² = <span className="text-text font-mono">{t.loss.toFixed(2)}</span>.
-        실제 갱신에는 e만 필요(½·e²의 미분이 e).
-      </div>
-    </>
-  );
+function Sub({ children }: { children: React.ReactNode }) {
+  return <span className="text-muted">{children}</span>;
 }
-
-function OutGradStage({ t }: { t: Trace }) {
-  return (
-    <>
-      <div className="font-medium">3. 출력층 기울기 — w₂·b₂를 얼마나 고칠까</div>
-      <p className="text-[11.5px] text-muted leading-relaxed">
-        A4의 <span className="font-mono">dw = e · x</span> 식을 *그대로* 쓰는데, 출력층 입장에서 *그 층의 입력*은 은닉 출력 h예요.
-      </p>
-      <StepBox
-        title="① w₂의 기울기"
-        formula="dw₂ = e · h"
-        subs={`${t.e.toFixed(2)} · ${t.h.toFixed(2)}`}
-        result={t.dw2.toFixed(2)}
-        why="이 기울기의 *반대* 방향으로 w₂를 움직이면 손실이 줄어들어요 (경사하강법)."
-      />
-      <StepBox
-        title="② b₂의 기울기"
-        formula="db₂ = e · 1 = e"
-        subs={`${t.e.toFixed(2)}`}
-        result={t.db2.toFixed(2)}
-        why="b는 항상 1이 곱해지는 상수항이라 dw 식에서 x 자리가 1로 바뀐 모양."
-      />
-      <div className="text-[11px] text-muted leading-relaxed border-l-2 border-accent/40 pl-2">
-        여기까지는 A4·A5와 *완전히 같은 식*이에요. 차이는 다음 단계 — *은닉층*의 기울기를 어떻게 구할까?
-      </div>
-    </>
-  );
+function Acc({ children }: { children: React.ReactNode }) {
+  return <span style={{ color: 'rgb(var(--color-accent))', fontWeight: 600 }}>{children}</span>;
 }
-
-function HSigStage({ W, t }: { W: Weights; t: Trace }) {
-  return (
-    <>
-      <div className="font-medium">4. 은닉층 신호 e_h — *역전파 핵심*</div>
-      <p className="text-[11.5px] text-muted leading-relaxed">
-        은닉층은 자기 정답이 없어요. 그래서 출력의 오차 e가 *w₂를 거꾸로 통과*해 은닉층까지 책임을 가져옵니다.
-      </p>
-      <StepBox
-        title="① 은닉층까지 전달된 신호"
-        formula="e_h = e · w₂ · ReLU′(z₁)"
-        subs={`${t.e.toFixed(2)} · ${W.w2} · ${t.reluP}`}
-        result={t.eh.toFixed(2)}
-        why={t.reluP === 0
-          ? `ReLU′(z₁) = 0 — z₁이 음수라 길이 막혀요. 신호가 끊겨 e_h = 0 (Dying ReLU).`
-          : `ReLU′(z₁) = 1 — z₁이 양수라 길이 열려 있어요. e가 w₂만큼 *거꾸로 곱해져* 은닉층까지 전달됐어요.`}
-      />
-      <div className="text-[11.5px] text-muted leading-relaxed border-l-2 border-rose-300 pl-3 py-1">
-        <strong className="text-text">왜 거꾸로?</strong> 출력의 오차 e에 가장 책임이 큰 가중치는, 그 오차를 만든 길의 가중치(w₂)예요.
-        그래서 e가 w₂를 따라 *역방향*으로 흐르며 은닉층까지 책임을 분배합니다.
-        ReLU′는 "그 길이 막혔는지(0)·열렸는지(1)" 결정하는 문지기.
-      </div>
-      <div className="text-[11px] text-muted leading-relaxed">
-        다음 단계에서는 이 <span className="font-mono">e_h = {t.eh.toFixed(2)}</span>을 *은닉층의 오차*처럼 써서 dw₁을 구해요.
-      </div>
-    </>
-  );
+function Err({ children }: { children: React.ReactNode }) {
+  return <span style={{ color: 'rgb(190,18,60)', fontWeight: 600 }}>{children}</span>;
 }
-
-function HGradStage({ t }: { t: Trace }) {
-  return (
-    <>
-      <div className="font-medium">5. 은닉층 기울기 — w₁·b₁를 얼마나 고칠까</div>
-      <p className="text-[11.5px] text-muted leading-relaxed">
-        4단계의 <span className="font-mono">e_h</span>를 *그 층의 오차*처럼 써서 A4 식을 다시 적용. 입력은 *이 층의 입력 x*.
-      </p>
-      <StepBox
-        title="① w₁의 기울기"
-        formula="dw₁ = e_h · x"
-        subs={`${t.eh.toFixed(2)} · ${SAMPLE.x}`}
-        result={t.dw1.toFixed(2)}
-        why="A4의 dw = e · x 식이 *다시 등장*. 차이는 e 자리가 e_h(전달받은 오차), x 자리가 이 층의 입력 x."
-      />
-      <StepBox
-        title="② b₁의 기울기"
-        formula="db₁ = e_h · 1 = e_h"
-        subs={`${t.eh.toFixed(2)}`}
-        result={t.db1.toFixed(2)}
-        why="b는 1이 곱해지는 상수항."
-      />
-      <div className="text-[11.5px] text-muted leading-relaxed border-l-2 border-accent/40 pl-3">
-        결과적으로 *모든 층의 가중치*가 dw 식 한 모양으로 갱신돼요 — 깊은 망에서도 똑같이.
-      </div>
-    </>
-  );
-}
-
-function UpdateStage({ W, t }: { W: Weights; t: Trace }) {
-  const newW = applyStep(W, t);
-  return (
-    <>
-      <div className="font-medium">6. 갱신 — 4개 가중치를 *한 번에*</div>
-      <p className="text-[11.5px] text-muted leading-relaxed">
-        모든 기울기에 학습률 η = {LR}을 곱한 만큼 *반대 방향*으로 움직여요. 다음 단계 →를 누르면 이 새 가중치로 1단계(예측)부터 다시 시작.
-      </p>
-      <UpdateRow name="w₂" cur={W.w2} grad={t.dw2} next={newW.w2} />
-      <UpdateRow name="b₂" cur={W.b2} grad={t.db2} next={newW.b2} />
-      <UpdateRow name="w₁" cur={W.w1} grad={t.dw1} next={newW.w1} />
-      <UpdateRow name="b₁" cur={W.b1} grad={t.db1} next={newW.b1} />
-      <div className="text-[11.5px] text-muted leading-relaxed border-l-2 border-accent/40 pl-3 mt-1">
-        <strong className="text-text">손실이 줄었을까?</strong> 다음 단계 →를 눌러 새 가중치로 1단계를 다시 보면 ŷ이 정답 y = {SAMPLE.y}에 더 가까워졌는지 확인할 수 있어요.
-        손실 곡선도 한 칸 내려갑니다.
-      </div>
-    </>
-  );
-}
-
-function UpdateRow({ name, cur, grad, next }: { name: string; cur: number; grad: number; next: number }) {
-  return (
-    <div className="rounded border border-border bg-bg/40 px-3 py-1.5 font-mono text-[11.5px] leading-snug">
-      <div className="text-[10px] text-muted">새 {name} = (현재 {name}) − η · d{name}</div>
-      <div>
-        <span>{cur.toFixed(2)}</span>
-        <span className="text-muted"> − {LR} · </span>
-        <span>{grad.toFixed(2)}</span>
-        <span className="text-muted"> = </span>
-        <span className="text-accent font-semibold">{next.toFixed(3)}</span>
-      </div>
-    </div>
-  );
+function Note({ children }: { children: React.ReactNode }) {
+  return <span className="text-muted text-[10.5px]">{children}</span>;
 }
 
 /* 직관 카드 */
