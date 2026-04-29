@@ -1,29 +1,49 @@
 // PhaseB1 — 문제 정의와 라벨
-// A6의 회귀(숫자 예측) → B의 분류(이름표 예측)로 전환.
-// 도트 그림 분류 — 입력 8×8=64 픽셀, 정답 라벨 동그라미/세모(/네모는 B5에서).
-import { useMemo, useRef, useState, useEffect } from 'react';
+// A6의 회귀(숫자 예측)에서 B 영역의 분류(종류 맞히기)로 전환하는 도입.
+// 교차 엔트로피 같은 손실 이야기는 여기서 다루지 않는다 — 분류·라벨·앞으로의 흐름만.
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { PHASES } from '../phases';
 import { useApp } from '../store';
 import { useDot } from '../dotStore';
 import { SHAPE_LABEL_KO, type DotSample, type ShapeLabel } from '../data/dotShapes';
+
+const FLOW: { id: string; title: string; body: string }[] = [
+  {
+    id: 'b2',
+    title: 'B2 · 데이터를 정제한다',
+    body: '잘못된 그림이 섞여 있으면 학습이 망가져요. 모델보다 먼저 데이터를 다듬어요.',
+  },
+  {
+    id: 'b3',
+    title: 'B3 · 학습용·평가용으로 나눈다',
+    body: '외운 것인지, 새 그림에서도 통하는지 확인하려면 먼저 쪼개 둬야 해요.',
+  },
+  {
+    id: 'b4',
+    title: 'B4 · 출력 뉴런 2개로 분류',
+    body: '동그라미 vs 세모 — 출력 뉴런 두 개 중 더 큰 쪽을 골라요.',
+  },
+  {
+    id: 'b5',
+    title: 'B5 · 출력 뉴런 3개 + 소프트맥스',
+    body: '동그라미·세모·네모. 세 점수를 확률로 바꿔 가장 큰 것을 골라요.',
+  },
+];
 
 export function PhaseB1() {
   const meta = PHASES.find((p) => p.id === 'b1')!;
   const markCompleted = useApp((s) => s.markCompleted);
   const samples = useDot((s) => s.samples);
 
-  // 라벨별 깨끗한(노이즈/오라벨이 없는) 대표 3장씩 뽑아 갤러리에 쓴다.
+  // 라벨별 깨끗한(노이즈/오라벨 없는) 샘플 5~6장씩.
   const gallery = useMemo(() => {
     const labels: ShapeLabel[] = ['circle', 'triangle', 'square'];
     const map: Record<ShapeLabel, DotSample[]> = { circle: [], triangle: [], square: [] };
     for (const s of samples) {
-      // 데이터셋에서 mislabel이 있으면 s.label은 잘못된 라벨이므로 제외하고
-      // mislabel이 가리키는 진짜 라벨도 갤러리에선 노출하지 않는다.
-      if (s.mislabel) continue;
-      if (s.noisy) continue;
+      if (s.mislabel || s.noisy) continue;
       map[s.label].push(s);
     }
-    return labels.map((lbl) => ({ label: lbl, items: map[lbl].slice(0, 3) }));
+    return labels.map((lbl) => ({ label: lbl, items: map[lbl].slice(0, 6) }));
   }, [samples]);
 
   const [understood, setUnderstood] = useState(false);
@@ -37,108 +57,97 @@ export function PhaseB1() {
 
   return (
     <article>
-      <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
-      <h1>{meta.title}</h1>
-      <p className="text-muted mt-2 text-sm">{meta.subtitle}</p>
+      {/* 헤더 — 압축 (PHASE/h1/부제) */}
+      <header className="mb-3">
+        <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
+        <h1 className="text-2xl font-semibold mt-0.5">{meta.title}</h1>
+        <p className="text-muted text-sm mt-0.5">{meta.subtitle}</p>
+      </header>
 
-      {/* 도입 — PLAN ## 10-1 #1 본문 (그대로) */}
-      <p className="mt-4 leading-relaxed">
-        지금까지는 "기온 몇 도?"처럼 <strong>숫자 하나</strong>를 맞추는 문제(회귀)를 풀었어요. 이제부터는 "동그라미인가, 세모인가?"처럼 <strong>정해진 종류 중 하나를 고르는 문제</strong>(분류)를 풉니다. 둘은 답 모양이 달라서 오차를 재는 방법도 달라져요 — 회귀는 <strong>A2에서 본 MSE</strong>, 분류는 <strong>교차 엔트로피(cross-entropy)</strong> 라는 손실을 쓰는데, 자세한 내용은 <strong>B5</strong>에서 만나요.
+      {/* 도입 — 회귀 → 분류 한 단락 */}
+      <p className="leading-relaxed text-[15px]">
+        지금까지는 <strong>숫자(기온)</strong>를 맞췄어요. 이제부터는 <strong>종류</strong>를 맞힙니다 —
+        그림이 동그라미인가, 세모인가? B 영역에서는 도트로 그린 작은 그림 한 묶음을 가지고
+        분류 모델을 처음부터 끝까지 따라 만들어요.
       </p>
 
-      <div className="mt-4 grid lg:grid-cols-[1fr_1.4fr] gap-4 items-start">
-        {/* 좌: 회귀 vs 분류 비교 표 */}
-        <div className="card p-3">
-          <div className="text-sm font-medium mb-2">회귀 vs 분류</div>
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="border-b border-border text-left">
-                <th className="py-1.5 pr-2"></th>
-                <th className="py-1.5 pr-2">답</th>
-                <th className="py-1.5 pr-2">예</th>
-                <th className="py-1.5">손실</th>
-              </tr>
-            </thead>
-            <tbody className="font-mono text-[13px]">
-              <tr className="border-b border-border/60">
-                <td className="py-1.5 pr-2 font-semibold">회귀</td>
-                <td className="py-1.5 pr-2">숫자</td>
-                <td className="py-1.5 pr-2">기온 23.4도</td>
-                <td className="py-1.5">MSE</td>
-              </tr>
-              <tr>
-                <td className="py-1.5 pr-2 font-semibold text-accent">분류</td>
-                <td className="py-1.5 pr-2">종류</td>
-                <td className="py-1.5 pr-2">동그라미</td>
-                <td className="py-1.5">교차 엔트로피</td>
-              </tr>
-            </tbody>
-          </table>
-          <div className="aside-note text-[12px] leading-relaxed mt-3">
-            답이 <strong>숫자</strong>면 가까운 정도(MSE)로 오차를 재고, 답이 <strong>종류</strong>면 정답 종류에 얼마나 확신을 두었는지(교차 엔트로피)로 오차를 재요.
-          </div>
+      {/* 분류·라벨·입력 형식 — 작은 박스 한 줄씩 */}
+      <div className="mt-3 grid sm:grid-cols-3 gap-2 text-[13px] leading-relaxed">
+        <div className="card p-2.5">
+          <div className="font-medium mb-0.5">분류란?</div>
+          <div className="text-muted">정해진 후보 중 하나를 골라내는 문제예요.</div>
         </div>
-
-        {/* 우: "지금부터 풀 문제" + 갤러리 */}
-        <div className="card p-3">
-          <div className="text-sm font-medium">지금부터 풀 문제</div>
-          <ul className="text-[13px] text-muted mt-1 list-disc list-inside space-y-0.5">
-            <li>입력: <strong>8×8 = 64개 픽셀</strong> (각 칸 0=빈 칸 / 1=찍힘)</li>
-            <li>정답 라벨: <strong>동그라미 · 세모</strong> (B5에서 <strong>네모</strong>도 추가)</li>
-            <li>모델이 64개 숫자를 받아 <strong>정답 라벨 하나</strong>를 골라요.</li>
-          </ul>
-
-          <div className="mt-3 space-y-2">
-            {gallery.map(({ label, items }) => (
-              <div key={label}>
-                <div className="text-[12px] text-muted mb-1">{SHAPE_LABEL_KO[label]}</div>
-                <div className="flex gap-2">
-                  {items.map((s) => (
-                    <DotThumb key={s.id} sample={s} size={56} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-[11px] text-muted mt-2 leading-relaxed">
-            각 점은 <span className="font-mono">0</span>(빈 칸) 또는 <span className="font-mono">1</span>(찍힘) — 이 64개 숫자를 입력으로 받습니다.
-          </div>
+        <div className="card p-2.5">
+          <div className="font-medium mb-0.5">라벨이란?</div>
+          <div className="text-muted">각 그림에 붙은 정답(동그라미·세모·네모)을 라벨이라고 불러요.</div>
+        </div>
+        <div className="card p-2.5">
+          <div className="font-medium mb-0.5">입력 형식</div>
+          <div className="text-muted">8×8 = 64개 픽셀. 각 칸 0(빈 칸) 또는 1(찍힘).</div>
         </div>
       </div>
 
-      <div className="mt-4 grid sm:grid-cols-[1.4fr_1fr] gap-3 items-start">
-        <div className="aside-tip text-[13px] leading-relaxed">
-          <div className="text-sm font-medium">학습 목표</div>
-          <p className="mt-1">
-            B 영역에서는 <strong>도트 그림 데이터</strong> 하나를 가지고 데이터 다듬기(B2) → 학습/평가 분할(B3) → 이진 분류 학습(B4) → 다중 분류와 소프트맥스(B5)로 한 흐름을 끝까지 따라갑니다.
-          </p>
+      {/* 앞으로의 흐름 — 4 카드 한 줄씩 */}
+      <div className="mt-3">
+        <div className="text-sm font-medium mb-1.5">앞으로의 흐름</div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          {FLOW.map((step) => (
+            <div key={step.id} className="card p-2.5">
+              <div className="text-[13px] font-semibold text-accent">{step.title}</div>
+              <div className="text-[12px] text-muted mt-1 leading-relaxed">{step.body}</div>
+            </div>
+          ))}
         </div>
-        <div className="flex sm:justify-end">
-          <button
-            className={understood ? 'btn-ghost' : 'btn-primary'}
-            onClick={() => setUnderstood(true)}
-            disabled={understood}
-          >
-            {understood ? '✓ 이해했어요' : '이해했어요 — 다음으로'}
-          </button>
+      </div>
+
+      {/* 라벨별 갤러리 — 라벨당 5~6장 */}
+      <div className="mt-3 card p-3">
+        <div className="flex items-baseline justify-between flex-wrap gap-2">
+          <div className="text-sm font-medium">라벨별 데이터 미리보기</div>
+          <div className="text-[12px] text-muted">
+            같은 라벨이라도 위치·크기가 조금씩 달라요. 모델이 이 다양성을 보고 라벨을 골라야 해요.
+          </div>
         </div>
+        <div className="mt-2 space-y-2">
+          {gallery.map(({ label, items }) => (
+            <div key={label} className="flex items-center gap-3">
+              <div className="text-[13px] w-24 shrink-0 font-medium">{SHAPE_LABEL_KO[label]}</div>
+              <div className="flex gap-1.5 flex-wrap">
+                {items.map((s) => (
+                  <DotThumb key={s.id} pixels={s.pixels} size={44} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 다음으로 */}
+      <div className="mt-4 flex justify-end">
+        <button
+          className={understood ? 'btn-ghost' : 'btn-primary'}
+          onClick={() => setUnderstood(true)}
+          disabled={understood}
+        >
+          {understood ? '✓ B2로 넘어가요' : 'B2로 넘어가기'}
+        </button>
       </div>
     </article>
   );
 }
 
 /* ────────── 8×8 도트 썸네일 ────────── */
-function DotThumb({ sample, size = 56 }: { sample: DotSample; size?: number }) {
+function DotThumb({ pixels, size = 44 }: { pixels: number[]; size?: number }) {
   const cell = size / 8;
   return (
     <svg
       viewBox={`0 0 ${size} ${size}`}
       width={size}
       height={size}
-      className="rounded border border-border bg-white dark:bg-zinc-900"
+      className="rounded border border-border bg-white dark:bg-zinc-900 block"
     >
-      {sample.pixels.map((v, i) => {
+      {pixels.map((v, i) => {
+        if (v !== 1) return null;
         const x = (i % 8) * cell;
         const y = Math.floor(i / 8) * cell;
         return (
@@ -148,13 +157,12 @@ function DotThumb({ sample, size = 56 }: { sample: DotSample; size?: number }) {
             y={y}
             width={cell}
             height={cell}
-            fill={v === 1 ? 'rgb(var(--color-accent))' : 'transparent'}
+            fill="rgb(var(--color-accent))"
           />
         );
       })}
-      {/* 옅은 격자 */}
       {Array.from({ length: 9 }).map((_, i) => (
-        <g key={i} stroke="rgb(var(--color-border))" strokeWidth={0.4} opacity={0.6}>
+        <g key={i} stroke="rgb(var(--color-border))" strokeWidth={0.3} opacity={0.5}>
           <line x1={i * cell} y1={0} x2={i * cell} y2={size} />
           <line x1={0} y1={i * cell} x2={size} y2={i * cell} />
         </g>

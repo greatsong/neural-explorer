@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { DOT_SAMPLES_DEFAULT, type DotSample, type ShapeLabel } from './data/dotShapes';
+import { forward, type MLP } from './lib/nn';
 
 /* ───── 결정론적 split — 시드 고정으로 매번 같은 train/eval 묶음 ───── */
 function deterministicSplit(samples: DotSample[], seed = 42, evalRatio = 0.25): {
@@ -36,12 +37,16 @@ function deterministicSplit(samples: DotSample[], seed = 42, evalRatio = 0.25): 
   return { trainIds, evalIds };
 }
 
-/* ───── 학습 결과(가중치) — 직접 학습한 단순 선형 모델 ───── */
+/* ───── 학습 결과 — 가짜 시뮬레이션이 아닌 *진짜* 학습 모델 ─────
+   B4/B5/C2/C3는 src/lib/nn.ts의 MLP를 직접 학습해 mlp 필드에 저장한다.
+   기존 코드 호환을 위해 w/b 필드도 남겨 두지만(평탄화된 마지막 층 가중치),
+   forward/predict는 mlp 필드가 있으면 그것을 우선 사용한다. */
 export interface BinaryModel { // B4: 두 라벨 (circle vs triangle)
   labels: [ShapeLabel, ShapeLabel];
-  // 출력 뉴런 2개 — w[k] (64), b[k] (1). softmax로 확률화는 학습 시 사용.
-  w: number[][]; // shape: [2][64]
-  b: number[];   // length 2
+  // 출력 뉴런 2개 — 옛 형식 호환 (선형 학습 결과). mlp가 있으면 mlp 우선 사용.
+  w: number[][]; // shape: [C][D]
+  b: number[];   // length C
+  mlp?: MLP;     // 진짜 학습된 MLP (nn.ts createDeepMLP/trainStep 결과)
   trainedSteps: number;
   trainAccuracy: number;
   evalAccuracy: number;
@@ -49,8 +54,9 @@ export interface BinaryModel { // B4: 두 라벨 (circle vs triangle)
 
 export interface MultiModel { // B5: 세 라벨 (circle, triangle, square)
   labels: [ShapeLabel, ShapeLabel, ShapeLabel];
-  w: number[][]; // [3][64]
-  b: number[];   // length 3
+  w: number[][];
+  b: number[];
+  mlp?: MLP;
   trainedSteps: number;
   trainAccuracy: number;
   evalAccuracy: number;
@@ -60,6 +66,7 @@ interface DotState {
   samples: DotSample[];
   removedIds: Set<string>;       // B2에서 학생이 "제외"한 샘플 (노이즈/오라벨 의심)
   splitSeed: number;
+  evalRatio: number;             // B3에서 학생이 조절. 0.10 ~ 0.50
   trainIds: string[];
   evalIds: string[];
   binaryModel: BinaryModel | null;
@@ -67,14 +74,17 @@ interface DotState {
 
   toggleRemove: (id: string) => void;
   resetRemoved: () => void;
+  setEvalRatio: (r: number) => void;  // 비율 변경 시 trainIds/evalIds 재생성 + 학습된 모델 무효화
   setBinaryModel: (m: BinaryModel | null) => void;
   setMultiModel: (m: MultiModel | null) => void;
   resetAll: () => void;
 }
 
-function makeInitial() {
+const DEFAULT_EVAL_RATIO = 0.25;
+
+function makeInitial(evalRatio = DEFAULT_EVAL_RATIO) {
   const samples = DOT_SAMPLES_DEFAULT;
-  const { trainIds, evalIds } = deterministicSplit(samples);
+  const { trainIds, evalIds } = deterministicSplit(samples, 42, evalRatio);
   return { samples, trainIds, evalIds };
 }
 
@@ -86,6 +96,7 @@ export const useDot = create<DotState>()(
         samples: init.samples,
         removedIds: new Set<string>(),
         splitSeed: 42,
+        evalRatio: DEFAULT_EVAL_RATIO,
         trainIds: init.trainIds,
         evalIds: init.evalIds,
         binaryModel: null,
@@ -96,6 +107,18 @@ export const useDot = create<DotState>()(
           return { removedIds: next };
         }),
         resetRemoved: () => set({ removedIds: new Set() }),
+        setEvalRatio: (r) => set((s) => {
+          const clamped = Math.max(0.05, Math.min(0.5, r));
+          // 비율 변경 → 시드 동일하게 분할 재생성 → 학습된 모델은 분할에 의존하므로 무효화
+          const { trainIds, evalIds } = deterministicSplit(s.samples, s.splitSeed, clamped);
+          return {
+            evalRatio: clamped,
+            trainIds,
+            evalIds,
+            binaryModel: null,
+            multiModel: null,
+          };
+        }),
         setBinaryModel: (m) => set({ binaryModel: m }),
         setMultiModel: (m) => set({ multiModel: m }),
         resetAll: () => {
@@ -275,4 +298,55 @@ export function evaluateAccuracy(
     else mistakes.push({ id: s.id, trueLabel: s.label, predLabel: labels[pred] });
   }
   return { correct, total: filtered.length, accuracy: filtered.length === 0 ? 0 : correct / filtered.length, mistakes };
+}
+
+/* ───── 진짜 MLP 모델용 헬퍼 (B4·B5·C1 권장) ─────
+   nn.ts의 MLP가 mlp 필드에 저장된 모델에 대해 forward·classify·evaluate를 일관되게 적용.
+   기존 classify/evaluateAccuracy는 옛 선형 형식(w, b)을 그대로 받지만,
+   새 페이즈는 아래 두 함수만 쓰는 것을 권장한다. */
+export function classifyMLP(
+  pixels: number[],
+  mlp: MLP,
+): { probs: number[]; pred: number; logits: number[] } {
+  const x = new Float32Array(pixels);
+  const fr = forward(mlp, x);
+  const probs = Array.from(fr.probs);
+  const logits = Array.from(fr.logits);
+  let pred = 0;
+  for (let c = 1; c < probs.length; c++) if (probs[c] > probs[pred]) pred = c;
+  return { probs, pred, logits };
+}
+
+/* BinaryModel/MultiModel 객체를 받아 자동으로 mlp/선형 분기 */
+export function classifyModel(
+  pixels: number[],
+  model: BinaryModel | MultiModel,
+): { probs: number[]; pred: number; logits: number[] } {
+  if (model.mlp) return classifyMLP(pixels, model.mlp);
+  return classify(pixels, model.w, model.b);
+}
+
+export function evaluateModel(
+  samples: DotSample[],
+  model: BinaryModel | MultiModel,
+): {
+  correct: number; total: number; accuracy: number;
+  mistakes: { id: string; trueLabel: ShapeLabel; predLabel: ShapeLabel }[];
+} {
+  const labels = model.labels as ShapeLabel[];
+  const filtered = samples.filter((s) => labels.includes(s.label));
+  let correct = 0;
+  const mistakes: { id: string; trueLabel: ShapeLabel; predLabel: ShapeLabel }[] = [];
+  for (const s of filtered) {
+    const { pred } = classifyModel(s.pixels, model);
+    const trueIdx = labels.indexOf(s.label);
+    if (pred === trueIdx) correct += 1;
+    else mistakes.push({ id: s.id, trueLabel: s.label, predLabel: labels[pred] });
+  }
+  return {
+    correct,
+    total: filtered.length,
+    accuracy: filtered.length === 0 ? 0 : correct / filtered.length,
+    mistakes,
+  };
 }

@@ -1,140 +1,363 @@
 // PhaseB2 — 데이터셋과 전처리
-// 36장 도트 데이터에 노이즈/오라벨이 심어져 있다.
-// 학생은 그림 + 적힌 라벨을 보고 *이상해 보이는 샘플*을 직접 토글로 제외한다.
-// 두 학습(전처리 없음 vs 전처리 후)의 정확도 곡선을 나란히 비교한다.
+// 노이즈/오라벨이 *실제 학습을* 망가뜨리는 모습을 보여 준다.
+// "학습 시작 전에는 그래프 비어 있음" / "▶ 두 학습 비교 시작" 누른 뒤에야 두 곡선이 그려진다.
+// 두 학습 모두 진짜 SGD (createDeepMLP + trainStep + 미니배치) 로 돌린다.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { PHASES } from '../phases';
 import { useApp } from '../store';
+import { useDot } from '../dotStore';
 import {
-  useDot,
-  activeSamples,
-  trainLinearClassifier,
-  evaluateAccuracy,
-} from '../dotStore';
-import {
-  SHAPE_LABEL_KO,
   type DotSample,
   type ShapeLabel,
+  SHAPE_LABEL_KO,
 } from '../data/dotShapes';
+import {
+  createDeepMLP,
+  evaluate,
+  shuffle,
+  trainStep,
+  type TrainSample,
+} from '../lib/nn';
 
-// B2는 동그라미 vs 세모 두 라벨로만 비교 학습 (이진).
-// 데이터의 '적힌 라벨'(label 필드)이 mislabel일 수 있으니, 그대로 학습에 넣는 것이 핵심.
-const TASK_LABELS: ShapeLabel[] = ['circle', 'triangle'];
-const EPOCHS = 16;
-const LR = 0.18;
+/* ────────── 학습 조건 ──────────
+   동그라미 vs 세모, 출력 뉴런 2개의 *진짜* 선형 softmax 분류기.
+   baseline(전처리 없음)이 70% 안팎이 되도록 데이터를 더럽게 만든다(아래 SYN_DIRTY).
+   cleaned(전처리 후)는 90% 이상으로 올라간다 — 차이 약 +20%p. */
+const TASK_LABELS: [ShapeLabel, ShapeLabel] = ['circle', 'triangle'];
+const EPOCHS = 30;
+const LR = 0.05;
+const BATCH_SIZE = 16;
+const TASK_LABEL_KO = (l: ShapeLabel) => SHAPE_LABEL_KO[l];
+const labelIdx = (l: ShapeLabel) => TASK_LABELS.indexOf(l);
+
+/* ────────── 합성 dirty 샘플 — B2 안에서만 살아 있음 ──────────
+   "동그라미라고 적혀 있지만 그림은 세모", "세모라고 적혀 있지만 그림은 동그라미" 등
+   서로 모순되는 라벨을 가진 12장. 학생 갤러리에 다른 샘플과 섞어 보여 주고,
+   학생이 클릭으로 제외해야 한다. 이 샘플들은 store에 들어가지 않으므로 B3 이후에는 사라진다. */
+const SIZE = 8;
+const at = (x: number, y: number) => y * SIZE + x;
+function drawCircle(cx: number, cy: number, r: number): number[] {
+  const p = new Array(64).fill(0);
+  for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
+    const d = Math.hypot(x - cx, y - cy);
+    if (d <= r + 0.4 && d >= r - 0.6) p[at(x, y)] = 1;
+  }
+  return p;
+}
+function drawTriangle(cx: number, cy: number, r: number): number[] {
+  const p = new Array(64).fill(0);
+  const top = { x: cx, y: cy - r };
+  const left = { x: cx - r, y: cy + r * 0.85 };
+  const right = { x: cx + r, y: cy + r * 0.85 };
+  function line(x1: number, y1: number, x2: number, y2: number) {
+    const dx = x2 - x1, dy = y2 - y1;
+    const steps = Math.max(Math.abs(dx), Math.abs(dy)) * 4;
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const xx = Math.round(x1 + dx * t);
+      const yy = Math.round(y1 + dy * t);
+      if (xx >= 0 && xx < 8 && yy >= 0 && yy < 8) p[at(xx, yy)] = 1;
+    }
+  }
+  line(top.x, top.y, left.x, left.y);
+  line(top.x, top.y, right.x, right.y);
+  line(left.x, left.y, right.x, right.y);
+  return p;
+}
+const VARIANTS = [
+  { cx: 3.5, cy: 3.5, r: 3 },
+  { cx: 3.5, cy: 3.5, r: 2.5 },
+  { cx: 3, cy: 3, r: 2.5 },
+  { cx: 4, cy: 4, r: 2.5 },
+  { cx: 3.5, cy: 3.5, r: 2.7 },
+  { cx: 3.5, cy: 3.5, r: 2 },
+];
+function buildSynDirty(): DotSample[] {
+  const out: DotSample[] = [];
+  // 그림은 세모인데 적힌 라벨은 동그라미 — 6장
+  VARIANTS.forEach((v, i) => {
+    out.push({
+      id: `syn-tc-${i}`,
+      label: 'circle',
+      pixels: drawTriangle(v.cx, v.cy, v.r),
+      mislabel: 'triangle',
+    });
+  });
+  // 그림은 동그라미인데 적힌 라벨은 세모 — 6장
+  VARIANTS.forEach((v, i) => {
+    out.push({
+      id: `syn-ct-${i}`,
+      label: 'triangle',
+      pixels: drawCircle(v.cx, v.cy, v.r),
+      mislabel: 'circle',
+    });
+  });
+  return out;
+}
+const SYN_DIRTY: DotSample[] = buildSynDirty();
+const SYN_DIRTY_IDS = new Set(SYN_DIRTY.map((s) => s.id));
+
+/* ────────── 학습 헬퍼 ──────────
+   샘플 배열을 받아 한 번 끝까지 학습하고 epoch별 정확도(학습/평가) 곡선을 돌려 준다.
+   학습 중 UI를 양보하기 위해 await new Promise(r => setTimeout(r, 0)). */
+async function runTraining(
+  trainSamples: DotSample[],
+  evalSamples: DotSample[],
+  cancelRef: { current: boolean },
+  onEpoch: (snapshot: { epoch: number; trainAcc: number; evalAcc: number }) => void,
+): Promise<{ trainAcc: number; evalAcc: number }> {
+  const train: TrainSample[] = trainSamples
+    .filter((s) => TASK_LABELS.includes(s.label))
+    .map((s) => ({ x: new Float32Array(s.pixels), y: labelIdx(s.label) }));
+  const evalSet: TrainSample[] = evalSamples
+    .filter((s) => !s.noisy && !s.mislabel && TASK_LABELS.includes(s.label))
+    .map((s) => ({ x: new Float32Array(s.pixels), y: labelIdx(s.label) }));
+  if (train.length < 2 || evalSet.length < 2) {
+    return { trainAcc: 0, evalAcc: 0 };
+  }
+  const m = createDeepMLP([64, 2]);
+  let lastTrainAcc = 0;
+  let lastEvalAcc = 0;
+  for (let ep = 0; ep < EPOCHS; ep++) {
+    if (cancelRef.current) break;
+    const batches = shuffle(train);
+    for (let i = 0; i < batches.length; i += BATCH_SIZE) {
+      trainStep(m, batches.slice(i, i + BATCH_SIZE), LR);
+    }
+    lastTrainAcc = evaluate(m, train);
+    lastEvalAcc = evaluate(m, evalSet);
+    onEpoch({ epoch: ep + 1, trainAcc: lastTrainAcc, evalAcc: lastEvalAcc });
+    // UI yield
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise((r) => setTimeout(r, 0));
+  }
+  return { trainAcc: lastTrainAcc, evalAcc: lastEvalAcc };
+}
 
 interface TrainResult {
   trainAcc: number;
   evalAcc: number;
-  accHistory: number[];
+  trainHist: number[];
+  evalHist: number[];
 }
 
-function runTraining(samples: DotSample[]): TrainResult {
-  // 학습 가능한 샘플은 두 라벨('적힌 라벨' 기준)에 해당하는 것만.
-  const usable = samples.filter((s) => TASK_LABELS.includes(s.label));
-  if (usable.length < 2) {
-    return { trainAcc: 0, evalAcc: 0, accHistory: [] };
-  }
-  const { w, b, accuracyHistory } = trainLinearClassifier(usable, TASK_LABELS, EPOCHS, LR);
-  // *진짜 라벨*로 평가 — mislabel이 있으면 mislabel 필드가 정답.
-  const truthSamples: DotSample[] = samples
-    .filter((s) => {
-      const truth = s.mislabel ?? s.label;
-      return TASK_LABELS.includes(truth);
-    })
-    .map((s) => ({ ...s, label: s.mislabel ?? s.label }));
-  const ev = evaluateAccuracy(truthSamples, TASK_LABELS, w, b);
-  // 학습셋(적힌 라벨 기준) 정확도는 마지막 epoch의 값.
-  const trainAcc = accuracyHistory[accuracyHistory.length - 1] ?? 0;
-  return { trainAcc, evalAcc: ev.accuracy, accHistory: accuracyHistory };
-}
+const EMPTY_RESULT: TrainResult = { trainAcc: 0, evalAcc: 0, trainHist: [], evalHist: [] };
 
+/* ────────── 메인 컴포넌트 ────────── */
 export function PhaseB2() {
   const meta = PHASES.find((p) => p.id === 'b2')!;
   const markCompleted = useApp((s) => s.markCompleted);
 
-  const samples = useDot((s) => s.samples);
-  const removedIds = useDot((s) => s.removedIds);
-  const toggleRemove = useDot((s) => s.toggleRemove);
+  // store 측 데이터
+  const storeSamples = useDot((s) => s.samples);
+  const storeRemoved = useDot((s) => s.removedIds);
+  const toggleRemoveStore = useDot((s) => s.toggleRemove);
   const resetRemoved = useDot((s) => s.resetRemoved);
 
-  // 라벨별 그룹 (UI 갤러리는 세 라벨 모두 보여주지만 학습은 동그라미·세모만 사용)
-  const grouped = useMemo(() => {
-    const labels: ShapeLabel[] = ['circle', 'triangle', 'square'];
-    return labels.map((lbl) => ({
-      label: lbl,
-      items: samples.filter((s) => s.label === lbl),
-    }));
-  }, [samples]);
+  // B2 로컬: 합성 dirty 샘플의 제거 토글 (store와 분리 — B3 이후에는 사라짐)
+  const [localRemoved, setLocalRemoved] = useState<Set<string>>(() => new Set());
 
-  const active = useMemo(
-    () => activeSamples({ samples, removedIds }),
-    [samples, removedIds]
+  // 갤러리에 보일 전체 — store 36장 + 합성 12장
+  const allSamples: DotSample[] = useMemo(() => [...storeSamples, ...SYN_DIRTY], [storeSamples]);
+
+  // 어떤 샘플이 "제거됨"인지 통합 판정
+  const isRemoved = (id: string): boolean => {
+    if (SYN_DIRTY_IDS.has(id)) return localRemoved.has(id);
+    return storeRemoved.has(id);
+  };
+
+  const toggleRemove = (id: string) => {
+    if (SYN_DIRTY_IDS.has(id)) {
+      setLocalRemoved((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        return next;
+      });
+    } else {
+      toggleRemoveStore(id);
+    }
+  };
+
+  // active = 제거되지 않은 모든 샘플
+  const activeAll = useMemo(
+    () => allSamples.filter((s) => !isRemoved(s.id)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allSamples, storeRemoved, localRemoved]
   );
 
-  // 두 학습 결과 — 전처리 없음(전체)과 전처리 후(active).
-  // 첫 진입에서도 보이도록 즉시 한 번 학습. 시드/파라미터 고정이라 결정론적.
-  const baseline = useMemo<TrainResult>(() => runTraining(samples), [samples]);
-  const [current, setCurrent] = useState<TrainResult>(() => runTraining(samples));
+  // 라벨별 그룹 — UI 갤러리 렌더링 (동그라미/세모만, 네모는 B5에서)
+  const grouped = useMemo(() => {
+    const labels: ShapeLabel[] = ['circle', 'triangle'];
+    return labels.map((lbl) => ({
+      label: lbl,
+      items: allSamples.filter((s) => s.label === lbl),
+    }));
+  }, [allSamples]);
 
-  // 학생이 active set을 바꾼 뒤 "재학습"을 누르면 현재 active로 다시 학습.
-  const retrain = () => setCurrent(runTraining(active));
+  // 평가용 깨끗한 reference set (실제 store 샘플 중 noisy/mislabel 없는 것)
+  const evalRef = useMemo(
+    () => storeSamples.filter((s) => !s.noisy && !s.mislabel),
+    [storeSamples]
+  );
 
-  // *제거된 노이즈/오라벨 샘플 수* 추적 — 정답 판정에 쓴다.
+  // dirty 제거 카운트 — 합성 + store 양쪽
   const removedDirty = useMemo(() => {
     let n = 0;
-    for (const s of samples) {
-      if (!removedIds.has(s.id)) continue;
+    for (const s of allSamples) {
+      if (!isRemoved(s.id)) continue;
       if (s.noisy || s.mislabel) n += 1;
     }
     return n;
-  }, [samples, removedIds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allSamples, storeRemoved, localRemoved]);
 
-  // 완료 조건: dirty 4개 이상 제거 + 현재 평가 정확도 ≥ 0.9
+  /* ─── 학습 상태 ─── */
+  const [hasStarted, setHasStarted] = useState(false);
+  const [isTraining, setIsTraining] = useState(false);
+  const [stage, setStage] = useState<'idle' | 'baseline' | 'current' | 'done'>('idle');
+  const [baseline, setBaseline] = useState<TrainResult>(EMPTY_RESULT);
+  const [current, setCurrent] = useState<TrainResult>(EMPTY_RESULT);
+  const cancelRef = useRef({ current: false });
+
+  // 학습 시작 — baseline + current 차례로 돌린다
+  const startCompare = async () => {
+    if (isTraining) return;
+    setHasStarted(true);
+    setIsTraining(true);
+    cancelRef.current = { current: false };
+
+    // baseline: 전처리 없음 — 모든 합성 dirty 포함, store 제거 무시
+    setStage('baseline');
+    const baseTrainHist: number[] = [];
+    const baseEvalHist: number[] = [];
+    setBaseline({ trainAcc: 0, evalAcc: 0, trainHist: [], evalHist: [] });
+    const bRes = await runTraining(allSamples, evalRef, cancelRef.current, (snap) => {
+      baseTrainHist.push(snap.trainAcc);
+      baseEvalHist.push(snap.evalAcc);
+      setBaseline({
+        trainAcc: snap.trainAcc,
+        evalAcc: snap.evalAcc,
+        trainHist: baseTrainHist.slice(),
+        evalHist: baseEvalHist.slice(),
+      });
+    });
+    if (cancelRef.current.current) {
+      setIsTraining(false);
+      setStage('idle');
+      return;
+    }
+    setBaseline((prev) => ({
+      ...prev,
+      trainAcc: bRes.trainAcc,
+      evalAcc: bRes.evalAcc,
+      trainHist: baseTrainHist.slice(),
+      evalHist: baseEvalHist.slice(),
+    }));
+
+    // current: active set 기반
+    setStage('current');
+    await runCurrent(false);
+  };
+
+  // current만 다시 학습 (재학습 버튼 또는 비교 시작 후속 단계)
+  const runCurrent = async (standalone: boolean) => {
+    if (standalone) {
+      if (isTraining) return;
+      setIsTraining(true);
+      cancelRef.current = { current: false };
+      setStage('current');
+    }
+    const trainHist: number[] = [];
+    const evalHist: number[] = [];
+    setCurrent({ trainAcc: 0, evalAcc: 0, trainHist: [], evalHist: [] });
+    const cRes = await runTraining(activeAll, evalRef, cancelRef.current, (snap) => {
+      trainHist.push(snap.trainAcc);
+      evalHist.push(snap.evalAcc);
+      setCurrent({
+        trainAcc: snap.trainAcc,
+        evalAcc: snap.evalAcc,
+        trainHist: trainHist.slice(),
+        evalHist: evalHist.slice(),
+      });
+    });
+    if (cancelRef.current.current) {
+      setIsTraining(false);
+      setStage('idle');
+      return;
+    }
+    setCurrent({
+      trainAcc: cRes.trainAcc,
+      evalAcc: cRes.evalAcc,
+      trainHist: trainHist.slice(),
+      evalHist: evalHist.slice(),
+    });
+    setIsTraining(false);
+    setStage('done');
+  };
+
+  const cancelTraining = () => {
+    cancelRef.current.current = true;
+  };
+
+  // 데이터셋 되돌리기 — 합성 dirty 로컬 + store 제거를 모두 초기화
+  const resetAll = () => {
+    setLocalRemoved(new Set());
+    resetRemoved();
+  };
+
+  // 완료 조건: dirty 4장 이상 제거 + current 평가가 baseline 대비 +15%p 이상
   const completedRef = useRef(false);
   useEffect(() => {
     if (completedRef.current) return;
-    if (removedDirty >= 4 && current.evalAcc >= 0.9) {
+    if (!hasStarted || stage !== 'done') return;
+    if (removedDirty >= 4 && current.evalAcc - baseline.evalAcc >= 0.15) {
       completedRef.current = true;
       markCompleted('b2');
     }
-  }, [removedDirty, current.evalAcc, markCompleted]);
+  }, [removedDirty, current.evalAcc, baseline.evalAcc, hasStarted, stage, markCompleted]);
 
-  // 라벨 카운트 (학습에 쓰이는 두 라벨만)
-  const taskActiveCount = active.filter((s) => TASK_LABELS.includes(s.label)).length;
-  const taskTotalCount = samples.filter((s) => TASK_LABELS.includes(s.label)).length;
+  // 카운트
+  const totalCount = allSamples.filter((s) => TASK_LABELS.includes(s.label)).length;
+  const activeCount = activeAll.filter((s) => TASK_LABELS.includes(s.label)).length;
 
   return (
     <article>
-      <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
-      <h1>{meta.title}</h1>
-      <p className="text-muted mt-2 text-sm">{meta.subtitle}</p>
+      {/* 헤더 압축 */}
+      <header className="mb-3">
+        <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
+        <h1 className="text-2xl font-semibold mt-0.5">{meta.title}</h1>
+        <p className="text-muted text-sm mt-0.5">{meta.subtitle}</p>
+      </header>
 
-      {/* 도입 — PLAN ## 10-1 #2 본문 (그대로) */}
-      <div className="aside-note mt-4 text-[13px] leading-relaxed">
-        같은 그림 데이터를 <strong>전처리 없이</strong> 학습시켰을 때와 <strong>전처리 후</strong> 학습시켰을 때를 나란히 비교해 봐요. 정확도 곡선이 어떻게 달라지는지 보세요 — 그림을 깨끗하게 다듬는 일이 모델보다 먼저인 이유가 여기 있습니다.
-      </div>
+      {/* 도입 한 단락 */}
+      <p className="leading-relaxed text-[15px]">
+        그림이 잘못 분류돼 있거나 점들이 깨져 있으면 모델은 <strong>잘못된 것을 외워요</strong>.
+        먼저 데이터를 다듬은 뒤 학습해야 모델이 진짜 패턴을 배웁니다.
+        같은 모델·같은 학습 시간으로 <strong>전처리 없음 vs 전처리 후</strong>를 나란히 비교해 보세요.
+      </p>
 
-      <div className="mt-4 grid lg:grid-cols-[1.55fr_1fr] gap-4 items-start">
+      <div className="mt-3 grid lg:grid-cols-[1.4fr_1fr] gap-3 items-start">
         {/* 좌: 데이터 갤러리 */}
         <div className="card p-3">
           <div className="flex items-baseline justify-between flex-wrap gap-2">
-            <div className="text-sm font-medium">데이터 갤러리 (36장)</div>
+            <div className="text-sm font-medium">
+              데이터 갤러리 ({allSamples.length}장 · 동그라미·세모만 학습)
+            </div>
             <div className="text-[12px] text-muted">
-              그림과 적힌 라벨이 어울리지 않거나 점들이 이상해 보이는 샘플을 클릭해 <strong>제외</strong>해 보세요.
+              그림과 라벨이 어울리지 않거나 점이 깨진 샘플을 클릭해 <strong>제외</strong>해 보세요.
             </div>
           </div>
 
-          <div className="mt-2 space-y-2 max-h-[420px] overflow-y-auto pr-1">
+          <div className="mt-2 space-y-2 max-h-[440px] overflow-y-auto pr-1">
             {grouped.map(({ label, items }) => (
               <div key={label}>
                 <div className="text-[12px] text-muted mb-1">
-                  적힌 라벨: <strong>{SHAPE_LABEL_KO[label]}</strong>
-                  {label === 'square' && <span className="ml-2 text-[11px]">(B2 학습은 동그라미/세모만 사용)</span>}
+                  적힌 라벨: <strong>{TASK_LABEL_KO(label)}</strong>{' '}
+                  <span className="text-[11px]">({items.length}장)</span>
                 </div>
-                <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 gap-1.5">
+                <div className="grid grid-cols-6 sm:grid-cols-9 md:grid-cols-12 gap-1.5">
                   {items.map((s) => {
-                    const removed = removedIds.has(s.id);
+                    const removed = isRemoved(s.id);
                     return (
                       <button
                         key={s.id}
@@ -149,7 +372,7 @@ export function PhaseB2() {
                       >
                         <DotThumb pixels={s.pixels} size={36} />
                         <div className="text-[10px] text-muted text-center mt-0.5 leading-none">
-                          {removed ? '제외' : s.id.split('-')[1]}
+                          {removed ? '제외' : '·'}
                         </div>
                       </button>
                     );
@@ -161,10 +384,14 @@ export function PhaseB2() {
 
           <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px]">
             <span className="text-muted">
-              제외된 샘플 <span className="font-mono text-accent">{removedIds.size}</span> · 남은 active{' '}
-              <span className="font-mono text-accent">{active.length}</span> / {samples.length}
+              제외 <span className="font-mono text-accent">{totalCount - activeCount}</span> ·
+              남은 active <span className="font-mono text-accent">{activeCount}</span> / {totalCount}{' '}
+              · 의심 샘플 제거{' '}
+              <span className={'font-mono ' + (removedDirty >= 4 ? 'text-emerald-600' : 'text-accent')}>
+                {removedDirty}
+              </span>
             </span>
-            <button onClick={resetRemoved} className="btn-ghost ml-auto !py-1 !px-2 text-[12px]">
+            <button onClick={resetAll} className="btn-ghost ml-auto !py-1 !px-2 text-[12px]">
               원본 데이터셋으로 되돌리기
             </button>
           </div>
@@ -173,52 +400,107 @@ export function PhaseB2() {
         {/* 우: 비교 학습 패널 */}
         <div className="space-y-3">
           <div className="card p-3">
-            <div className="text-sm font-medium mb-1">비교 학습 — 동그라미 vs 세모</div>
-            <div className="text-[11px] text-muted leading-relaxed">
-              두 학습 모두 같은 시드/같은 학습률로 결정론적으로 돌립니다. 데이터만 다른 거예요.
-            </div>
+            <div className="text-sm font-medium mb-1">두 학습 비교 — 동그라미 vs 세모</div>
 
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <ResultCard
-                label="전처리 없음"
-                sub={`전체 ${taskTotalCount}장`}
-                accent={false}
-                result={baseline}
-              />
-              <ResultCard
-                label="전처리 후"
-                sub={`active ${taskActiveCount}장`}
-                accent={true}
-                result={current}
-              />
-            </div>
+            {!hasStarted ? (
+              <div className="mt-2 space-y-2">
+                <div className="aside-note text-[12px] leading-relaxed">
+                  학습 비교 시작 버튼을 누르면, 같은 모델·같은 학습 시간으로
+                  <strong> 전처리 없음 / 전처리 후</strong> 두 곡선이 나란히 그려져요.
+                </div>
+                <div className="rounded border border-border bg-zinc-50 dark:bg-zinc-900 h-[140px] flex items-center justify-center text-[12px] text-muted">
+                  학습 시작 전 — 그래프는 비어 있어요
+                </div>
+                <button
+                  onClick={startCompare}
+                  className="btn-primary w-full"
+                >
+                  ▶ 두 학습 비교 시작
+                </button>
+              </div>
+            ) : (
+              <div className="mt-2 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <ResultCard
+                    label="전처리 없음"
+                    sub={`전체 ${allSamples.filter((s) => TASK_LABELS.includes(s.label)).length}장`}
+                    accent={false}
+                    result={baseline}
+                    isCurrent={stage === 'baseline'}
+                  />
+                  <ResultCard
+                    label="전처리 후"
+                    sub={`active ${activeCount}장`}
+                    accent={true}
+                    result={current}
+                    isCurrent={stage === 'current'}
+                  />
+                </div>
 
-            <AccuracyCurve baseline={baseline.accHistory} current={current.accHistory} />
+                <AccuracyCurve baseline={baseline.evalHist} current={current.evalHist} />
 
-            <div className="flex flex-wrap gap-2 mt-2">
-              <button onClick={retrain} className="btn-primary">▶ 현재 데이터로 재학습</button>
-              <button
-                onClick={() => setCurrent(runTraining(samples))}
-                className="btn-ghost"
-                title="비교용 baseline과 같은 결과로 되돌립니다"
-              >
-                초기화
-              </button>
-            </div>
+                <div className="flex flex-wrap gap-2">
+                  {isTraining ? (
+                    <button onClick={cancelTraining} className="btn-ghost flex-1">
+                      ■ 학습 중단
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => runCurrent(true)}
+                        className="btn-primary flex-1"
+                        disabled={isTraining}
+                      >
+                        ▶ 현재 active로 재학습
+                      </button>
+                      <button
+                        onClick={() => {
+                          completedRef.current = false;
+                          setHasStarted(false);
+                          setBaseline(EMPTY_RESULT);
+                          setCurrent(EMPTY_RESULT);
+                          setStage('idle');
+                        }}
+                        className="btn-ghost"
+                        disabled={isTraining}
+                      >
+                        초기화
+                      </button>
+                    </>
+                  )}
+                </div>
+                {isTraining && (
+                  <div className="text-[11px] text-muted">
+                    학습 중… ({stage === 'baseline' ? '전처리 없음' : '전처리 후'} · 진짜 SGD 미니배치)
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="aside-tip text-[12px] leading-relaxed">
             <div className="text-sm font-medium">완료 조건</div>
             <p className="mt-1 text-muted">
-              <strong>이상해 보이는 샘플 4개 이상 제거 + 재학습 정확도 90% 이상</strong>이면 자동 완료돼요.
-              현재 제거한 의심 샘플{' '}
+              <strong>의심 샘플 4장 이상 제거 + 재학습 후 평가 정확도가 baseline 대비 +15%p 이상</strong>이면 자동 완료돼요.
+            </p>
+            <p className="mt-1 text-muted">
+              제거한 의심 샘플{' '}
               <span className={'font-mono ' + (removedDirty >= 4 ? 'text-emerald-600' : 'text-accent')}>
                 {removedDirty}/4
               </span>
-              · 평가 정확도{' '}
-              <span className={'font-mono ' + (current.evalAcc >= 0.9 ? 'text-emerald-600' : 'text-accent')}>
-                {(current.evalAcc * 100).toFixed(1)}%
-              </span>
+              {hasStarted && stage === 'done' && (
+                <>
+                  {' · 정확도 차'}{' '}
+                  <span
+                    className={
+                      'font-mono ' +
+                      (current.evalAcc - baseline.evalAcc >= 0.15 ? 'text-emerald-600' : 'text-accent')
+                    }
+                  >
+                    +{((current.evalAcc - baseline.evalAcc) * 100).toFixed(1)}%p
+                  </span>
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -229,15 +511,13 @@ export function PhaseB2() {
 
 /* ────────── 결과 카드 ────────── */
 function ResultCard({
-  label,
-  sub,
-  accent,
-  result,
+  label, sub, accent, result, isCurrent,
 }: {
   label: string;
   sub: string;
   accent: boolean;
   result: TrainResult;
+  isCurrent: boolean;
 }) {
   return (
     <div
@@ -246,20 +526,25 @@ function ResultCard({
         (accent ? 'border-accent bg-accent-bg/40' : 'border-border')
       }
     >
-      <div className="text-[12px] font-medium">{label}</div>
+      <div className="text-[12px] font-medium flex items-baseline gap-1">
+        {label}
+        {isCurrent && <span className="text-[10px] text-accent animate-pulse">학습 중</span>}
+      </div>
       <div className="text-[10px] text-muted">{sub}</div>
       <div className="mt-1 grid grid-cols-2 gap-1 font-mono text-[11px]">
         <div>
           <div className="text-muted text-[10px]">학습</div>
-          <div className="text-sm font-semibold">{(result.trainAcc * 100).toFixed(0)}%</div>
+          <div className="text-sm font-semibold">
+            {result.trainHist.length > 0 ? `${(result.trainAcc * 100).toFixed(0)}%` : '—'}
+          </div>
         </div>
         <div>
-          <div className="text-muted text-[10px]">평가(진짜 라벨)</div>
+          <div className="text-muted text-[10px]">평가(깨끗한 set)</div>
           <div
             className="text-sm font-semibold"
-            style={{ color: result.evalAcc >= 0.9 ? 'rgb(16,185,129)' : undefined }}
+            style={{ color: result.evalAcc >= 0.85 ? 'rgb(16,185,129)' : undefined }}
           >
-            {(result.evalAcc * 100).toFixed(0)}%
+            {result.evalHist.length > 0 ? `${(result.evalAcc * 100).toFixed(0)}%` : '—'}
           </div>
         </div>
       </div>
@@ -267,23 +552,17 @@ function ResultCard({
   );
 }
 
-/* ────────── 정확도 곡선 (두 학습 동시) ────────── */
-function AccuracyCurve({
-  baseline,
-  current,
-}: {
-  baseline: number[];
-  current: number[];
-}) {
+/* ────────── 정확도 곡선 (평가 정확도 두 곡선) ────────── */
+function AccuracyCurve({ baseline, current }: { baseline: number[]; current: number[] }) {
   const W = 360;
-  const H = 110;
+  const H = 130;
   const padL = 28;
   const padR = 8;
   const padT = 10;
   const padB = 18;
-  const N = Math.max(baseline.length, current.length, 2);
+  const N = Math.max(baseline.length, current.length, EPOCHS);
 
-  const sx = (i: number) => padL + (i / (N - 1)) * (W - padL - padR);
+  const sx = (i: number) => padL + (i / Math.max(N - 1, 1)) * (W - padL - padR);
   const sy = (v: number) => H - padB - v * (H - padT - padB);
 
   const pathOf = (h: number[]) => {
@@ -298,9 +577,9 @@ function AccuracyCurve({
   const yTicks = [0, 0.5, 1];
 
   return (
-    <div className="mt-2">
+    <div>
       <div className="flex items-baseline justify-between px-1">
-        <div className="text-[12px] font-medium">학습 정확도 곡선</div>
+        <div className="text-[12px] font-medium">평가 정확도 곡선</div>
         <div className="text-[10px] font-mono text-muted">
           <span style={{ color: 'rgb(148,163,184)' }}>● 전처리 없음</span>{' '}
           <span className="text-accent">● 전처리 후</span>
@@ -324,21 +603,18 @@ function AccuracyCurve({
             </text>
           </g>
         ))}
-        {/* 90% 임계선 */}
+        {/* 70% 안내선 (baseline 기준선 시각화) */}
         <line
           x1={padL}
-          y1={sy(0.9)}
+          y1={sy(0.7)}
           x2={W - padR}
-          y2={sy(0.9)}
-          stroke="rgb(16,185,129)"
+          y2={sy(0.7)}
+          stroke="rgb(190,18,60)"
           strokeDasharray="3 3"
-          opacity={0.6}
+          opacity={0.35}
         />
         <path d={pathOf(baseline)} fill="none" stroke="rgb(148,163,184)" strokeWidth={1.6} />
         <path d={pathOf(current)} fill="none" stroke="rgb(var(--color-accent))" strokeWidth={1.8} />
-        <text x={W - padR - 2} y={sy(0.9) - 2} textAnchor="end" fontSize={9} fill="rgb(16,185,129)">
-          90% 목표
-        </text>
         <text x={W - padR} y={H - 4} textAnchor="end" fontSize={9} fill="rgb(var(--color-muted))">
           epoch
         </text>
@@ -347,7 +623,7 @@ function AccuracyCurve({
   );
 }
 
-/* ────────── 8×8 도트 썸네일 (작은 버전) ────────── */
+/* ────────── 8×8 도트 썸네일 ────────── */
 function DotThumb({ pixels, size = 36 }: { pixels: number[]; size?: number }) {
   const cell = size / 8;
   return (
