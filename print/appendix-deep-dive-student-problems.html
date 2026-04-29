@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>Neural Explorer 활동지 부록 — 심화 탐구 가이드</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt;page-break-after:avoid}
+
+  /* 헤더 */
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt;page-break-after:avoid}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .meta{font-size:9pt;color:#777;margin-top:6pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+  .name{font-size:9.5pt;color:#555;margin-top:8pt}
+  .name span{display:inline-block;border-bottom:1px solid #888;min-width:80pt;margin:0 8pt}
+
+  /* 카드 */
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0;break-inside:auto;page-break-inside:auto}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt;break-inside:avoid;page-break-inside:avoid}
+  .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+  .sh{font-size:11pt;font-weight:700;margin:14pt 0 6pt;color:#222;break-after:avoid;page-break-after:avoid}
+
+  /* 개념 박스 */
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0;break-inside:avoid;page-break-inside:avoid}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .tip{border-left-style:dashed}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px;break-inside:avoid;page-break-inside:avoid}
+
+  /* 표 */
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#1a1a1a;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb .blank{height:22pt;background:#fff}
+
+  /* 빈칸 */
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .bk{display:inline-block;border-bottom:1.5px solid #333;min-width:30pt;text-align:center;padding:0 4pt;margin:0 2pt}
+  .bk.lg{min-width:60pt}
+  .bk.xl{min-width:120pt}
+  .ans-area{border:1px solid #aaa;border-radius:4px;min-height:38pt;padding:6pt;margin:6pt 0;background:#fcfcfc}
+  .ans-area.lg{min-height:60pt}
+  .ans-area.xl{min-height:90pt}
+
+  /* 앱 안내 */
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  /* 관찰 박스 */
+  .ob{border:1.2px dashed #777;border-radius:5px;padding:8pt 10pt;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .ob .lab{font-weight:700;font-size:10pt;margin-bottom:4pt}
+
+  /* 탐구 관점 질문 박스 */
+  .qst{border-left:3px solid #1a1a1a;padding:6pt 12pt;margin:6pt 0;background:#fafafa;break-inside:avoid;page-break-inside:avoid}
+  .qst .lab{font-size:8.5pt;letter-spacing:1.5px;color:#666;font-weight:600;margin-bottom:3pt}
+  .qst ul{padding-left:14pt;margin:0}
+  .qst li{font-size:10pt;color:#222;margin-bottom:3pt}
+
+  /* 자료 박스 */
+  .src{font-size:9.5pt;color:#444;border:1px dashed #aaa;border-radius:4px;padding:6pt 10pt;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .src .lab{font-size:8.5pt;letter-spacing:1.5px;color:#666;font-weight:600;margin-bottom:3pt;display:block}
+  .src ul{padding-left:14pt;margin:0}
+
+  /* 주요 개념 칩 */
+  .keys{margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .keys .lab{font-size:8.5pt;letter-spacing:1.5px;color:#666;font-weight:600;margin-bottom:4pt;display:block}
+  .keys .chip{display:inline-block;border:1px solid #555;border-radius:14pt;padding:1.5pt 9pt;margin:2pt 4pt 2pt 0;font-size:9.5pt;background:#fafafa}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt}
+  ul,ol{padding-left:18pt;margin:4pt 0}
+  li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto;overflow:visible}
+    .qh,.fm,.ex,.ib,.tb,.an,.ob,.qst,.src,.keys{break-inside:avoid;page-break-inside:avoid}
+    .sh{break-after:avoid;page-break-after:avoid}
+    p,li{orphans:3;widows:3}
+    .tb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .qh .num{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<header class="lh">
+<div class="lab">NEURAL EXPLORER · APPENDIX · DEEP DIVE</div>
+<h1>부록 — 심화 탐구 가이드</h1>
+<div class="sub">수업에서 *얕게* 본 것을 *깊이* 들어가는 5가지 주제 — 학생 주도 탐구용</div>
+<div class="meta">A·B·C 활동지 종료 후 사용 · 대상: 고등학생 / 관심 있는 학습자 · 권장 시간 자유 (한 주제당 약 60~120분)</div>
+<div class="obj">
+이 부록은 *답을 떠먹여 주지 않습니다*. 각 주제마다 <strong>주제 한 줄 · 우리 수업의 어디와 이어지나 · 탐구 관점 질문 · 주요 개념 · 자기 자료 찾기</strong>를 제시합니다.
+학생은 자료를 직접 찾아 읽고, 질문에 자기 말로 답하고, 손계산이나 작은 실험으로 검증합니다.
+하나의 주제에 매달리지 말고 <strong>관심 가는 한 가지부터</strong> 시작하세요.
+</div>
+<div class="name">학번 <span></span> 이름 <span></span></div>
+</header>
+
+<!-- ============================================================== -->
+<h2>탐구 시작 전 — 자기 점검</h2>
+<div class="qc">
+<div class="qh"><span class="num">0</span>나는 어디까지 알고 있나?</div>
+<div class="qd">A·B·C 활동지를 마친 직후, *내가 자신 있게 설명할 수 있는 것*과 *아직 모호한 것*을 정직하게 분류해 봅니다. 모호한 곳이 곧 *내 탐구 진입점*.</div>
+<table class="tb">
+  <tr><th>주제</th><th>자신 있게 설명 가능 (○/△/×)</th><th>아직 모호한 부분 (한 줄)</th></tr>
+  <tr><td class="lbl">활성화 함수가 *왜* 필요한가</td><td class="blank"></td><td class="blank"></td></tr>
+  <tr><td class="lbl">학습률 η가 너무 크면 *왜* 발산하는가</td><td class="blank"></td><td class="blank"></td></tr>
+  <tr><td class="lbl">교차 엔트로피가 *왜* −log(p)인가</td><td class="blank"></td><td class="blank"></td></tr>
+  <tr><td class="lbl">은닉층 가중치는 *어떻게* 갱신되는가 (역전파)</td><td class="blank"></td><td class="blank"></td></tr>
+  <tr><td class="lbl">정확도만으로는 *무엇*을 못 보는가</td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="ib tip"><div class="t">탐구 가이드</div>
+× 또는 △로 답한 항목과 같은 번호의 TOPIC부터 시작하세요. 가장 모호한 곳이 *가장 흥미로울* 가능성이 높습니다.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>TOPIC 1. 활성화 함수의 세계</h2>
+<div class="qc">
+<div class="qh"><span class="num">1</span>주제 한 줄</div>
+<div class="qd">ReLU 외에 어떤 활성화 함수들이 있고, 각자가 *어떤 문제를 해결*하려고 만들어졌는가?</div>
+
+<div class="ib"><div class="t">우리 수업의 어디와 이어지나</div>
+<ul>
+  <li>A1에서 ReLU·sigmoid·linear를 토글로 비교했지만, 같은 z에서 결과가 다르다는 사실까지만 봤음.</li>
+  <li>C3 트랙 1에서 <em>Dying ReLU</em>(z₁₂ &lt; 0이라 ReLU′ = 0 → e_h₂ = 0)를 손계산으로 발견했지만, 이게 <em>모델 전체에 어떤 영향</em>을 주는지는 안 다뤘음.</li>
+</ul></div>
+
+<div class="qst"><div class="lab">탐구 관점 질문</div>
+<ul>
+  <li>sigmoid는 z가 매우 크거나 작을 때 미분이 0에 가까워진다. 깊은 망에서 이게 *어떤 학습 문제*로 이어질까?</li>
+  <li>Leaky ReLU가 음수에도 작은 기울기를 살리는 이유는? Dying ReLU와 어떻게 연결되나?</li>
+  <li>tanh와 sigmoid는 모양이 비슷하지만 출력 범위가 다르다(−1~1 vs 0~1). 어느 쪽이 *0 중심*이라 학습에 유리한 이유는?</li>
+  <li>GELU·Swish 같은 *부드러운 ReLU*가 트랜스포머에서 표준이 된 이유는?</li>
+</ul></div>
+
+<div class="keys"><span class="lab">주요 개념</span>
+<span class="chip">vanishing gradient</span>
+<span class="chip">Dying ReLU</span>
+<span class="chip">Leaky ReLU / PReLU</span>
+<span class="chip">tanh</span>
+<span class="chip">GELU / Swish</span>
+<span class="chip">He / Xavier 초기화</span>
+<span class="chip">saturation 영역</span>
+</div>
+
+<div class="src"><span class="lab">자료 찾기 — 직접 검색·읽고 비교</span>
+<ul>
+  <li>"Activation functions cheat sheet" 또는 한국어 "활성화 함수 비교"</li>
+  <li>각 함수의 그래프와 미분 그래프를 *손으로 그려* 비교하면 vanishing gradient가 한눈에 보임</li>
+  <li>같은 데이터로 sigmoid 깊은 MLP vs ReLU 깊은 MLP를 학습시키는 코드 찾아 직접 돌려 보기</li>
+</ul></div>
+
+<div class="ob"><div class="lab">미니 실험 — 직접 그려 보기</div>
+sigmoid(z)와 그 미분 σ′(z) = σ(z)(1−σ(z))의 그래프를 −6 ≤ z ≤ 6 범위에서 *손으로 그려* 보세요. 미분 값이 가장 큰 z는? 가장 작은 z는? 깊은 망에서 그라디언트가 *왜 사라지는지* 그래프 한 장으로 설명해 보세요.
+<div class="ans-area lg"></div>
+</div>
+
+<div class="qd"><strong>내 정리</strong> — 위 질문 4가지에 모두 자기 말로 답한 뒤, *한 문단*으로 "활성화 함수의 세계"를 친구에게 설명한다고 생각하고 적어 보세요.</div>
+<div class="ans-area xl"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>TOPIC 2. 학습률 스케줄링과 옵티마이저</h2>
+<div class="qc">
+<div class="qh"><span class="num">2</span>주제 한 줄</div>
+<div class="qd">학습률 η는 *고정된 한 숫자*여야만 하는가? 학습 동안 *계속 조정*하면 어떻게 되는가?</div>
+
+<div class="ib"><div class="t">우리 수업의 어디와 이어지나</div>
+<ul>
+  <li>A3에서 η = 1.2 / 1.0 / 0.1 / 0.01 4시나리오로 발산·진동·수렴·느림을 봤음. 그러나 <em>학습 내내 같은 η</em>를 가정.</li>
+  <li>실제 딥러닝은 학습 초기에 큰 η, 후반에 작은 η가 *최적*인 경우가 많다. 또 가중치마다 *다른 η*를 자동 적용하는 옵티마이저(Adam 등)가 표준.</li>
+</ul></div>
+
+<div class="qst"><div class="lab">탐구 관점 질문</div>
+<ul>
+  <li>학습 초기에 큰 η가 *왜* 유리한가? (큰 보폭이 어디로 데려가는가?)</li>
+  <li>학습 후반에 작은 η가 *왜* 유리한가? (수렴 점 근처에서 큰 보폭이 일으키는 문제)</li>
+  <li>"warmup"은 처음에 η를 *0에서 키워가는* 방식이다. 왜 그렇게 하는가?</li>
+  <li>Momentum은 *이전 step의 방향*을 일부 기억해 보폭에 더한다. A3 시나리오 중 어느 쪽(진동·발산)에 도움이 될까?</li>
+  <li>Adam은 가중치마다 *과거 그라디언트의 크기*를 누적해 학습률을 자동 조정한다. *자주 변하는 가중치*에는 큰 η, *잠잠한 가중치*에는 작은 η — 이 직관이 학습에 어떤 효과를 주나?</li>
+</ul></div>
+
+<div class="keys"><span class="lab">주요 개념</span>
+<span class="chip">learning rate schedule</span>
+<span class="chip">cosine decay / step decay</span>
+<span class="chip">warmup</span>
+<span class="chip">SGD with momentum</span>
+<span class="chip">Adam / RMSprop</span>
+<span class="chip">learning rate finder</span>
+<span class="chip">adaptive learning rate</span>
+</div>
+
+<div class="src"><span class="lab">자료 찾기</span>
+<ul>
+  <li>"PyTorch lr_scheduler" 공식 문서 — 어떤 스케줄들이 있는지 종류와 그래프</li>
+  <li>"Cyclical Learning Rates for Training Neural Networks" (Smith, 2017) 제목·요약</li>
+  <li>"Adam: A Method for Stochastic Optimization" (Kingma &amp; Ba, 2015) 핵심 식 한 줄</li>
+</ul></div>
+
+<div class="ob"><div class="lab">미니 실험 — 작은 SGD 시뮬레이터</div>
+A3에서 본 곡선 위에서 momentum을 *직접* 손계산해 보세요. 보폭 식: <span class="mono">v ← β·v + dw</span>, <span class="mono">w ← w − η·v</span> (β = 0.9). 같은 η에서 진동이 줄어드는지 5 step만 손으로 표 채워 비교.
+<div class="ans-area lg"></div>
+</div>
+
+<div class="qd"><strong>내 정리</strong> — 같은 모델·같은 데이터에 대해 (a) 고정 η + SGD, (b) 고정 η + momentum, (c) Adam을 학습 곡선으로 비교한다면 무엇이 다를지 자기 말로 예측해 보세요.</div>
+<div class="ans-area xl"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>TOPIC 3. 교차 엔트로피의 정보이론적 의미</h2>
+<div class="qc">
+<div class="qh"><span class="num">3</span>주제 한 줄</div>
+<div class="qd">손실이 *왜 하필* −ln(p)인가? 그냥 (1 − p)라든가 다른 함수면 안 되나?</div>
+
+<div class="ib"><div class="t">우리 수업의 어디와 이어지나</div>
+<ul>
+  <li>B5 부록 폴드에서 "교차 엔트로피 = 정답 자리 확률을 1쪽으로 끌어올리는 손실 = −ln(p)"까지 봤음. 식의 *모양*만 봤다.</li>
+  <li>이 식이 *어디에서* 유도되는지(정보 엔트로피·KL divergence·최대 우도)는 다루지 않았다.</li>
+</ul></div>
+
+<div class="qst"><div class="lab">탐구 관점 질문</div>
+<ul>
+  <li>"엔트로피"라는 단어는 통계물리·정보이론·머신러닝에서 다 등장한다. *공통된 직관*은 무엇인가? ("불확실성", "놀라움", "정보량"의 관계)</li>
+  <li>모델 분포 p와 정답 분포 q가 있을 때 *두 분포가 얼마나 다른가*를 재는 KL divergence: <span class="mono">D_KL(q || p) = Σ q(x) · log(q(x)/p(x))</span>. 이 식이 어떻게 우리의 −ln(p[정답])로 줄어드나? (정답 라벨이 *원-핫*인 경우)</li>
+  <li>Maximum Likelihood Estimation(MLE) 관점에서, 학습 데이터 N장의 *우도*를 최대화하는 것이 *왜* 평균 −ln(p) 최소화와 같은가?</li>
+  <li>분류는 CE를 쓰는데 *회귀*는 MSE를 쓴다. 둘은 어떻게 *같은 MLE 가족*에 속하는가? (데이터가 어떤 분포라 가정하느냐의 차이)</li>
+</ul></div>
+
+<div class="keys"><span class="lab">주요 개념</span>
+<span class="chip">정보 엔트로피</span>
+<span class="chip">KL divergence</span>
+<span class="chip">cross-entropy</span>
+<span class="chip">Maximum Likelihood</span>
+<span class="chip">log-likelihood</span>
+<span class="chip">Bernoulli / Categorical 분포</span>
+<span class="chip">Gaussian → MSE 유도</span>
+</div>
+
+<div class="src"><span class="lab">자료 찾기</span>
+<ul>
+  <li>"Cross entropy and KL divergence" 또는 한국어 "정보 엔트로피와 교차 엔트로피"</li>
+  <li>3blue1brown의 "But what is the Central Limit Theorem?" 같은 직관 영상 (엔트로피 직관)</li>
+  <li>"Why MSE for regression and CE for classification" 키워드로 MLE 관점 글 찾기</li>
+</ul></div>
+
+<div class="ob"><div class="lab">미니 실험 — 손계산</div>
+정답 라벨이 동그라미라 하고, 모델 확률을 다음 두 경우로 두자: (a) [0.9, 0.05, 0.05], (b) [0.5, 0.3, 0.2]. 각각의 CE 손실을 −ln(0.9), −ln(0.5)로 계산하고 *왜 (a)가 더 낮은가* 자기 말로 적기. 단순 정확도(둘 다 동그라미 답이라 100%)로는 못 보는 차이가 무엇인지.
+<div class="ans-area lg"></div>
+</div>
+
+<div class="qd"><strong>내 정리</strong> — "왜 −ln인가?" 한 질문에 *세 가지 관점*(놀라움 측정 / KL divergence / MLE)으로 자기 말로 답해 보세요.</div>
+<div class="ans-area xl"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>TOPIC 4. 체인룰과 자동 미분(Autograd)</h2>
+<div class="qc">
+<div class="qh"><span class="num">4</span>주제 한 줄</div>
+<div class="qd">우리가 C3 트랙 1에서 *손으로* 한 6단계 역전파를, 컴퓨터는 *임의 깊이의 망*에 어떻게 자동 적용하는가?</div>
+
+<div class="ib"><div class="t">우리 수업의 어디와 이어지나</div>
+<ul>
+  <li>C3 트랙 1에서 입1·은2·출1 모델의 모든 미분을 직접 손계산: <span class="mono">e_h_i = e · w₂ᵢ · ReLU′(z₁ᵢ)</span>, <span class="mono">dw₁_i = e_h_i · x</span>.</li>
+  <li>은닉이 1층이 아니라 <em>10층</em>, <em>100층</em>이면 어떻게? 식을 사람이 매번 적을 수 없다 — 컴퓨터가 *그래프로 자동화*한다.</li>
+</ul></div>
+
+<div class="qst"><div class="lab">탐구 관점 질문</div>
+<ul>
+  <li>체인룰의 일반 모양: <span class="mono">∂L/∂w₁ = (∂L/∂ŷ) · (∂ŷ/∂h) · (∂h/∂z₁) · (∂z₁/∂w₁)</span>. C3 트랙 1의 6단계가 이 식의 어느 항에 해당하는지 *직접 매핑*해 보세요.</li>
+  <li>"계산 그래프(computation graph)"는 forward 연산을 *노드와 엣지*로 기록한다. backward는 그 그래프를 *역방향*으로 돈다. 이게 왜 *임의 깊이*에서도 작동하는가?</li>
+  <li>PyTorch의 <span class="mono">loss.backward()</span> 한 줄이 우리 6단계에 해당한다. 그 한 줄이 *내부적으로 무엇*을 하는가? (그래프 순회 + 미분 합)</li>
+  <li>forward 시 *중간 활성값*을 모두 저장해야 backward가 가능하다. 깊은 망에서 *메모리*가 부족하면? (gradient checkpointing)</li>
+  <li>"역방향 모드 자동 미분" vs "정방향 모드 자동 미분" — 둘은 어떤 상황에서 각자 유리한가?</li>
+</ul></div>
+
+<div class="keys"><span class="lab">주요 개념</span>
+<span class="chip">chain rule</span>
+<span class="chip">computation graph</span>
+<span class="chip">automatic differentiation (autograd)</span>
+<span class="chip">backward / forward mode</span>
+<span class="chip">gradient checkpointing</span>
+<span class="chip">stop_gradient</span>
+<span class="chip">Jacobian</span>
+</div>
+
+<div class="src"><span class="lab">자료 찾기</span>
+<ul>
+  <li>PyTorch 공식 튜토리얼 "A Gentle Introduction to torch.autograd"</li>
+  <li>Andrej Karpathy의 "micrograd" 라이브러리 — 200줄 파이썬으로 autograd 구현</li>
+  <li>"Backpropagation" 위키피디아 — 역사와 일반화된 식</li>
+</ul></div>
+
+<div class="ob"><div class="lab">미니 실험 — micrograd 직접 따라 만들기 (도전)</div>
+파이썬 200줄 안에 *Value 클래스*(forward 시 그래프 기록 + backward 시 역방향 미분)를 직접 만들어 보세요. C3 트랙 1과 똑같은 모델을 그 위에서 학습시켜 보면, 우리의 6단계 손계산이 자동화되는 모습이 보입니다.
+<div class="ans-area lg"></div>
+</div>
+
+<div class="qd"><strong>내 정리</strong> — 우리의 C3 트랙 1 6단계가 임의 깊이 망에 *어떻게 일반화*되는지, *체인룰*과 *계산 그래프* 두 단어를 반드시 사용해 자기 말로 한 문단 적어 보세요.</div>
+<div class="ans-area xl"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>TOPIC 5. 분류 평가 지표의 깊이</h2>
+<div class="qc">
+<div class="qh"><span class="num">5</span>주제 한 줄</div>
+<div class="qd">정확도 외에 어떤 지표들이 있고, 각자가 *어떤 종류의 오류*를 잡는가?</div>
+
+<div class="ib"><div class="t">우리 수업의 어디와 이어지나</div>
+<ul>
+  <li>C1에서 정확도와 *클래스별 약점*까지 봤음. 정확도 숫자만으로는 약점이 안 보인다는 직관까지.</li>
+  <li>그러나 *클래스 불균형*(예: 동그라미 95장 + 세모 5장)에서 정확도가 *얼마나 거짓말*을 할 수 있는지는 안 다뤘다.</li>
+</ul></div>
+
+<div class="qst"><div class="lab">탐구 관점 질문</div>
+<ul>
+  <li>한 모델이 *모든 입력에 동그라미*라 답하는 경우, 데이터가 위처럼 95:5라면 정확도는 *몇 %*? 이 모델은 *유용한가*?</li>
+  <li>Precision = "모델이 X라 답한 것 중 진짜 X 비율", Recall = "진짜 X 중 모델이 X라 잡아낸 비율" — 의료 진단(암 검사)·스팸 필터·자율주행 보행자 인식 각각 어느 쪽이 더 중요한가? 왜?</li>
+  <li>F1 = precision과 recall의 조화평균. 왜 산술평균이 아닌 *조화*평균인가?</li>
+  <li>분류기 출력은 *임계값*에 따라 답이 바뀐다(0.5 기준 / 0.3 기준). 임계값을 0~1까지 움직이며 그리는 ROC 곡선은 무엇을 보여 주는가? AUC는 *무엇의 면적*인가?</li>
+  <li>Confusion matrix는 N×N 표다. 우리의 *클래스 칩 그리드*와 어떻게 같고 어떻게 다른가?</li>
+</ul></div>
+
+<div class="keys"><span class="lab">주요 개념</span>
+<span class="chip">class imbalance</span>
+<span class="chip">precision / recall</span>
+<span class="chip">F1 score</span>
+<span class="chip">true/false positive · negative</span>
+<span class="chip">confusion matrix</span>
+<span class="chip">ROC 곡선</span>
+<span class="chip">AUC</span>
+<span class="chip">decision threshold</span>
+</div>
+
+<div class="src"><span class="lab">자료 찾기</span>
+<ul>
+  <li>scikit-learn 공식 문서 "Classification metrics" — 모든 지표가 한곳에</li>
+  <li>"Precision and recall" 위키피디아 — 직관과 수식</li>
+  <li>"ROC curve" 영상 자료 — 임계값을 움직이며 곡선이 그려지는 모습</li>
+</ul></div>
+
+<div class="ob"><div class="lab">미니 실험 — 불균형 데이터 시나리오</div>
+평가 데이터가 *동그라미 95장 + 세모 5장*이고, 모델 A는 모든 입력에 "동그라미" 답, 모델 B는 95% 정확도지만 세모 *5장 중 4장*을 맞힌다고 하자. 두 모델의 (a) 정확도, (b) 동그라미 클래스의 precision/recall, (c) 세모 클래스의 precision/recall을 각각 계산해 표로 정리하세요. 어느 모델이 더 유용한가?
+<div class="ans-area xl"></div>
+</div>
+
+<div class="qd"><strong>내 정리</strong> — *내가 만든 모델을 어떤 상황에 배포한다고 가정*하고(예: 도서관 책 분류 / 의료 진단 보조 / 게임 사기 탐지), 그 상황에서 *왜 정확도만 보면 안 되는가*와 *어떤 지표가 더 중요한가*를 자기 말로 적어 보세요.</div>
+<div class="ans-area xl"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>탐구 마무리 — 한 주제를 자기 자료로</h2>
+<div class="qc">
+<div class="qh"><span class="num">★</span>한 주제를 골라 *자기 보고서*로 만들기</div>
+<div class="qd">5개 TOPIC 중 *가장 흥미로운 한 가지*를 골라, 다음 양식으로 한 페이지 보고서를 직접 작성해 봅니다. 친구나 후배에게 그 주제를 *친절하게 가르쳐 줄* 자료가 되도록.</div>
+
+<div class="ib"><div class="t">보고서 양식 (자기 정리)</div>
+<ol>
+  <li><strong>주제·도입 한 단락</strong> — "이 주제는 우리 수업의 어디서 시작되는가?"</li>
+  <li><strong>핵심 질문 3가지</strong> — 가장 흥미로웠던 탐구 관점 질문 3개를 골라 *자기 답*까지</li>
+  <li><strong>주요 개념 정리</strong> — 위 키워드 칩 중 *내가 이해한 것*을 한 줄씩 자기 말로</li>
+  <li><strong>미니 실험 결과</strong> — 직접 그렸거나 계산한 결과를 그래프·표·수식으로</li>
+  <li><strong>다음으로 가고 싶은 곳</strong> — 이 주제를 더 깊이 가려면 *어디로* 가야 하는가? 추천 자료 2~3개와 이유</li>
+</ol></div>
+
+<div class="qd"><strong>고른 주제: TOPIC <span class="bk">__</span> — <span class="bk xl"></span></strong></div>
+
+<div class="qd">1. 주제·도입</div>
+<div class="ans-area xl"></div>
+
+<div class="qd">2. 핵심 질문 3가지와 자기 답</div>
+<div class="ans-area xl"></div>
+<div class="ans-area xl"></div>
+<div class="ans-area xl"></div>
+
+<div class="qd">3. 주요 개념 정리 (자기 말로)</div>
+<div class="ans-area xl"></div>
+
+<div class="qd">4. 미니 실험 결과 (그래프·표·수식 직접)</div>
+<div class="ans-area xl"></div>
+<div class="ans-area xl"></div>
+
+<div class="qd">5. 다음으로 가고 싶은 곳 (추천 자료와 이유)</div>
+<div class="ans-area xl"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>탐구 후 — 자기 점검 다시</h2>
+<div class="qc">
+<div class="qh"><span class="num">END</span>변화한 것은 무엇인가</div>
+<div class="qd">탐구 시작 전 표(처음에 작성한 ○/△/× 표)와 *지금*을 비교해 보세요. 어떤 항목이 ×에서 ○로 바뀌었나요? 새로 생긴 *모호함*은 무엇인가요? 새로 생긴 모호함이 *다음 탐구 주제*입니다.</div>
+<div class="ans-area xl"></div>
+</div>
+
+</body>
+</html>

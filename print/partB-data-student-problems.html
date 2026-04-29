@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>Neural Explorer 활동지 B부 — 데이터·학습·분류 출력</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt;page-break-after:avoid}
+
+  /* 헤더 */
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt;page-break-after:avoid}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .meta{font-size:9pt;color:#777;margin-top:6pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+  .name{font-size:9.5pt;color:#555;margin-top:8pt}
+  .name span{display:inline-block;border-bottom:1px solid #888;min-width:80pt;margin:0 8pt}
+
+  /* 카드 */
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0;break-inside:auto;page-break-inside:auto}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt;break-inside:avoid;page-break-inside:avoid}
+  .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+  .sh{font-size:11pt;font-weight:700;margin:14pt 0 6pt;color:#222;break-after:avoid;page-break-after:avoid}
+
+  /* 개념 박스 */
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0;break-inside:avoid;page-break-inside:avoid}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .tip{border-left-style:dashed}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px;break-inside:avoid;page-break-inside:avoid}
+
+  /* 표 */
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#1a1a1a;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb .blank{height:22pt;background:#fff}
+
+  /* 빈칸 */
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .bk{display:inline-block;border-bottom:1.5px solid #333;min-width:30pt;text-align:center;padding:0 4pt;margin:0 2pt}
+  .bk.lg{min-width:60pt}
+  .bk.xl{min-width:120pt}
+  .ans-area{border:1px solid #aaa;border-radius:4px;min-height:38pt;padding:6pt;margin:6pt 0;background:#fcfcfc}
+  .ans-area.lg{min-height:60pt}
+
+  /* SVG */
+  .sf{margin:8pt auto;text-align:center;break-inside:avoid;page-break-inside:avoid}
+  .sf svg{max-width:100%!important;height:auto!important}
+  .cap{font-size:9pt;color:#666;margin-top:3pt;text-align:center}
+  .dotrow{display:flex;flex-wrap:wrap;gap:8pt;justify-content:center;align-items:flex-end;margin:8pt 0}
+  .dotcell{display:inline-block;text-align:center}
+  .dotcell .label{font-size:9pt;color:#444;margin-top:2pt}
+  .dotcell .pick{display:inline-block;border:1px solid #888;border-radius:50%;width:12pt;height:12pt;margin:2pt 4pt;vertical-align:middle}
+
+  /* 앱 안내 */
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  /* 관찰 박스 */
+  .ob{border:1.2px dashed #777;border-radius:5px;padding:8pt 10pt;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .ob .lab{font-weight:700;font-size:10pt;margin-bottom:4pt}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt}
+  ul,ol{padding-left:18pt;margin:4pt 0}
+  li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto;overflow:visible}
+    .qh,.sf,.fm,.gv,.ex,.ib,.tb,.an,.ob{break-inside:avoid;page-break-inside:avoid}
+    .sh{break-after:avoid;page-break-after:avoid}
+    .sf svg{max-width:100%!important;height:auto!important}
+    p,li{orphans:3;widows:3}
+    /* 흑백 강제 */
+    .tb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .qh .num{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .an{background:#f3f3f3!important;border-color:#777!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<header class="lh">
+<div class="lab">NEURAL EXPLORER · WORKSHEET B / 3</div>
+<h1>B — 데이터·학습·분류 출력</h1>
+<div class="sub">도트 데이터 한 흐름 — 정제 · 분할 · 이진 · 다중 분류</div>
+<div class="meta">앱 페이즈 B1~B5 · 대상: 고등학생 · 활동 시간 약 60~80분</div>
+<div class="name">학번 <span></span> 이름 <span></span></div>
+</header>
+
+<!-- ============================================================== -->
+<h2>STEP B1. 문제 정의와 라벨 (Phase B1)</h2>
+
+<div class="ib">
+<div class="t">출발선</div>
+A 영역에서는 뉴런이 <strong>숫자(기온)</strong>를 맞혔어요. 이제부터는 <strong>종류</strong>를 맞힙니다 — "이 그림이 동그라미야, 세모야?". 같은 뉴런 한 묶음을 가지고 출력만 바꿉니다.
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B1-1</span>회귀 vs 분류 — 표 채우기</div>
+<div class="qd">A 영역과 B 영역의 차이를 한 줄씩 채워보세요.</div>
+<table class="tb">
+<tr><th>구분</th><th>회귀 (A 영역)</th><th>분류 (B 영역)</th></tr>
+<tr><td class="lbl">맞히는 것</td><td>숫자 ŷ (예: 기온)</td><td class="blank"></td></tr>
+<tr><td class="lbl">정답의 형태</td><td>실수 한 개</td><td class="blank"></td></tr>
+<tr><td class="lbl">출력 뉴런 개수</td><td>1개</td><td class="blank"></td></tr>
+<tr><td class="lbl">"잘 맞췄나?" 측정</td><td>(예측 − 정답)²</td><td class="blank"></td></tr>
+<tr><td class="lbl">예시 질문</td><td>"내일 서울 기온은 몇 도?"</td><td class="blank"></td></tr>
+</table>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B1-2</span>입력 형식 — 8×8 = 64픽셀</div>
+<div class="qd">B 영역의 그림은 모두 <strong>8칸 × 8칸 = 64칸</strong>으로 그려요. 각 칸은 0(빈 칸) 또는 1(찍힘) 두 값만 가집니다.</div>
+<div class="fm">
+한 그림 = (<span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>, …) 길이 <span class="bk"></span>의 숫자 묶음<br/>
+각 숫자는 0 또는 <span class="bk"></span>
+</div>
+<div class="qd">"입력이 64개"라는 말은 <strong>입력 뉴런이 몇 개</strong>라는 뜻일까요? <span class="bk"></span>개</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B1-3</span>라벨이란 무엇인가</div>
+<div class="qd">아래 빈칸을 채워 라벨의 정의를 완성하세요.</div>
+<div class="fm">
+라벨 = 각 그림에 적혀 있는 (<span class="bk lg"></span>) — 사람이 미리 정해서 붙여 둔 종류 이름.<br/>
+B 영역의 라벨 종류: <span class="bk"></span> · <span class="bk"></span> · <span class="bk"></span>
+</div>
+<div class="qd">왜 학습 전에 사람이 라벨을 미리 붙여야 할까요? 한 줄로 적어보세요.</div>
+<div class="ans-area"></div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B1-4</span>도트 그림 보고 라벨 적기</div>
+<div class="qd">아래 다섯 그림을 보고 어떤 라벨인지 (동그라미·세모·네모) 적어 보세요.</div>
+<div class="dotrow">
+<div class="dotcell">
+<svg viewbox="0 0 64 64" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="64" height="64" fill="#fff" stroke="#888"/>
+<g fill="#000">
+<rect x="16" y="8" width="8" height="8"/><rect x="24" y="8" width="8" height="8"/><rect x="32" y="8" width="8" height="8"/><rect x="40" y="8" width="8" height="8"/>
+<rect x="8" y="16" width="8" height="8"/><rect x="48" y="16" width="8" height="8"/>
+<rect x="8" y="24" width="8" height="8"/><rect x="48" y="24" width="8" height="8"/>
+<rect x="8" y="32" width="8" height="8"/><rect x="48" y="32" width="8" height="8"/>
+<rect x="8" y="40" width="8" height="8"/><rect x="48" y="40" width="8" height="8"/>
+<rect x="16" y="48" width="8" height="8"/><rect x="24" y="48" width="8" height="8"/><rect x="32" y="48" width="8" height="8"/><rect x="40" y="48" width="8" height="8"/>
+</g>
+</svg>
+<div class="label">① 라벨: <span class="bk lg"></span></div>
+</div>
+<div class="dotcell">
+<svg viewbox="0 0 64 64" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="64" height="64" fill="#fff" stroke="#888"/>
+<g fill="#000">
+<rect x="24" y="8" width="8" height="8"/><rect x="32" y="8" width="8" height="8"/>
+<rect x="24" y="16" width="8" height="8"/><rect x="32" y="16" width="8" height="8"/>
+<rect x="16" y="24" width="8" height="8"/><rect x="40" y="24" width="8" height="8"/>
+<rect x="16" y="32" width="8" height="8"/><rect x="32" y="32" width="8" height="8"/>
+<rect x="8" y="40" width="8" height="8"/><rect x="16" y="40" width="8" height="8"/><rect x="40" y="40" width="8" height="8"/><rect x="48" y="40" width="8" height="8"/>
+<rect x="8" y="48" width="8" height="8"/><rect x="16" y="48" width="8" height="8"/><rect x="24" y="48" width="8" height="8"/><rect x="32" y="48" width="8" height="8"/><rect x="40" y="48" width="8" height="8"/><rect x="48" y="48" width="8" height="8"/>
+</g>
+</svg>
+<div class="label">② 라벨: <span class="bk lg"></span></div>
+</div>
+<div class="dotcell">
+<svg viewbox="0 0 64 64" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="64" height="64" fill="#fff" stroke="#888"/>
+<g fill="#000">
+<rect x="8" y="8" width="8" height="8"/><rect x="16" y="8" width="8" height="8"/><rect x="24" y="8" width="8" height="8"/><rect x="32" y="8" width="8" height="8"/><rect x="40" y="8" width="8" height="8"/><rect x="48" y="8" width="8" height="8"/><rect x="56" y="8" width="8" height="8"/>
+<rect x="8" y="16" width="8" height="8"/><rect x="56" y="16" width="8" height="8"/>
+<rect x="8" y="24" width="8" height="8"/><rect x="56" y="24" width="8" height="8"/>
+<rect x="8" y="32" width="8" height="8"/><rect x="56" y="32" width="8" height="8"/>
+<rect x="8" y="40" width="8" height="8"/><rect x="56" y="40" width="8" height="8"/>
+<rect x="8" y="48" width="8" height="8"/><rect x="56" y="48" width="8" height="8"/>
+<rect x="8" y="56" width="8" height="8"/><rect x="16" y="56" width="8" height="8"/><rect x="24" y="56" width="8" height="8"/><rect x="32" y="56" width="8" height="8"/><rect x="40" y="56" width="8" height="8"/><rect x="48" y="56" width="8" height="8"/><rect x="56" y="56" width="8" height="8"/>
+</g>
+</svg>
+<div class="label">③ 라벨: <span class="bk lg"></span></div>
+</div>
+<div class="dotcell">
+<svg viewbox="0 0 64 64" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="64" height="64" fill="#fff" stroke="#888"/>
+<g fill="#000">
+<rect x="24" y="8" width="8" height="8"/><rect x="32" y="8" width="8" height="8"/>
+<rect x="16" y="16" width="8" height="8"/><rect x="40" y="16" width="8" height="8"/>
+<rect x="8" y="24" width="8" height="8"/><rect x="48" y="24" width="8" height="8"/>
+<rect x="8" y="32" width="8" height="8"/><rect x="48" y="32" width="8" height="8"/>
+<rect x="16" y="40" width="8" height="8"/><rect x="40" y="40" width="8" height="8"/>
+<rect x="24" y="48" width="8" height="8"/><rect x="32" y="48" width="8" height="8"/>
+</g>
+</svg>
+<div class="label">④ 라벨: <span class="bk lg"></span></div>
+</div>
+<div class="dotcell">
+<svg viewbox="0 0 64 64" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="64" height="64" fill="#fff" stroke="#888"/>
+<g fill="#000">
+<rect x="24" y="8" width="8" height="8"/><rect x="32" y="8" width="8" height="8"/>
+<rect x="24" y="16" width="8" height="8"/><rect x="32" y="16" width="8" height="8"/>
+<rect x="16" y="24" width="8" height="8"/><rect x="24" y="24" width="8" height="8"/><rect x="32" y="24" width="8" height="8"/><rect x="40" y="24" width="8" height="8"/>
+<rect x="16" y="32" width="8" height="8"/><rect x="40" y="32" width="8" height="8"/>
+<rect x="8" y="40" width="8" height="8"/><rect x="16" y="40" width="8" height="8"/><rect x="40" y="40" width="8" height="8"/><rect x="48" y="40" width="8" height="8"/>
+<rect x="8" y="48" width="8" height="8"/><rect x="16" y="48" width="8" height="8"/><rect x="24" y="48" width="8" height="8"/><rect x="32" y="48" width="8" height="8"/><rect x="40" y="48" width="8" height="8"/><rect x="48" y="48" width="8" height="8"/>
+</g>
+</svg>
+<div class="label">⑤ 라벨: <span class="bk lg"></span></div>
+</div>
+</div>
+<div class="qd">같은 라벨이라도 위치·크기가 조금씩 달라요. 모델은 이 다양성 안에서 <strong>공통 패턴</strong>을 배워야 합니다.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B1-5</span>앞으로의 흐름 (B2~B5) 빈칸 채우기</div>
+<table class="tb">
+<tr><th>페이즈</th><th>한 줄로</th></tr>
+<tr><td>B2</td><td class="blank">데이터를 ( <span class="bk lg"></span> )한다 — 잘못된 그림 제거</td></tr>
+<tr><td>B3</td><td class="blank">데이터를 ( <span class="bk lg"></span> )과 ( <span class="bk lg"></span> )으로 나눈다</td></tr>
+<tr><td>B4</td><td class="blank">출력 뉴런 ( <span class="bk"></span> )개 — 동그라미 vs 세모</td></tr>
+<tr><td>B5</td><td class="blank">출력 뉴런 ( <span class="bk"></span> )개 + ( <span class="bk lg"></span> )로 확률화</td></tr>
+</table>
+<div class="an"><span class="lab">앱</span> 페이즈 B1을 열고 "라벨별 데이터 미리보기" 영역을 훑어 본 뒤, "B2로 넘어가기" 버튼을 누르세요.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP B2. 데이터셋과 전처리 (Phase B2)</h2>
+
+<div class="ib">
+<div class="t">왜 데이터부터 다듬는가</div>
+잘못 분류된 그림이 섞여 있으면 모델은 <strong>잘못된 것을 외워요</strong>. 모델 구조를 손대기 전에 먼저 데이터를 다듬어야 합니다. "정제는 모델보다 먼저"가 B2의 핵심.
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B2-1</span>의심 샘플 식별 — 라벨이 맞나?</div>
+<div class="qd">아래 그림은 모두 <strong>"동그라미"라고 적혀 있는</strong> 데이터셋 샘플입니다. 각 그림이 정말 동그라미가 맞는지 판정해 보세요. 적힌 라벨과 그림이 어울리면 ○, 아니면 ×에 표시.</div>
+<div class="dotrow">
+<div class="dotcell">
+<svg viewbox="0 0 64 64" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="64" height="64" fill="#fff" stroke="#888"/>
+<g fill="#000">
+<rect x="16" y="8" width="8" height="8"/><rect x="24" y="8" width="8" height="8"/><rect x="32" y="8" width="8" height="8"/><rect x="40" y="8" width="8" height="8"/>
+<rect x="8" y="16" width="8" height="8"/><rect x="48" y="16" width="8" height="8"/>
+<rect x="8" y="24" width="8" height="8"/><rect x="48" y="24" width="8" height="8"/>
+<rect x="8" y="32" width="8" height="8"/><rect x="48" y="32" width="8" height="8"/>
+<rect x="8" y="40" width="8" height="8"/><rect x="48" y="40" width="8" height="8"/>
+<rect x="16" y="48" width="8" height="8"/><rect x="24" y="48" width="8" height="8"/><rect x="32" y="48" width="8" height="8"/><rect x="40" y="48" width="8" height="8"/>
+</g>
+</svg>
+<div class="label">① 적힌 라벨: 동그라미</div>
+<div><span class="pick"></span> ○  <span class="pick"></span> ×</div>
+</div>
+<div class="dotcell">
+<svg viewbox="0 0 64 64" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="64" height="64" fill="#fff" stroke="#888"/>
+<g fill="#000">
+<rect x="24" y="8" width="8" height="8"/><rect x="32" y="8" width="8" height="8"/>
+<rect x="24" y="16" width="8" height="8"/><rect x="32" y="16" width="8" height="8"/>
+<rect x="16" y="24" width="8" height="8"/><rect x="24" y="24" width="8" height="8"/><rect x="32" y="24" width="8" height="8"/><rect x="40" y="24" width="8" height="8"/>
+<rect x="16" y="32" width="8" height="8"/><rect x="40" y="32" width="8" height="8"/>
+<rect x="8" y="40" width="8" height="8"/><rect x="16" y="40" width="8" height="8"/><rect x="40" y="40" width="8" height="8"/><rect x="48" y="40" width="8" height="8"/>
+<rect x="8" y="48" width="8" height="8"/><rect x="16" y="48" width="8" height="8"/><rect x="24" y="48" width="8" height="8"/><rect x="32" y="48" width="8" height="8"/><rect x="40" y="48" width="8" height="8"/><rect x="48" y="48" width="8" height="8"/>
+</g>
+</svg>
+<div class="label">② 적힌 라벨: 동그라미</div>
+<div><span class="pick"></span> ○  <span class="pick"></span> ×</div>
+</div>
+<div class="dotcell">
+<svg viewbox="0 0 64 64" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="64" height="64" fill="#fff" stroke="#888"/>
+<g fill="#000">
+<rect x="0" y="0" width="8" height="8"/><rect x="16" y="0" width="8" height="8"/>
+<rect x="24" y="8" width="8" height="8"/><rect x="32" y="8" width="8" height="8"/>
+<rect x="16" y="16" width="8" height="8"/><rect x="40" y="16" width="8" height="8"/>
+<rect x="8" y="24" width="8" height="8"/><rect x="48" y="24" width="8" height="8"/>
+<rect x="8" y="32" width="8" height="8"/><rect x="48" y="32" width="8" height="8"/>
+<rect x="16" y="40" width="8" height="8"/><rect x="40" y="40" width="8" height="8"/>
+<rect x="24" y="48" width="8" height="8"/><rect x="32" y="48" width="8" height="8"/>
+</g>
+</svg>
+<div class="label">③ 적힌 라벨: 동그라미</div>
+<div><span class="pick"></span> ○  <span class="pick"></span> ×</div>
+</div>
+<div class="dotcell">
+<svg viewbox="0 0 64 64" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="64" height="64" fill="#fff" stroke="#888"/>
+<g fill="#000">
+<rect x="24" y="8" width="8" height="8"/><rect x="32" y="8" width="8" height="8"/>
+<rect x="16" y="16" width="8" height="8"/><rect x="40" y="16" width="8" height="8"/>
+<rect x="8" y="24" width="8" height="8"/><rect x="48" y="24" width="8" height="8"/>
+<rect x="8" y="32" width="8" height="8"/><rect x="48" y="32" width="8" height="8"/>
+<rect x="16" y="40" width="8" height="8"/><rect x="40" y="40" width="8" height="8"/>
+<rect x="24" y="48" width="8" height="8"/><rect x="32" y="48" width="8" height="8"/>
+</g>
+</svg>
+<div class="label">④ 적힌 라벨: 동그라미</div>
+<div><span class="pick"></span> ○  <span class="pick"></span> ×</div>
+</div>
+</div>
+<div class="qd">×에 표시한 그림은 어떤 문제가 있나요? (한 줄로 — "이 그림은 사실 ___처럼 보임", "점이 ___" 같은 식으로)</div>
+<div class="ans-area"></div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B2-2</span>baseline 정확도가 낮은 이유</div>
+<div class="qd">앱 B2의 "두 학습 비교 시작"을 누르면 <strong>전처리 없음(baseline)</strong> 정확도가 70% 안팎으로 낮게 나와요. 왜 그럴까요? 핵심 단어를 빈칸에 채워 보세요.</div>
+<div class="fm">
+잘못된 라벨이 섞인 데이터로 학습하면, 모델은 ( <span class="bk lg"></span> )을 외운다.<br/>
+→ 깨끗한 평가 데이터에서 점수가 ( <span class="bk lg"></span>다 / 낮다 ).
+</div>
+<div class="qd">"문제는 모델이 게을러서가 아니라 ___가 더러워서다." 빈칸을 채우세요. ☞ <span class="bk lg"></span></div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B2-3</span>예측 → 앱에서 확인</div>
+<div class="qd">정제(의심 샘플 4장 이상 제거) 후 평가 정확도가 baseline에 비해 얼마나 오를 거라 예상하나요?</div>
+<div class="fm">
+내 예측: baseline ( <span class="bk"></span> %p ) 만큼 오를 것이다.<br/>
+근거 한 줄: <span class="bk xl"></span>
+</div>
+<div class="an"><span class="lab">앱</span> B2 갤러리에서 의심되는 그림 4장 이상 클릭해 제외 → "현재 active로 재학습" → 두 곡선이 모두 그려지길 기다림.</div>
+<div class="ob">
+<div class="lab">관찰 — 두 학습 비교 결과</div>
+baseline 평가 정확도: <span class="bk lg"></span>%<br/>
+정제 후 평가 정확도: <span class="bk lg"></span>%<br/>
+차이: +<span class="bk"></span>%p (앱 완료 조건은 +15%p 이상)<br/>
+내 예측과 비교 — (정확 / 과대 / 과소) 했다. ☞ <span class="bk lg"></span>
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B2-4</span>"정제는 모델보다 먼저"</div>
+<div class="qd">B2의 슬로건 "정제는 모델보다 먼저"의 의미를 한 문장으로 적어 보세요. (모델 구조·학습률을 만지기 전에 무엇을 해야 하는가?)</div>
+<div class="ans-area"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP B3. 학습/평가 데이터 나누기 (Phase B3)</h2>
+
+<div class="ib">
+<div class="t">시험 비유</div>
+공부할 때 본 문제로 시험을 치면 점수는 잘 나오지만 진짜 실력은 보이지 않아요. 모델도 똑같습니다 — 학습용으로 공부한 뒤, <strong>처음 보는 평가용</strong>에서 점수를 매겨야 진짜 실력입니다.
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B3-1</span>왜 두 묶음으로 나누는가 — 빈칸</div>
+<div class="fm">
+학습용(train) = 모델이 ( <span class="bk lg"></span> )을 갱신할 때 쓰는 묶음 — 시험 전 ( <span class="bk lg"></span> )에 해당.<br/>
+평가용(eval)  = 학습이 ( <span class="bk lg"></span> ) 뒤에 처음 꺼내는 묶음 — 학교의 ( <span class="bk lg"></span> )에 해당.<br/>
+나누는 이유 = 외운 것인지, ( <span class="bk lg"></span> )에서도 통하는지 확인하기 위해.
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B3-2</span>비율 비교 — 직접 카운트</div>
+<div class="qd">active 데이터가 36장이라고 가정하고, 평가용 비율을 25% / 50%로 두면 각각 몇 장씩 나뉘는지 적으세요. (라벨별로 균등하게 분할)</div>
+<table class="tb">
+<tr><th>평가용 비율</th><th>학습용 (장)</th><th>평가용 (장)</th><th>한 줄 평</th></tr>
+<tr><td>10%</td><td class="blank"></td><td class="blank"></td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
+<tr><td>25%</td><td class="blank"></td><td class="blank"></td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
+<tr><td>50%</td><td class="blank"></td><td class="blank"></td><td class="blank" style="text-align:left;padding-left:8pt"></td></tr>
+</table>
+<div class="qd">평가용이 너무 적으면 ( <span class="bk lg"></span> ), 너무 많으면 ( <span class="bk lg"></span> ).</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B3-3</span>슬라이더 직접 — 그림 갤러리 관찰</div>
+<div class="an"><span class="lab">앱</span> B3에서 "평가용 비율" 슬라이더를 10% → 25% → 50%로 옮기며, 좌측 <strong>학습용/평가용 그림 갤러리가 즉시 어떻게 변하는지</strong> 관찰.</div>
+<div class="ob">
+<div class="lab">관찰 — 슬라이더를 옮길 때</div>
+10%일 때 학습용 = <span class="bk"></span>장 / 평가용 = <span class="bk"></span>장<br/>
+50%일 때 학습용 = <span class="bk"></span>장 / 평가용 = <span class="bk"></span>장<br/>
+"시드 고정"이라는 표시가 보이는가? <span class="bk lg"></span> — 이 말의 의미: <span class="bk xl"></span>
+</div>
+<div class="ib tip">시드 고정 = 같은 비율이라면 매번 <strong>같은 그림</strong>이 학습용·평가용으로 들어간다. 그래야 비교 실험에서 "운"이 끼어들지 않아요.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B3-4</span>부정행위 직관 — 답란</div>
+<div class="qd">"평가 데이터를 보고 모델 구조를 고치는 것은 <strong>부정행위</strong>"라는 말의 의미를 시험 비유로 풀어 적어 보세요.</div>
+<div class="ans-area"></div>
+<div class="qd">앱이 "비율을 바꾸면 학습된 B4 모델은 다시 학습해야 해요"라고 알려 주는 이유는?</div>
+<div class="ans-area"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP B4. 이진 분류 모델 학습 (Phase B4)</h2>
+
+<div class="ib">
+<div class="t">출력 뉴런 2개의 의미</div>
+"동그라미냐 세모냐" 두 후보 중 하나를 골라야 해요. 그래서 출력 뉴런을 <strong>2개</strong> 둡니다 — 각 라벨에 점수를 하나씩 주고, 더 큰 점수의 라벨을 답으로 골라요.
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B4-1</span>출력 뉴런 2개 — 빈칸</div>
+<div class="fm">
+입력 64픽셀  →  ( <span class="bk lg"></span> ) 두 개  →  큰 쪽의 ( <span class="bk lg"></span> )을 답으로<br/>
+출력 뉴런 0번 = ( <span class="bk lg"></span> ) 점수<br/>
+출력 뉴런 1번 = ( <span class="bk lg"></span> ) 점수
+</div>
+<div class="qd">출력 뉴런 점수가 (0번 = 1.8, 1번 = −0.4)라면 모델의 답은? <span class="bk lg"></span></div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B4-2</span>epoch와 학습률 — 정의 빈칸</div>
+<div class="fm">
+epoch (에포크) = 학습 데이터를 ( <span class="bk lg"></span> ) 본 횟수.<br/>
+학습률 η = 한 번 갱신할 때 가중치를 옮기는 ( <span class="bk lg"></span> ).
+</div>
+<div class="qd">앱 B4는 진짜 SGD(미니배치)로 학습하므로 같은 데이터·같은 η라도 곡선이 살짝 ( <span class="bk lg"></span> )한다. 가짜로 그린 부드러운 곡선과의 차이.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B4-3</span>학습률 η와 epoch 조합 실험</div>
+<div class="an"><span class="lab">앱</span> B4에서 epoch=20, η를 바꿔가며 학습 시작 → 평가 정확도를 표에 기록. 그 다음 η=0.05 고정으로 epoch을 바꿔가며 한 번 더.</div>
+<table class="tb">
+<tr><th colspan="3">실험 ① — epoch = 20 고정</th></tr>
+<tr><th>η</th><th>학습 정확도</th><th>평가 정확도</th></tr>
+<tr><td>0.01</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>0.05</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>0.2</td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<table class="tb">
+<tr><th colspan="3">실험 ② — η = 0.05 고정</th></tr>
+<tr><th>epoch</th><th>학습 정확도</th><th>평가 정확도</th></tr>
+<tr><td>10</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>40</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>80</td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">η가 너무 작을 때 / 너무 클 때 어떤 일이 생기나? 한 줄씩 적어보세요.</div>
+<div class="fm">
+η 너무 작을 때: <span class="bk xl"></span><br/>
+η 너무 클 때:  <span class="bk xl"></span>
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B4-4</span>평가 그림 클릭 — 출력 뉴런 점수</div>
+<div class="qd">앱 B4에서 학습이 끝난 후, 평가 그림 3장을 클릭해 출력 뉴런 점수를 적어 보세요.</div>
+<table class="tb">
+<tr><th>그림</th><th>적힌 라벨</th><th>뉴런 0 (동그라미)</th><th>뉴런 1 (세모)</th><th>모델의 예측</th><th>맞췄다? (○/×)</th></tr>
+<tr><td>1</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>2</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">틀린 그림이 있다면, 두 점수 차이가 어땠나요? (큼 / 비슷함) ☞ <span class="bk lg"></span><br/>모델이 헷갈린 그림은 두 점수가 ( <span class="bk lg"></span> ).</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP B5. 다중 분류와 소프트맥스 (Phase B5)</h2>
+
+<div class="ib">
+<div class="t">두 종 → 세 종</div>
+B4에서는 동그라미·세모 둘만. B5에서는 <strong>네모를 추가</strong>해 셋이 됩니다. 출력 뉴런이 3개로 늘면 점수도 셋이 되고, 그걸 <strong>확률</strong>로 바꿔 주는 장치가 필요해요. 그게 <strong>소프트맥스(softmax)</strong>.
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B5-1</span>출력 뉴런이 늘면 무엇이 바뀌는가</div>
+<div class="fm">
+B4: 출력 뉴런 ( <span class="bk"></span> )개 — 라벨 후보 ( <span class="bk"></span> )개<br/>
+B5: 출력 뉴런 ( <span class="bk"></span> )개 — 라벨 후보 ( <span class="bk"></span> )개 (동그라미·세모·네모)<br/>
+공통 규칙: 출력 뉴런 수 = ( <span class="bk lg"></span> )<br/>
+정답 고르는 법: 가장 ( <span class="bk lg"></span> ) 점수의 라벨
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B5-2</span>소프트맥스 직관 — winner-take-most</div>
+<div class="qd">소프트맥스는 점수 묶음을 받아 모두 양수로 만들고 합이 1이 되도록 정규화합니다. 큰 값은 더 크게, 작은 값은 더 작게 — 그래서 "이긴 자가 거의 다 가져간다(winner-take-most)" 직관.</div>
+<div class="fm" style="font-size:11pt">
+softmax(z)<sub>i</sub> = e<sup>z<sub>i</sub></sup> / Σ<sub>k</sub> e<sup>z<sub>k</sub></sup>
+</div>
+<div class="qd">z = [1, 2, 5]에 대해 손계산해 보세요. (소수 둘째 자리)</div>
+<div class="fm">
+e<sup>1</sup> ≈ 2.72,  e<sup>2</sup> ≈ 7.39,  e<sup>5</sup> ≈ 148.41<br/>
+합 Σ = 2.72 + 7.39 + 148.41 = <span class="bk lg"></span><br/>
+softmax = [<span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>]<br/>
+세 값을 더하면 <span class="bk"></span> (= 1)
+</div>
+<div class="qd">가장 큰 z = 5의 확률이 <strong>거의 다</strong>를 가져간 모습이 보이나요? 한 줄로 적어보세요.</div>
+<div class="ans-area"></div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B5-3</span>시프트 불변 — z를 모두 +5하면?</div>
+<div class="qd">소프트맥스는 입력에 같은 수를 모두 더해도 결과가 변하지 않아요(시프트 불변). z = [1, 2, 5] → z' = [6, 7, 10]에 대해 확인.</div>
+<div class="fm">
+e<sup>6</sup> ≈ 403.43,  e<sup>7</sup> ≈ 1096.63,  e<sup>10</sup> ≈ 22026.47<br/>
+합 Σ' = <span class="bk lg"></span><br/>
+softmax(z') = [<span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>]<br/>
+B5-2 결과와 비교 — (같다 / 다르다). ☞ <span class="bk lg"></span>
+</div>
+<div class="ib tip">시프트 불변 덕분에 컴퓨터에서는 <strong>z에서 max(z)를 빼고 계산</strong>해요. 큰 수의 e<sup>z</sup>가 무한대로 튀는 것을 막아 줍니다.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B5-4</span>교차 엔트로피(CE) 직관</div>
+<div class="qd">분류의 손실은 회귀에서 쓴 (예측 − 정답)²이 아니라 <strong>교차 엔트로피</strong>. 핵심은 단 한 줄로 — 정답 라벨의 확률을 1쪽으로 끌어올리는 손실.</div>
+<div class="fm">
+CE = − log( 정답 라벨의 ( <span class="bk lg"></span> ) )<br/>
+정답 확률 = 1.0 → CE = <span class="bk"></span><br/>
+정답 확률 = 0.5 → CE = −log(0.5) ≈ <span class="bk"></span> (양수)<br/>
+정답 확률 = 0.01 → CE ≈ <span class="bk"></span> (커짐)
+</div>
+<div class="qd">"정답 라벨의 확률을 1쪽으로 끌어올리려면 CE를 (작게 / 크게) 만들어야 한다." ☞ <span class="bk lg"></span></div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B5-5</span>시그모이드와 소프트맥스의 관계</div>
+<div class="qd">A 영역의 시그모이드 σ(z) = 1 / (1 + e<sup>−z</sup>)는 사실 출력 뉴런 2개짜리 소프트맥스의 특수 경우예요. 빈칸을 채워 등식을 완성해 보세요.</div>
+<div class="fm" style="font-size:11pt">
+σ(z) = softmax([ z, ( <span class="bk"></span> ) ])<sub>0</sub>
+</div>
+<div class="qd">왜 이렇게 되는지 한 문장으로:</div>
+<div class="ans-area"></div>
+<div class="ib tip">B5 폴드 "깊이 알기"에 같은 식이 나와 있어요. "이진 분류 = 다중 분류의 두 라벨 버전"이라는 게 같은 도구라는 직관.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">B5-6</span>단계 1 (2종) vs 단계 2 (3종) 비교 카드</div>
+<div class="an"><span class="lab">앱</span> B5에서 <strong>단계 1 학습 시작</strong>(2종) → 끝나면 <strong>단계 2 학습 시작</strong>(3종). 두 결과 카드의 숫자를 옮겨 적으세요.</div>
+<table class="tb">
+<tr><th>단계</th><th>출력 뉴런</th><th>라벨</th><th>학습 정확도</th><th>평가 정확도</th><th>최종 CE 손실</th></tr>
+<tr><td>단계 1</td><td>2</td><td>동·세</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>단계 2</td><td>3</td><td>동·세·네</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">두 단계의 차이를 한 줄씩 정리해 보세요.</div>
+<div class="fm">
+정확도가 단계 1보다 단계 2에서 ( 높/낮 )은 까닭: <span class="bk xl"></span><br/>
+CE 손실이 ( 작/큰 ) 쪽이 더 잘 학습됨: <span class="bk xl"></span>
+</div>
+<div class="qd">평가 그림을 1장 클릭해 출력 뉴런 3개의 확률을 적어 보세요.</div>
+<table class="tb">
+<tr><th>적힌 라벨</th><th>P(동그라미)</th><th>P(세모)</th><th>P(네모)</th><th>합</th><th>모델의 예측</th></tr>
+<tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+</div>
+
+<!-- ============================================================== -->
+<h2>보충 활동 ★. 소프트맥스 손계산 깊이 (옵션)</h2>
+
+<div class="ib tip">
+<div class="t">왜 이 활동을 할까?</div>
+B5-2·B5-3에서 본 소프트맥스를 한 번 더 손으로 따라가 보면, "큰 z가 거의 다 가져간다"·"시프트 불변"의 두 직관이 머리에 새겨집니다. 시간이 남을 때만.
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★1</span>z = [2, 4, 6] 손계산</div>
+<table class="tb">
+<tr><th>i</th><th>z<sub>i</sub></th><th>e<sup>z<sub>i</sub></sup> (≈)</th><th>확률 = e<sup>z<sub>i</sub></sup> / Σ</th></tr>
+<tr><td>0</td><td>2</td><td class="blank">≈ 7.39</td><td class="blank"></td></tr>
+<tr><td>1</td><td>4</td><td class="blank">≈ 54.60</td><td class="blank"></td></tr>
+<tr><td>2</td><td>6</td><td class="blank">≈ 403.43</td><td class="blank"></td></tr>
+<tr><td class="lbl" colspan="2" style="text-align:right">합 Σ =</td><td class="blank"></td><td class="blank">합계 = 1.00</td></tr>
+</table>
+<div class="qd">가장 큰 확률을 받은 칸은 ( i = <span class="bk"></span> ), 가장 작은 확률은 ( i = <span class="bk"></span> ).</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★2</span>z를 모두 +5 — 시프트 불변 검산</div>
+<div class="qd">위 z = [2, 4, 6]에 모두 +5 → z' = [7, 9, 11]. 확률을 다시 구해 ★1과 비교하세요.</div>
+<div class="fm">
+e<sup>7</sup> ≈ 1096.63,  e<sup>9</sup> ≈ 8103.08,  e<sup>11</sup> ≈ 59874.14<br/>
+합 Σ' = <span class="bk lg"></span><br/>
+확률 = [<span class="bk"></span>, <span class="bk"></span>, <span class="bk"></span>]
+</div>
+<div class="qd">★1과 비교: 확률값이 (거의 같다 / 다르다). ☞ <span class="bk lg"></span></div>
+<div class="qd">결론을 자기 말로 한 줄:</div>
+<div class="ans-area"></div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">★3</span>한 사이클 짚기 — 분류의 학습 흐름</div>
+<div class="qd">B 영역에서 분류 모델이 한 번 학습할 때의 흐름이에요. 빈칸을 채워 정리하세요.</div>
+<div class="fm">
+입력 64픽셀 → ( <span class="bk lg"></span> )와 합산 → 출력 점수 z<sub>0</sub>, z<sub>1</sub>, z<sub>2</sub><br/>
+→ ( <span class="bk lg"></span> ) → 확률 p<sub>0</sub>, p<sub>1</sub>, p<sub>2</sub> (합 = 1)<br/>
+→ 정답 라벨 확률로 ( <span class="bk lg"></span> ) 손실 계산 → ( <span class="bk lg"></span> )를 거쳐 가중치 갱신
+</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>마무리 — 한 문장으로 정리</h2>
+
+<div class="qc">
+<div class="qh"><span class="num">정리</span>B 영역 전체 흐름</div>
+<div class="fm" style="font-size:11pt">
+( <span class="bk lg"></span> ) 정의 → ( <span class="bk lg"></span> ) 정제 → 학습용·( <span class="bk lg"></span> ) 분할<br/>
+→ 출력 뉴런 ( <span class="bk"></span> )개로 이진 분류 → ( <span class="bk lg"></span> )로 다중 분류
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">서술</span>친구에게 설명하기</div>
+<div class="qd">B 영역에서 배운 핵심 용어 6개(라벨 · 정제 · 학습용/평가용 분할 · 출력 뉴런 · 소프트맥스 · 교차 엔트로피)를 모두 사용해 "도트 그림 분류 모델은 어떻게 만들어지는가"를 5~7문장으로 적어 보세요.</div>
+<div class="ans-area lg" style="min-height:100pt"></div>
+</div>
+
+</body>
+</html>
