@@ -1,5 +1,5 @@
 // 4장 — 학습률, 보폭의 크기 (고1 친화 톤)
-import { Aside, Capture, CoreInsights, KeyTakeaways, LabBox, LabSteps, LabQuestions, LabTip, LearningGoals, MathCorner, M, Mb } from '../components';
+import { Aside, Capture, CoreInsights, KeyTakeaways, LabBox, LabSteps, LabQuestions, LabTip, LearningGoals, MathCorner, M, Mb, TrainingCycleStrip } from '../components';
 
 export function TextbookP4() {
   return (
@@ -29,6 +29,11 @@ export function TextbookP4() {
           '보폭이 너무 크면 정답을 지나쳐 양옆으로 진동하다 결국 발산한다. 너무 작으면 답답하리만치 느리다. 학습의 성패는 가중치 자체보다 학습률에 더 크게 좌우된다.',
           '"딱 맞는 학습률"은 데이터·모델마다 다르다. 그래서 실제 딥러닝에서 학습률 튜닝(고르기)은 가장 중요한 작업 중 하나다.',
         ]}
+      />
+
+      <TrainingCycleStrip
+        active={[5]}
+        caption="이 장은 ⑤만 본다. 보폭의 크기 η — 앞 장에서 자동으로 결정된 ④ 기울기에 곱해 주는 한 글자."
       />
 
       <h2>4.1 한 글자가 한 발의 크기를 정한다</h2>

@@ -109,7 +109,7 @@ export function TextbookP2() {
 
       <Aside kind="note" title={'왜 "순"전파일까'}>
         한 방향으로만 흐른다는 뜻이다. 출력에서 입력으로 거꾸로 돌아오는 흐름은 따로 있다 — 그게
-        7장의 <strong>역전파(backpropagation)</strong>다. 학습할 때 정답과 비교한 오차를 거꾸로
+        5장의 <strong>역전파(backpropagation)</strong>다. 학습할 때 정답과 비교한 오차를 거꾸로
         흘려 보내는 과정이다. 이 장에서는 일단 "앞으로 가는 길"만 다룬다.
       </Aside>
 

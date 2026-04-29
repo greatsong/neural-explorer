@@ -61,16 +61,49 @@ export function TextbookP10() {
       </p>
       <Mb>{`x \\;=\\; (x_1,\\, x_2,\\, x_3,\\, \\dots,\\, x_{64}),\\quad x_i \\in \\{0, 1\\}`}</Mb>
       <p>
-        1장에서는 입력이 두 개였다. 7장에서도 네 개 정도였다. 이 장에서는 64개다. 그러나 식의
+        1장에서는 입력이 두 개였다. 6장에서는 네 개였다. 이 장에서는 64개다. 그러나 식의
         모양은 변하지 않는다 — 입력 64개에 가중치 64개를 곱해 더하고, 편향을 보태고, 활성화 함수를
         지나면 끝이다. 신경망의 식은 입력이 천 개든 만 개든 같은 한 줄이다.
       </p>
       <Mb>{`y \\;=\\; \\sigma\\!\\left(\\sum_{i=1}^{64} w_i x_i + b\\right)`}</Mb>
       <p>
         여기서 <M>{`\\sigma`}</M>(시그모이드)는 합을 0과 1 사이의 확률처럼 짓눌러 주는 활성화 함수다.
-        4장에서 ReLU와 함께 잠깐 본 그 함수다. 출력이 0.5보다 크면 첫 번째 라벨, 작으면 두 번째 라벨로
-        분류한다.
+        1장에서 ReLU와 함께 이름만 잠깐 봤던 그 함수다. 출력이 0.5보다 크면 두 번째 라벨, 작거나 같으면
+        첫 번째 라벨로 분류한다.
       </p>
+
+      <Aside kind="key" title="🧩 내 그림에서 색지도까지 — 네 단계로 따라가기">
+        <p className="mb-3">
+          시뮬레이터를 열기 전에, 머릿속에서 한 번 따라가 보자. <strong>같은 8×8 격자가 네 번 등장</strong>한다.
+          모양은 똑같은데 그 안에 들어가는 숫자만 다르다.
+        </p>
+        <ol className="grid grid-cols-2 sm:grid-cols-4 gap-2 list-none p-0 m-0">
+          <li className="rounded-md border border-border p-2">
+            <div className="text-[10px] font-mono text-muted">①</div>
+            <div className="text-sm font-medium">내 그림</div>
+            <div className="text-[11px] text-muted leading-tight mt-1">8×8 격자에 검정/흰 칸을 직접 그린다.</div>
+          </li>
+          <li className="rounded-md border border-border p-2">
+            <div className="text-[10px] font-mono text-muted">②</div>
+            <div className="text-sm font-medium">64개의 0/1</div>
+            <div className="text-[11px] text-muted leading-tight mt-1">격자를 한 줄로 펼쳐 입력 벡터 <M>{`x`}</M>로.</div>
+          </li>
+          <li className="rounded-md border border-border p-2">
+            <div className="text-[10px] font-mono text-muted">③</div>
+            <div className="text-sm font-medium">64개의 가중치 <M>{`w_i`}</M></div>
+            <div className="text-[11px] text-muted leading-tight mt-1">학습이 끝나면 픽셀마다 한 숫자가 자리 잡는다.</div>
+          </li>
+          <li className="rounded-md border border-border p-2">
+            <div className="text-[10px] font-mono text-muted">④</div>
+            <div className="text-sm font-medium">색지도</div>
+            <div className="text-[11px] text-muted leading-tight mt-1">가중치를 다시 8×8로 펼쳐 색으로 칠하면 모델의 머릿속이 보인다.</div>
+          </li>
+        </ol>
+        <p className="text-xs text-muted mt-3">
+          ②와 ③의 자리가 정확히 1:1로 맞물린다 — 같은 픽셀의 입력에는 같은 자리의 가중치가 곱해진다. 그래서 ④의 색지도가 ①의 그림과 같은 8×8로 그려지는 것이다.
+          이걸 머리에 두고 나면, 다음 절의 식 한 줄이 <em>"같은 자리끼리 64번 곱해 더한다"</em>는 한 문장으로 보인다.
+        </p>
+      </Aside>
 
       <h2>10.3 학습 — 페이즈 5에서 본 그 식이 다시 돈다</h2>
       <p>

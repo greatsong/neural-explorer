@@ -1,5 +1,5 @@
 // 3장 — 손실함수와 경사하강법 (고1 친화 톤)
-import { Aside, Capture, CoreInsights, KeyTakeaways, LabBox, LabSteps, LabQuestions, LabTip, LearningGoals, MathCorner, M, Mb } from '../components';
+import { Aside, Capture, CoreInsights, KeyTakeaways, LabBox, LabSteps, LabQuestions, LabTip, LearningGoals, MathCorner, M, Mb, TrainingCycleStrip } from '../components';
 
 export function TextbookP3() {
   return (
@@ -142,6 +142,12 @@ export function TextbookP3() {
         <strong>학습</strong>이다. 그런데 한 발짝의 보폭을 얼마로 잡을지, 즉 <strong>학습률</strong>은
         다음 장에서 따로 본다 — 이 한 가지가 학습 성패를 좌우할 만큼 결정적이다.
       </p>
+
+      <TrainingCycleStrip
+        active={[2, 3, 4]}
+        caption="이 장이 채운 칸은 ②~④. 한 점의 오차² → 평균 손실 → 기울기까지. ⑤(보폭)와 ⑥(갱신)은 4장과 5장에서 같은 띠가 다시 등장한다."
+      />
+
 
       <LabBox step="실습 3-1" title="다섯 탭을 차례로 — 데이터에서 골짜기까지">
         <p>

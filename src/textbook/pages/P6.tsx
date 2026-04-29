@@ -65,8 +65,24 @@ export function TextbookP6() {
       </p>
       <Mb>{`\\hat y \\;=\\; \\begin{cases} 1\\ (\\text{합격}) & (s > c) \\\\ 0\\ (\\text{불합격}) & (s \\le c) \\end{cases}`}</Mb>
       <p>
-        합격컷 <M>c</M>는 사실 1장에서 본 <strong>편향</strong>의 다른 얼굴이다. <M>{`s - c > 0`}</M>이라
-        쓰면 <M>{`-c`}</M>가 그대로 편향 <M>b</M> 자리에 들어간다. 이름만 바뀌었을 뿐, 구조는 그대로다.
+        그런데 이 합격컷 <M>c</M>는 사실 1장에서 본 <strong>편향 <M>b</M>의 다른 얼굴</strong>이다.
+        부등식의 양변에서 <M>c</M>를 빼서 한쪽으로 모아 보자.
+      </p>
+      <Mb>{`s > c \\;\\Longleftrightarrow\\; s - c > 0 \\;\\Longleftrightarrow\\; \\sum_i w_i x_i + \\underbrace{(-c)}_{=\\,b} > 0`}</Mb>
+
+      <Aside kind="key" title="🔑 합격컷과 편향은 같은 것이다 — 부호만 반대">
+        <p className="mb-2">
+          <strong>합격컷 <M>c</M>를 5에서 6으로 올리는 것</strong>은 곧 <strong>편향 <M>b</M>를 −5에서 −6으로
+          내리는 것</strong>과 똑같은 일이다. 둘은 같은 슬라이더의 두 가지 이름표일 뿐이다.
+        </p>
+        <Mb>{`b \\;=\\; -c`}</Mb>
+        <p className="text-sm text-muted">
+          왜 이게 중요할까? 다음 장부터는 합격컷이라는 단어 대신 <em>편향</em>으로 표기가 통일된다.
+          그때 "합격컷이 사라졌네"라고 당황하지 말라는 뜻이다 — 부호만 뒤집힌 같은 친구다.
+        </p>
+      </Aside>
+
+      <p>
         대학마다 합격컷이 다르다 — 어떤 대학은 7.0, 어떤 대학은 5.5. 이 숫자가 뉴런의 <strong>"기본 점수"</strong>를
         정한다.
       </p>

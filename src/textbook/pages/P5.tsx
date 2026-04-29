@@ -1,5 +1,5 @@
 // 5장 — 오차 역전파 (자동 학습) (고1 친화 톤)
-import { Aside, Capture, CoreInsights, KeyTakeaways, LabBox, LabSteps, LabQuestions, LabTip, LearningGoals, MathCorner, M, Mb } from '../components';
+import { Aside, Capture, CoreInsights, KeyTakeaways, LabBox, LabSteps, LabQuestions, LabTip, LearningGoals, MathCorner, M, Mb, TrainingCycleStrip } from '../components';
 
 export function TextbookP5() {
   return (
@@ -29,6 +29,11 @@ export function TextbookP5() {
           '한 점이 가중치에 분담시키는 책임은 "오차 × 입력(e · x)"이다. 입력 x가 큰 점일수록 가중치가 살짝만 흔들려도 출력이 크게 흔들리니, 그 점의 책임이 더 무겁다.',
           '편향 b는 어느 점에서나 같은 무게로 연결된 "기본 점수"라, 한 점이 분담시키는 책임은 그냥 오차 e 자체다 — x가 곱해지지 않는다.',
         ]}
+      />
+
+      <TrainingCycleStrip
+        active={[4, 6]}
+        caption="이 장은 ④와 ⑥이 한 묶음으로 자동화되는 순간이다. 사람 손 없이 컴퓨터가 ④ 기울기를 직접 계산해 ⑥ w를 갱신한다 — 이 자동 흐름이 곧 역전파."
       />
 
       <h2>5.1 한 step에 일어나는 세 가지</h2>

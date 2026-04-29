@@ -182,3 +182,49 @@ export function M({ children }: { children: string }) {
 export function Mb({ children }: { children: string }) {
   return <BlockMath math={children} />;
 }
+
+// 학습 한 사이클 6단계 띠 — P3·P4·P5에 반복 등장하여 "지금 어디 있는지"를 보여 준다.
+// active 배열에 들어간 단계만 강조색, 나머지는 흐린 회색으로 표시한다.
+const TRAINING_CYCLE_STEPS = [
+  { n: 1, label: '오차',     formula: 'e = \\hat y - y' },
+  { n: 2, label: '오차²',    formula: 'e^2' },
+  { n: 3, label: '평균 손실', formula: 'L = \\tfrac{1}{N}\\sum e^2' },
+  { n: 4, label: '기울기',    formula: '\\partial L / \\partial w' },
+  { n: 5, label: 'η·기울기',  formula: '\\eta \\cdot g' },
+  { n: 6, label: 'w 갱신',    formula: "w' = w - \\eta g" },
+];
+
+export function TrainingCycleStrip({ active, caption }: { active: number[]; caption?: string }) {
+  const set = new Set(active);
+  return (
+    <div className="my-5 rounded-md border border-border bg-surface p-3">
+      <div className="text-[11px] uppercase tracking-wider text-muted mb-2">학습 한 사이클</div>
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        {TRAINING_CYCLE_STEPS.map((s, i) => {
+          const on = set.has(s.n);
+          const isLast = i === TRAINING_CYCLE_STEPS.length - 1;
+          return (
+            <div
+              key={s.n}
+              className={`relative rounded-md border px-2 py-2 text-center ${
+                on
+                  ? 'border-accent bg-accent-bg text-accent'
+                  : 'border-border bg-transparent text-muted/60'
+              }`}
+            >
+              <div className="text-[10px] font-mono opacity-70">{`①②③④⑤⑥`[s.n - 1]}</div>
+              <div className={`text-xs font-medium ${on ? '' : 'opacity-80'}`}>{s.label}</div>
+              <div className={`text-[10px] mt-1 leading-tight ${on ? 'opacity-90' : 'opacity-50'}`}>
+                <InlineMath math={s.formula} />
+              </div>
+              {!isLast && (
+                <span className="hidden sm:block absolute right-[-9px] top-1/2 -translate-y-1/2 text-muted/40 select-none">→</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {caption && <div className="text-[11px] text-muted mt-2">{caption}</div>}
+    </div>
+  );
+}
