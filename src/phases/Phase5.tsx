@@ -142,7 +142,7 @@ export function Phase5() {
             바뀌면서, 오른쪽 손실 곡선이 0으로 내려가는 모습을 한 눈에 확인할 수 있어요. 식은 다음 탭에서 자세히.
           </p>
           <div className="grid xl:grid-cols-[2fr_1fr] gap-4 items-start">
-            <NeuronView w={w} b={b} lr={lr} pulseKey={pulseKey} />
+            <NeuronView w={w} b={b} lr={lr} dw={dw} db={db} pulseKey={pulseKey} />
             <div className="card p-3">
               <div className="text-sm font-medium">학습 진행 곡선</div>
               <p className="text-xs text-muted mt-1">매 step마다 손실 점이 하나씩 쌓입니다. 0에 가까워지면 학습 거의 끝.</p>
@@ -235,7 +235,7 @@ export function Phase5() {
             동시에 보이도록. 다음 탭(실생활 적용)으로 넘어가기 전 마지막 점검이에요.
           </p>
           <div className="grid xl:grid-cols-[2fr_1fr] gap-4 items-start">
-            <NeuronView w={w} b={b} lr={lr} pulseKey={pulseKey} />
+            <NeuronView w={w} b={b} lr={lr} dw={dw} db={db} pulseKey={pulseKey} />
             <div className="card p-3">
               <div className="text-sm font-medium">학습 진행 곡선</div>
               <p className="text-xs text-muted mt-1">손실이 0으로 내려가면 학습 거의 끝.</p>
@@ -412,7 +412,7 @@ function AverageCalcCard({ dw, db, lr, perPoint }: {
 // 단일 뉴런 다이어그램 — 페이즈 1과 같은 디자인 언어.
 // 정방향: x → ×w → Σ(여기 b 합산) → z 배지 → ReLU → ŷ, 그리고 정답 y.
 // 역방향: ŷ에서 두 갈래 빨간 화살표가 분기하여 각각 가중치 라벨(w)과 편향 라벨(b)로 흐른다.
-function NeuronView({ w, b, lr, pulseKey }: { w: number; b: number; lr: number; pulseKey: number }) {
+function NeuronView({ w, b, lr, dw, db, pulseKey }: { w: number; b: number; lr: number; dw: number; db: number; pulseKey: number }) {
   const [pickX, setPickX] = useState(3);
   const x = pickX;
   const y = 2 * x + 1;
@@ -438,14 +438,10 @@ function NeuronView({ w, b, lr, pulseKey }: { w: number; b: number; lr: number; 
 
   const backColor = 'rgb(190, 18, 60)';
 
-  // 한 점이 dw, db에 기여하는 양
-  const dwOnePoint = e * (z >= 0 ? 1 : 0) * x;
-  const dbOnePoint = e * (z >= 0 ? 1 : 0);
-
-  // 두 화살표 각각 자기 변화량 크기에 비례한 두께·진하기
-  // 데이터 (1,3)~(5,11)에서 |e·x| 최대 ~55, |e| 최대 ~11. 클램프 기준은 그 절반쯤(=학습 초기 인상값).
-  const dwRatio = Math.min(Math.abs(dwOnePoint) / 25, 1);
-  const dbRatio = Math.min(Math.abs(dbOnePoint) / 8, 1);
+  // 화살표 굵기·라벨은 5점 평균 기울기(dw, db) 기준 — 실제 갱신과 정확히 일치한다.
+  // 데이터 (1,3)~(5,11)에서 학습 초기 평균 |dw| ≈ 25, |db| ≈ 7. 그 값으로 클램프.
+  const dwRatio = Math.min(Math.abs(dw) / 25, 1);
+  const dbRatio = Math.min(Math.abs(db) / 7, 1);
   const wBackStrokeW = 1.0 + dwRatio * 4.5;
   const wBackOpacity = 0.18 + dwRatio * 0.72;
   const bBackStrokeW = 1.0 + dbRatio * 4.5;
@@ -543,7 +539,7 @@ function NeuronView({ w, b, lr, pulseKey }: { w: number; b: number; lr: number; 
             strokeWidth={wBackStrokeW} strokeDasharray="7 5" strokeLinecap="round"
             markerEnd="url(#nv-back-w)" />
           <ValueBadge2 cx={(startX + wTargetX) / 2} cy={425}
-            label={`Δw = −η×(e×x) = −${lr.toFixed(3)}×(${dwOnePoint.toFixed(3)}) = ${(-lr * dwOnePoint).toFixed(4)}`}
+            label={`Δw = −η × dw = −${lr.toFixed(3)}×(${dw.toFixed(3)}) = ${(-lr * dw).toFixed(4)}`}
             color={backColor} />
 
           {/* (b) ŷ → b 라벨 (b로 가는 화살표) — |e|에 비례한 두께·진하기 */}
@@ -552,7 +548,7 @@ function NeuronView({ w, b, lr, pulseKey }: { w: number; b: number; lr: number; 
             strokeWidth={bBackStrokeW} strokeDasharray="7 5" strokeLinecap="round"
             markerEnd="url(#nv-back-b)" />
           <ValueBadge2 cx={predCx - 70} cy={46}
-            label={`Δb = −η×e = −${lr.toFixed(3)}×(${dbOnePoint.toFixed(3)}) = ${(-lr * dbOnePoint).toFixed(4)}`}
+            label={`Δb = −η × db = −${lr.toFixed(3)}×(${db.toFixed(3)}) = ${(-lr * db).toFixed(4)}`}
             color={backColor} />
 
           {/* 학습 단계 실행 시 펄스 — pulseKey가 바뀌면 두 path 리마운트로 CSS 애니메이션 재생 */}
@@ -589,15 +585,14 @@ function NeuronView({ w, b, lr, pulseKey }: { w: number; b: number; lr: number; 
           </div>
         </label>
         <p className="text-xs text-muted leading-relaxed">
-          아래의 <strong>한 단계 진행</strong>을 누르면 오차 <code>e</code>로부터 만들어진
-          <strong> 기울기 신호</strong>(w 쪽은 <code>e·x</code>, b 쪽은 <code>e</code>)가 두 갈래로 갈라져
-          가중치 <code>w</code>와 편향 <code>b</code>를 각각 갱신합니다.
-          화살표 <strong>굵기</strong>는 이 한 점의 기울기 크기를, <strong>라벨</strong>은 η를 곱한 실제 변화량(Δw·Δb)을 나타내며,
-          실제 갱신엔 다섯 점의 기울기 <strong>평균</strong>이 사용돼요.
+          아래의 <strong>한 단계 진행</strong>을 누르면 다섯 점의 기울기를 평균낸
+          <code> dw = 평균(e·x)</code>·<code>db = 평균(e)</code>로 가중치 <code>w</code>와 편향 <code>b</code>가 갱신됩니다.
+          화살표 <strong>굵기</strong>·<strong>라벨</strong>은 모두 이 평균 기울기에 학습률 η를 곱한 실제 변화량(Δw·Δb)이라,
+          버튼을 누르면 아래의 <strong>현재 w·b</strong>가 정확히 그만큼 움직여요.
           <br />
-          <strong>비교 과제</strong> — 위 슬라이더로 <strong>x = 1</strong>일 때와 <strong>x = 5</strong>일 때
-          w 쪽 화살표 굵기를 비교해 보세요. 같은 오차여도 <em>큰 x가 w를 더 크게 흔드는 이유</em>가
-          식 <code>w 기울기(한 점) = e × x</code>에 그대로 들어 있어요.
+          <strong>탐색 과제</strong> — 위 슬라이더로 <code>x</code>를 바꾸면 한 점이 만드는 오차 <code>e</code>와
+          <code> e·x</code>가 어떻게 달라지는지 보세요. <em>x가 클수록 e·x도 커진다는 사실</em>이
+          다섯 점의 평균 <code>dw</code>(=화살표 굵기)에도 그대로 반영됩니다.
         </p>
       </div>
     </div>
