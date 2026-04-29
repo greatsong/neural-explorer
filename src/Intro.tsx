@@ -98,7 +98,7 @@ export function Intro() {
         </p>
         <div className="grid sm:grid-cols-3 gap-4 mt-6">
           <Step n="A" title="알고리즘의 이해" desc="예측 → 오차 → 기울기 → 갱신을 한 묶음으로. 마지막에 단일 뉴런으로 서울 기온 회귀까지." />
-          <Step n="B" title="데이터·학습·분류" desc="도트 그림 데이터 한 종류로 입력·라벨·전처리·분할·이진 분류·다중 분류와 소프트맥스를 차례로." />
+          <Step n="B" title="데이터·학습·분류" desc="도트 그림 데이터 한 종류로 입력·라벨·전처리·분할·시그모이드 이진 분류까지 차례로." />
           <Step n="C" title="딥러닝" desc="역전파가 어떻게 깊은 망의 모든 가중치를 동시에 갱신하는지. 마지막은 진짜 손글씨 MNIST로 종합." />
         </div>
       </section>

@@ -1,5 +1,8 @@
 // 순수 TS로 작성한 단순 MLP. 임의 층수 지원.
-// layers = [입력, 은닉1, 은닉2, ..., 출력]. ReLU + softmax.
+// layers = [입력, 은닉1, 은닉2, ..., 출력].
+// 출력층 활성화: 'softmax'(다중 분류, 기본) 또는 'sigmoid'(이진 분류 — 출력 뉴런 1개).
+
+export type OutputType = 'softmax' | 'sigmoid';
 
 export interface MLP {
   // 단일 은닉층 시절의 호환 필드
@@ -10,6 +13,8 @@ export interface MLP {
   layers: number[];          // 각 층의 뉴런 수
   weights: Float32Array[];   // weights[k]: layers[k] x layers[k+1]
   biases: Float32Array[];    // biases[k]:  layers[k+1]
+  // 출력 모드 — 'sigmoid'는 outputSize===1인 BCE 학습용.
+  outputType: OutputType;
   // 단일 은닉층 호환용 별칭 (layers.length === 3 일 때만 의미)
   w1: Float32Array;
   b1: Float32Array;
@@ -24,8 +29,11 @@ function randn(): number {
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
-export function createDeepMLP(layers: number[]): MLP {
+export function createDeepMLP(layers: number[], outputType: OutputType = 'softmax'): MLP {
   if (layers.length < 2) throw new Error('layers must have >= 2 entries');
+  if (outputType === 'sigmoid' && layers[layers.length - 1] !== 1) {
+    throw new Error('sigmoid output requires outputSize === 1');
+  }
   const weights: Float32Array[] = [];
   const biases: Float32Array[] = [];
   for (let k = 0; k < layers.length - 1; k++) {
@@ -43,6 +51,7 @@ export function createDeepMLP(layers: number[]): MLP {
     inputSize, hiddenSize, outputSize,
     layers: layers.slice(),
     weights, biases,
+    outputType,
     w1: weights[0],
     b1: biases[0],
     w2: weights[weights.length - 1],
@@ -96,13 +105,18 @@ export function forward(m: MLP, x: Float32Array): ForwardResult {
       activations.push(out);
       cur = out;
     } else {
-      // softmax
-      let max = z[0];
-      for (let j = 1; j < b; j++) if (z[j] > max) max = z[j];
       const probs = new Float32Array(b);
-      let zsum = 0;
-      for (let j = 0; j < b; j++) { probs[j] = Math.exp(z[j] - max); zsum += probs[j]; }
-      for (let j = 0; j < b; j++) probs[j] /= zsum;
+      if (m.outputType === 'sigmoid') {
+        // sigmoid (이진 분류용 — outputSize===1)
+        for (let j = 0; j < b; j++) probs[j] = 1 / (1 + Math.exp(-z[j]));
+      } else {
+        // softmax
+        let max = z[0];
+        for (let j = 1; j < b; j++) if (z[j] > max) max = z[j];
+        let zsum = 0;
+        for (let j = 0; j < b; j++) { probs[j] = Math.exp(z[j] - max); zsum += probs[j]; }
+        for (let j = 0; j < b; j++) probs[j] /= zsum;
+      }
       activations.push(probs);
       return {
         hidden: activations[1] ?? new Float32Array(0),
@@ -117,6 +131,9 @@ export function forward(m: MLP, x: Float32Array): ForwardResult {
 
 export function predict(m: MLP, x: Float32Array): number {
   const { probs } = forward(m, x);
+  if (m.outputType === 'sigmoid') {
+    return probs[0] >= 0.5 ? 1 : 0;
+  }
   let best = 0;
   for (let i = 1; i < probs.length; i++) if (probs[i] > probs[best]) best = i;
   return best;
@@ -133,12 +150,21 @@ export function trainStep(m: MLP, batch: TrainSample[], lr: number): number {
 
   for (const { x, y } of batch) {
     const { activations, probs } = forward(m, x);
-    lossSum += -Math.log(Math.max(probs[y], 1e-9));
-
-    // 출력층 gradient: probs - onehot
-    let dZ = new Float32Array(probs.length);
-    for (let o = 0; o < probs.length; o++) dZ[o] = probs[o];
-    dZ[y] -= 1;
+    let dZ: Float32Array;
+    if (m.outputType === 'sigmoid') {
+      // 이진 BCE — y ∈ {0, 1}, p = σ(z)
+      const p = probs[0];
+      const t = y;
+      lossSum += -(t * Math.log(Math.max(p, 1e-9)) + (1 - t) * Math.log(Math.max(1 - p, 1e-9)));
+      dZ = new Float32Array(1);
+      dZ[0] = p - t;
+    } else {
+      lossSum += -Math.log(Math.max(probs[y], 1e-9));
+      // 출력층 gradient: probs - onehot
+      dZ = new Float32Array(probs.length);
+      for (let o = 0; o < probs.length; o++) dZ[o] = probs[o];
+      dZ[y] -= 1;
+    }
 
     for (let k = L - 1; k >= 0; k--) {
       const aIn = activations[k];          // 이 층 입력

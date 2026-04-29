@@ -1,13 +1,14 @@
 // PhaseB3 — 학습 / 평가 데이터 나누기 (진짜 분할 슬라이더)
 // 슬라이더가 store.setEvalRatio()를 호출하면 dotStore가 trainIds/evalIds를 다시 만들고
-// 학습된 binaryModel/multiModel을 무효화한다. → 그림 갤러리·B4·C1까지 자동 갱신.
+// 학습된 binaryModel을 무효화한다. → 그림 갤러리·B4·C1까지 자동 갱신.
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../store';
 import { useDot, useActiveSamples, useActiveTrain, useActiveEval } from '../dotStore';
 import { type DotSample, type ShapeLabel, SHAPE_LABEL_KO } from '../data/dotShapes';
 import { PHASES } from '../phases';
 
-const SHAPE_LABEL_LIST: ShapeLabel[] = ['circle', 'triangle', 'square'];
+// B4가 사용하는 두 라벨만 분할 통계에 표시 (square는 데이터셋엔 있어도 분류 대상이 아님)
+const SHAPE_LABEL_LIST: ShapeLabel[] = ['circle', 'triangle'];
 
 export function PhaseB3() {
   const meta = PHASES.find((p) => p.id === 'b3')!;
@@ -36,19 +37,24 @@ export function PhaseB3() {
   }
 
   // 라벨별 카운트 — *실제 분할 결과*에서 산출
+  // square 데이터는 분류 대상이 아니라 표·갤러리에서 모두 제외한다
+  const activeBin = active.filter((s) => s.label !== 'square');
+  const trainBin = trainData.filter((s) => s.label !== 'square');
+  const evalBin = evalData.filter((s) => s.label !== 'square');
+
   const labelCounts: Record<ShapeLabel, { total: number; train: number; evalN: number }> = {
     circle: { total: 0, train: 0, evalN: 0 },
     triangle: { total: 0, train: 0, evalN: 0 },
     square: { total: 0, train: 0, evalN: 0 },
   };
   for (const lbl of SHAPE_LABEL_LIST) {
-    labelCounts[lbl].total = active.filter((s) => s.label === lbl).length;
-    labelCounts[lbl].train = trainData.filter((s) => s.label === lbl).length;
-    labelCounts[lbl].evalN = evalData.filter((s) => s.label === lbl).length;
+    labelCounts[lbl].total = activeBin.filter((s) => s.label === lbl).length;
+    labelCounts[lbl].train = trainBin.filter((s) => s.label === lbl).length;
+    labelCounts[lbl].evalN = evalBin.filter((s) => s.label === lbl).length;
   }
-  const totalActive = active.length;
-  const totalTrain = trainData.length;
-  const totalEval = evalData.length;
+  const totalActive = activeBin.length;
+  const totalTrain = trainBin.length;
+  const totalEval = evalBin.length;
   const pct = Math.round(evalRatio * 100);
 
   // 완료 처리 — 슬라이더 1회 만진 뒤 또는 6초 자동
@@ -173,14 +179,14 @@ export function PhaseB3() {
             <GalleryRow
               title="학습용 그림"
               caption="공부할 때 본 그림 — 모델이 가중치를 맞추는 데 쓰여요."
-              samples={trainData}
+              samples={trainBin}
               accent="accent"
             />
             <div className="border-t border-dashed border-border my-3" />
             <GalleryRow
               title="평가용 그림"
               caption="처음 보는 그림 — 학습 끝난 뒤에만 꺼내 봅니다."
-              samples={evalData}
+              samples={evalBin}
               accent="rose"
             />
           </div>

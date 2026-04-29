@@ -5,7 +5,7 @@ import type { PhaseId } from '../phases';
 export type TextbookSlug =
   | 'intro'
   | 'a1' | 'a2' | 'a3' | 'a4' | 'a5' | 'a6'
-  | 'b1' | 'b2' | 'b3' | 'b4' | 'b5'
+  | 'b1' | 'b2' | 'b3' | 'b4'
   | 'c1' | 'c2';
 
 export interface TextbookPageMeta {
@@ -49,13 +49,12 @@ export const TEXTBOOK_PARTS: TextbookPart[] = [
   {
     num: 'B',
     title: '데이터·학습·분류 출력',
-    caption: '도트 데이터 하나로 통일 — 입력·라벨·출력 뉴런·소프트맥스',
+    caption: '도트 데이터 하나로 통일 — 입력·라벨·전처리·분할·이진 분류',
     pages: [
       { slug: 'b1', num: 'B1', title: '문제 정의와 라벨',         short: '문제와 라벨',     subtitle: '동그라미 vs 세모, 입력·특징·정답',     appPhase: 'b1' },
       { slug: 'b2', num: 'B2', title: '데이터셋과 전처리',        short: '데이터셋과 전처리', subtitle: '기본 데이터 + 정제할 샘플 찾기',     appPhase: 'b2' },
       { slug: 'b3', num: 'B3', title: '학습 / 평가 데이터 나누기', short: '데이터 나누기',   subtitle: '왜 나눠야 하는가',                     appPhase: 'b3' },
-      { slug: 'b4', num: 'B4', title: '이진 분류 모델 학습',      short: '이진 분류',       subtitle: '동그라미 vs 세모, 출력 뉴런 2개',     appPhase: 'b4' },
-      { slug: 'b5', num: 'B5', title: '다중 분류와 소프트맥스',   short: '다중 분류',       subtitle: '동그라미·세모·네모, 출력 뉴런 3개',   appPhase: 'b5' },
+      { slug: 'b4', num: 'B4', title: '이진 분류 모델 학습',      short: '이진 분류',       subtitle: '동그라미 vs 세모, 시그모이드 출력 1개', appPhase: 'b4' },
     ],
   },
   {

@@ -2,7 +2,7 @@
 // 히든 스테이지 — 5부(p13, p14) / 6부(p15~p22) 는 그대로 유지한다.
 export type PhaseId =
   | 'a1' | 'a2' | 'a3' | 'a4' | 'a5' | 'a6'
-  | 'b1' | 'b2' | 'b3' | 'b4' | 'b5'
+  | 'b1' | 'b2' | 'b3' | 'b4'
   | 'c1' | 'c2'
   | 'p13' | 'p14'
   | 'p15' | 'p16' | 'p17' | 'p18' | 'p19' | 'p20' | 'p21' | 'p22';
@@ -33,8 +33,7 @@ export const PHASES: PhaseMeta[] = [
   { id: 'b1', num: 'B1', title: '문제 정의와 라벨',         subtitle: '동그라미 vs 세모, 입력·특징·정답',     group: 'B. 데이터·학습·분류 출력' },
   { id: 'b2', num: 'B2', title: '데이터셋과 전처리',        subtitle: '기본 데이터 + 정제할 샘플 찾기',       group: 'B. 데이터·학습·분류 출력' },
   { id: 'b3', num: 'B3', title: '학습 / 평가 데이터 나누기', subtitle: '왜 나눠야 하는가',                     group: 'B. 데이터·학습·분류 출력' },
-  { id: 'b4', num: 'B4', title: '이진 분류 모델 학습',      subtitle: '동그라미 vs 세모, 출력 뉴런 2개',     group: 'B. 데이터·학습·분류 출력' },
-  { id: 'b5', num: 'B5', title: '다중 분류와 소프트맥스',   subtitle: '동그라미·세모·네모, 출력 뉴런 3개',   group: 'B. 데이터·학습·분류 출력' },
+  { id: 'b4', num: 'B4', title: '이진 분류 모델 학습',      subtitle: '동그라미 vs 세모, 시그모이드 출력 1개', group: 'B. 데이터·학습·분류 출력' },
 
   // C. 딥러닝 — 심층 신경망이 문제를 어떻게 해결하는지 이해하기
   { id: 'c1', num: 'C1', title: '역전파 알고리즘의 이해', subtitle: '깊은 망의 가중치는 거꾸로 흘러 갱신된다', group: 'C. 딥러닝' },
@@ -99,6 +98,6 @@ export function isPart5Done(completed: Record<PhaseId, boolean>) {
 // visible 커리큘럼 ID 셋 — 라우팅·게이트에서 자주 쓴다
 export const VISIBLE_PHASE_IDS: PhaseId[] = [
   'a1', 'a2', 'a3', 'a4', 'a5', 'a6',
-  'b1', 'b2', 'b3', 'b4', 'b5',
+  'b1', 'b2', 'b3', 'b4',
   'c1', 'c2',
 ];

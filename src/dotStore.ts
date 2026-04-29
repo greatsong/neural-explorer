@@ -1,12 +1,12 @@
-// 도트 데이터 공유 store — B 영역(B2~B5)과 C1이 같은 데이터 흐름을 이어받는다.
-// 핵심: 학생이 B2에서 정제·플래그한 결과가 B3 분할 → B4/B5 학습 → C1 평가까지
+// 도트 데이터 공유 store — B 영역(B2~B4)과 C1이 같은 데이터 흐름을 이어받는다.
+// 핵심: 학생이 B2에서 정제·플래그한 결과가 B3 분할 → B4 학습 → C1 평가까지
 // 그대로 흘러간다. 페이즈 사이에서 캔버스를 다시 그릴 필요가 없다.
 
 import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { DOT_SAMPLES_DEFAULT, type DotSample, type ShapeLabel } from './data/dotShapes';
-import { forward, type MLP } from './lib/nn';
+import type { MLP } from './lib/nn';
 
 /* ───── 결정론적 split — 시드 고정으로 매번 같은 train/eval 묶음 ───── */
 function deterministicSplit(samples: DotSample[], seed = 42, evalRatio = 0.25): {
@@ -38,26 +38,11 @@ function deterministicSplit(samples: DotSample[], seed = 42, evalRatio = 0.25): 
 }
 
 /* ───── 학습 결과 — 가짜 시뮬레이션이 아닌 *진짜* 학습 모델 ─────
-   B4/B5/C2/C3는 src/lib/nn.ts의 MLP를 직접 학습해 mlp 필드에 저장한다.
-   기존 코드 호환을 위해 w/b 필드도 남겨 두지만(평탄화된 마지막 층 가중치),
-   forward/predict는 mlp 필드가 있으면 그것을 우선 사용한다. */
-export interface BinaryModel { // B4: 두 라벨 (circle vs triangle)
-  labels: [ShapeLabel, ShapeLabel];
-  // 출력 뉴런 2개 — 옛 형식 호환 (선형 학습 결과). mlp가 있으면 mlp 우선 사용.
-  w: number[][]; // shape: [C][D]
-  b: number[];   // length C
-  mlp?: MLP;     // 진짜 학습된 MLP (nn.ts createDeepMLP/trainStep 결과)
-  trainedSteps: number;
-  trainAccuracy: number;
-  evalAccuracy: number;
-}
-
-export interface MultiModel { // B5: 세 라벨 (circle, triangle, square)
-  labels: [ShapeLabel, ShapeLabel, ShapeLabel];
-  w: number[][];
-  b: number[];
-  mlp?: MLP;
-  trainedSteps: number;
+   B4는 src/lib/nn.ts의 MLP(시그모이드 출력)를 직접 학습해 mlp 필드에 저장한다. */
+export interface BinaryModel { // B4: 두 라벨 (circle vs triangle), 시그모이드 출력 1개
+  labels: [ShapeLabel, ShapeLabel];  // [negative(σ<0.5), positive(σ≥0.5)]
+  mlp: MLP;
+  trainedEpochs: number;
   trainAccuracy: number;
   evalAccuracy: number;
 }
@@ -70,13 +55,11 @@ interface DotState {
   trainIds: string[];
   evalIds: string[];
   binaryModel: BinaryModel | null;
-  multiModel: MultiModel | null;
 
   toggleRemove: (id: string) => void;
   resetRemoved: () => void;
   setEvalRatio: (r: number) => void;  // 비율 변경 시 trainIds/evalIds 재생성 + 학습된 모델 무효화
   setBinaryModel: (m: BinaryModel | null) => void;
-  setMultiModel: (m: MultiModel | null) => void;
   resetAll: () => void;
 }
 
@@ -100,7 +83,6 @@ export const useDot = create<DotState>()(
         trainIds: init.trainIds,
         evalIds: init.evalIds,
         binaryModel: null,
-        multiModel: null,
         toggleRemove: (id) => set((s) => {
           const next = new Set(s.removedIds);
           if (next.has(id)) next.delete(id); else next.add(id);
@@ -116,11 +98,9 @@ export const useDot = create<DotState>()(
             trainIds,
             evalIds,
             binaryModel: null,
-            multiModel: null,
           };
         }),
         setBinaryModel: (m) => set({ binaryModel: m }),
-        setMultiModel: (m) => set({ multiModel: m }),
         resetAll: () => {
           const init = makeInitial();
           set({
@@ -129,7 +109,6 @@ export const useDot = create<DotState>()(
             trainIds: init.trainIds,
             evalIds: init.evalIds,
             binaryModel: null,
-            multiModel: null,
           });
         },
       };
@@ -139,16 +118,16 @@ export const useDot = create<DotState>()(
       partialize: (s) => ({
         removedIds: Array.from(s.removedIds),
         binaryModel: s.binaryModel,
-        multiModel: s.multiModel,
       }),
       merge: (persisted, current) => {
         // localStorage에 저장된 removedIds는 array로 옴 → Set으로 복원
-        const p = persisted as { removedIds?: string[]; binaryModel?: BinaryModel | null; multiModel?: MultiModel | null };
+        const p = persisted as { removedIds?: string[]; binaryModel?: BinaryModel | null };
         return {
           ...current,
           removedIds: new Set(p?.removedIds ?? []),
-          binaryModel: p?.binaryModel ?? null,
-          multiModel: p?.multiModel ?? null,
+          // mlp 객체 안의 Float32Array는 JSON 직렬화 후 복원이 어렵다.
+          // 학습 모델은 세션 단위로만 살아 있게 하고, 새로고침 시 다시 학습하도록 한다.
+          binaryModel: null,
         };
       },
     }
@@ -193,160 +172,4 @@ export function useActiveEval(): DotSample[] {
   const removedIds = useDot((s) => s.removedIds);
   const evalIds = useDot((s) => s.evalIds);
   return useMemo(() => activeEval({ samples, removedIds, evalIds }), [samples, removedIds, evalIds]);
-}
-
-/* ───── 단순 분류 학습 — softmax + cross-entropy gradient descent ─────
-   B4(2클래스), B5(3클래스), C3 은닉층 모델 모두 같은 패턴이라 helper 제공 */
-export function trainLinearClassifier(
-  samples: DotSample[],
-  labels: ShapeLabel[],
-  epochs = 60,
-  lr = 0.05,
-): { w: number[][]; b: number[]; lossHistory: number[]; accuracyHistory: number[] } {
-  const C = labels.length;
-  const D = 64;
-  const w: number[][] = Array.from({ length: C }, () => new Array(D).fill(0));
-  const b: number[] = new Array(C).fill(0);
-  const lossHistory: number[] = [];
-  const accuracyHistory: number[] = [];
-
-  const labelIdx = (lbl: ShapeLabel) => labels.indexOf(lbl);
-  const train = samples.filter((s) => labels.includes(s.label));
-  if (train.length === 0) return { w, b, lossHistory, accuracyHistory };
-
-  for (let ep = 0; ep < epochs; ep++) {
-    let lossSum = 0;
-    let correct = 0;
-    const dw: number[][] = Array.from({ length: C }, () => new Array(D).fill(0));
-    const db: number[] = new Array(C).fill(0);
-
-    for (const s of train) {
-      const tIdx = labelIdx(s.label);
-      // logits
-      const z = new Array(C).fill(0);
-      for (let c = 0; c < C; c++) {
-        let zc = b[c];
-        for (let i = 0; i < D; i++) zc += w[c][i] * s.pixels[i];
-        z[c] = zc;
-      }
-      // softmax
-      const maxZ = Math.max(...z);
-      const exps = z.map((zi) => Math.exp(zi - maxZ));
-      const sumExp = exps.reduce((a, v) => a + v, 0);
-      const p = exps.map((e) => e / sumExp);
-      // cross-entropy
-      lossSum += -Math.log(Math.max(p[tIdx], 1e-12));
-      // accuracy
-      let pred = 0; for (let c = 1; c < C; c++) if (p[c] > p[pred]) pred = c;
-      if (pred === tIdx) correct += 1;
-      // gradient (softmax + CE)
-      for (let c = 0; c < C; c++) {
-        const grad = p[c] - (c === tIdx ? 1 : 0);
-        for (let i = 0; i < D; i++) dw[c][i] += grad * s.pixels[i];
-        db[c] += grad;
-      }
-    }
-
-    const N = train.length;
-    for (let c = 0; c < C; c++) {
-      for (let i = 0; i < D; i++) w[c][i] -= lr * (dw[c][i] / N);
-      b[c] -= lr * (db[c] / N);
-    }
-
-    lossHistory.push(lossSum / N);
-    accuracyHistory.push(correct / N);
-  }
-
-  return { w, b, lossHistory, accuracyHistory };
-}
-
-/* 모델 적용 — 새 샘플에 softmax 확률을 매긴다 */
-export function classify(
-  pixels: number[],
-  w: number[][],
-  b: number[],
-): { probs: number[]; pred: number; logits: number[] } {
-  const C = w.length;
-  const z = new Array(C).fill(0);
-  for (let c = 0; c < C; c++) {
-    let zc = b[c];
-    for (let i = 0; i < 64; i++) zc += w[c][i] * pixels[i];
-    z[c] = zc;
-  }
-  const maxZ = Math.max(...z);
-  const exps = z.map((zi) => Math.exp(zi - maxZ));
-  const sumExp = exps.reduce((a, v) => a + v, 0);
-  const probs = exps.map((e) => e / sumExp);
-  let pred = 0;
-  for (let c = 1; c < C; c++) if (probs[c] > probs[pred]) pred = c;
-  return { probs, pred, logits: z };
-}
-
-export function evaluateAccuracy(
-  samples: DotSample[],
-  labels: ShapeLabel[],
-  w: number[][],
-  b: number[],
-): { correct: number; total: number; accuracy: number; mistakes: { id: string; trueLabel: ShapeLabel; predLabel: ShapeLabel }[] } {
-  const filtered = samples.filter((s) => labels.includes(s.label));
-  let correct = 0;
-  const mistakes: { id: string; trueLabel: ShapeLabel; predLabel: ShapeLabel }[] = [];
-  for (const s of filtered) {
-    const { pred } = classify(s.pixels, w, b);
-    const trueIdx = labels.indexOf(s.label);
-    if (pred === trueIdx) correct += 1;
-    else mistakes.push({ id: s.id, trueLabel: s.label, predLabel: labels[pred] });
-  }
-  return { correct, total: filtered.length, accuracy: filtered.length === 0 ? 0 : correct / filtered.length, mistakes };
-}
-
-/* ───── 진짜 MLP 모델용 헬퍼 (B4·B5·C1 권장) ─────
-   nn.ts의 MLP가 mlp 필드에 저장된 모델에 대해 forward·classify·evaluate를 일관되게 적용.
-   기존 classify/evaluateAccuracy는 옛 선형 형식(w, b)을 그대로 받지만,
-   새 페이즈는 아래 두 함수만 쓰는 것을 권장한다. */
-export function classifyMLP(
-  pixels: number[],
-  mlp: MLP,
-): { probs: number[]; pred: number; logits: number[] } {
-  const x = new Float32Array(pixels);
-  const fr = forward(mlp, x);
-  const probs = Array.from(fr.probs);
-  const logits = Array.from(fr.logits);
-  let pred = 0;
-  for (let c = 1; c < probs.length; c++) if (probs[c] > probs[pred]) pred = c;
-  return { probs, pred, logits };
-}
-
-/* BinaryModel/MultiModel 객체를 받아 자동으로 mlp/선형 분기 */
-export function classifyModel(
-  pixels: number[],
-  model: BinaryModel | MultiModel,
-): { probs: number[]; pred: number; logits: number[] } {
-  if (model.mlp) return classifyMLP(pixels, model.mlp);
-  return classify(pixels, model.w, model.b);
-}
-
-export function evaluateModel(
-  samples: DotSample[],
-  model: BinaryModel | MultiModel,
-): {
-  correct: number; total: number; accuracy: number;
-  mistakes: { id: string; trueLabel: ShapeLabel; predLabel: ShapeLabel }[];
-} {
-  const labels = model.labels as ShapeLabel[];
-  const filtered = samples.filter((s) => labels.includes(s.label));
-  let correct = 0;
-  const mistakes: { id: string; trueLabel: ShapeLabel; predLabel: ShapeLabel }[] = [];
-  for (const s of filtered) {
-    const { pred } = classifyModel(s.pixels, model);
-    const trueIdx = labels.indexOf(s.label);
-    if (pred === trueIdx) correct += 1;
-    else mistakes.push({ id: s.id, trueLabel: s.label, predLabel: labels[pred] });
-  }
-  return {
-    correct,
-    total: filtered.length,
-    accuracy: filtered.length === 0 ? 0 : correct / filtered.length,
-    mistakes,
-  };
 }

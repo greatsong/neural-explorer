@@ -17,7 +17,6 @@ import { PhaseB1 } from './phases/PhaseB1';
 import { PhaseB2 } from './phases/PhaseB2';
 import { PhaseB3 } from './phases/PhaseB3';
 import { PhaseB4 } from './phases/PhaseB4';
-import { PhaseB5 } from './phases/PhaseB5';
 import { PhaseC1 } from './phases/PhaseC1';
 import { PhaseC2 } from './phases/PhaseC2';
 import { Phase13 } from './phases/Phase13';
@@ -140,7 +139,7 @@ function isWide(id: PhaseId) {
   // A6(기온 회귀), B/C 영역(분류·MNIST·은닉층 시각화), 5·6부 모두 와이드 레이아웃
   return [
     'a3', 'a5', 'a6',
-    'b2', 'b3', 'b4', 'b5',
+    'b2', 'b3', 'b4',
     'c1', 'c2',
     'p13', 'p14', 'p15', 'p16', 'p17', 'p18', 'p19', 'p20', 'p21', 'p22',
   ].includes(id);
@@ -158,7 +157,6 @@ function renderPhase(id: PhaseId) {
     case 'b2': return <PhaseB2 />;
     case 'b3': return <PhaseB3 />;
     case 'b4': return <PhaseB4 />;
-    case 'b5': return <PhaseB5 />;
     case 'c1': return <PhaseC1 />;
     case 'c2': return <PhaseC2 />;
     case 'p13': return <Phase13 />;

@@ -20,13 +20,8 @@ const FLOW: { id: string; title: string; body: string }[] = [
   },
   {
     id: 'b4',
-    title: 'B4 · 출력 뉴런 2개로 분류',
-    body: '동그라미 vs 세모 — 출력 뉴런 두 개 중 더 큰 쪽을 골라요.',
-  },
-  {
-    id: 'b5',
-    title: 'B5 · 출력 뉴런 3개 + 소프트맥스',
-    body: '동그라미·세모·네모. 세 점수를 확률로 바꿔 가장 큰 것을 골라요.',
+    title: 'B4 · 시그모이드로 이진 분류',
+    body: '동그라미 vs 세모 — 출력 뉴런 1개의 점수를 0~1 확률로 바꿔서 0.5를 기준으로 골라요.',
   },
 ];
 
@@ -35,9 +30,9 @@ export function PhaseB1() {
   const markCompleted = useApp((s) => s.markCompleted);
   const samples = useDot((s) => s.samples);
 
-  // 라벨별 깨끗한(노이즈/오라벨 없는) 샘플 5~6장씩.
+  // 라벨별 깨끗한(노이즈/오라벨 없는) 샘플 5~6장씩. 분류 대상은 동그라미/세모 두 개.
   const gallery = useMemo(() => {
-    const labels: ShapeLabel[] = ['circle', 'triangle', 'square'];
+    const labels: ShapeLabel[] = ['circle', 'triangle'];
     const map: Record<ShapeLabel, DotSample[]> = { circle: [], triangle: [], square: [] };
     for (const s of samples) {
       if (s.mislabel || s.noisy) continue;
@@ -79,7 +74,7 @@ export function PhaseB1() {
         </div>
         <div className="card p-2.5">
           <div className="font-medium mb-0.5">라벨이란?</div>
-          <div className="text-muted">각 그림에 붙은 정답(동그라미·세모·네모)을 라벨이라고 불러요.</div>
+          <div className="text-muted">각 그림에 붙은 정답(동그라미·세모)을 라벨이라고 불러요.</div>
         </div>
         <div className="card p-2.5">
           <div className="font-medium mb-0.5">입력 형식</div>
@@ -87,10 +82,10 @@ export function PhaseB1() {
         </div>
       </div>
 
-      {/* 앞으로의 흐름 — 4 카드 한 줄씩 */}
+      {/* 앞으로의 흐름 — 3 카드 한 줄씩 */}
       <div className="mt-3">
         <div className="text-sm font-medium mb-1.5">앞으로의 흐름</div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
+        <div className="grid sm:grid-cols-3 gap-2">
           {FLOW.map((step) => (
             <div key={step.id} className="card p-2.5">
               <div className="text-[13px] font-semibold text-accent">{step.title}</div>
