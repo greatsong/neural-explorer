@@ -57,7 +57,7 @@ export function PhaseC1() {
   const [kind, setKind] = useState<ModelKind>(initialKind);
   const [selectedClass, setSelectedClass] = useState<ShapeLabel | null>(null);
   const [toggleCount, setToggleCount] = useState(0);
-  const [chipClickCount, setChipClickCount] = useState(0);
+  const [pickedWeakClass, setPickedWeakClass] = useState<ShapeLabel | null>(null);
 
   // 모델이 나중에 학습되면 초기 토글
   useEffect(() => {
@@ -92,27 +92,43 @@ export function PhaseC1() {
     return map;
   }, [result]);
 
-  /* 정답 vs 모델 답 막대 (라벨별) — 평가 데이터에서 정답 분포 vs 모델 예측 분포 */
-  const distributions = useMemo(() => {
+  /* 가장 약한 클래스 — 오답 수가 가장 많은 라벨 */
+  const weakest = useMemo(() => {
     if (!result) return null;
     const labels = result.labels;
-    const trueCounts = new Map<ShapeLabel, number>();
-    const predCounts = new Map<ShapeLabel, number>();
-    labels.forEach((l) => { trueCounts.set(l, 0); predCounts.set(l, 0); });
     const filtered = evalSamples.filter((s) => labels.includes(s.label));
-    for (const s of filtered) {
-      trueCounts.set(s.label, (trueCounts.get(s.label) ?? 0) + 1);
+    const totalByClass = new Map<ShapeLabel, number>();
+    labels.forEach((l) => totalByClass.set(l, 0));
+    for (const s of filtered) totalByClass.set(s.label, (totalByClass.get(s.label) ?? 0) + 1);
+
+    let bestLabel: ShapeLabel | null = null;
+    let bestMistakes = -1;
+    for (const lbl of labels) {
+      const cnt = mistakesByClass.get(lbl)?.length ?? 0;
+      if (cnt > bestMistakes) {
+        bestMistakes = cnt;
+        bestLabel = lbl;
+      }
     }
-    // 예측 분포는 mistakes + correct 로 재구성: 전체에서 mistakes의 trueLabel 빼고 predLabel 더함
-    for (const s of filtered) predCounts.set(s.label, (predCounts.get(s.label) ?? 0));
-    for (const s of filtered) {
-      // 정답이면 그대로, 아니면 잘못 예측한 라벨 카운트가 늘어야 함
-      const m = result.mistakes.find((mm) => mm.id === s.id);
-      const predLabel = m ? m.predLabel : s.label;
-      predCounts.set(predLabel, (predCounts.get(predLabel) ?? 0) + 1);
+    if (!bestLabel || bestMistakes <= 0) {
+      return { allCorrect: true as const };
     }
-    return { labels, trueCounts, predCounts, total: filtered.length };
-  }, [result, evalSamples]);
+    // 동률 검사
+    const tied = labels.filter((l) => (mistakesByClass.get(l)?.length ?? 0) === bestMistakes);
+    if (tied.length > 1) {
+      return { allCorrect: true as const };
+    }
+    const total = totalByClass.get(bestLabel) ?? 0;
+    const correct = total - bestMistakes;
+    const acc = total > 0 ? (correct / total) * 100 : 0;
+    return {
+      allCorrect: false as const,
+      label: bestLabel,
+      mistakes: bestMistakes,
+      total,
+      accuracy: acc,
+    };
+  }, [result, evalSamples, mistakesByClass]);
 
   /* 그리드 — 선택된 클래스의 오답 도트 */
   const gridItems = useMemo(() => {
@@ -124,10 +140,15 @@ export function PhaseC1() {
     });
   }, [result, selectedClass, mistakesByClass, samples]);
 
-  /* 모델 토글 + 칩 클릭 모두 1회 이상이면 완료 */
+  /* 모델 토글 1회 이상 + 약점 클래스 직접 지목 시 완료 */
   useEffect(() => {
-    if (toggleCount >= 1 && chipClickCount >= 1) markCompleted('c1');
-  }, [toggleCount, chipClickCount, markCompleted]);
+    if (toggleCount >= 1 && pickedWeakClass) markCompleted('c1');
+  }, [toggleCount, pickedWeakClass, markCompleted]);
+
+  // 모델/평가가 바뀌면 지목 상태 초기화
+  useEffect(() => {
+    setPickedWeakClass(null);
+  }, [kind]);
 
   const handleToggle = (k: ModelKind) => {
     if (k === kind) return;
@@ -138,8 +159,13 @@ export function PhaseC1() {
 
   const handleChip = (lbl: ShapeLabel) => {
     setSelectedClass((cur) => (cur === lbl ? null : lbl));
-    setChipClickCount((c) => c + 1);
   };
+
+  const handlePickWeak = (lbl: ShapeLabel) => {
+    setPickedWeakClass(lbl);
+  };
+
+  const pickedCount = pickedWeakClass ? (mistakesByClass.get(pickedWeakClass)?.length ?? 0) : 0;
 
   /* 빈 상태 — 두 모델 모두 없을 때 */
   if (!hasBinary && !hasMulti) {
@@ -218,43 +244,45 @@ export function PhaseC1() {
                 맞춘 <strong className="tabular-nums">{result.correct}</strong> / <span className="tabular-nums">{result.total}</span>개
               </div>
 
-              {/* 정답 vs 모델 답 막대 */}
-              {distributions && (
+              {/* 가장 약한 클래스 강조 카드 */}
+              {weakest && (
                 <div className="mt-5">
-                  <div className="text-sm font-medium mb-2">정답 분포 vs 모델 답 분포</div>
-                  <div className="space-y-3">
-                    {distributions.labels.map((lbl) => {
-                      const t = distributions.trueCounts.get(lbl) ?? 0;
-                      const p = distributions.predCounts.get(lbl) ?? 0;
-                      const total = distributions.total || 1;
-                      const color = colorOfLabel(lbl);
-                      return (
-                        <div key={lbl}>
-                          <div className="flex justify-between text-xs mb-1" style={{ color }}>
-                            <span>{SHAPE_LABEL_KO[lbl]}</span>
-                            <span className="font-mono tabular-nums">정답 {t} · 답 {p}</span>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="h-3 rounded bg-surface overflow-hidden">
-                              <div
-                                className="h-full"
-                                style={{ width: `${(t / total) * 100}%`, background: color, opacity: 0.85 }}
-                              />
-                            </div>
-                            <div className="h-3 rounded bg-surface overflow-hidden">
-                              <div
-                                className="h-full"
-                                style={{ width: `${(p / total) * 100}%`, background: color, opacity: 0.45 }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="text-xs text-muted mt-2">
-                    위 막대 = 평가 데이터 안의 <em>실제 라벨</em> 비율, 아래 막대 = 모델이 그 라벨로 답한 비율.
-                  </div>
+                  {weakest.allCorrect ? (
+                    <div
+                      className="rounded-lg p-4 border"
+                      style={{
+                        borderColor: COLORS.green,
+                        background: 'rgba(16,185,129,0.08)',
+                      }}
+                    >
+                      <div className="text-sm font-medium" style={{ color: COLORS.green }}>
+                        모든 클래스를 잘 분류해요
+                      </div>
+                      <div className="text-xs text-muted mt-1">
+                        평가 데이터에서 어떤 클래스도 특별히 약한 곳이 없어요.
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className="rounded-lg p-4 border"
+                      style={{
+                        borderColor: colorOfLabel(weakest.label),
+                        background: `color-mix(in srgb, ${colorOfLabel(weakest.label)} 10%, transparent)`,
+                      }}
+                    >
+                      <div className="text-xs font-medium tracking-wide" style={{ color: colorOfLabel(weakest.label) }}>
+                        가장 약한 클래스
+                      </div>
+                      <div
+                        className="mt-1 text-lg font-semibold leading-snug"
+                        style={{ color: colorOfLabel(weakest.label) }}
+                      >
+                        {SHAPE_LABEL_KO[weakest.label]} — 평가 {weakest.total}장 중{' '}
+                        <span className="tabular-nums">{weakest.mistakes}</span>장 틀림{' '}
+                        <span className="tabular-nums">(정확도 {weakest.accuracy.toFixed(1)}%)</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </>
@@ -267,7 +295,7 @@ export function PhaseC1() {
         <section className="card p-4">
           <h3 className="!mt-0">클래스별 오답</h3>
           <p className="text-sm text-muted mt-1">
-            칩을 누르면 <em>그 클래스인데 다른 클래스로 답한</em> 그림들이 펼쳐져요.
+            어떤 종류가 가장 약한가요? <strong>클래스를 클릭해서 지목</strong>해 보세요. 칩을 누르면 <em>그 클래스인데 다른 클래스로 답한</em> 그림들이 펼쳐져요.
           </p>
 
           {/* 칩 가로 줄 */}
@@ -318,8 +346,45 @@ export function PhaseC1() {
               </div>
             )}
             {selectedClass && gridItems.length > 0 && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                {gridItems.map((it) => (
+              <>
+                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                  {pickedWeakClass === selectedClass ? (
+                    <div
+                      className="inline-flex items-center gap-1.5 text-sm font-medium"
+                      style={{ color: colorOfLabel(selectedClass) }}
+                    >
+                      <span aria-hidden>✓</span>
+                      약점 지목 완료 — <span className="tabular-nums">{pickedCount}</span>개 오답을 봤어요
+                    </div>
+                  ) : (
+                    <div className="text-xs text-muted">
+                      <strong>{SHAPE_LABEL_KO[selectedClass]}</strong>의 오답 그림들이에요.
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handlePickWeak(selectedClass)}
+                    disabled={pickedWeakClass === selectedClass}
+                    className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition disabled:opacity-50"
+                    style={{
+                      background:
+                        pickedWeakClass === selectedClass
+                          ? 'transparent'
+                          : colorOfLabel(selectedClass),
+                      color:
+                        pickedWeakClass === selectedClass
+                          ? colorOfLabel(selectedClass)
+                          : 'white',
+                      border: `1px solid ${colorOfLabel(selectedClass)}`,
+                    }}
+                  >
+                    {pickedWeakClass === selectedClass
+                      ? '약점으로 지목됨'
+                      : '이 클래스를 약점으로 지목'}
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                  {gridItems.map((it) => (
                   <div key={it.id} className="card p-2 flex flex-col items-center">
                     {it.sample && <PixelDot pixels={it.sample.pixels} size={56} />}
                     <div className="text-xs mt-2 leading-5 text-center">
@@ -333,7 +398,8 @@ export function PhaseC1() {
                     </div>
                   </div>
                 ))}
-              </div>
+                </div>
+              </>
             )}
           </div>
         </section>
