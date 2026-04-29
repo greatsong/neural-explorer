@@ -106,7 +106,7 @@ export function PhaseC1() {
       setHistory((h) => [...h, trace(nw).loss]);
       setStepCount((s) => s + 1);
       setStageIdx(0);
-    }, 180);
+    }, 700);
     return () => clearInterval(id);
   }, [auto]);
 
