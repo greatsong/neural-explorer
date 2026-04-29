@@ -97,7 +97,7 @@ export function PhaseA3() {
   const meta = PHASES.find((p) => p.id === 'a3')!;
   const markCompleted = useApp((s) => s.markCompleted);
 
-  const [mode, setMode] = useState<VarMode>('b');
+  const [mode, setMode] = useState<VarMode>('w');
   const conf = CONF[mode];
 
   // 직접 조작
@@ -195,18 +195,18 @@ export function PhaseA3() {
         <span className="text-sm text-muted">어떤 변수를 만져볼까요?</span>
         <div className="inline-flex rounded-md border border-border overflow-hidden">
           <button
-            onClick={() => switchMode('b')}
-            className={`px-3 py-1.5 text-sm font-mono transition ${
-              mode === 'b' ? 'bg-accent text-white' : 'bg-bg text-muted hover:bg-surface'
-            }`}>
-            편향 b
-          </button>
-          <button
             onClick={() => switchMode('w')}
             className={`px-3 py-1.5 text-sm font-mono transition ${
               mode === 'w' ? 'bg-accent text-white' : 'bg-bg text-muted hover:bg-surface'
             }`}>
             가중치 w
+          </button>
+          <button
+            onClick={() => switchMode('b')}
+            className={`px-3 py-1.5 text-sm font-mono transition ${
+              mode === 'b' ? 'bg-accent text-white' : 'bg-bg text-muted hover:bg-surface'
+            }`}>
+            편향 b
           </button>
         </div>
         <span className="text-xs text-muted">{conf.fixedDesc}</span>
