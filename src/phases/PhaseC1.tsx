@@ -113,16 +113,29 @@ export function PhaseC1() {
     if (!bestLabel || bestMistakes <= 0) {
       return { allCorrect: true as const };
     }
-    // 동률 검사
+    // 동률 검사 — 여러 클래스가 같은 오답 수면 "전체적으로 비슷하게 약하다"
     const tied = labels.filter((l) => (mistakesByClass.get(l)?.length ?? 0) === bestMistakes);
     if (tied.length > 1) {
-      return { allCorrect: true as const };
+      // bestLabel은 그대로 첫 라벨로 두고, allTied 플래그를 추가
+      const total = totalByClass.get(bestLabel) ?? 0;
+      const correct = total - bestMistakes;
+      const acc = total > 0 ? (correct / total) * 100 : 0;
+      return {
+        allCorrect: false as const,
+        allTied: true as const,
+        tiedLabels: tied,
+        label: bestLabel,
+        mistakes: bestMistakes,
+        total,
+        accuracy: acc,
+      };
     }
     const total = totalByClass.get(bestLabel) ?? 0;
     const correct = total - bestMistakes;
     const acc = total > 0 ? (correct / total) * 100 : 0;
     return {
       allCorrect: false as const,
+      allTied: false as const,
       label: bestLabel,
       mistakes: bestMistakes,
       total,
@@ -260,6 +273,24 @@ export function PhaseC1() {
                       </div>
                       <div className="text-xs text-muted mt-1">
                         평가 데이터에서 어떤 클래스도 특별히 약한 곳이 없어요.
+                      </div>
+                    </div>
+                  ) : weakest.allTied ? (
+                    <div
+                      className="rounded-lg p-4 border"
+                      style={{
+                        borderColor: 'rgb(190,18,60)',
+                        background: 'rgba(190,18,60,0.08)',
+                      }}
+                    >
+                      <div className="text-xs font-medium tracking-wide" style={{ color: 'rgb(190,18,60)' }}>
+                        여러 클래스가 비슷하게 약함
+                      </div>
+                      <div className="text-sm font-semibold leading-snug mt-1" style={{ color: 'rgb(190,18,60)' }}>
+                        {weakest.tiedLabels.map((l) => SHAPE_LABEL_KO[l]).join(' · ')} — 모두 {weakest.mistakes}장씩 틀림
+                      </div>
+                      <div className="text-xs text-muted mt-1">
+                        특정 클래스만의 문제가 아니라 모델 전체 성능이 낮은 상태예요.
                       </div>
                     </div>
                   ) : (

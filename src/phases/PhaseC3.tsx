@@ -338,14 +338,9 @@ function Track1() {
           <T1LossCurve history={history} />
         </div>
 
-        {/* 우: 6단계 카드 + 컨트롤 */}
+        {/* 우: 컨트롤(상단) + 6단계 카드 */}
         <div className="space-y-3">
-          {showFormula ? (
-            <T1FormulaCard W={W} agg={agg} stepIdx={currentStep} />
-          ) : (
-            <T1IntuitionCard stepIdx={currentStep} stepCount={stepCount} />
-          )}
-
+          {/* 핵심 인터랙션을 첫 viewport에 — 컨트롤을 식 카드 위로 */}
           <div className="card p-3 space-y-2">
             <div className="grid grid-cols-3 gap-2 text-center font-mono text-xs">
               <Stat label="step" value={`${stepCount}`} />
@@ -361,10 +356,17 @@ function Track1() {
               </button>
               <button onClick={reset} className="btn-ghost">초기화</button>
             </div>
-            <div className="text-[10px] text-muted leading-snug">
-              ※ 두 번째 은닉 뉴런 h₂는 처음에 z₁₂ &lt; 0이라 0으로 죽어 있어요(<strong>Dying ReLU</strong>).
-              그래서 자기 책임 e_h₂ = 0 — 가중치도 안 움직여요. 흐름이 살아 있는 h₁만 먼저 학습.
-            </div>
+          </div>
+
+          {showFormula ? (
+            <T1FormulaCard W={W} agg={agg} stepIdx={currentStep} />
+          ) : (
+            <T1IntuitionCard stepIdx={currentStep} stepCount={stepCount} />
+          )}
+
+          <div className="text-[10px] text-muted leading-snug px-1">
+            ※ 두 번째 은닉 뉴런 h₂는 처음에 z₁₂ &lt; 0이라 0으로 죽어 있어요(<strong>Dying ReLU</strong>).
+            그래서 자기 책임 e_h₂ = 0 — 가중치도 안 움직여요. 흐름이 살아 있는 h₁만 먼저 학습.
           </div>
         </div>
       </div>

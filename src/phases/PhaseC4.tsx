@@ -184,7 +184,7 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
       </div>
 
       <h2>🎚 빠른 프리셋</h2>
-      <div className="flex flex-wrap gap-2 mt-3">
+      <div className="flex flex-wrap items-center gap-2 mt-3">
         {presets.map((p) => (
           <button
             key={p.label}
@@ -196,13 +196,26 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
             {p.label}
           </button>
         ))}
+        {/* 핵심 학습 버튼을 첫 viewport 안에 — 프리셋 옆으로 끌어 올림 */}
+        <button
+          onClick={startTrain}
+          disabled={training}
+          className="btn-primary text-sm ml-auto"
+        >
+          {training ? '학습 중...' : '▶ 학습 시작'}
+        </button>
+        {training && (
+          <button onClick={() => { cancelRef.current = true; }} className="btn-ghost text-sm">중단</button>
+        )}
       </div>
 
-      <h2>신경망 구조 짜기</h2>
-      <p className="text-muted text-sm">
-        은닉층은 자유롭게 추가/삭제할 수 있어요. 입력(784, 픽셀)과 출력(10, 숫자 0~9)은 고정입니다.
-      </p>
-      <LayerEditor hiddenLayers={hiddenLayers} setHiddenLayers={setHiddenLayers} disabled={training} />
+      <details className="mt-4">
+        <summary className="cursor-pointer text-sm font-medium hover:text-accent">신경망 구조 짜기 (고급)</summary>
+        <p className="text-muted text-sm mt-2">
+          은닉층은 자유롭게 추가/삭제할 수 있어요. 입력(784, 픽셀)과 출력(10, 숫자 0~9)은 고정입니다.
+        </p>
+        <LayerEditor hiddenLayers={hiddenLayers} setHiddenLayers={setHiddenLayers} disabled={training} />
+      </details>
 
       <div className="mt-4">
         <NetworkDiagram layers={layerSizes} />
@@ -219,12 +232,7 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
             <div className="text-xs text-muted mt-2">파라미터 수</div>
             <div className="text-lg text-accent">{params.toLocaleString()}개</div>
           </div>
-          <button onClick={startTrain} disabled={training} className="btn-primary">
-            {training ? '학습 중...' : '학습 시작'}
-          </button>
-          {training && (
-            <button onClick={() => { cancelRef.current = true; }} className="btn-ghost ml-2">중단</button>
-          )}
+          <p className="text-xs text-muted">※ 학습 시작 버튼은 위 빠른 프리셋 줄에 있어요. 슬라이더로 직접 조정 후 다시 누르면 새 설정으로 학습돼요.</p>
         </div>
         <div>
           <ProgressChart log={progress} />

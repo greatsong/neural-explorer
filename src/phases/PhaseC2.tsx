@@ -8,8 +8,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../store';
 import { PHASES } from '../phases';
-import { useActiveTrain, useActiveEval } from '../dotStore';
-import { type DotSample, SHAPE_LABELS } from '../data/dotShapes';
+import { DOT_SAMPLES_DEFAULT, type DotSample, SHAPE_LABELS } from '../data/dotShapes';
 import {
   createDeepMLP,
   trainStep,
@@ -19,42 +18,76 @@ import {
   type TrainSample,
 } from '../lib/nn';
 
-/* ---------- 학습 데이터 변환 ----------
- * C2는 동그라미 vs 세모 두 라벨로만 학습 (B4와 동일 구조).
- * 외운 모델이 잘 보이도록 약간 큰 모델 [64, 16, 2] 사용. */
-const TWO_LABELS = ['circle', 'triangle'] as const;
-const LAYERS = [64, 16, 2];
+/* ---------- C2 자체 데이터 풀 ----------
+ * B3 분할에 의존하면 active train·eval이 12장 안팎으로 작아져
+ * eval 분해능이 8%p 단위가 된다 — 모델 크기를 줄여도 통계적 차이가 묻힌다.
+ * C2가 직접 dotShapes의 깨끗한 24장(동·세모)에서 자체 분할 + augment로 eval 풀을 키운다. */
+const POOL_LABELS: ('circle' | 'triangle')[] = ['circle', 'triangle'];
 
-function toTrainSamples(samples: DotSample[]): TrainSample[] {
-  return samples
-    .filter((s) => s.label === 'circle' || s.label === 'triangle')
-    .map((s) => ({
-      x: new Float32Array(s.pixels),
-      y: TWO_LABELS.indexOf(s.label as 'circle' | 'triangle'),
-    }));
+function deterministicShuffle<T>(arr: T[], seed: number): T[] {
+  const out = arr.slice();
+  let s = seed;
+  const rnd = () => { s = (s * 1664525 + 1013904223) & 0x7fffffff; return s / 0x7fffffff; };
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
 }
 
-/* 라벨당 N장만 추리는 시드 고정 추출 — 항상 같은 그림이 뽑히도록 id 정렬 후 앞에서 자른다. */
-function pickFewPerLabel(data: TrainSample[], samples: DotSample[], perLabel: number): TrainSample[] {
-  // samples를 id 정렬해서 안정적인 순서를 보장
-  const ordered = samples
-    .filter((s) => s.label === 'circle' || s.label === 'triangle')
-    .slice()
-    .sort((a, b) => a.id.localeCompare(b.id));
+/* 깨끗한 24장(동·세모) → 시드 고정 셔플 → 학습 풀 12장 + 평가 풀 12장.
+ * 학습과 평가가 *같은 분포*. augment는 사용하지 않는다(분포 불일치 → 의도 흐림).
+ * eval 12장 분해능 8.3%p. 학습 4장 vs 12장 차이 3배 — 통계적 갭은 명확하되
+ * SGD 운에 따라 가끔 역전 가능 (그게 학습의 본질이라 사용자 합의됨). */
+const CLEAN_POOL: DotSample[] = DOT_SAMPLES_DEFAULT.filter(
+  (s) => POOL_LABELS.includes(s.label as 'circle' | 'triangle') && !s.noisy && !s.mislabel,
+);
+// 라벨별 6장씩 train/eval 분할 (계층 샘플링)
+function splitByLabel(pool: DotSample[]): { train: DotSample[]; evalSet: DotSample[] } {
+  const byLabel = new Map<string, DotSample[]>();
+  for (const s of pool) {
+    const list = byLabel.get(s.label) ?? [];
+    list.push(s);
+    byLabel.set(s.label, list);
+  }
+  const train: DotSample[] = [];
+  const evalSet: DotSample[] = [];
+  byLabel.forEach((list) => {
+    const shuf = deterministicShuffle(list, 42);
+    train.push(...shuf.slice(0, 6));
+    evalSet.push(...shuf.slice(6));
+  });
+  return { train, evalSet };
+}
+const _split = splitByLabel(CLEAN_POOL);
+const TRAIN_POOL_RAW: DotSample[] = _split.train;       // 12장
+const EVAL_POOL: DotSample[] = _split.evalSet;          // 12장
+
+/* ---------- 학습 데이터 변환 ----------
+ * C2는 동그라미 vs 세모 두 라벨로만 학습 (B4와 동일 구조).
+ * 모델 크기는 데이터 세팅(학습 4~16장, 평가 40장)에 맞춰 [64, 4, 2]. */
+const TWO_LABELS = ['circle', 'triangle'] as const;
+const LAYERS = [64, 4, 2];
+
+function toTrainSamples(samples: DotSample[]): TrainSample[] {
+  return samples.map((s) => ({
+    x: new Float32Array(s.pixels),
+    y: TWO_LABELS.indexOf(s.label as 'circle' | 'triangle'),
+  }));
+}
+
+/* 학습 풀에서 라벨당 N장만 추출 — 결정론. 적은(few) 학습에 사용. */
+function pickFewPerLabel(perLabel: number): TrainSample[] {
   const picks: DotSample[] = [];
   const counts: Record<string, number> = { circle: 0, triangle: 0 };
-  for (const s of ordered) {
+  for (const s of TRAIN_POOL_RAW) {
     if (counts[s.label] < perLabel) {
       picks.push(s);
       counts[s.label]++;
     }
     if (counts.circle >= perLabel && counts.triangle >= perLabel) break;
   }
-  void data; // 데이터 참조 일관성을 위해 유지
-  return picks.map((s) => ({
-    x: new Float32Array(s.pixels),
-    y: TWO_LABELS.indexOf(s.label as 'circle' | 'triangle'),
-  }));
+  return toTrainSamples(picks);
 }
 
 /* ---------- 학습 진행 로그 한 점 ---------- */
@@ -70,15 +103,13 @@ export function PhaseC2() {
   const meta = PHASES.find((p) => p.id === 'c2')!;
   const markCompleted = useApp((s) => s.markCompleted);
 
-  const trainAll = useActiveTrain();
-  const evalAll = useActiveEval();
-
-  const trainData = useMemo(() => toTrainSamples(trainAll), [trainAll]);
-  const evalData = useMemo(() => toTrainSamples(evalAll), [evalAll]);
+  // C2는 자체 풀 사용 — B3 분할에 종속되지 않음.
+  const trainData = useMemo(() => toTrainSamples(TRAIN_POOL_RAW), []);
+  const evalData = useMemo(() => toTrainSamples(EVAL_POOL), []);
 
   const [epochs, setEpochs] = useState(30);
   const [lr, setLr] = useState(0.1);
-  const [perLabel] = useState(3); // 적은 데이터 모델: 라벨당 3장
+  const [perLabel] = useState(2); // 적은 데이터 모델: 라벨당 2장 = 4장 (전체 16장 대비 4배)
 
   // 두 학습 진행 상태
   const [running, setRunning] = useState(false);
@@ -147,7 +178,7 @@ export function PhaseC2() {
     setFewResult(null); setAllResult(null);
 
     // 적은 데이터 모델 — 라벨당 perLabel 장만 시드 고정으로 추출
-    const fewTrain = pickFewPerLabel(trainData, trainAll, perLabel);
+    const fewTrain = pickFewPerLabel(perLabel);
     // 두 학습을 순차로 — 같은 epoch/같은 lr/같은 모델 구조
     const few = await runOne(fewTrain, setFewLog);
     setFewResult(few);
