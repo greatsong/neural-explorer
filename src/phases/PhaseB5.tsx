@@ -617,7 +617,197 @@ export function PhaseB5() {
           </div>
         </div>
       </div>
+
+      {/* 깊이 알기 — 시그모이드·소프트맥스·교차 엔트로피 (관심 있는 학생용 폴드) */}
+      <DeepDive />
     </article>
+  );
+}
+
+/* ────────── 깊이 알기 폴드 — 관심 있는 학생용 ──────────
+   시그모이드(S자 미끄럼틀) / 소프트맥스(불공정 투표) / 교차 엔트로피(자신감 벌점)를
+   직관 + 작은 SVG로 풀어 준다. 본문 흐름은 안 끊고, 펼쳐야 보임. */
+function DeepDive() {
+  return (
+    <details className="mt-5 rounded-md border border-border bg-surface/30">
+      <summary className="cursor-pointer px-4 py-3 text-sm font-medium hover:bg-surface/60 transition">
+        💡 더 알아보기 — 시그모이드·소프트맥스·교차 엔트로피의 관계 (관심 있는 학생용)
+      </summary>
+      <div className="px-4 pb-4 pt-1 space-y-6 text-sm leading-relaxed">
+
+        {/* 1. 시그모이드 */}
+        <section>
+          <h3 className="!mt-0 !mb-1 text-base font-semibold text-accent">1. 시그모이드 — S자 미끄럼틀</h3>
+          <p className="text-muted">
+            어떤 점수든 <strong>0과 1 사이</strong>로 밀어 넣어요. 양수면 1쪽, 음수면 0쪽, 0이면 정확히 가운데.
+            "예/아니오" 둘 중 하나를 고를 때 점수를 *확률*로 바꾸는 변환기.
+          </p>
+          <div className="mt-2 grid md:grid-cols-[280px_1fr] gap-4 items-center">
+            <SigmoidCurve />
+            <div className="text-[12px] text-muted leading-snug">
+              <div>· 점수 z가 크면 σ(z) → 1 ("확실히 yes")</div>
+              <div>· 점수 z가 작으면 σ(z) → 0 ("확실히 no")</div>
+              <div>· z = 0이면 σ(0) = 0.5 ("모르겠다")</div>
+              <div className="mt-1.5 font-mono text-[11px]">σ(z) = 1 / (1 + e<sup>−z</sup>)</div>
+            </div>
+          </div>
+        </section>
+
+        {/* 2. 소프트맥스 */}
+        <section>
+          <h3 className="!mt-0 !mb-1 text-base font-semibold text-accent">2. 소프트맥스 — 후보들끼리 경쟁시키는 투표</h3>
+          <p className="text-muted">
+            여러 점수가 들어오면 <strong>지수로 부풀린 뒤</strong> 합이 1이 되게 나눠요.
+            점수 차이가 클수록 1등이 거의 모든 표를 가져갑니다 (winner-take-most).
+          </p>
+          <div className="mt-2 grid md:grid-cols-[280px_1fr] gap-4 items-center">
+            <SoftmaxBars />
+            <div className="text-[12px] text-muted leading-snug">
+              <div>· 점수 [1, 2, 5] → 확률 [1.8%, 4.7%, <strong style={{ color: 'rgb(190,18,60)' }}>93.5%</strong>]</div>
+              <div>· 1등의 점수가 조금만 앞서도 표가 *몰린다*</div>
+              <div>· 모든 점수에 같은 값을 더해도(시프트) 결과는 그대로 — <strong>차이만 본다</strong></div>
+              <div className="mt-1.5 text-accent">
+                후보가 *둘*이면 σ(z₁ − z₂) = softmax([z₁, z₂])₁ — 시그모이드는 소프트맥스의 2-class 특수형.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 3. 교차 엔트로피 */}
+        <section>
+          <h3 className="!mt-0 !mb-1 text-base font-semibold text-accent">3. 교차 엔트로피 — 자신 있게 틀리면 더 크게 혼낸다</h3>
+          <p className="text-muted">
+            모델이 <strong>정답 라벨</strong>에 매긴 확률 p가 1에 가까울수록 손실이 작고, 0에 가까울수록 손실이 폭발합니다.
+            단순 *맞다/틀리다*가 아니라 <strong>얼마나 자신 있게 틀렸는지</strong>까지 잰다.
+          </p>
+          <div className="mt-2 grid md:grid-cols-[280px_1fr] gap-4 items-center">
+            <CrossEntropyCurve />
+            <div className="text-[12px] text-muted leading-snug">
+              <div>· p = 1.0 → 손실 0 (완벽 확신)</div>
+              <div>· p = 0.5 → 손실 0.69 (반쪽 확신)</div>
+              <div>· p = 0.1 → 손실 2.30 (자신 있게 틀림)</div>
+              <div>· p = 0.01 → 손실 4.60 (확신하며 틀림 — <strong style={{ color: 'rgb(190,18,60)' }}>큰 벌</strong>)</div>
+              <div className="mt-1.5 font-mono text-[11px]">손실 = −ln(p<sub>정답</sub>)</div>
+            </div>
+          </div>
+        </section>
+
+        {/* 4. 셋이 한 학습 사이클에서 만나는 모습 */}
+        <section className="aside-tip text-[13px]">
+          <div className="font-medium">셋이 어떻게 한 학습 사이클에 모이나</div>
+          <div className="mt-1.5 leading-relaxed">
+            <strong>시그모이드/소프트맥스</strong>는 *점수를 확률로* 바꾸는 변환기.{' '}
+            <strong>교차 엔트로피</strong>는 그 확률 중 *정답 자리*가 1에 가까울수록 작아지는 손실.{' '}
+            매 학습 step은 <strong>정답 확률을 1쪽으로 밀어 올리는</strong> 방향으로 가중치를 움직입니다.
+            B4(2종)·B5(3종)·C4(10종) 모두 같은 원리예요 — 후보 수만 다를 뿐.
+          </div>
+        </section>
+      </div>
+    </details>
+  );
+}
+
+/* 작은 시각화 — 시그모이드 곡선 */
+function SigmoidCurve() {
+  const W = 280, H = 140;
+  const padL = 24, padR = 8, padT = 10, padB = 22;
+  const sx = (z: number) => padL + ((z + 6) / 12) * (W - padL - padR);
+  const sy = (p: number) => H - padB - p * (H - padT - padB);
+  const sigma = (z: number) => 1 / (1 + Math.exp(-z));
+  const path = Array.from({ length: 121 }, (_, i) => {
+    const z = -6 + (i / 120) * 12;
+    return `${i === 0 ? 'M' : 'L'}${sx(z).toFixed(2)},${sy(sigma(z)).toFixed(2)}`;
+  }).join(' ');
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* axes */}
+      <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="rgb(var(--color-border))" />
+      <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="rgb(var(--color-border))" />
+      {/* 0.5 점선 */}
+      <line x1={padL} y1={sy(0.5)} x2={W - padR} y2={sy(0.5)} stroke="rgb(var(--color-border))" strokeDasharray="2 3" />
+      <text x={W - padR - 2} y={sy(0.5) - 2} textAnchor="end" fontSize={9} fill="rgb(var(--color-muted))">0.5</text>
+      {/* z=0 점선 */}
+      <line x1={sx(0)} y1={padT} x2={sx(0)} y2={H - padB} stroke="rgb(var(--color-border))" strokeDasharray="2 3" />
+      <text x={sx(0) + 3} y={padT + 9} fontSize={9} fill="rgb(var(--color-muted))">z=0</text>
+      {/* y labels */}
+      <text x={padL - 4} y={sy(0) + 3} textAnchor="end" fontSize={9} fill="rgb(var(--color-muted))">0</text>
+      <text x={padL - 4} y={sy(1) + 3} textAnchor="end" fontSize={9} fill="rgb(var(--color-muted))">1</text>
+      {/* x labels */}
+      <text x={sx(-6)} y={H - padB + 12} textAnchor="middle" fontSize={9} fill="rgb(var(--color-muted))">−6</text>
+      <text x={sx(6)} y={H - padB + 12} textAnchor="middle" fontSize={9} fill="rgb(var(--color-muted))">+6</text>
+      <text x={W - padR - 2} y={H - 4} textAnchor="end" fontSize={9} fill="rgb(var(--color-muted))">z (점수) →</text>
+      {/* curve */}
+      <path d={path} fill="none" stroke="rgb(var(--color-accent))" strokeWidth={2} />
+      {/* center dot */}
+      <circle cx={sx(0)} cy={sy(0.5)} r={3.5} fill="rgb(var(--color-accent))" />
+    </svg>
+  );
+}
+
+/* 작은 시각화 — 소프트맥스 막대 (z=[1,2,5]) */
+function SoftmaxBars() {
+  const z = [1, 2, 5];
+  const m = Math.max(...z);
+  const exps = z.map((v) => Math.exp(v - m));
+  const sum = exps.reduce((a, b) => a + b, 0);
+  const p = exps.map((e) => e / sum);
+  const colors = ['rgb(59,130,246)', 'rgb(251,146,60)', 'rgb(190,18,60)'];
+  return (
+    <div className="space-y-1.5 px-1">
+      {z.map((zi, i) => (
+        <div key={i} className="flex items-center gap-2 text-[11px] font-mono">
+          <div className="w-10 shrink-0 text-right" style={{ color: colors[i] }}>z={zi}</div>
+          <div className="flex-1 h-5 rounded bg-surface border border-border overflow-hidden">
+            <div className="h-full transition-all" style={{ width: `${(p[i] * 100).toFixed(1)}%`, background: colors[i], opacity: 0.9 }} />
+          </div>
+          <div className="w-12 text-right tabular-nums" style={{ color: colors[i], fontWeight: 600 }}>
+            {(p[i] * 100).toFixed(1)}%
+          </div>
+        </div>
+      ))}
+      <div className="text-[10px] text-muted text-right pt-1">합 = 100%</div>
+    </div>
+  );
+}
+
+/* 작은 시각화 — 교차 엔트로피 −ln(p) */
+function CrossEntropyCurve() {
+  const W = 280, H = 140;
+  const padL = 28, padR = 8, padT = 10, padB = 22;
+  const sx = (px: number) => padL + ((px - 0.01) / (1 - 0.01)) * (W - padL - padR);
+  const sy = (l: number) => H - padB - (Math.min(l, 5) / 5) * (H - padT - padB);
+  const path = Array.from({ length: 99 }, (_, i) => {
+    const px = 0.01 + (i / 98) * 0.99;
+    return `${i === 0 ? 'M' : 'L'}${sx(px).toFixed(2)},${sy(-Math.log(px)).toFixed(2)}`;
+  }).join(' ');
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="rgb(var(--color-border))" />
+      <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="rgb(var(--color-border))" />
+      {/* y ticks 0/2/4 */}
+      {[0, 2, 4].map((v) => (
+        <g key={v}>
+          <line x1={padL} y1={sy(v)} x2={W - padR} y2={sy(v)} stroke="rgb(var(--color-border))" strokeDasharray="2 3" opacity={0.5} />
+          <text x={padL - 4} y={sy(v) + 3} textAnchor="end" fontSize={9} fill="rgb(var(--color-muted))">{v}</text>
+        </g>
+      ))}
+      {/* x labels */}
+      <text x={sx(0.01)} y={H - padB + 12} textAnchor="start" fontSize={9} fill="rgb(var(--color-muted))">0</text>
+      <text x={sx(0.5)} y={H - padB + 12} textAnchor="middle" fontSize={9} fill="rgb(var(--color-muted))">0.5</text>
+      <text x={sx(1)} y={H - padB + 12} textAnchor="end" fontSize={9} fill="rgb(var(--color-muted))">1</text>
+      <text x={W - padR - 2} y={H - 4} textAnchor="end" fontSize={9} fill="rgb(var(--color-muted))">정답 확률 p →</text>
+      <text x={padL + 4} y={padT + 9} fontSize={9} fill="rgb(var(--color-muted))">손실 −ln(p)</text>
+      {/* curve */}
+      <path d={path} fill="none" stroke="rgb(190,18,60)" strokeWidth={2} />
+      {/* 표지 점 */}
+      {[
+        { p: 1.0, label: 'p=1: 0' },
+        { p: 0.5, label: 'p=0.5: 0.69' },
+        { p: 0.1, label: 'p=0.1: 2.30' },
+      ].map((d) => (
+        <circle key={d.p} cx={sx(d.p)} cy={sy(-Math.log(d.p))} r={3} fill="rgb(190,18,60)" />
+      ))}
+    </svg>
   );
 }
 
