@@ -22,10 +22,8 @@ const PREVIEWS: Partial<Record<PhaseId, string[]>> = {
     '동그라미·세모·네모 — 출력 뉴런 3개 + softmax',
     'z 슬라이더 경쟁 막대 + 시프트 불변 보너스',
   ],
-  c1: ['평가 데이터로 일반화 확인 — 정확도 + 클래스별 오답 박스'],
-  c2: ['학습엔 잘 맞고 평가에선 틀리는 상황 — 과적합 직관'],
-  c3: ['은닉층·뉴런 수로 모델 복잡도 + 역전파 박스'],
-  c4: ['MNIST — 입력 28×28, 출력 10뉴런 + softmax'],
+  c1: ['역전파 — 깊은 망의 가중치는 거꾸로 흘러 갱신된다'],
+  c2: ['MNIST — 입력 28×28, 출력 10뉴런 + softmax'],
 };
 
 export function Stub({ id }: { id: PhaseId }) {

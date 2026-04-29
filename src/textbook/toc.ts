@@ -6,7 +6,7 @@ export type TextbookSlug =
   | 'intro'
   | 'a1' | 'a2' | 'a3' | 'a4' | 'a5' | 'a6'
   | 'b1' | 'b2' | 'b3' | 'b4' | 'b5'
-  | 'c1' | 'c2' | 'c3' | 'c4';
+  | 'c1' | 'c2';
 
 export interface TextbookPageMeta {
   slug: TextbookSlug;
@@ -60,13 +60,11 @@ export const TEXTBOOK_PARTS: TextbookPart[] = [
   },
   {
     num: 'C',
-    title: '모델 개선·일반화',
-    caption: '새 데이터에서도 맞는가, 모델을 더 깊게 — MNIST로 종합',
+    title: '딥러닝',
+    caption: '심층 신경망이 문제를 어떻게 해결하는지 이해하기 — 역전파와 MNIST',
     pages: [
-      { slug: 'c1', num: 'C1', title: '평가와 일반화',                  short: '평가와 일반화',  subtitle: '학습 데이터와 평가 데이터의 차이', appPhase: 'c1' },
-      { slug: 'c2', num: 'C2', title: '일반화 — 새 데이터에서 틀리는 이유', short: '과적합 직관',   subtitle: '학습엔 잘 맞는데…',                appPhase: 'c2' },
-      { slug: 'c3', num: 'C3', title: '모델 복잡도 바꾸기',             short: '모델 복잡도',   subtitle: '은닉층·뉴런 수를 바꾸면 무엇이 달라지나', appPhase: 'c3' },
-      { slug: 'c4', num: 'C4', title: 'MNIST 도전',                     short: 'MNIST 도전',    subtitle: '전체 흐름의 종합 예시',                appPhase: 'c4' },
+      { slug: 'c1', num: 'C1', title: '역전파 알고리즘의 이해', short: '역전파',     subtitle: '깊은 망의 가중치는 거꾸로 흘러 갱신된다', appPhase: 'c1' },
+      { slug: 'c2', num: 'C2', title: 'MNIST 도전',             short: 'MNIST 도전', subtitle: '진짜 손글씨 데이터에 깊은 망 적용',       appPhase: 'c2' },
     ],
   },
 ];

@@ -1,9 +1,9 @@
-// visible 커리큘럼 — A(알고리즘) / B(데이터·학습·분류) / C(모델 개선·일반화)
+// visible 커리큘럼 — A(알고리즘) / B(데이터·학습·분류) / C(딥러닝)
 // 히든 스테이지 — 5부(p13, p14) / 6부(p15~p22) 는 그대로 유지한다.
 export type PhaseId =
   | 'a1' | 'a2' | 'a3' | 'a4' | 'a5' | 'a6'
   | 'b1' | 'b2' | 'b3' | 'b4' | 'b5'
-  | 'c1' | 'c2' | 'c3' | 'c4'
+  | 'c1' | 'c2'
   | 'p13' | 'p14'
   | 'p15' | 'p16' | 'p17' | 'p18' | 'p19' | 'p20' | 'p21' | 'p22';
 
@@ -15,7 +15,7 @@ export interface PhaseMeta {
   group:
     | 'A. 알고리즘의 이해'
     | 'B. 데이터·학습·분류 출력'
-    | 'C. 모델 개선·일반화'
+    | 'C. 딥러닝'
     | '5부 — 분류를 넘어 생성으로'
     | '6부 — 언어를 다루는 신경망';
 }
@@ -36,11 +36,9 @@ export const PHASES: PhaseMeta[] = [
   { id: 'b4', num: 'B4', title: '이진 분류 모델 학습',      subtitle: '동그라미 vs 세모, 출력 뉴런 2개',     group: 'B. 데이터·학습·분류 출력' },
   { id: 'b5', num: 'B5', title: '다중 분류와 소프트맥스',   subtitle: '동그라미·세모·네모, 출력 뉴런 3개',   group: 'B. 데이터·학습·분류 출력' },
 
-  // C. 모델 개선·일반화
-  { id: 'c1', num: 'C1', title: '평가와 일반화',                  subtitle: '학습 데이터와 평가 데이터의 차이', group: 'C. 모델 개선·일반화' },
-  { id: 'c2', num: 'C2', title: '일반화 — 새 데이터에서 틀리는 이유', subtitle: '학습엔 잘 맞는데… (과적합 직관)', group: 'C. 모델 개선·일반화' },
-  { id: 'c3', num: 'C3', title: '모델 복잡도 바꾸기',             subtitle: '은닉층·뉴런 수를 바꾸면 무엇이 달라지나', group: 'C. 모델 개선·일반화' },
-  { id: 'c4', num: 'C4', title: 'MNIST 도전',                     subtitle: '전체 흐름의 종합 예시',                group: 'C. 모델 개선·일반화' },
+  // C. 딥러닝 — 심층 신경망이 문제를 어떻게 해결하는지 이해하기
+  { id: 'c1', num: 'C1', title: '역전파 알고리즘의 이해', subtitle: '깊은 망의 가중치는 거꾸로 흘러 갱신된다', group: 'C. 딥러닝' },
+  { id: 'c2', num: 'C2', title: 'MNIST 도전',             subtitle: '진짜 손글씨 데이터에 깊은 망 적용',       group: 'C. 딥러닝' },
 
   // 히든 스테이지 — 5부 (포털 진입 필요)
   { id: 'p13', num: '13', title: '평균과 분포', subtitle: '가장 단순한 생성 모델',     group: '5부 — 분류를 넘어 생성으로' },
@@ -79,7 +77,7 @@ export function isBonusPhase(id: PhaseId) {
 
 // visible 커리큘럼(C 영역 마지막 두 페이즈) 완료 시 5부 포털 게이트가 열린다
 export function isVisibleCurriculumDone(completed: Record<PhaseId, boolean>) {
-  return Boolean(completed.c3 && completed.c4);
+  return Boolean(completed.c1 && completed.c2);
 }
 
 // 6부(언어)는 5부(p13+p14)를 모두 끝낸 사람만 두 번째 포털로 들어올 수 있는 히든 스테이지
@@ -102,5 +100,5 @@ export function isPart5Done(completed: Record<PhaseId, boolean>) {
 export const VISIBLE_PHASE_IDS: PhaseId[] = [
   'a1', 'a2', 'a3', 'a4', 'a5', 'a6',
   'b1', 'b2', 'b3', 'b4', 'b5',
-  'c1', 'c2', 'c3', 'c4',
+  'c1', 'c2',
 ];

@@ -1,5 +1,5 @@
 // 가이드 페이지의 교사 지도서용 콘텐츠.
-// 1~4부 → A/B/C 재구성 작업 중. 본 파일은 후속 단계에서 새 ID(a1~c4) 기준으로 재작성된다.
+// 1~4부 → A/B/C 재구성 작업 중. 본 파일은 후속 단계에서 새 ID(a1~c2) 기준으로 재작성된다.
 // 옛 콘텐츠는 src/data/_legacy/guideContent.ts 에 보존되어 있다.
 
 import type { PhaseId } from '../phases';
@@ -66,8 +66,8 @@ export const GROUPS: GroupGuide[] = [
   },
   {
     num: 'C',
-    name: '모델 개선·일반화',
-    blurb: '새 데이터에서도 맞는가, 모델을 더 깊게 — MNIST로 종합. (작성 중)',
+    name: '딥러닝',
+    blurb: '심층 신경망이 문제를 어떻게 해결하는지 — 역전파와 MNIST. (작성 중)',
     phases: [],
   },
 ];

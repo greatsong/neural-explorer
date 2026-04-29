@@ -3,7 +3,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8"/>
-<title>Neural Explorer 활동지 C부 — 모델 개선·일반화</title>
+<title>Neural Explorer 활동지 C부 — 딥러닝</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
@@ -66,11 +66,6 @@
   .ob{border:1.2px dashed #777;border-radius:5px;padding:8pt 10pt;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
   .ob .lab{font-weight:700;font-size:10pt;margin-bottom:4pt}
 
-  /* 도트 그리드 — 학생이 직접 칸 그리는 빈 그리드 */
-  .ddraw{display:inline-grid;grid-template-columns:repeat(8,14pt);gap:1pt;border:1px solid #777;padding:1pt;background:#fafafa;margin:3pt 6pt 3pt 0}
-  .ddraw .c{width:14pt;height:14pt;border:1px solid #ccc;background:#fff}
-  .dlabel{font-size:9pt;color:#555;margin-top:2pt;text-align:center}
-
   p,li{orphans:3;widows:3}
   p{margin-bottom:5pt}
   ul,ol{padding-left:18pt;margin:4pt 0}
@@ -93,529 +88,319 @@
 <body>
 <header class="lh">
 <div class="lab">NEURAL EXPLORER · WORKSHEET C / 3</div>
-<h1>C — 모델 개선·일반화</h1>
-<div class="sub">평가 · 외운 정도 · 역전파 · MNIST와 데이터 증강</div>
-<div class="meta">앱 페이즈 C1~C4 · 대상: 고등학생 · 활동 시간 약 70~90분</div>
+<h1>C — 딥러닝</h1>
+<div class="sub">역전파 한 step 손계산 · MNIST와 데이터 증강</div>
+<div class="meta">앱 페이즈 C1~C2 · 대상: 고등학생 · 활동 시간 약 70~90분</div>
+<div class="lh obj">이 활동지는 앱의 결과를 옮겨 적는 곳이 아니라, <strong>손으로 계산하고 정리하며 스스로 이해를 만드는</strong> 도구입니다. 특히 STEP C1은 역전파 한 step을 처음부터 끝까지 손으로 따라 적어 봅니다.</div>
 <div class="name">학번 <span></span> 이름 <span></span></div>
 </header>
 
 <!-- ============================================================== -->
-<h2>STEP C1. 평가와 일반화 (Phase C1)</h2>
+<h2>STEP C1. 역전파 한 step 손계산 (Phase C1)</h2>
 
 <div class="ib">
-<div class="t">평가 데이터란?</div>
-학습할 때는 안 보여주고, 마지막에 "처음 보는 그림"으로 모델을 시험하는 데이터예요. 학습 데이터의 정확도는 모델이 외운 만큼 높지만, 평가 데이터의 정확도가 진짜 실력입니다.
+<div class="t">이번 STEP은 활동지의 절반</div>
+앱은 한 번 누르면 자동으로 한 step을 끝내지만, 이번에는 사람의 손으로 한 step을 처음부터 끝까지 따라갑니다. 6단계 — <strong>예측 → 오차 → 출력층 기울기 → 은닉층 신호 → 은닉층 기울기 → 갱신</strong> — 을 모두 직접 채우세요.
 </div>
 
-<div class="qc">
-<div class="qh"><span class="num">C1-1</span>평가 데이터의 의미 — 빈칸</div>
-<div class="qd">아래 두 문장의 빈칸을 채우세요.</div>
-<div class="fm">
-  학습 데이터 = 모델이 (<span class="bk lg"></span>) 본 그림.<br/>
-  평가 데이터 = 모델이 (<span class="bk lg"></span>) 보는 그림.<br/>
-  → 평가 정확도는 모델이 외운 게 아니라 (<span class="bk xl"></span>)을 잰다.
-</div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C1-2</span>B4 vs B5 — 두 모델 평가 결과 비교</div>
-<div class="an"><span class="lab">앱</span>화면 위쪽 토글로 <strong>B4 이진 모델</strong>과 <strong>B5 3종 모델</strong>을 번갈아 누르며, 좌측의 평가 정확도를 표에 옮겨 적으세요.</div>
-<table class="tb">
-<tr><th>모델</th><th>학습 정확도 (B4·B5에서 본 값)</th><th>평가 정확도 (C1 화면)</th><th>차이 = 학습 − 평가</th></tr>
-<tr><td class="lbl">B4 이진 (동·세모)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td class="lbl">B5 3종 (동·세모·네모)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-</table>
-<div class="qd">두 모델 중 평가에서 더 잘 맞춘 쪽은? <span class="bk lg"></span> &nbsp; 두 정확도의 차이가 더 큰 쪽은? <span class="bk lg"></span></div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C1-3</span>클래스별 오답 — 칩 클릭으로 펼쳐 보기</div>
-<div class="an"><span class="lab">앱</span>화면 우측 "클래스별 오답"에서 <strong>동그라미 / 세모 / 네모</strong> 칩을 차례로 눌러 각 클래스의 오답 수를 표에 적으세요. 그 다음 가장 약한 클래스의 오답 그림 한 장을 골라 직접 8×8 격자에 옮겨 그리세요(검은 칸만 칠하면 돼요).</div>
-<table class="tb">
-<tr><th>클래스</th><th>오답 수</th><th>평가에서 본 총 장수</th><th>그 클래스 정확도(%)</th></tr>
-<tr><td class="lbl">동그라미</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td class="lbl">세모</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td class="lbl">네모</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-</table>
-<div class="qd">아래 두 빈 8×8 격자에 약점 클래스의 오답 도트 두 장을 직접 옮겨 그려보세요(검은 픽셀만 칠하기).</div>
-<div style="text-align:center">
-<div style="display:inline-block;text-align:center">
-<div class="ddraw">
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-</div>
-<div class="dlabel">정답: <span class="bk"></span> → 모델 답: <span class="bk"></span></div>
-</div>
-<div style="display:inline-block;text-align:center;margin-left:6pt">
-<div class="ddraw">
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-</div>
-<div class="dlabel">정답: <span class="bk"></span> → 모델 답: <span class="bk"></span></div>
-</div>
-</div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C1-4</span>약점 클래스 지목</div>
-<div class="qd">위 표와 그림을 토대로, 한 문장으로 적으세요.</div>
-<div class="fm">
-  내 모델은 <span class="bk lg"></span> 클래스에 가장 약하다. <br/>
-  그 클래스를 다른 클래스로 잘못 답한 경우, 자주 등장한 "잘못된 답"은 <span class="bk lg"></span> 였다.
-</div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C1-5</span>"정확도만 보면 약점이 안 보인다" — 의미</div>
-<div class="qd">전체 정확도가 80%인데도 한 클래스만 50%, 나머지 두 클래스가 95%일 수 있어요. 이런 일이 왜 위험한지, 자기 말로 한두 문장 적으세요.</div>
-<div class="ans-area"></div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C1-6</span>모델 토글 관찰 — 한 줄 정리</div>
-<div class="an"><span class="lab">앱</span>B4와 B5 토글을 5회 이상 번갈아 누르며 약점 클래스가 어떻게 바뀌는지 관찰.</div>
-<div class="ob">
-<div class="lab">관찰 — B4와 B5의 약점이 같은 클래스인가? 다른 클래스인가?</div>
-<div style="height:50pt"></div>
-</div>
-</div>
-
-<!-- ============================================================== -->
-<h2>STEP C2. 외운 정도 = 학습−평가 갭 (Phase C2)</h2>
-
-<div class="ib">
-<div class="t">"외운 정도"의 정의</div>
-같은 모델·같은 epoch·같은 학습률로 두 번 학습. 단, <strong>학습 데이터 양만 다르게</strong> — 적은 데이터(라벨당 2장 = 4장) vs 전체. 적게 본 모델은 그 몇 장을 통째로 외워버려 학습 정확도는 높지만 평가 정확도가 따라오지 않습니다.
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C2-1</span>두 학습 결과 비교 — 직접 옮겨 적기</div>
-<div class="an"><span class="lab">앱</span>"▶ 두 학습 비교 시작"을 눌러 학습이 끝나면, 좌측 두 카드의 <strong>train acc / eval acc</strong>를 표에 옮겨 적고 <strong>차이 = 외운 정도</strong>를 직접 계산하세요.</div>
-<table class="tb">
-<tr><th>학습 데이터 양</th><th>학습 정확도 (train)</th><th>평가 정확도 (eval)</th><th>차이 = train − eval</th><th>외운 정도</th></tr>
-<tr><td class="lbl">적게 (라벨당 2장 · 총 4장)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td class="lbl">전체 (12장)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-</table>
-<div class="qd">두 모델 중 외운 정도(=갭)가 더 큰 쪽은? <span class="bk lg"></span></div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C2-2</span>직관 — 적은 데이터 모델이 train은 잘 맞히고 eval은 못 맞히는 이유</div>
-<div class="qd">왜 적은 데이터로 학습한 모델은 train 정확도가 높지만 eval에서는 따라오지 못할까요? 자기 말로 두 문장 적으세요.</div>
-<div class="ans-area"></div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C2-3</span>epoch 슬라이더 — 갭이 벌어지는 시점</div>
-<div class="an"><span class="lab">앱</span>학습 epochs 슬라이더를 10 → 20 → 30 → 40 → 50으로 키우며 "두 학습 비교 시작"을 다시 누르세요. 적은 데이터 모델의 train·eval 갭을 표에 적으세요.</div>
-<table class="tb">
-<tr><th>epochs</th><th>적은 데이터 train</th><th>적은 데이터 eval</th><th>갭 (train − eval)</th></tr>
-<tr><td>10</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>20</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>30</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>50</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-</table>
-<div class="ob">
-<div class="lab">관찰 — 어느 epoch부터 갭이 두드러지게 벌어지나요?</div>
-<div style="height:42pt"></div>
-</div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C2-4</span>"외운 모델"의 정의 — 분포 불일치 details 핵심</div>
-<div class="qd">앱 하단의 <strong>"🤔 학습 정확도 vs 평가 정확도 차이 = 외운 정도"</strong> 토글을 펼쳐 읽고, 빈칸을 채우세요.</div>
-<div class="fm">
-  학습 정확도 100% &amp; 평가 정확도 70% &nbsp;→ &nbsp;모델이 학습 데이터를 (<span class="bk lg"></span>) 거예요.<br/>
-  이런 상태를 한 단어로 (<span class="bk lg"></span>)이라고 한다.<br/>
-  외운 모델은 외운 그림은 잘 맞히지만 (<span class="bk xl"></span>)에는 약하다.
-</div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C2-5</span>갭을 줄이려면 — 세 가지 처방</div>
-<div class="qd">"외운 정도(갭)를 줄이려면 어떻게 해야 할까?" 세 가지 처방을 떠올려 빈칸을 채우세요. 힌트: 데이터·모델·학습 시간.</div>
-<ol style="padding-left:24pt;font-size:10pt">
-<li>데이터를 (<span class="bk lg"></span>) — 외울 게 너무 많아져 외우기 어려워진다.</li>
-<li>모델을 (<span class="bk lg"></span>) — 가중치 수가 적으면 외울 능력 자체가 줄어든다.</li>
-<li>학습을 (<span class="bk lg"></span>) — 갭이 벌어지기 전에 멈춘다(조기 종료).</li>
-</ol>
-</div>
-
-<!-- ============================================================== -->
-<h2>STEP C3. 모델 복잡도와 역전파 (Phase C3) — 가장 중요</h2>
-
-<div class="ib">
-<div class="t">트랙 1과 트랙 2를 모두 한다</div>
-트랙 1은 입력 1·은닉 2·출력 1짜리 작은 모델로 <strong>한 step 역전파를 손으로 검산</strong>합니다(C 영역 핵심). 트랙 2는 도트 3종 데이터로 은닉 뉴런 수를 늘려가며 <strong>모델 복잡도와 정확도의 관계</strong>를 봅니다.
-</div>
-
-<h3>트랙 1 — 작은 모델 손계산 (입력 1 · 은닉 2 · 출력 1)</h3>
-
-<div class="qc">
-<div class="qh"><span class="num">C3-1</span>초기 가중치와 데이터 — 셋업 확인</div>
-<div class="qd">앱 트랙 1의 초기 가중치와 5점 데이터를 직접 확인하고 빈칸을 채우세요. 학습률 η = 0.05.</div>
-<div class="fm">
-  초기 가중치: w₁₁ = <span class="bk">0.4</span>, w₁₂ = <span class="bk">−0.2</span>, b₁₁ = <span class="bk">0</span>, b₁₂ = <span class="bk">0.5</span>,<br/>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;w₂₁ = <span class="bk">1.5</span>, w₂₂ = <span class="bk">0.8</span>, b₂ = <span class="bk">0.3</span>.<br/>
-  데이터 5점: (1, 3), (2, 5), (3, 7), (4, 9), (5, 11) — 정답 직선은 y = <span class="bk"></span> · x + <span class="bk"></span>.<br/>
-  활성화 함수: 은닉층은 <span class="bk lg"></span>, 출력층은 <span class="bk lg"></span> (linear).
-</div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C3-2</span>순전파 5점 표 — 직접 손계산</div>
-<div class="qd">5점 모두에 대해 z₁₁ = w₁₁·x + b₁₁, z₁₂ = w₁₂·x + b₁₂, h = ReLU(z), z₂ = w₂₁·h₁ + w₂₂·h₂ + b₂, ŷ = z₂, e = ŷ − y를 한 줄씩 계산.</div>
-<table class="tb">
-<tr><th>x</th><th>y</th><th>z₁₁ = 0.4·x + 0</th><th>z₁₂ = −0.2·x + 0.5</th><th>h₁ = ReLU(z₁₁)</th><th>h₂ = ReLU(z₁₂)</th><th>ŷ = 1.5·h₁ + 0.8·h₂ + 0.3</th><th>e = ŷ − y</th></tr>
-<tr><td>1</td><td>3</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
-<tr><td>2</td><td>5</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
-<tr><td>3</td><td>7</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
-<tr><td>4</td><td>9</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
-<tr><td>5</td><td>11</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
-</table>
-<div class="qd">x = 1일 때 z₁₂ = −0.2·1 + 0.5 = <span class="bk"></span>. 이 값은 양수 / 음수? <span class="bk"></span>. 따라서 h₂ = ReLU(z₁₂) = <span class="bk"></span>.</div>
-<div class="qd">5점 전부에서 z₁₂가 음수가 되는 x는 무엇인가요? <span class="bk lg"></span>. 그 점들에서는 h₂ = <span class="bk"></span>가 됩니다.</div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C3-3</span>출력층 기울기 — 평균(e·h), 평균(e)</div>
-<div class="qd">위 5점 표에서 e와 h₁, h₂를 가져와 평균을 계산하세요. dw = 평균(e·h)는 출력층 가중치의 기울기, db = 평균(e)는 출력층 편향의 기울기.</div>
-<table class="tb">
-<tr><th>x</th><th>e</th><th>h₁</th><th>e · h₁</th><th>h₂</th><th>e · h₂</th></tr>
-<tr><td>1</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>2</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>4</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td class="lbl" colspan="3" style="text-align:right">평균 =</td><td class="blank"></td><td class="lbl" style="text-align:right">평균 =</td><td class="blank"></td></tr>
-</table>
-<div class="fm">
-  dw₂₁ = 평균(e · h₁) = <span class="bk lg"></span><br/>
-  dw₂₂ = 평균(e · h₂) = <span class="bk lg"></span><br/>
-  db₂ = 평균(e) = <span class="bk lg"></span>
-</div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C3-4</span>은닉층 신호 e_h — 역전파 핵심 식</div>
-<div class="ib tip">
-<div class="t">은닉층은 자기 정답이 없다 — 뒷층 오차를 받아 자기 몫으로</div>
-은닉 뉴런 i의 자기 책임은 다음 식으로 구해요.<br/>
-<span class="mono">e_h_i = e · w₂_i · ReLU′(z₁_i)</span><br/>
-여기서 ReLU′ = 1 (z &gt; 0일 때) / 0 (z ≤ 0일 때). <strong>이게 거꾸로 흐르는 화살의 정체</strong>.
-</div>
-<div class="qd">5점 각각에 대해 e_h₁, e_h₂를 직접 계산하세요. ReLU′은 위 C3-2의 z₁ 값을 보고 0 또는 1로 적으세요.</div>
-<table class="tb">
-<tr><th>x</th><th>e</th><th>w₂₁ = 1.5</th><th>ReLU′(z₁₁)</th><th>e_h₁ = e · 1.5 · ReLU′</th><th>w₂₂ = 0.8</th><th>ReLU′(z₁₂)</th><th>e_h₂ = e · 0.8 · ReLU′</th></tr>
-<tr><td>1</td><td class="blank"></td><td>1.5</td><td class="blank"></td><td class="blank"></td><td>0.8</td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>2</td><td class="blank"></td><td>1.5</td><td class="blank"></td><td class="blank"></td><td>0.8</td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>3</td><td class="blank"></td><td>1.5</td><td class="blank"></td><td class="blank"></td><td>0.8</td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>4</td><td class="blank"></td><td>1.5</td><td class="blank"></td><td class="blank"></td><td>0.8</td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>5</td><td class="blank"></td><td>1.5</td><td class="blank"></td><td class="blank"></td><td>0.8</td><td class="blank"></td><td class="blank"></td></tr>
-</table>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C3-5</span>Dying ReLU 발견 — h₂ = 0이라 e_h₂ = 0</div>
-<div class="qd">위 표에서 모든 점의 e_h₂ 값을 더해 평균을 내세요.</div>
-<div class="fm">
-  e_h₂ 다섯 점: <span class="bk"></span> , <span class="bk"></span> , <span class="bk"></span> , <span class="bk"></span> , <span class="bk"></span>  →  평균 = <span class="bk lg"></span>
-</div>
-<div class="qd">평균 e_h₂ = <span class="bk"></span>. 두 번째 은닉 뉴런 h₂는 다섯 점 모두에서 (살아 있다 / 죽었다). ☞ <span class="bk lg"></span></div>
-<div class="qd">이 현상의 이름은 무엇이고, 왜 이런 일이 생기는지 한 문장으로 적으세요.</div>
-<div class="fm">이름: <span class="bk lg"></span>. 이유: <span class="bk xl"></span></div>
-<div class="ib">즉, h₂ 라인은 이번 step에서 가중치가 전혀 안 움직여요. 살아 있는 h₁만 먼저 학습됩니다.</div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C3-6</span>은닉층 기울기 — dw₁ = 평균(e_h · x)</div>
-<div class="qd">출력층과 같은 모양으로, 은닉층 기울기는 <strong>그 층 입력 x</strong>에 e_h를 곱해 평균을 냅니다.</div>
-<table class="tb">
-<tr><th>x</th><th>e_h₁</th><th>e_h₁ · x</th><th>e_h₂</th><th>e_h₂ · x</th></tr>
-<tr><td>1</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>2</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>4</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td class="lbl" colspan="2" style="text-align:right">평균 =</td><td class="blank"></td><td class="lbl" style="text-align:right">평균 =</td><td class="blank"></td></tr>
-</table>
-<div class="fm">
-  dw₁₁ = 평균(e_h₁ · x) = <span class="bk lg"></span><br/>
-  dw₁₂ = 평균(e_h₂ · x) = <span class="bk lg"></span> (h₂ 죽음 → <span class="bk"></span>)<br/>
-  db₁₁ = 평균(e_h₁) = <span class="bk lg"></span> &nbsp; db₁₂ = 평균(e_h₂) = <span class="bk lg"></span>
-</div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C3-7</span>갱신 — w ← w − η · dw  (η = 0.05)</div>
-<div class="qd">5단계까지 구한 dw·db를 써서 한 step 갱신을 직접 적으세요.</div>
-<div class="fm">
-  w₂₁ ← 1.5 − 0.05 · <span class="bk"></span> = <span class="bk lg"></span><br/>
-  w₂₂ ← 0.8 − 0.05 · <span class="bk"></span> = <span class="bk lg"></span><br/>
-  b₂ ← 0.3 − 0.05 · <span class="bk"></span> = <span class="bk lg"></span><br/>
-  w₁₁ ← 0.4 − 0.05 · <span class="bk"></span> = <span class="bk lg"></span><br/>
-  w₁₂ ← −0.2 − 0.05 · <span class="bk"></span> = <span class="bk"></span> (변화 없음 — 왜? <span class="bk lg"></span>)
-</div>
-<div class="an"><span class="lab">앱</span>트랙 1에서 "▶ 한 step 진행"을 1회 눌러, 6단계 카드의 마지막에 표시되는 새 가중치와 위 결과가 일치하는지 확인.</div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C3-8</span>관찰 — 자동 학습으로 손실이 줄어드는 모습</div>
-<div class="an"><span class="lab">앱</span>"▶ 자동 학습"을 눌러 약 30 step까지 굴린 뒤 손실 곡선을 그려보세요. 곡선의 모양과 함께 죽은 h₂ 뉴런이 어떻게 되는지(여전히 0이거나 살아나거나)도 적으세요.</div>
-<div class="ob">
-<div class="lab">관찰 — 손실 곡선 모양 / step 수 / 마지막 손실 / h₂의 운명</div>
-<div style="height:60pt"></div>
-</div>
-</div>
-
-<h3>트랙 2 — 은닉 슬라이더 (모델 복잡도)</h3>
-
-<div class="qc">
-<div class="qh"><span class="num">C3-9</span>은닉 0층 vs 1층 N뉴런 — 정확도 비교</div>
-<div class="an"><span class="lab">앱</span>트랙 2 탭으로 이동. <strong>은닉 0층</strong>과 <strong>1층 4뉴런 / 8뉴런 / 16뉴런</strong>을 차례로 학습하고 결과 표를 옮겨 적으세요.</div>
-<table class="tb">
-<tr><th>구조</th><th>파라미터 수</th><th>train acc (%)</th><th>eval acc (%)</th><th>갈림점 (train − eval)</th></tr>
-<tr><td class="lbl">은닉 0층 (=B5)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td class="lbl">은닉 1층 · 4뉴런</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td class="lbl">은닉 1층 · 8뉴런</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td class="lbl">은닉 1층 · 16뉴런</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-</table>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C3-10</span>뉴런 수와 정확도의 관계 — 직관</div>
-<div class="qd">뉴런 수를 늘릴수록 train과 eval은 어떻게 변했나요? 두 정확도의 차이(=외운 정도)는요? 두 문장으로 정리.</div>
-<div class="ans-area lg"></div>
-<div class="qd">"무조건 큰 모델이 좋다"는 말이 항상 맞을까요? C2에서 본 외운 정도와 연결해 한 문장으로 답하세요.</div>
-<div class="ans-area"></div>
-</div>
-
-<!-- ============================================================== -->
-<h2>STEP C4. MNIST 도전 + 데이터 증강 재학습 (Phase C4)</h2>
-
-<div class="ib">
-<div class="t">B5 → C4의 다리</div>
-B5에서는 출력 뉴런 3개로 동·세·네모를 갈랐습니다. MNIST는 입력이 28×28 = 784픽셀, 출력이 10개(0~9). softmax로 확률을 만든다는 원리는 같지만, 입력이 커진 만큼 은닉층도 함께 키워야 해요.
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C4-1</span>빠른 프리셋 5종 비교 — 작게 시작 → 크게</div>
-<div class="an"><span class="lab">앱</span>"빠른 프리셋" 다섯 개(🐣 시작 / 🌱 작게 / 🌳 보통 / 🚀 크게 / 👑 최강)를 차례로 누르고, 그때마다 ▶ 학습 시작. 끝나면 결과를 표에 옮겨 적으세요.</div>
-<table class="tb">
-<tr><th>프리셋</th><th>구조 (은닉)</th><th>에폭</th><th>파라미터 수</th><th>학습 정확도 (%)</th><th>시험 정확도 (%)</th></tr>
-<tr><td class="lbl">🐣 시작</td><td>4뉴런 1층</td><td>3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td class="lbl">🌱 작게</td><td>8뉴런 1층</td><td>8</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td class="lbl">🌳 보통</td><td>32뉴런 1층</td><td>15</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td class="lbl">🚀 크게</td><td>64·32 2층</td><td>25</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td class="lbl">👑 최강</td><td>128·64 2층</td><td>30</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-</table>
-<div class="qd">"작게 시작 → 크게"라는 흐름은 왜 좋은 전략일까요? (힌트: 시간·갭·진단)</div>
-<div class="ans-area"></div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C4-2</span>직접 그린 숫자 5개 — 모델은 무엇이라 답했나</div>
-<div class="an"><span class="lab">앱</span>🌳 보통 프리셋 학습을 끝낸 뒤, ✏️ "직접 숫자 그리기"에서 0~9 중 다섯 개를 골라 280×280 캔버스에 그리세요. 모델 답과 확신도(상위 1순위 %)를 적으세요.</div>
-<table class="tb">
-<tr><th>#</th><th>그린 숫자 (정답)</th><th>아래에 직접 작게 다시 그려두기</th><th>모델 답</th><th>확신도 (%)</th><th>맞음/틀림</th></tr>
-<tr><td>1</td><td class="blank"></td><td class="blank tall"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>2</td><td class="blank"></td><td class="blank tall"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>3</td><td class="blank"></td><td class="blank tall"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>4</td><td class="blank"></td><td class="blank tall"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>5</td><td class="blank"></td><td class="blank tall"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-</table>
-<div class="qd">자신 있게 (확신도 90%↑) 답했지만 틀린 그림이 있나요? 있다면 어떤 숫자였나요? <span class="bk lg"></span></div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C4-3</span>분포 불일치 — details 토글 3가지 핵심</div>
-<div class="qd">앱의 <strong>"🤔 왜 자신 있게 틀릴까?"</strong> 토글을 펼쳐 읽고 빈칸을 채우세요.</div>
-<div class="fm">
-  ① 학습 데이터(MNIST)는 (<span class="bk lg"></span>)·크기 정규화·일정 굵기로 다듬어진 데이터.<br/>
-  &nbsp;&nbsp; 우리 캔버스는 (<span class="bk lg"></span>)픽셀에 굵은 펜으로 그린 뒤 28×28로 줄임 → (<span class="bk xl"></span>) 불일치.<br/>
-  ② MLP는 픽셀 (<span class="bk lg"></span>)을 그대로 기억함. 같은 숫자라도 5픽셀 옆으로 옮겨 그리면 거의 다른 입력.<br/>
-  &nbsp;&nbsp; 위치 변화에 강해지려면 (<span class="bk lg"></span>) 신경망을 써야 함.<br/>
-  ③ 확신도 50%대 = 사실은 (<span class="bk xl"></span>)는 신호. 학습 분포에 없던 그림을 만났다는 뜻.
-</div>
-<div class="qd">이 3가지를 한 문장으로 정리하면? "모델은 (<span class="bk xl"></span>)에 대해서는 잘 맞히지만, (<span class="bk xl"></span>)을 만나면 자신 있게 틀릴 수 있다."</div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C4-4</span>데이터 증강 — 회전·이동·스케일·전단</div>
-<div class="ib tip">
-<div class="t">한 장을 여러 장으로 — augmentImage</div>
-틀린 그림 한 장을 정답 라벨과 함께 학습 데이터에 추가만 하면 모델은 그 한 장을 외워버려요. 그래서 그 한 장에 회전(±26°), 이동(±4px), 스케일(0.8~1.2배), 전단(shear)을 임의로 합성해 <strong>15장으로 늘려서</strong> 다시 학습합니다.
-</div>
-<div class="qd">아래 빈 8×8 격자에 한 그림이 4가지 변형(원본 / 회전 / 이동 / 확대)으로 어떻게 바뀌는지 직접 그려보세요(대략적으로 OK).</div>
-<div style="text-align:center">
-<div style="display:inline-block;text-align:center;margin:0 4pt">
-<div class="ddraw">
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-</div>
-<div class="dlabel">원본</div>
-</div>
-<div style="display:inline-block;text-align:center;margin:0 4pt">
-<div class="ddraw">
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-</div>
-<div class="dlabel">회전 (15도)</div>
-</div>
-<div style="display:inline-block;text-align:center;margin:0 4pt">
-<div class="ddraw">
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-</div>
-<div class="dlabel">이동 (오른쪽 2칸)</div>
-</div>
-<div style="display:inline-block;text-align:center;margin:0 4pt">
-<div class="ddraw">
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-<div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
-</div>
-<div class="dlabel">확대 (1.2배)</div>
-</div>
-</div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C4-5</span>재학습 — 틀린 그림 가르치기 전후 정확도</div>
-<div class="an"><span class="lab">앱</span>🧪 "직접 가르쳐 보기" 섹션. C4-2에서 틀린 그림에 대해 정답 라벨을 알려주고("이건 X예요" 버튼), 증강 N = 15로 두고 "▶ 다시 학습"을 누르세요. 끝나면 before / after 정확도를 적으세요.</div>
-<table class="tb">
-<tr><th>틀렸던 그림 (숫자)</th><th>before 시험 정확도 (%)</th><th>after 시험 정확도 (%)</th><th>변화 (after − before, %p)</th><th>같은 그림 다시 그렸을 때 모델 답</th></tr>
-<tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-</table>
-<div class="qd">재학습 후 시험 정확도가 <strong>왜 오르는가</strong>를 자기 말로 두 문장 적으세요. (힌트: 학습 데이터에 추가된 분포 / 한 장 외우기 vs 15장 일반화)</div>
-<div class="ans-area lg"></div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">C4-6</span>한 줄 정리 — C4가 보여준 두 가지</div>
-<div class="qd">"모델 크기를 키우면 잘 맞춘다"와 "데이터를 늘리면 잘 맞춘다" — 둘 중 어느 쪽이 분포 불일치를 더 직접적으로 해결하는지, 한 문장으로 답하세요.</div>
-<div class="ans-area"></div>
-</div>
-
-<!-- ============================================================== -->
-<h2>보충 활동 ★. 한 step 역전파 손계산표 (C3 트랙 1 한 번 더)</h2>
-
-<div class="ib tip" style="break-inside:avoid;page-break-inside:avoid">
-<div class="t">왜 한 번 더 할까?</div>
-C3에서 손으로 푼 한 step을, 시험 대비를 위해 빈 표에서 다시 한 번. 같은 5점·같은 초기값·같은 η = 0.05. 답을 보지 않고 처음부터 끝까지 굴러 보세요.
-</div>
-
-<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
-<div class="qh"><span class="num">★1</span>5점 순전파 + 출력 오차</div>
-<div class="qd">초기 가중치 동일: w₁₁ = 0.4, w₁₂ = −0.2, b₁₁ = 0, b₁₂ = 0.5, w₂₁ = 1.5, w₂₂ = 0.8, b₂ = 0.3.</div>
-<table class="tb">
-<tr><th>x</th><th>y</th><th>z₁₁</th><th>z₁₂</th><th>h₁</th><th>h₂</th><th>ŷ</th><th>e</th></tr>
-<tr><td>1</td><td>3</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
-<tr><td>2</td><td>5</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
-<tr><td>3</td><td>7</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
-<tr><td>4</td><td>9</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
-<tr><td>5</td><td>11</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
-</table>
-</div>
-
-<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
-<div class="qh"><span class="num">★2</span>출력층 / 은닉층 신호 / 은닉층 기울기 — 평균 칸</div>
-<table class="tb">
-<tr><th>항목</th><th>식</th><th>값</th></tr>
-<tr><td>dw₂₁</td><td>평균(e · h₁)</td><td class="blank"></td></tr>
-<tr><td>dw₂₂</td><td>평균(e · h₂)</td><td class="blank"></td></tr>
-<tr><td>db₂</td><td>평균(e)</td><td class="blank"></td></tr>
-<tr><td>e_h₁ 평균</td><td>평균(e · 1.5 · ReLU′(z₁₁))</td><td class="blank"></td></tr>
-<tr><td>e_h₂ 평균</td><td>평균(e · 0.8 · ReLU′(z₁₂))</td><td class="blank"></td></tr>
-<tr><td>dw₁₁</td><td>평균(e_h₁ · x)</td><td class="blank"></td></tr>
-<tr><td>dw₁₂</td><td>평균(e_h₂ · x)</td><td class="blank"></td></tr>
-<tr><td>db₁₁</td><td>평균(e_h₁)</td><td class="blank"></td></tr>
-<tr><td>db₁₂</td><td>평균(e_h₂)</td><td class="blank"></td></tr>
-</table>
-</div>
-
-<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
-<div class="qh"><span class="num">★3</span>한 step 갱신표 — η = 0.05</div>
-<table class="tb">
-<tr><th>가중치</th><th>지금 값</th><th>η · dw</th><th>새 값</th></tr>
-<tr><td>w₁₁</td><td>0.4</td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>w₁₂</td><td>−0.2</td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>b₁₁</td><td>0.0</td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>b₁₂</td><td>0.5</td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>w₂₁</td><td>1.5</td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>w₂₂</td><td>0.8</td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>b₂</td><td>0.3</td><td class="blank"></td><td class="blank"></td></tr>
-</table>
-<div class="qd">한 step 후 어느 가중치가 가장 많이 움직였나요? <span class="bk lg"></span> &nbsp; 가장 적게(또는 안) 움직인 가중치는? <span class="bk lg"></span> &nbsp; 그 이유는? <span class="bk xl"></span></div>
-</div>
-
-<!-- ============================================================== -->
-<h2>보충 활동 ★★. 분포 불일치 시나리오 — 학습 데이터 vs 내 그림</h2>
-
-<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
-<div class="qh"><span class="num">★★1</span>네 가지 차이 비교표</div>
-<div class="qd">학습용 MNIST와 내 캔버스 그림 사이의 차이를 네 가지 측면에서 직접 적어보세요.</div>
-<table class="tb">
-<tr><th>측면</th><th>학습 데이터 (MNIST)</th><th>내가 그린 그림 (280×280 캔버스)</th><th>이 차이가 모델에 주는 영향</th></tr>
-<tr><td class="lbl">위치 (가운데 정렬?)</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
-<tr><td class="lbl">굵기 (선 두께)</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
-<tr><td class="lbl">크기 (글자 크기)</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
-<tr><td class="lbl">모양 (필체·기울기)</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
-</table>
-</div>
-
-<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
-<div class="qh"><span class="num">★★2</span>해결책 짝짓기 — 어떤 차이를 어떤 방법으로 메우나</div>
-<div class="qd">아래 해결책을 위 네 가지 차이에 짝지어 적어보세요(중복 가능).</div>
+<div class="ex">
+<strong>이번 STEP의 모델·데이터·학습률 (한 페이지에 모음)</strong>
 <ul>
-<li>회전·이동·스케일·전단으로 데이터 증강 → 위 (<span class="bk lg"></span>) 차이를 메움</li>
-<li>가운데 정렬 + 크기 정규화 전처리 → 위 (<span class="bk lg"></span>) 차이를 메움</li>
-<li>CNN(합성곱 신경망)으로 모델 교체 → 위 (<span class="bk lg"></span>) 차이를 메움</li>
-<li>학생 손글씨로 추가 학습 → 위 (<span class="bk lg"></span>) 차이를 메움</li>
+<li>구조: 입력 1 · 은닉 1 · 출력 1 (가장 단순한 2층 망)</li>
+<li>활성화: 은닉층 ReLU, 출력층은 그대로(선형)</li>
+<li>5개 점: (1, 3) · (2, 5) · (3, 7) · (4, 9) · (5, 11) — 정답 직선 ŷ = 2x + 1</li>
+<li>초기 가중치: w₁ = 0.5, b₁ = 0.1, w₂ = 1.5, b₂ = 0.0</li>
+<li>학습률 η = 0.05</li>
 </ul>
 </div>
 
-<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
-<div class="qh"><span class="num">★★3</span>C 영역 마무리 — 한 문장으로</div>
-<div class="qd">C1~C4에서 배운 용어 5개(평가 정확도 · 외운 정도 · 역전파 · 분포 불일치 · 데이터 증강)를 모두 사용해 "좋은 모델을 만든다는 것"을 5~7문장으로 설명하세요.</div>
-<div class="ans-area lg" style="min-height:110pt"></div>
+<h3>C1-1. 모델 그리기 — 직접 화살표 채우기</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-1</span>입력 1 · 은닉 1 · 출력 1 — 노드와 가중치 라벨</div>
+<div class="qd">아래 빈 그림 위에 직접 화살표(→)와 가중치 이름(w₁, b₁, w₂, b₂)을 적어 모델을 완성하세요.</div>
+<div class="sf">
+<svg viewbox="0 0 420 130" xmlns="http://www.w3.org/2000/svg">
+<circle cx="50" cy="65" fill="#fff" r="22" stroke="#333" stroke-width="1.5"></circle>
+<text fill="#333" font-size="11" text-anchor="middle" x="50" y="69">x</text>
+<circle cx="210" cy="65" fill="#fff" r="22" stroke="#333" stroke-width="1.5"></circle>
+<text fill="#333" font-size="11" text-anchor="middle" x="210" y="69">h</text>
+<circle cx="370" cy="65" fill="#fff" r="22" stroke="#333" stroke-width="1.5"></circle>
+<text fill="#333" font-size="11" text-anchor="middle" x="370" y="69">ŷ</text>
+<text fill="#999" font-size="9" text-anchor="middle" x="130" y="40">(가중치 w₁, 편향 b₁ — 직접 적기)</text>
+<text fill="#999" font-size="9" text-anchor="middle" x="290" y="40">(가중치 w₂, 편향 b₂ — 직접 적기)</text>
+<text fill="#999" font-size="9" text-anchor="middle" x="50" y="105">입력층</text>
+<text fill="#999" font-size="9" text-anchor="middle" x="210" y="105">은닉층 (ReLU)</text>
+<text fill="#999" font-size="9" text-anchor="middle" x="370" y="105">출력층 (선형)</text>
+</svg>
+</div>
+<div class="qd">한 줄 정리: 이 모델의 식 — <span class="mono">ŷ = w₂ · ReLU(<span class="bk lg"></span>) + <span class="bk"></span></span></div>
 </div>
 
+<h3>C1-2. 순전파 — 5점 모두 직접 계산</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-2</span>z₁ → h → z₂ → ŷ 표 채우기 (w₁=0.5, b₁=0.1, w₂=1.5, b₂=0)</div>
+<div class="qd">각 점에 대해 <strong>z₁ = w₁·x + b₁</strong>, <strong>h = ReLU(z₁)</strong>, <strong>z₂ = w₂·h + b₂</strong>, <strong>ŷ = z₂</strong>를 차례로 채우세요. (z₁이 모두 양수가 나오므로 h = z₁ 그대로 통과)</div>
+<table class="tb">
+<tr><th>점</th><th>x</th><th>y</th><th>z₁ = 0.5·x + 0.1</th><th>h = ReLU(z₁)</th><th>z₂ = 1.5·h + 0</th><th>ŷ</th></tr>
+<tr><td>P1</td><td>1</td><td>3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P2</td><td>2</td><td>5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P3</td><td>3</td><td>7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P4</td><td>4</td><td>9</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P5</td><td>5</td><td>11</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">관찰: z₁이 모두 (양수 / 음수)이다 ☞ <span class="bk"></span>. 따라서 ReLU′(z₁)은 모든 점에서 (<span class="bk"></span>)이다. ← 이 사실이 C1-5의 은닉층 신호 계산을 단순하게 만듦.</div>
+</div>
+
+<h3>C1-3. 오차 e — 한 컬럼 추가</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-3</span>e = ŷ − y 채우기</div>
+<table class="tb">
+<tr><th>점</th><th>x</th><th>y</th><th>ŷ (C1-2에서)</th><th>e = ŷ − y</th></tr>
+<tr><td>P1</td><td>1</td><td>3</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P2</td><td>2</td><td>5</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P3</td><td>3</td><td>7</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P4</td><td>4</td><td>9</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P5</td><td>5</td><td>11</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl" colspan="4" style="text-align:right">합 Σe =</td><td class="blank"></td></tr>
+</table>
+<div class="qd">e의 부호는 모두 (양수 / 음수)이다 ☞ <span class="bk"></span>. 의미: 모델이 정답보다 (작게 / 크게) 예측 중이다 ☞ <span class="bk"></span>.</div>
+</div>
+
+<h3>C1-4. 출력층 기울기 — 한 컬럼 더</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-4</span>dw₂ = 평균(e·h),  db₂ = 평균(e)</div>
+<div class="qd">e와 h(C1-2의 h)를 곱한 e·h 컬럼을 채우고, 합과 평균(÷5)을 직접 구하세요.</div>
+<table class="tb">
+<tr><th>점</th><th>e</th><th>h</th><th>e · h</th></tr>
+<tr><td>P1</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P2</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P4</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl" colspan="3" style="text-align:right">합 =</td><td class="blank"></td></tr>
+</table>
+<div class="fm">
+  dw₂ = 합 ÷ 5 = <span class="bk lg"></span> ÷ 5 = <span class="bk lg"></span><br/>
+  db₂ = 평균(e) = (C1-3의 Σe) ÷ 5 = <span class="bk lg"></span> ÷ 5 = <span class="bk lg"></span>
+</div>
+</div>
+
+<h3>C1-5. 은닉층 신호 e_h — <em>역전파 핵심</em></h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-5</span>e_h = e · w₂ · ReLU′(z₁) — 한 점씩 직접</div>
+<div class="qd">출력층 오차 e가 <strong>w₂를 거꾸로 통과</strong>해 은닉층까지 전달된 것이 e_h입니다. 위 C1-2의 관찰에서 ReLU′(z₁) = (<span class="bk"></span>) 이므로 e_h = e × w₂ × (<span class="bk"></span>) = e × <span class="bk"></span>.</div>
+<table class="tb">
+<tr><th>점</th><th>e</th><th>w₂</th><th>ReLU′(z₁)</th><th>e_h = e · w₂ · ReLU′(z₁)</th></tr>
+<tr><td>P1</td><td class="blank"></td><td>1.5</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P2</td><td class="blank"></td><td>1.5</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P3</td><td class="blank"></td><td>1.5</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P4</td><td class="blank"></td><td>1.5</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P5</td><td class="blank"></td><td>1.5</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl" colspan="4" style="text-align:right">합 Σe_h =</td><td class="blank"></td></tr>
+</table>
+<div class="ib tip"><strong>왜 "거꾸로"인가?</strong> 출력에서 생긴 오차의 책임은, 그 오차를 만드는 데 기여한 가중치(w₂)를 따라 거꾸로 거슬러 올라가 은닉층에까지 분배됩니다. ReLU′은 "그 길이 막혔는지(0)·열렸는지(1)"를 알려주는 문지기.</div>
+</div>
+
+<h3>C1-6. 은닉층 기울기 — dw₁, db₁</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-6</span>dw₁ = 평균(e_h·x),  db₁ = 평균(e_h)</div>
+<table class="tb">
+<tr><th>점</th><th>e_h</th><th>x</th><th>e_h · x</th></tr>
+<tr><td>P1</td><td class="blank"></td><td>1</td><td class="blank"></td></tr>
+<tr><td>P2</td><td class="blank"></td><td>2</td><td class="blank"></td></tr>
+<tr><td>P3</td><td class="blank"></td><td>3</td><td class="blank"></td></tr>
+<tr><td>P4</td><td class="blank"></td><td>4</td><td class="blank"></td></tr>
+<tr><td>P5</td><td class="blank"></td><td>5</td><td class="blank"></td></tr>
+<tr><td class="lbl" colspan="3" style="text-align:right">합 =</td><td class="blank"></td></tr>
+</table>
+<div class="fm">
+  dw₁ = 합 ÷ 5 = <span class="bk lg"></span> ÷ 5 = <span class="bk lg"></span><br/>
+  db₁ = 평균(e_h) = (C1-5의 Σe_h) ÷ 5 = <span class="bk lg"></span> ÷ 5 = <span class="bk lg"></span>
+</div>
+</div>
+
+<h3>C1-7. 갱신 — 4개 가중치 한 번에</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-7</span>w ← w − η · dw  (η = 0.05)</div>
+<div class="qd">C1-4와 C1-6에서 구한 dw₂, db₂, dw₁, db₁을 그대로 가져와 4개 가중치를 갱신합니다.</div>
+<div class="fm">
+  새 w₂ = <span class="bk lg"></span> − 0.05 · <span class="bk lg"></span> = <span class="bk lg"></span><br/>
+  새 b₂ = <span class="bk lg"></span> − 0.05 · <span class="bk lg"></span> = <span class="bk lg"></span><br/>
+  새 w₁ = <span class="bk lg"></span> − 0.05 · <span class="bk lg"></span> = <span class="bk lg"></span><br/>
+  새 b₁ = <span class="bk lg"></span> − 0.05 · <span class="bk lg"></span> = <span class="bk lg"></span>
+</div>
+<div class="qd">관찰: 모든 dw·db가 (양수 / 음수)였으므로, 빼기를 거치며 새 가중치는 처음보다 모두 (커졌다 / 작아졌다). ☞ <span class="bk lg"></span></div>
+</div>
+
+<h3>C1-8. 갱신 후 — 한 점만 다시 손계산해 손실 줄었나 확인</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-8</span>x = 3 한 점만 다시 — 갱신 전·후 비교</div>
+<div class="qd">갱신 전 ŷ(P3) = (C1-2에서) <span class="bk lg"></span>, 정답 y = 7. 갱신 전 손실 ½·e² = ½·(<span class="bk"></span>)² = <span class="bk lg"></span>.</div>
+<div class="qd">이제 C1-7에서 구한 새 가중치로 x = 3을 다시 통과시켜보세요.</div>
+<div class="fm">
+  새 z₁ = (새 w₁) · 3 + (새 b₁) = <span class="bk lg"></span><br/>
+  새 h = ReLU(새 z₁) = <span class="bk lg"></span><br/>
+  새 z₂ = (새 w₂) · (새 h) + (새 b₂) = <span class="bk lg"></span><br/>
+  새 ŷ = <span class="bk lg"></span>,  새 e = ŷ − 7 = <span class="bk lg"></span><br/>
+  새 손실 = ½ · e² = <span class="bk lg"></span>
+</div>
+<div class="qd">새 손실은 갱신 전 손실보다 (작다 / 크다 / 같다). ☞ <span class="bk lg"></span>. <strong>한 step만 진행했는데도 손실이 줄어들었다는 사실</strong>이 이번 활동의 핵심 결과입니다.</div>
+</div>
+
+<h3>C1-9. 한 줄로 정리 — "왜 거꾸로 흐르는가"</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-9</span>한 줄 답란</div>
+<div class="qd">출력층 오차 e가 어떤 과정을 거쳐 e_h가 되었는지, 본인의 말로 한 줄(또는 두 줄)로 적어보세요. 다음 단어가 보이도록: "w₂", "거꾸로", "ReLU′".</div>
+<div class="ans-area lg"></div>
+</div>
+
+<div class="an">
+<span class="lab">앱 검산 (선택)</span>
+손계산이 끝났다면 앱 페이즈 C1에서 "다음 단계 →"를 6번 눌러 6단계 결과가 활동지의 빈칸과 일치하는지 한두 곳만 확인합니다. 활동지의 답이 곧 앱의 결과와 같다는 것을 직접 확인해 보세요.
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP C2. MNIST와 데이터 증강 (Phase C2)</h2>
+
+<div class="ib">
+<div class="t">MNIST가 왜 어렵나?</div>
+손글씨 숫자 0~9를 28×28 = 784픽셀 흑백 이미지로 모아 둔 표준 데이터예요. 지금까지 다룬 ○△□보다 라벨도 많고, 픽셀도 비교할 수 없을 만큼 많습니다. C1의 역전파가 모든 층에 동시에 적용되어, 입력 → 은닉 → 출력의 가중치들이 함께 갱신됩니다.
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">C2-1</span>B5와 비교 — 표 빈칸</div>
+<table class="tb">
+<tr><th>항목</th><th>B5의 모델 (○△□)</th><th>MNIST</th></tr>
+<tr><td class="lbl">입력 픽셀 수</td><td>예: 8×8 = 64</td><td class="blank"></td></tr>
+<tr><td class="lbl">출력 뉴런 수 = 라벨 수</td><td>3</td><td class="blank"></td></tr>
+<tr><td class="lbl">한 그림의 종류</td><td>도형 3종</td><td class="blank"></td></tr>
+</table>
+<div class="qd">MNIST가 더 어려운 이유 한 줄: <span class="bk xl"></span></div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">C2-2</span>"내가 그린 숫자"가 안 맞는 3가지 이유</div>
+<div class="qd">학습된 모델 앞에 직접 마우스로 숫자를 그렸는데 자꾸 다른 답이 나옵니다. 학습 데이터(MNIST 28×28 정렬 이미지)와 <strong>내 그림</strong>이 다르기 때문이에요. 세 가지 차이를 빈칸으로 정리하세요.</div>
+<div class="fm">
+  ① 학습 데이터는 (<span class="bk lg"></span>) 28×28인데, 내 그림은 보통 (<span class="bk lg"></span>) 280×280이라 크기·해상도가 다르다.<br/>
+  ② MLP는 픽셀의 (<span class="bk lg"></span>)에 민감해서, 한쪽으로 치우친 내 글씨를 다른 숫자로 본다.<br/>
+  ③ 모델의 (<span class="bk lg"></span>)가 50%대로 낮으면, 라벨끼리 매우 박빙이라 작은 차이로도 답이 바뀐다.
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">C2-3</span>데이터 증강 4가지 — 효과 한 줄씩</div>
+<div class="qd">한 장의 그림으로 여러 변형을 만들어 학습 데이터처럼 늘리는 기법입니다. 각 변형의 효과를 빈칸에 적으세요.</div>
+<table class="tb">
+<tr><th>변형</th><th>예시</th><th>효과(왜 도움이 되나)</th></tr>
+<tr><td class="lbl">회전</td><td>±15°</td><td class="blank"></td></tr>
+<tr><td class="lbl">이동</td><td>좌우·상하 ±3px</td><td class="blank"></td></tr>
+<tr><td class="lbl">스케일</td><td>0.9 ~ 1.1배</td><td class="blank"></td></tr>
+<tr><td class="lbl">전단(찌그러뜨리기)</td><td>±10°</td><td class="blank"></td></tr>
+</table>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">C2-4</span>"틀린 그림 1장 → N장 증강 → 재학습" 흐름</div>
+<div class="qd">방금 모델이 틀린 한 장의 손글씨를, 회전·이동·스케일·전단으로 N장 만들고 다시 학습 데이터에 끼워 학습하면 정확도가 올라갑니다. 그 이유를 빈칸으로:</div>
+<div class="fm">
+  틀린 그림 1장은 본래 학습 데이터에 (<span class="bk lg"></span>) 분포의 그림이었다.<br/>
+  → 증강으로 N장을 만들면 그 분포의 (<span class="bk lg"></span>)이 늘어난다.<br/>
+  → 모델은 이제 그 분포의 그림에서도 (<span class="bk lg"></span>)할 수 있게 된다.
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">C2-5</span>학습 분포 ≠ 사용 분포</div>
+<div class="qd">"학습 정확도는 98%인데 내가 그린 숫자는 자꾸 틀린다"는 현상을 한 문장으로 정리하세요. <span class="mono">학습 분포</span>·<span class="mono">사용 분포</span>·<span class="mono">증강</span> 세 단어가 들어가도록.</div>
+<div class="ans-area lg"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>보충 활동 ★. 답을 보지 않고 — C1 한 step 처음부터 끝까지</h2>
+<div class="ib tip" style="break-inside:avoid;page-break-inside:avoid">
+<div class="t">왜 다시 한 번 더?</div>
+앞 STEP C1은 단계마다 식과 안내가 있었습니다. 이번에는 빈 표만 보고 같은 한 step을 처음부터 끝까지 채워보세요. 식이 머리에 정리되었다면, 6단계가 한 흐름으로 이어집니다.
+</div>
+
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★1</span>5점 손계산 빈 표 — 모든 컬럼 직접</div>
+<div class="qd">조건: w₁=0.5, b₁=0.1, w₂=1.5, b₂=0, η=0.05, 정답 직선 ŷ=2x+1.</div>
+<table class="tb">
+<tr><th>점</th><th>x</th><th>y</th><th>z₁</th><th>h</th><th>ŷ</th><th>e</th><th>e·h</th><th>e_h</th><th>e_h·x</th></tr>
+<tr><td>P1</td><td>1</td><td>3</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
+<tr><td>P2</td><td>2</td><td>5</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
+<tr><td>P3</td><td>3</td><td>7</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
+<tr><td>P4</td><td>4</td><td>9</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
+<tr><td>P5</td><td>5</td><td>11</td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td><td class="blank tall"></td></tr>
+<tr><td class="lbl" colspan="6" style="text-align:right">합 =</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl" colspan="6" style="text-align:right">평균(÷5) =</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+</div>
+
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★2</span>4개 가중치 갱신 — 빈 식만 두고</div>
+<table class="tb">
+<tr><th>가중치</th><th>현재값</th><th>기울기 (위 표에서)</th><th>η · 기울기</th><th>새 값</th></tr>
+<tr><td class="lbl">w₂</td><td>1.5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">b₂</td><td>0.0</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">w₁</td><td>0.5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">b₁</td><td>0.1</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">정답 직선이 ŷ = 2x + 1이므로 학습이 끝나면 (w₁, b₁, w₂, b₂)는 어떤 값으로 수렴할 수 있을까? <strong>한 가지</strong> 가능한 조합을 적어보세요. (예: w₁=__, b₁=__, w₂=__, b₂=__가 되어 ŷ = 2x+1이 만들어짐을 직접 확인)</div>
+<div class="ans-area lg"></div>
+</div>
+
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★3</span>6단계 흐름 띠 — 직접 그리기</div>
+<div class="qd">위에서 따라간 한 step의 6단계 띠를, 화살표(→)로 이어 직접 그려보세요. 단어만 적어도 됩니다.</div>
+<div class="fm">
+  ① <span class="bk lg"></span> → ② <span class="bk lg"></span> → ③ <span class="bk lg"></span> → ④ <span class="bk lg"></span> → ⑤ <span class="bk lg"></span> → ⑥ <span class="bk lg"></span>
+</div>
+<div class="qd">이 6단계 중 "역전파의 핵심"이라 불리는 단계는 몇 번? 그 이유 한 줄로:</div>
+<div class="ans-area"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>보충 활동 ★★. 분포 불일치 시나리오 (선택)</h2>
+<div class="ib tip" style="break-inside:avoid;page-break-inside:avoid">
+<div class="t">왜 직접 그린 숫자가 잘 안 맞을까?</div>
+모델이 "학습 분포"와 "내가 만든 분포"가 다를수록 정확도는 떨어집니다. 4가지 측면으로 학습 데이터(MNIST 정렬 28×28)와 내 그림(280×280 자유 그리기)을 비교한 뒤, 어떤 처치가 그 차이를 메우는지 짝지어 보세요.
+</div>
+
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★★1</span>4측면 비교 표</div>
+<table class="tb">
+<tr><th>측면</th><th>MNIST 학습 데이터</th><th>내 그림</th><th>맞춰주는 처치</th></tr>
+<tr><td class="lbl">위치(중앙 정렬)</td><td>중앙 정렬</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">굵기(획)</td><td>일정</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">크기·해상도</td><td>28×28</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">모양(기울기)</td><td>거의 똑바름</td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd"><span class="mono">처치 보기:</span> 이동(translation) · 굵기 정규화 · 다운샘플링·중앙 잘라내기 · 회전·전단 증강 · CNN(위치 둔감)</div>
+</div>
+
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★★2</span>한 문장 정리</div>
+<div class="qd">"학습 분포 ≠ 사용 분포"일 때 정확도가 떨어진다는 사실을, C1에서 본 역전파(모든 층의 가중치가 학습 데이터에 맞춰 움직인다는 사실)와 연결해 한 문장으로 적으세요.</div>
+<div class="ans-area"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>마무리. C부 한 줄 정리</h2>
+<div class="qc">
+<div class="qh"><span class="num">정리</span>흐름도 채우기</div>
+<div class="fm" style="font-size:11pt">
+  학습 한 step의 정체 = (<span class="bk lg"></span>) — e가 (<span class="bk lg"></span>)를 거꾸로 통과해 e_h가 되고, dw·db로 가중치가 움직임<br/>
+  ↓ 이 한 step을 모든 층에 동시에 적용하면 (<span class="bk lg"></span>) 신경망도 학습할 수 있다<br/>
+  ↓ 그러나 학습 분포와 (<span class="bk lg"></span>) 분포가 다르면, 학습 정확도가 높아도 실제 사용에서 무너진다<br/>
+  ↓ 그 차이를 메우는 도구 = (<span class="bk lg"></span>) (회전·이동·스케일·전단으로 분포의 폭을 넓히기)
+</div>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">서술</span>친구에게 설명하기</div>
+<div class="qd">"역전파가 무엇이고, MNIST 같은 진짜 데이터에서 모델이 왜 가끔 틀리며, 어떻게 더 잘 맞히게 만드는가"를 C부에서 배운 용어 5개(<span class="mono">역전파 · e_h · 거꾸로 흐름 · 분포 불일치 · 데이터 증강</span>)를 모두 사용해 5~7문장으로 설명하세요.</div>
+<div class="ans-area lg" style="min-height:100pt"></div>
+</div>
 </body>
 </html>

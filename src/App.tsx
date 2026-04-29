@@ -20,8 +20,6 @@ import { PhaseB4 } from './phases/PhaseB4';
 import { PhaseB5 } from './phases/PhaseB5';
 import { PhaseC1 } from './phases/PhaseC1';
 import { PhaseC2 } from './phases/PhaseC2';
-import { PhaseC3 } from './phases/PhaseC3';
-import { PhaseC4 } from './phases/PhaseC4';
 import { Phase13 } from './phases/Phase13';
 import { Phase14 } from './phases/Phase14';
 import { Phase15 } from './phases/Phase15';
@@ -143,7 +141,7 @@ function isWide(id: PhaseId) {
   return [
     'a3', 'a5', 'a6',
     'b2', 'b3', 'b4', 'b5',
-    'c1', 'c2', 'c3', 'c4',
+    'c1', 'c2',
     'p13', 'p14', 'p15', 'p16', 'p17', 'p18', 'p19', 'p20', 'p21', 'p22',
   ].includes(id);
 }
@@ -163,8 +161,6 @@ function renderPhase(id: PhaseId) {
     case 'b5': return <PhaseB5 />;
     case 'c1': return <PhaseC1 />;
     case 'c2': return <PhaseC2 />;
-    case 'c3': return <PhaseC3 />;
-    case 'c4': return <PhaseC4 />;
     case 'p13': return <Phase13 />;
     case 'p14': return <Phase14 />;
     case 'p15': return <Phase15 />;
