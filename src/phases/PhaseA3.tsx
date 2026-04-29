@@ -1,110 +1,184 @@
 // PhaseA3 — 경사하강법 (Phase3 뒷부분 GD + Phase4 학습률 비교 흡수)
-// 한 viewport (wide, max-w-6xl): 좌측에 손실 곡선 + 현재 점/접선/다음 step 미리보기,
-// 우측에 학습률 슬라이더 + step 컨트롤 + 미니 손실 추이.
-// 하단에 4개 시나리오 칩 (η = 1.2 발산 / 1.0 진동 / 0.1 수렴 / 0.01 느림)
-// → 자동 시뮬레이션 후 자취 + 손실 추이 갱신.
+// 변수 토글로 w·b 두 변수 모두 실습 가능.
+// 한 viewport (wide): 좌측 손실 곡선 + 현재 점/접선/다음 step 미리보기,
+// 우측 학습률 슬라이더 + step 컨트롤 + 미니 손실 추이.
+// 하단 4개 시나리오 칩 (발산/진동/수렴/느림) — 변수에 따라 학습률 표가 자동 조정됨.
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PHASES } from '../phases';
 import { useApp } from '../store';
 
+// 정답: y = 2x + 0.7
 const DATA: [number, number][] = [
   [1, 2.7], [2, 4.7], [3, 6.7], [4, 8.7], [5, 10.7],
 ];
-const W_FIXED = 2;
-const B_TRUE = 0.7;          // 정답 b
+const W_TRUE = 2;
+const B_TRUE = 0.7;
 const N = DATA.length;
-const B_MIN = -3;
-const B_MAX = 4;
 
-const mseAt = (b: number) =>
-  DATA.reduce((s, [x, y]) => {
-    const e = (W_FIXED * x + b) - y;
+type VarMode = 'w' | 'b';
+
+/* 모드별 설정 — 변수 범위, 시작점, 학습률 슬라이더 범위, 시나리오 학습률 */
+const CONF: Record<VarMode, {
+  vMin: number; vMax: number; vStart: number;
+  fixedLabel: string;
+  lrMin: number; lrMax: number; lrStep: number; lrInit: number;
+  ticks: number[];
+  varLabel: string;
+  fixedDesc: string;
+  axisLabel: string;
+  curvature: string; // 안정 조건 설명용
+}> = {
+  b: {
+    vMin: -3, vMax: 4, vStart: -2,
+    fixedLabel: `w = ${W_TRUE} (고정)`,
+    lrMin: 0.005, lrMax: 1.3, lrStep: 0.005, lrInit: 0.1,
+    ticks: [-2, -1, 0, 1, 2, 3, 4],
+    varLabel: 'b',
+    fixedDesc: 'w를 정답값으로 고정한 채 b만 움직여 봐요.',
+    axisLabel: 'b',
+    curvature: '0 < η < 1 (b 단면의 곡률은 약 2)',
+  },
+  w: {
+    vMin: -1, vMax: 5, vStart: -0.5,
+    fixedLabel: `b = ${B_TRUE} (고정)`,
+    lrMin: 0.0005, lrMax: 0.08, lrStep: 0.0005, lrInit: 0.02,
+    ticks: [-1, 0, 1, 2, 3, 4, 5],
+    varLabel: 'w',
+    fixedDesc: 'b를 정답값으로 고정한 채 w만 움직여 봐요.',
+    axisLabel: 'w',
+    curvature: '0 < η < 약 0.09 (w 단면 곡률은 약 22 — x² 합이 크기 때문)',
+  },
+};
+
+const TRUE_OF = (mode: VarMode) => (mode === 'b' ? B_TRUE : W_TRUE);
+
+const mseAt = (v: number, mode: VarMode) => {
+  const w = mode === 'w' ? v : W_TRUE;
+  const b = mode === 'b' ? v : B_TRUE;
+  return DATA.reduce((s, [x, y]) => {
+    const e = (w * x + b) - y;
     return s + e * e;
   }, 0) / N;
+};
 
-// dMSE/db = (2/N) Σ(pred − y)
-const slopeAt = (b: number) =>
-  (2 / N) * DATA.reduce((s, [x, y]) => s + ((W_FIXED * x + b) - y), 0);
+// b에 대한 미분: (2/N) Σ (pred − y), w에 대한 미분: (2/N) Σ x · (pred − y)
+const slopeAt = (v: number, mode: VarMode) => {
+  const w = mode === 'w' ? v : W_TRUE;
+  const b = mode === 'b' ? v : B_TRUE;
+  return (2 / N) * DATA.reduce((s, [x, y]) => {
+    const factor = mode === 'w' ? x : 1;
+    return s + factor * ((w * x + b) - y);
+  }, 0);
+};
 
 type Scenario = {
   id: 'diverge' | 'big' | 'mid' | 'small';
   label: string;
-  lr: number;
   color: string;
   note: string;
 };
-
 const SCENARIOS: Scenario[] = [
-  { id: 'diverge', lr: 1.2,  label: 'η = 1.2', color: 'rgb(190,18,60)',  note: '발산' },
-  { id: 'big',     lr: 1.0,  label: 'η = 1.0', color: 'rgb(251,146,60)', note: '진동' },
-  { id: 'mid',     lr: 0.1,  label: 'η = 0.1', color: 'rgb(16,185,129)', note: '수렴' },
-  { id: 'small',   lr: 0.01, label: 'η = 0.01', color: 'rgb(59,130,246)', note: '느림' },
+  { id: 'diverge', label: '발산', color: 'rgb(190,18,60)' , note: '발산' },
+  { id: 'big',     label: '진동', color: 'rgb(251,146,60)', note: '진동' },
+  { id: 'mid',     label: '수렴', color: 'rgb(16,185,129)', note: '수렴' },
+  { id: 'small',   label: '느림', color: 'rgb(59,130,246)', note: '느림' },
 ];
 
-type Trail = { points: { b: number; mse: number }[]; color: string; label: string };
+// 변수별 시나리오 학습률 (안정 한계가 변수마다 달라 매핑이 다르다)
+const SC_LR: Record<VarMode, Record<Scenario['id'], number>> = {
+  b: { diverge: 1.2, big: 1.0, mid: 0.1, small: 0.01 },
+  w: { diverge: 0.10, big: 0.06, mid: 0.02, small: 0.002 },
+};
+
+type Trail = { points: { v: number; mse: number }[]; color: string; label: string; id: Scenario['id'] };
 
 export function PhaseA3() {
   const meta = PHASES.find((p) => p.id === 'a3')!;
   const markCompleted = useApp((s) => s.markCompleted);
 
-  // 직접 조작 모드 — 단일 점, 슬라이더로 보폭, 버튼으로 step.
-  const [b, setB] = useState(-2);
-  const [lr, setLr] = useState(0.1);
-  const [history, setHistory] = useState<{ b: number; mse: number }[]>([
-    { b: -2, mse: mseAt(-2) },
+  const [mode, setMode] = useState<VarMode>('b');
+  const conf = CONF[mode];
+
+  // 직접 조작
+  const [v, setV] = useState(conf.vStart);
+  const [lr, setLr] = useState(conf.lrInit);
+  const [history, setHistory] = useState<{ v: number; mse: number }[]>([
+    { v: conf.vStart, mse: mseAt(conf.vStart, mode) },
   ]);
 
-  // 4개 시나리오 비교 자취 (clicked 시 누적).
+  // 4개 시나리오 자취
   const [trails, setTrails] = useState<Record<Scenario['id'], Trail | null>>({
     diverge: null, big: null, mid: null, small: null,
   });
   const [activeScenario, setActiveScenario] = useState<Scenario['id'] | null>(null);
-  const seenRef = useRef<Set<Scenario['id']>>(new Set());
+  // seen은 state로 — render 중 ref.current 읽기 lint 회피
+  const [seen, setSeen] = useState<Set<Scenario['id']>>(new Set());
 
-  const mse = mseAt(b);
-  const slope = slopeAt(b);
-  const nextB = b - lr * slope;
-  const nextMse = mseAt(nextB);
+  // 모드 전환 시 상태 초기화
+  const switchMode = (next: VarMode) => {
+    if (next === mode) return;
+    const c = CONF[next];
+    setMode(next);
+    setV(c.vStart);
+    setLr(c.lrInit);
+    setHistory([{ v: c.vStart, mse: mseAt(c.vStart, next) }]);
+    setTrails({ diverge: null, big: null, mid: null, small: null });
+    setActiveScenario(null);
+    setSeen(new Set());
+  };
+
+  const mse = mseAt(v, mode);
+  const slope = slopeAt(v, mode);
+  const nextV = v - lr * slope;
+  const nextMse = mseAt(nextV, mode);
   const reached = mse < 0.05;
 
-  // 완료 처리: 4개 시나리오를 모두 한 번씩 보거나 직접 수렴 도달
+  // 완료 처리: 직접 수렴 도달 또는 4개 시나리오를 모드 어디서든 모두 본 적 있을 때
   useEffect(() => {
-    if (reached || seenRef.current.size >= 4) markCompleted('a3');
-  }, [reached, markCompleted, trails]);
+    if (reached || seen.size >= 4) markCompleted('a3');
+  }, [reached, seen, markCompleted]);
 
   const stepOnce = () => {
-    setB(nextB);
-    setHistory((h) => [...h, { b: nextB, mse: mseAt(nextB) }]);
+    setV(nextV);
+    setHistory((h) => [...h, { v: nextV, mse: mseAt(nextV, mode) }]);
   };
 
   const reset = () => {
-    setB(-2);
-    setHistory([{ b: -2, mse: mseAt(-2) }]);
+    setV(conf.vStart);
+    setHistory([{ v: conf.vStart, mse: mseAt(conf.vStart, mode) }]);
   };
 
   const runScenario = (sc: Scenario) => {
-    let bv = -2;
-    const points: { b: number; mse: number }[] = [{ b: bv, mse: mseAt(bv) }];
+    const sLr = SC_LR[mode][sc.id];
+    let vv = conf.vStart;
+    const points: { v: number; mse: number }[] = [{ v: vv, mse: mseAt(vv, mode) }];
     for (let i = 0; i < 10; i++) {
-      const g = slopeAt(bv);
-      const next = bv - sc.lr * g;
+      const g = slopeAt(vv, mode);
+      const next = vv - sLr * g;
       if (!isFinite(next) || Math.abs(next) > 50) {
-        points.push({ b: bv, mse: mseAt(bv) });
+        points.push({ v: vv, mse: mseAt(vv, mode) });
         break;
       }
-      bv = next;
-      points.push({ b: bv, mse: mseAt(bv) });
+      vv = next;
+      points.push({ v: vv, mse: mseAt(vv, mode) });
     }
-    setTrails((t) => ({ ...t, [sc.id]: { points, color: sc.color, label: sc.label } }));
+    setTrails((t) => ({ ...t, [sc.id]: { points, color: sc.color, label: sc.label, id: sc.id } }));
     setActiveScenario(sc.id);
-    seenRef.current.add(sc.id);
+    setSeen((s) => {
+      if (s.has(sc.id)) return s;
+      const ns = new Set(s);
+      ns.add(sc.id);
+      return ns;
+    });
   };
 
   const clearTrails = () => {
     setTrails({ diverge: null, big: null, mid: null, small: null });
     setActiveScenario(null);
   };
+
+  const trueV = TRUE_OF(mode);
 
   return (
     <article>
@@ -113,45 +187,64 @@ export function PhaseA3() {
       <p className="text-muted mt-2">
         손실이 줄어드는 방향은 곡선의 <strong>기울기 부호의 반대쪽</strong>이에요.
         한 step에 얼마나 옮길지 정하는 보폭이 <strong className="text-accent">학습률 η</strong> —
-        새 b = b − η × 기울기. 이 한 줄이 경사하강법의 전부예요.
+        새 {conf.varLabel} = {conf.varLabel} − η × 기울기. 이 한 줄이 경사하강법의 전부예요.
       </p>
 
+      {/* ── 변수 토글 ────────────────────────────────────────── */}
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <span className="text-sm text-muted">어떤 변수를 만져볼까요?</span>
+        <div className="inline-flex rounded-md border border-border overflow-hidden">
+          <button
+            onClick={() => switchMode('b')}
+            className={`px-3 py-1.5 text-sm font-mono transition ${
+              mode === 'b' ? 'bg-accent text-white' : 'bg-bg text-muted hover:bg-surface'
+            }`}>
+            편향 b
+          </button>
+          <button
+            onClick={() => switchMode('w')}
+            className={`px-3 py-1.5 text-sm font-mono transition ${
+              mode === 'w' ? 'bg-accent text-white' : 'bg-bg text-muted hover:bg-surface'
+            }`}>
+            가중치 w
+          </button>
+        </div>
+        <span className="text-xs text-muted">{conf.fixedDesc}</span>
+      </div>
+
       {/* ── 핵심 비주얼: 좌(곡선) + 우(컨트롤·추이) ───────────────── */}
-      <div className="mt-5 grid lg:grid-cols-[3fr_2fr] gap-4">
-        {/* 좌: 손실 곡선 + 현재 점 + 접선 + 다음 위치 미리보기 + 시나리오 자취 */}
+      <div className="mt-4 grid lg:grid-cols-[3fr_2fr] gap-4">
         <LossCurve
-          b={b}
-          mse={mse}
-          slope={slope}
-          nextB={nextB}
-          nextMse={nextMse}
-          trails={trails}
-          activeScenario={activeScenario}
+          mode={mode}
+          conf={conf}
+          v={v} mse={mse} slope={slope}
+          nextV={nextV} nextMse={nextMse}
+          trails={trails} activeScenario={activeScenario}
+          trueV={trueV}
         />
 
-        {/* 우: 컨트롤 + 미니 추이 */}
         <div className="flex flex-col gap-3">
           <div className="card p-4">
             <label className="block">
               <div className="flex justify-between text-sm mb-1">
                 <span>학습률 η <span className="text-muted text-xs">(보폭)</span></span>
-                <span className="font-mono text-accent">η = {lr.toFixed(3)}</span>
+                <span className="font-mono text-accent">η = {lr.toFixed(4).replace(/\.?0+$/, '') || '0'}</span>
               </div>
               <input
-                type="range" min={0.005} max={1.3} step={0.005}
+                type="range" min={conf.lrMin} max={conf.lrMax} step={conf.lrStep}
                 value={lr}
                 onChange={(e) => setLr(parseFloat(e.target.value))}
                 className="w-full"
               />
               <div className="flex justify-between text-[11px] text-muted mt-0.5">
-                <span>0.005</span><span>1.3</span>
+                <span>{conf.lrMin}</span><span>{conf.lrMax}</span>
               </div>
             </label>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
-              <Stat label="현재 b" value={b.toFixed(3)} />
+              <Stat label={`현재 ${conf.varLabel}`} value={v.toFixed(3)} />
               <Stat label="MSE" value={mse.toFixed(3)} highlight={reached} />
               <Stat label="기울기" value={slope.toFixed(3)} />
-              <Stat label="다음 b" value={nextB.toFixed(3)} accent />
+              <Stat label={`다음 ${conf.varLabel}`} value={nextV.toFixed(3)} accent />
             </div>
             <div className="flex gap-2 mt-3">
               <button onClick={stepOnce} className="btn-primary text-sm py-1.5 px-3 flex-1"
@@ -161,8 +254,8 @@ export function PhaseA3() {
               <button onClick={reset} className="btn-ghost text-sm py-1.5 px-3">초기화</button>
             </div>
             <div className="text-[11px] text-muted mt-2 leading-snug">
-              새 b = {b.toFixed(2)} − {lr.toFixed(3)} × ({slope.toFixed(2)})
-              = <span className="text-accent">{nextB.toFixed(3)}</span>
+              새 {conf.varLabel} = {v.toFixed(2)} − {lr.toFixed(4).replace(/\.?0+$/, '') || '0'} × ({slope.toFixed(2)})
+              = <span className="text-accent">{nextV.toFixed(3)}</span>
             </div>
           </div>
 
@@ -188,10 +281,11 @@ export function PhaseA3() {
       {/* ── 4개 시나리오 비교 ─────────────────────────────────────── */}
       <div className="mt-4">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-muted mr-1">자동 비교:</span>
+          <span className="text-sm text-muted mr-1">자동 비교 ({conf.varLabel}):</span>
           {SCENARIOS.map((sc) => {
-            const seen = seenRef.current.has(sc.id);
+            const isSeen = seen.has(sc.id);
             const active = activeScenario === sc.id;
+            const sLr = SC_LR[mode][sc.id];
             return (
               <button
                 key={sc.id}
@@ -204,8 +298,8 @@ export function PhaseA3() {
                   fontWeight: 600,
                 }}
               >
-                {seen && !active && <span className="mr-1">✓</span>}
-                {sc.label} <span className="opacity-70 ml-1">{sc.note}</span>
+                {isSeen && !active && <span className="mr-1">✓</span>}
+                η = {sLr} <span className="opacity-70 ml-1">{sc.note}</span>
               </button>
             );
           })}
@@ -217,19 +311,20 @@ export function PhaseA3() {
           {SCENARIOS.map((sc) => {
             const tr = trails[sc.id];
             const last = tr?.points[tr.points.length - 1];
-            const final = last ? mseAt(last.b) : null;
-            const diverged = last ? Math.abs(last.b) >= 50 : false;
+            const final = last ? mseAt(last.v, mode) : null;
+            const diverged = last ? Math.abs(last.v) >= 50 : false;
+            const sLr = SC_LR[mode][sc.id];
             return (
               <div key={sc.id} className="card p-2.5"
                 style={{ borderColor: tr ? sc.color : undefined, borderWidth: tr ? 1.5 : 1 }}>
                 <div className="text-xs font-mono" style={{ color: sc.color }}>
-                  {sc.label}
+                  η = {sLr}
                 </div>
                 <div className="text-xs text-muted mt-1">{sc.note}</div>
                 {tr && final !== null && (
                   <div className="font-mono text-[11px] mt-1">
                     {diverged
-                      ? <span style={{ color: sc.color }}>발산 (b ≫ 곡선 밖)</span>
+                      ? <span style={{ color: sc.color }}>발산 ({conf.varLabel} ≫ 곡선 밖)</span>
                       : <>10 step → MSE <span style={{ color: sc.color, fontWeight: 700 }}>{final.toFixed(3)}</span></>
                     }
                   </div>
@@ -239,8 +334,12 @@ export function PhaseA3() {
           })}
         </div>
         <p className="text-[11px] text-muted mt-2 leading-relaxed">
-          이 곡선의 안정 조건은 <code>0 &lt; η &lt; 1</code> (곡률 d²L/db² = 2).
-          실제 학습에서는 곡률이 데이터·모델마다 달라 "딱 맞는 보폭"도 매번 다릅니다 — 학습률 튜닝이 학습의 핵심 작업인 이유.
+          이 곡선의 안정 조건은 <code>{conf.curvature}</code>.{' '}
+          {mode === 'w' ? (
+            <>같은 알고리즘인데 <strong>w 곡선이 b 곡선보다 훨씬 가팔라서</strong> 발산 한계도 작아요 — 입력 x의 크기가 곡률에 들어가기 때문이에요.</>
+          ) : (
+            <>실제 학습에서는 곡률이 데이터·모델마다 달라 "딱 맞는 보폭"도 매번 다릅니다 — 학습률 튜닝이 학습의 핵심 작업인 이유.</>
+          )}
         </p>
       </div>
     </article>
@@ -248,44 +347,54 @@ export function PhaseA3() {
 }
 
 /* ─────────────────────────────────────────────────────────
-   손실 곡선 — 현재 b, 접선, 다음 step 미리보기, 시나리오 자취
+   손실 곡선 — 현재 v, 접선, 다음 step 미리보기, 시나리오 자취
 ───────────────────────────────────────────────────────── */
 function LossCurve({
-  b, mse, slope, nextB, nextMse, trails, activeScenario,
+  mode, conf, v, mse, slope, nextV, nextMse, trails, activeScenario, trueV,
 }: {
-  b: number; mse: number; slope: number; nextB: number; nextMse: number;
+  mode: VarMode;
+  conf: typeof CONF[VarMode];
+  v: number; mse: number; slope: number; nextV: number; nextMse: number;
   trails: Record<Scenario['id'], Trail | null>;
   activeScenario: Scenario['id'] | null;
+  trueV: number;
 }) {
   const W = 600, H = 360;
   const padL = 44, padR = 16, padT = 18, padB = 34;
-  const lMax = Math.max(mseAt(B_MIN), mseAt(B_MAX)) * 1.05;
+  const lMax = Math.max(mseAt(conf.vMin, mode), mseAt(conf.vMax, mode)) * 1.05;
 
-  const sx = (bv: number) => padL + ((bv - B_MIN) / (B_MAX - B_MIN)) * (W - padL - padR);
-  const sy = (lv: number) => H - padB - (Math.min(Math.max(lv, 0), lMax) / lMax) * (H - padT - padB);
+  const sx = useMemo(
+    () => (vv: number) => padL + ((vv - conf.vMin) / (conf.vMax - conf.vMin)) * (W - padL - padR),
+    [conf.vMin, conf.vMax]
+  );
+  const sy = useMemo(
+    () => (lv: number) => H - padB - (Math.min(Math.max(lv, 0), lMax) / lMax) * (H - padT - padB),
+    [lMax]
+  );
 
   const curve = useMemo(() => {
     const parts: string[] = [];
-    for (let bv = B_MIN; bv <= B_MAX + 0.0001; bv += 0.05) {
-      parts.push(`${parts.length === 0 ? 'M' : 'L'}${sx(bv).toFixed(2)},${sy(mseAt(bv)).toFixed(2)}`);
+    const step = (conf.vMax - conf.vMin) / 200;
+    for (let vv = conf.vMin; vv <= conf.vMax + 0.0001; vv += step) {
+      parts.push(`${parts.length === 0 ? 'M' : 'L'}${sx(vv).toFixed(2)},${sy(mseAt(vv, mode)).toFixed(2)}`);
     }
     return parts.join(' ');
-  }, []);
+  }, [mode, conf.vMin, conf.vMax, sx, sy]);
 
-  // 접선 — 현재 점에서 좌우 0.9 폭으로, MSE=0 아래로 가지 않도록 클립
-  const tanLen = 0.9;
-  const tanY = (bv: number) => mse + slope * (bv - b);
-  const clipLow = (bv: number) => {
-    const y = tanY(bv);
-    if (y >= 0 || Math.abs(slope) < 1e-6) return bv;
-    return b + (0 - mse) / slope;
+  // 접선
+  const tanLen = (conf.vMax - conf.vMin) * 0.13;
+  const tanY = (vv: number) => mse + slope * (vv - v);
+  const clipLow = (vv: number) => {
+    const y = tanY(vv);
+    if (y >= 0 || Math.abs(slope) < 1e-6) return vv;
+    return v + (0 - mse) / slope;
   };
-  const t1 = Math.max(B_MIN, clipLow(b - tanLen));
-  const t2 = Math.min(B_MAX, clipLow(b + tanLen));
+  const t1 = Math.max(conf.vMin, clipLow(v - tanLen));
+  const t2 = Math.min(conf.vMax, clipLow(v + tanLen));
 
-  // 다음 step 미리보기 (화살표): 곡선 위 현재 점 → 다음 점
-  const nb = Math.max(B_MIN - 0.5, Math.min(B_MAX + 0.5, nextB));
-  const inBoundNext = nb >= B_MIN && nb <= B_MAX;
+  // 다음 step 미리보기
+  const nb = Math.max(conf.vMin - 0.5, Math.min(conf.vMax + 0.5, nextV));
+  const inBoundNext = nb >= conf.vMin && nb <= conf.vMax;
   const nextX = sx(nb);
   const nextY = sy(Math.min(nextMse, lMax));
 
@@ -301,30 +410,30 @@ function LossCurve({
         {/* axes */}
         <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="rgb(var(--color-border))" />
         <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="rgb(var(--color-border))" />
-        {[-2, -1, 0, 1, 2, 3, 4].map((bv) => (
-          <text key={bv} x={sx(bv)} y={H - padB + 16} textAnchor="middle"
-            fontSize={11} fill="rgb(var(--color-muted))">{bv}</text>
+        {conf.ticks.map((vv) => (
+          <text key={vv} x={sx(vv)} y={H - padB + 16} textAnchor="middle"
+            fontSize={11} fill="rgb(var(--color-muted))">{vv}</text>
         ))}
-        <text x={W - padR - 4} y={H - padB - 6} textAnchor="end" fontSize={11} fill="rgb(var(--color-muted))">b</text>
+        <text x={W - padR - 4} y={H - padB - 6} textAnchor="end" fontSize={11} fill="rgb(var(--color-muted))">{conf.axisLabel}</text>
         <text x={padL + 6} y={padT + 12} fontSize={11} fill="rgb(var(--color-muted))">MSE</text>
 
-        {/* 정답 b 수직선 */}
-        <line x1={sx(B_TRUE)} y1={padT} x2={sx(B_TRUE)} y2={H - padB}
+        {/* 정답 v 수직선 */}
+        <line x1={sx(trueV)} y1={padT} x2={sx(trueV)} y2={H - padB}
           stroke="rgb(var(--color-muted))" strokeDasharray="3 3" opacity={0.6} />
-        <text x={sx(B_TRUE) + 4} y={padT + 12} fontSize={10} fill="rgb(var(--color-muted))">
-          b = {B_TRUE} (최저)
+        <text x={sx(trueV) + 4} y={padT + 12} fontSize={10} fill="rgb(var(--color-muted))">
+          {conf.varLabel} = {trueV} (최저)
         </text>
 
         {/* 손실 곡선 */}
         <path d={curve} fill="none" stroke="rgb(var(--color-accent))" strokeWidth={2.2} opacity={0.85} />
 
-        {/* 시나리오 자취 (있을 때만) */}
+        {/* 시나리오 자취 */}
         {SCENARIOS.map((sc) => {
           const tr = trails[sc.id];
           if (!tr) return null;
           const dim = activeScenario && activeScenario !== sc.id ? 0.25 : 0.9;
           const path = tr.points.map((p, i) => {
-            const cx = sx(Math.max(B_MIN, Math.min(B_MAX, p.b)));
+            const cx = sx(Math.max(conf.vMin, Math.min(conf.vMax, p.v)));
             const cy = sy(Math.min(p.mse, lMax));
             return `${i === 0 ? 'M' : 'L'}${cx.toFixed(2)},${cy.toFixed(2)}`;
           }).join(' ');
@@ -333,9 +442,9 @@ function LossCurve({
               <path d={path} fill="none" stroke={sc.color} strokeWidth={1.6}
                 strokeDasharray="3 3" />
               {tr.points.map((p, i) => {
-                const cx = sx(Math.max(B_MIN, Math.min(B_MAX, p.b)));
+                const cx = sx(Math.max(conf.vMin, Math.min(conf.vMax, p.v)));
                 const cy = sy(Math.min(p.mse, lMax));
-                const inB = p.b >= B_MIN && p.b <= B_MAX;
+                const inB = p.v >= conf.vMin && p.v <= conf.vMax;
                 if (!inB) return null;
                 return <circle key={i} cx={cx} cy={cy} r={2.6} fill={sc.color} opacity={0.8} />;
               })}
@@ -351,10 +460,10 @@ function LossCurve({
             stroke="rgb(251,146,60)" strokeWidth={2} opacity={0.85} />
         )}
 
-        {/* 다음 step 미리보기 — 점선 화살표 */}
-        {inBoundNext && Math.abs(nextB - b) > 0.001 && (
+        {/* 다음 step 화살표 */}
+        {inBoundNext && Math.abs(nextV - v) > 0.001 && (
           <line
-            x1={sx(b)} y1={sy(mse)}
+            x1={sx(v)} y1={sy(mse)}
             x2={nextX} y2={nextY}
             stroke="rgb(var(--color-accent))" strokeWidth={2}
             strokeDasharray="5 4" opacity={0.7}
@@ -366,18 +475,18 @@ function LossCurve({
         )}
 
         {/* 현재 점 */}
-        <circle cx={sx(b)} cy={sy(mse)} r={7}
+        <circle cx={sx(v)} cy={sy(mse)} r={7}
           fill="rgb(190,18,60)" stroke="white" strokeWidth={2} />
         <text
-          x={b > B_MAX - 1.4 ? sx(b) - 10 : sx(b) + 12}
+          x={v > conf.vMax - (conf.vMax - conf.vMin) * 0.2 ? sx(v) - 10 : sx(v) + 12}
           y={sy(mse) - 10}
-          textAnchor={b > B_MAX - 1.4 ? 'end' : 'start'}
+          textAnchor={v > conf.vMax - (conf.vMax - conf.vMin) * 0.2 ? 'end' : 'start'}
           fontSize={11} fill="rgb(var(--color-text))" fontWeight={600}>
-          b = {b.toFixed(2)}, MSE = {mse.toFixed(2)}
+          {conf.varLabel} = {v.toFixed(2)}, MSE = {mse.toFixed(2)}
         </text>
       </svg>
       <div className="text-[11px] text-muted px-2 pb-2 leading-snug">
-        가로축 = 편향 b 후보, 세로축 = MSE (w = {W_FIXED} 고정).{' '}
+        가로축 = {conf.varLabel} 후보, 세로축 = MSE ({conf.fixedLabel}).{' '}
         <span style={{ color: 'rgb(190,18,60)' }}>● 빨강</span>=현재 위치,{' '}
         <span style={{ color: 'rgb(251,146,60)' }}>주황 선</span>=현재 기울기(접선),{' '}
         <span className="text-accent">점선 화살표</span>=현재 η로 한 step 옮긴 위치.
@@ -389,7 +498,7 @@ function LossCurve({
 /* ─────────────────────────────────────────────────────────
    미니 손실 추이 (직접 step 진행)
 ───────────────────────────────────────────────────────── */
-function MiniLossHistory({ history }: { history: { b: number; mse: number }[] }) {
+function MiniLossHistory({ history }: { history: { v: number; mse: number }[] }) {
   const W = 280, H = 110, padL = 28, padR = 8, padT = 8, padB = 18;
   const N1 = history.length;
   const Lmax = Math.max(0.3, ...history.map((h) => h.mse));

@@ -8,7 +8,7 @@ export function TextbookHome() {
         <div className="text-xs font-semibold uppercase tracking-[0.3em] text-muted">NEURAL EXPLORER · WEB TEXTBOOK</div>
         <h1 className="text-4xl sm:text-5xl font-bold mt-3 tracking-tight">신경망 웹 교과서</h1>
         <p className="text-lg text-muted mt-3">코드 없이 슬라이더와 그림판으로 만나는 인공 신경망</p>
-        <p className="text-sm text-muted mt-1">고등학교 1학년 · 12개 장 · 1부 ~ 4부</p>
+        <p className="text-sm text-muted mt-1">고등학교 1학년 · 15개 장 · A·B·C 세 영역</p>
       </header>
 
       <section className="grid sm:grid-cols-3 gap-4 my-8">
@@ -34,7 +34,7 @@ export function TextbookHome() {
                 {part.pages.map((p) => (
                   <li key={p.slug}>
                     <a href={`#/textbook/${p.slug}`} className="hover:text-accent">
-                      <span className="font-mono text-muted text-xs mr-2">{p.num}장</span>
+                      <span className="font-mono text-muted text-xs mr-2">{p.num}</span>
                       {p.title}
                     </a>
                   </li>
@@ -57,11 +57,14 @@ export function TextbookHome() {
 
       <div className="text-center mt-12">
         <a
-          href="#/textbook/p1"
+          href="#/textbook/a1"
           className="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-accent text-white font-medium hover:opacity-90 transition shadow-sm"
         >
-          1장부터 시작하기 →
+          A1부터 시작하기 →
         </a>
+        <div className="text-xs text-muted mt-3">
+          본문은 새 A·B·C 구조로 다시 작성 중이에요. 지금은 인앱 실습(우상단 메뉴 아이콘)이 가장 풍부하게 동작합니다.
+        </div>
       </div>
     </div>
   );

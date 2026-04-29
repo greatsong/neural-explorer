@@ -38,8 +38,13 @@ const DERIV_STEPS: { tex: string; why: string; highlight?: boolean }[] = [
     highlight: true,
   },
   {
+    tex: `\\frac{\\partial L}{\\partial b} = (\\hat{y} - y)\\cdot \\frac{\\partial}{\\partial b}(wx + b - y) = (\\hat{y} - y)\\cdot 1 = e`,
+    why: 'b 쪽도 똑같이 사슬규칙. 안쪽 (wx + b − y)에서 b가 1 변하면 식 전체는 1만큼 변하니 곱해질 게 없다 → 그대로 e.',
+    highlight: true,
+  },
+  {
     tex: `\\mathrm{dw} = \\overline{e\\cdot x} = \\tfrac{1}{N}\\sum_{i=1}^{N} e_i\\, x_i,\\quad \\mathrm{db} = \\overline{e} = \\tfrac{1}{N}\\sum_{i=1}^{N} e_i`,
-    why: '점이 N개면 한 점에서 만든 e·x를 모두 평균. b 쪽은 안쪽이 1이라 x 없이 e의 평균이다.',
+    why: '점이 N개면 한 점에서 만든 e·x와 e를 각각 평균낸다. 이 두 숫자가 A3에서 본 보폭 식의 "기울기" 자리에 들어간다.',
     highlight: true,
   },
 ];

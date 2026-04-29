@@ -24,12 +24,36 @@ export function Guide() {
 
   const totalMin = GROUPS.flatMap((g) => g.phases).reduce((s, p) => s + p.timeMin, 0);
 
+  // 1~4부 → A/B/C 재구성 작업 중. 새 가이드 콘텐츠가 아직 채워지지 않았으면
+  // 빈 카드 대신 "작성 중" 안내만 보여 준다 (옛 카피·옛 페이즈 ID 노출 방지).
+  const totalPhases = GROUPS.reduce((s, g) => s + g.phases.length, 0);
+  if (totalPhases === 0) {
+    return (
+      <article>
+        <div className="text-xs font-mono text-muted">APPENDIX · 교사 지도용 가이드</div>
+        <h1>수업 운영서 — 작성 중</h1>
+        <p className="text-muted mt-2">
+          1~4부 → A·B·C 재구성에 따라 교사 지도서도 새로 정리하는 중입니다.
+          A 영역(A1~A6)의 인앱 실습은 모두 동작하므로, 그 화면을 직접 띄워 두고 수업을 운영하실 수 있어요.
+          새 가이드는 다음 사이클에서 채워집니다.
+        </p>
+        <div className="aside-note mt-6 text-sm">
+          <div className="font-medium">지금 사용 가능한 것</div>
+          <ul className="list-disc pl-5 mt-2 space-y-1">
+            <li>인앱 실습 — 우상단 햄버거 메뉴에서 A1~A6에 진입</li>
+            <li>웹 교과서 — 본문은 placeholder, 곧 새 A·B·C 구조로 채워집니다</li>
+          </ul>
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article>
       <div className="text-xs font-mono text-muted">APPENDIX · 교사 지도용 가이드</div>
       <h1>한 화면씩 따라 보는 수업 운영서</h1>
       <p className="text-muted mt-2">
-        1~4부 12개 페이즈 각각에 대해 <strong>학습 목표 · 단계별 캡처 · 해보세요 · 수업 진행 · 예상 Q&amp;A · 막힐 때 처방 · 다음으로</strong>
+        A·B·C 영역 페이즈 각각에 대해 <strong>학습 목표 · 단계별 캡처 · 해보세요 · 수업 진행 · 예상 Q&amp;A · 막힐 때 처방 · 다음으로</strong>
         를 한 카드에 모았습니다. 캡처는 실제 화면을 그대로 따른 것이고, 카드의 <strong>이 페이즈 바로 가기</strong> 버튼으로 해당 화면에 즉시 진입할 수 있어요.
       </p>
 

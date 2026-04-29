@@ -49,20 +49,23 @@ export function Intro() {
           <span>👨‍🎓 대상: 고등학생</span>
           <span>⏱ 4차시 (50분 ×4)</span>
           <span>🌐 코드 작성 없음</span>
-          <span>📦 12 페이즈</span>
+          <span>📦 15 페이즈 (A·B·C)</span>
         </div>
       </section>
 
-      {/* 5 parts */}
+      {/* visible 영역 — A · B · C */}
       <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-        {PHASE_GROUPS.map(([group, items], idx) => {
+        {PHASE_GROUPS.map(([group, items]) => {
           // 5·6부는 메뉴에서 항상 숨김 (인지 과부하 방지)
           if (isBonusGroup(group)) return null;
           if (isBonus2Group(group)) return null;
+          // group은 "A. 알고리즘의 이해" 등이라 첫 글자(A/B/C)를 PART 라벨로 사용
+          const partLetter = group.charAt(0);
+          const partTitle = group.replace(/^[ABC]\.\s*/, '');
           return (
             <div key={group} className="card p-5 hover:border-accent/50 transition">
-              <div className="text-xs font-mono text-accent mb-2">PART {idx + 1}</div>
-              <div className="font-semibold">{group.replace(/^\d+부 — /, '')}</div>
+              <div className="text-xs font-mono text-accent mb-2">PART {partLetter}</div>
+              <div className="font-semibold">{partTitle}</div>
               <div className="text-xs text-muted mt-1">페이즈 {items[0].num}~{items[items.length - 1].num}</div>
               <ul className="mt-3 space-y-1.5 text-sm">
                 {items.map((p) => (
@@ -91,13 +94,12 @@ export function Intro() {
       <section className="mt-16">
         <h2 className="text-center">학습 여정</h2>
         <p className="text-center text-muted text-sm mt-2">
-          단순한 뉴런 하나에서 시작해 진짜 손글씨를 읽는 신경망까지
+          뉴런 한 개의 한 step에서 시작해 손글씨 분류까지 — 알고리즘 → 데이터 → 일반화
         </p>
-        <div className="grid sm:grid-cols-2 gap-4 mt-6">
-          <Step n="1~5" title="뉴런의 기초" desc="가중치, 편향, 활성화 함수, 손실, 경사 하강법까지 직접 슬라이더로 만져봅니다." />
-          <Step n="6~9" title="분류와 평가" desc="입시 합격 예측·코로나 진단처럼 실생활 분류 문제와 평가 지표의 함정을 체험합니다." />
-          <Step n="10" title="직접 만들기" desc="8×8 도트로 직접 그린 그림을 학습시키고, 오픈 갤러리에 CC-BY로 공유합니다." />
-          <Step n="11~12" title="깊은 학습" desc="진짜 MNIST로 신경망 크기와 문제 복잡도의 관계를 발견하고, 손으로 그린 숫자를 분류해봅니다." />
+        <div className="grid sm:grid-cols-3 gap-4 mt-6">
+          <Step n="A" title="알고리즘의 이해" desc="예측 → 오차 → 기울기 → 갱신을 한 묶음으로. 마지막에 단일 뉴런으로 서울 기온 회귀까지." />
+          <Step n="B" title="데이터·학습·분류" desc="도트 그림 데이터 한 종류로 입력·라벨·전처리·분할·이진 분류·다중 분류와 소프트맥스를 차례로." />
+          <Step n="C" title="모델 개선·일반화" desc="새 데이터에서도 통하는지, 은닉층을 더하면 무엇이 달라지는지. 마지막은 MNIST로 종합." />
         </div>
       </section>
 
@@ -105,24 +107,20 @@ export function Intro() {
       <section className="mt-16">
         <h2 className="text-center">학생이 배우는 것</h2>
         <div className="grid sm:grid-cols-2 gap-3 mt-4 text-sm">
-          <Bullet>가중치·편향이 만드는 결정 경계를 직접 손으로 옮기는 감각</Bullet>
-          <Bullet>경사 하강법이 왜 작동하는지 — 단순한 미분 계산의 반복임을 체험</Bullet>
-          <Bullet>"정확도 99%"가 사실은 함정일 수 있다는 통찰 (코로나·암 시나리오)</Bullet>
-          <Bullet>데이터를 늘리면 모델이 어떻게 더 안정해지는지 실시간으로 관찰</Bullet>
-          <Bullet>문제가 복잡할수록 신경망도 커야 한다는 직관 (2종 → 10종)</Bullet>
+          <Bullet>가중치·편향·활성화 함수가 만드는 예측을 슬라이더로 직접 만지는 감각</Bullet>
+          <Bullet>경사 하강법이 왜 작동하는지 — 단순한 미분 계산이 한 step씩 반복되는 모습을 직접 보기</Bullet>
+          <Bullet>학습률(보폭)을 바꾸면 발산·진동·수렴·느림 중 어느 결과가 나오는지 한 화면에서 비교</Bullet>
+          <Bullet>회귀(숫자 예측)에서 분류(이름표 예측)로 넘어갈 때 출력층과 손실이 어떻게 달라지는지</Bullet>
+          <Bullet>은닉층을 더하면 더 복잡한 문제가 풀리는 이유 — 모델 복잡도 직관</Bullet>
         </div>
       </section>
 
-      {/* Tech / open */}
+      {/* Repo */}
       <section className="mt-16 mb-8">
         <div className="aside-tip">
-          <div className="font-medium">🌍 오픈 데이터셋과 오픈소스</div>
+          <div className="font-medium">🛠 오픈소스</div>
           <p className="text-sm mt-2">
-            학생이 페이즈 10에서 그린 도트 그림은{' '}
-            <a href="https://github.com/greatsong/neural-explorer-gallery" target="_blank" rel="noreferrer" className="text-accent underline">
-              neural-explorer-gallery
-            </a>
-            에 <strong>CC-BY 4.0</strong>으로 누적됩니다. 다음 학기 학생들의 학습 데이터로 다시 쓰여요. MNIST 정신을 잇는 작은 공개 자산.
+            모든 페이즈는 코드 없이 슬라이더와 그림판으로만 동작해요. 소스는 공개되어 있어, 수업에서 자유롭게 쓰고 고쳐 쓰셔도 됩니다.
           </p>
           <div className="text-xs text-muted mt-2 font-mono">
             <a href="https://github.com/greatsong/neural-explorer" target="_blank" rel="noreferrer" className="hover:text-accent">

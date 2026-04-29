@@ -103,20 +103,31 @@ export function PhaseA6() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auto, lr, samples]);
 
-  // 손실 수렴 → 완료 처리 (렌더 사이클 밖에서 zustand 갱신)
+  // 손실 수렴 → 완료 처리.
+  // 학습 step이 한 번이라도 진행됐을 때만 검사 — reset 직후의 시드 값이
+  // 우연히 임계 이하라도 자동 완료되지 않도록 epoch > 0 가드.
   useEffect(() => {
+    if (epoch === 0) return;
     const last = history[history.length - 1];
     if (!completedRef.current && last !== undefined && last < 0.6) {
       completedRef.current = true;
       markCompleted('a6');
     }
-  }, [history, markCompleted]);
+  }, [history, epoch, markCompleted]);
 
   const reset = () => {
+    // 초기 상태(w=0, b=meanY)에서의 실제 MSE를 history 시드로 사용한다.
+    // 0을 박으면 손실 useEffect가 last < 0.6을 만족해 의도치 않게 완료 처리된다.
+    let s0 = 0;
+    for (const r of samples) {
+      const e = (0 * r.x + meanY) - r.y;
+      s0 += e * e;
+    }
+    const initialMse = s0 / samples.length;
     setW(0);
     setB(meanY);
     setEpoch(0);
-    setHistory([0]);
+    setHistory([initialMse]);
     setAuto(false);
     completedRef.current = false;
   };

@@ -121,16 +121,17 @@ export function PhaseA5() {
     }
   }, [history, markCompleted]);
 
-  // 자동 학습 80 step 도달 시 자동 정지 + 완료
+  // 자동 학습 80 step 도달 시 자동 정지 — setInterval cleanup이 처리하도록 ref 가드.
+  // (effect 안에서 setAuto를 직접 호출하는 패턴은 cascading render 경고를 유발)
+  const autoLimitRef = useRef(false);
   useEffect(() => {
-    if (auto && stepCount >= 80) {
-      setAuto(false);
-      if (!completedRef.current) {
-        completedRef.current = true;
-        markCompleted('a5');
-      }
+    if (auto && stepCount >= 80 && !autoLimitRef.current) {
+      autoLimitRef.current = true;
+      // 마이크로태스크로 미뤄 렌더 사이클 외부에서 갱신
+      queueMicrotask(() => setAuto(false));
     }
-  }, [auto, stepCount, markCompleted]);
+    if (!auto) autoLimitRef.current = false;
+  }, [auto, stepCount]);
 
   const reset = () => {
     setW(0); setB(0);
@@ -272,74 +273,117 @@ function StageLabels({ current, stepCount }: { current: StageLabel; stepCount: n
   );
 }
 
-/* ────────── 우측: Stage 2 — 종합 식 카드 (실제 숫자 대입) ────────── */
+/* ────────── 우측: Stage 2 — 종합 식 카드 (다섯 점 표 + 평균 + 갱신) ──────────
+   학생이 "이 숫자가 어떻게 나왔는지"를 자력으로 설명할 수 있도록,
+   대표 한 점 대신 다섯 점 표와 평균까지 한 화면에 노출한다. */
 function FormulaCard({
-  w, b, grad, x, y, z, yhat, e, current, stepCount,
+  w, b, grad, current, stepCount,
 }: {
   w: number; b: number;
-  grad: { dw: number; db: number };
+  grad: { dw: number; db: number; meanE: number };
   x: number; y: number; z: number; yhat: number; e: number;
   current: StageLabel; stepCount: number;
 }) {
-  void z; // 식 카드에는 ŷ까지 한 줄로 — 중간값 z는 본문 다이어그램에서만 표기
   const newW = w - LR * grad.dw;
   const newB = b - LR * grad.db;
-  const row = (s: StageLabel) =>
-    `flex items-start gap-2 rounded-md px-2 py-1.5 ${
-      current === s ? 'bg-accent-bg text-text' : 'text-muted'
-    }`;
+
+  // 다섯 점 각각의 ŷ_i, e_i, e_i·x_i — 표로 보여줌 (ReLU 통과 반영)
+  const rows = DATA.map(([xi, yi]) => {
+    const zi = w * xi + b;
+    const yhati = Math.max(0, zi);
+    const ei = yhati - yi;
+    return { x: xi, y: yi, yhat: yhati, e: ei, ex: ei * xi };
+  });
+  const sumE = rows.reduce((s, r) => s + r.e, 0);
+  const sumEx = rows.reduce((s, r) => s + r.ex, 0);
+
+  const stageBg = (s: StageLabel) =>
+    current === s ? 'bg-accent-bg' : '';
 
   return (
     <div className="card p-3 space-y-2 text-sm">
-      <div className="font-medium">한 step 식 + 지금 숫자</div>
-      <p className="text-[12px] text-muted">
-        대표 점 x = {x}로 보여줘요. dw·db는 다섯 점 평균이고, 갱신 식은 그 평균값을 그대로 쓴 결과예요.
+      <div className="font-medium">한 step의 모든 계산</div>
+      <p className="text-[11px] text-muted leading-snug">
+        다섯 점 모두에 같은 w·b를 적용해 ŷ을 만들고, 오차를 잰 뒤 평균으로 dw·db를 만듭니다.
+        화면의 모든 숫자는 *지금의 w·b로* 다시 계산된 값이에요.
       </p>
 
-      <div className={row('predict')}>
-        <span className="font-mono text-xs mt-0.5 w-4 text-accent">1</span>
-        <div className="flex-1 font-mono text-[13px] leading-relaxed">
-          <div>ŷ = ReLU(w · x + b)</div>
-          <div className="text-[12px]">
-            = ReLU({w.toFixed(2)}·{x} + {b.toFixed(2)}) = <span className="text-accent font-semibold">{yhat.toFixed(2)}</span>
-          </div>
+      {/* ── 1·2단계: 5점 표 ── */}
+      <div className={`rounded-md border border-border overflow-hidden ${stageBg('predict')}${current === 'error' ? ' bg-accent-bg' : ''}`}>
+        <div className="flex items-baseline gap-2 px-2 pt-1.5">
+          <span className="font-mono text-[10px] text-accent">1·2</span>
+          <span className="text-[11px] font-medium">예측 ŷ_i = ReLU(w·x_i + b), 오차 e_i = ŷ_i − y_i</span>
+        </div>
+        <table className="w-full text-[11px] font-mono mt-1">
+          <thead className="text-muted">
+            <tr className="border-t border-border/60">
+              <th className="text-right px-2 py-0.5">x</th>
+              <th className="text-right">y</th>
+              <th className="text-right">ŷ</th>
+              <th className="text-right" style={{ color: 'rgb(190,18,60)' }}>e</th>
+              <th className="text-right" style={{ color: 'rgb(59,130,246)' }}>e·x</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.x} className="border-t border-border/30">
+                <td className="text-right px-2">{r.x}</td>
+                <td className="text-right">{r.y}</td>
+                <td className="text-right text-accent">{r.yhat.toFixed(2)}</td>
+                <td className="text-right" style={{ color: 'rgb(190,18,60)' }}>
+                  {r.e >= 0 ? '+' : ''}{r.e.toFixed(2)}
+                </td>
+                <td className="text-right" style={{ color: 'rgb(59,130,246)' }}>
+                  {r.ex >= 0 ? '+' : ''}{r.ex.toFixed(2)}
+                </td>
+              </tr>
+            ))}
+            <tr className="border-t border-border bg-surface/40 text-[10px] text-muted">
+              <td className="text-right px-2" colSpan={3}>합계 →</td>
+              <td className="text-right" style={{ color: 'rgb(190,18,60)' }}>
+                {sumE >= 0 ? '+' : ''}{sumE.toFixed(2)}
+              </td>
+              <td className="text-right" style={{ color: 'rgb(59,130,246)' }}>
+                {sumEx >= 0 ? '+' : ''}{sumEx.toFixed(2)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* ── 3단계: 평균 ── */}
+      <div className={`rounded-md border border-border px-2.5 py-1.5 ${stageBg('gradient')}`}>
+        <div className="flex items-baseline gap-2">
+          <span className="font-mono text-[10px] text-accent">3</span>
+          <span className="text-[11px] font-medium">평균 — A4의 dw·db 식</span>
+        </div>
+        <div className="font-mono text-[12px] mt-0.5 leading-relaxed">
+          dw = (합 e·x) ÷ N = {sumEx.toFixed(2)} ÷ {DATA.length} =
+          <span className="font-semibold ml-1" style={{ color: 'rgb(59,130,246)' }}>{grad.dw.toFixed(3)}</span>
+          <br />
+          db = (합 e) ÷ N = {sumE.toFixed(2)} ÷ {DATA.length} =
+          <span className="font-semibold ml-1" style={{ color: 'rgb(190,18,60)' }}>{grad.db.toFixed(3)}</span>
         </div>
       </div>
 
-      <div className={row('error')}>
-        <span className="font-mono text-xs mt-0.5 w-4 text-accent">2</span>
-        <div className="flex-1 font-mono text-[13px] leading-relaxed">
-          <div>e = ŷ − y</div>
-          <div className="text-[12px]">
-            = {yhat.toFixed(2)} − {y} = <span className="font-semibold" style={{ color: 'rgb(190,18,60)' }}>{e.toFixed(2)}</span>
-          </div>
+      {/* ── 4단계: 갱신 ── */}
+      <div className={`rounded-md border border-border px-2.5 py-1.5 ${stageBg('update')}`}>
+        <div className="flex items-baseline gap-2">
+          <span className="font-mono text-[10px] text-accent">4</span>
+          <span className="text-[11px] font-medium">갱신 — η = {LR}</span>
+        </div>
+        <div className="font-mono text-[12px] mt-0.5 leading-relaxed">
+          w ← {w.toFixed(3)} − {LR}·{grad.dw.toFixed(3)} =
+          <span className="font-semibold text-accent ml-1">{newW.toFixed(3)}</span>
+          <br />
+          b ← {b.toFixed(3)} − {LR}·{grad.db.toFixed(3)} =
+          <span className="font-semibold text-accent ml-1">{newB.toFixed(3)}</span>
         </div>
       </div>
 
-      <div className={row('gradient')}>
-        <span className="font-mono text-xs mt-0.5 w-4 text-accent">3</span>
-        <div className="flex-1 font-mono text-[13px] leading-relaxed">
-          <div>dw = 평균(e·x),&nbsp; db = 평균(e)</div>
-          <div className="text-[12px]">
-            dw = <span className="font-semibold" style={{ color: 'rgb(59,130,246)' }}>{grad.dw.toFixed(3)}</span>,&nbsp;
-            db = <span className="font-semibold" style={{ color: 'rgb(59,130,246)' }}>{grad.db.toFixed(3)}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className={row('update')}>
-        <span className="font-mono text-xs mt-0.5 w-4 text-accent">4</span>
-        <div className="flex-1 font-mono text-[13px] leading-relaxed">
-          <div>w ← w − η·dw,&nbsp; b ← b − η·db</div>
-          <div className="text-[12px]">
-            w → <span className="text-accent font-semibold">{newW.toFixed(3)}</span>,&nbsp;
-            b → <span className="text-accent font-semibold">{newB.toFixed(3)}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="border-t border-border pt-2 text-[11px] text-muted">
-        누른 횟수: <span className="font-mono text-accent">{stepCount}</span> · η = {LR}
+      <div className="border-t border-border pt-1.5 text-[10px] text-muted">
+        누른 횟수: <span className="font-mono text-accent">{stepCount}</span>
+        <span className="ml-2">"한 step 진행"을 누르면 위 표 전체가 새 w·b로 다시 계산돼요.</span>
       </div>
     </div>
   );
