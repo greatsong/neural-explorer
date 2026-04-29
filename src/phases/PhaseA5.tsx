@@ -93,6 +93,27 @@ export function PhaseA5() {
     }, 220);
   };
 
+  // 단계별 진행 — 학생이 직접 *예측 → 오차 → 기울기 → 갱신*을 한 번씩 클릭하며
+  // 각 단계의 변화를 손에 잡히도록 한다. 갱신 단계(3 → 4)에서만 실제 가중치가 움직임.
+  // manualStage: 다음에 보여 줄 단계 인덱스. 0~3 cycle.
+  const advanceStage = () => {
+    const cur = stageIdx;
+    // predict(0) → error(1) → gradient(2) → update(3) → predict(0)으로 다시
+    const next = (cur + 1) % STAGE_ORDER.length;
+    setStageIdx(next);
+    // update 단계로 진입할 때(=cur 2 → next 3) 실제 가중치 갱신
+    if (cur === STAGE_ORDER.length - 2) {
+      const cw = wRef.current;
+      const cb = bRef.current;
+      const g = gradient(cw, cb);
+      const nw = cw - LR * g.dw;
+      const nb = cb - LR * g.db;
+      setW(nw);
+      setB(nb);
+      setHistory((h) => [...h, lossFn(nw, nb)]);
+    }
+  };
+
   // 자동 학습 — setInterval 안에서는 setState만 호출하고,
   // markCompleted(zustand 갱신)는 별도 useEffect에서 history 변화를 보고 호출한다.
   useEffect(() => {
@@ -211,13 +232,24 @@ export function PhaseA5() {
               <Stat label="b" value={b.toFixed(3)} />
               <Stat label="손실" value={loss.toFixed(4)} highlight={converged} />
             </div>
-            <div className="text-[11px] text-muted">step {stepCount} · 학습률 η = {LR}</div>
+            <div className="text-[11px] text-muted">
+              step {stepCount} · 학습률 η = {LR} · 다음 단계: <strong className="text-accent">
+                {((stageIdx + 1) % STAGE_ORDER.length) + 1}. {STAGE_LABEL[STAGE_ORDER[(stageIdx + 1) % STAGE_ORDER.length]]}
+              </strong>
+            </div>
             <div className="flex flex-wrap gap-2">
-              <button onClick={stepOnce} className="btn-primary" disabled={auto}>한 step 진행</button>
+              <button onClick={advanceStage} className="btn-primary" disabled={auto}>
+                다음 단계 →
+              </button>
+              <button onClick={stepOnce} className="btn-ghost" disabled={auto}>한 step 통째로</button>
               <button onClick={() => setAuto((v) => !v)} className="btn-ghost">
                 {auto ? '⏸ 자동 멈춤' : '▶ 자동 학습'}
               </button>
               <button onClick={reset} className="btn-ghost">초기화</button>
+            </div>
+            <div className="text-[10px] text-muted leading-snug">
+              ※ <strong>다음 단계 →</strong>를 한 번씩 누르며 *예측 → 오차 → 기울기 → 갱신* 4단계가
+              어떻게 차례로 변하는지 직접 보세요. 갱신 단계로 넘어갈 때만 실제 가중치가 움직여요.
             </div>
           </div>
 
