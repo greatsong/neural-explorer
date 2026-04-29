@@ -277,19 +277,11 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
           </marker>
         </defs>
 
-        {/* ── 뉴런 그룹 라벨 (점선 테두리 + "뉴런 1"/"뉴런 2") ── */}
-        {/* 뉴런 1: Σ₁ + ReLU */}
-        <rect x={sum1Cx - 38} y={cy - 36} width={(reluCx + 36) - (sum1Cx - 38)} height={72} rx={10}
-              fill="none" stroke="rgb(var(--color-muted))" strokeWidth={1} strokeDasharray="3 3"
-              opacity={0.6} />
-        <text x={(sum1Cx + reluCx) / 2 - 4} y={cy - 44} textAnchor="middle"
-              fontSize={10} fill="rgb(var(--color-muted))">뉴런 1</text>
-        {/* 뉴런 2: Σ₂ (활성화 = 선형) */}
-        <rect x={sum2Cx - 38} y={cy - 36} width={(yhCx - 26) - (sum2Cx - 38)} height={72} rx={10}
-              fill="none" stroke="rgb(var(--color-muted))" strokeWidth={1} strokeDasharray="3 3"
-              opacity={0.6} />
-        <text x={(sum2Cx + yhCx) / 2 - 16} y={cy - 44} textAnchor="middle"
-              fontSize={10} fill="rgb(var(--color-muted))">뉴런 2</text>
+        {/* ── 뉴런 그룹 라벨 (텍스트만 — b 라벨의 ↓ 선과 겹치지 않게 점선 박스는 제거) ── */}
+        <text x={(sum1Cx + reluCx) / 2 - 4} y={cy - 78} textAnchor="middle"
+              fontSize={11} fontStyle="italic" fill="rgb(var(--color-muted))">— 뉴런 1 —</text>
+        <text x={(sum2Cx + yhCx) / 2 - 16} y={cy - 78} textAnchor="middle"
+              fontSize={11} fontStyle="italic" fill="rgb(var(--color-muted))">— 뉴런 2 —</text>
 
         {/* ── 순전파 엣지 (구조는 항상) ── */}
         <line x1={xCx + 22} y1={cy} x2={sum1Cx - 26} y2={cy}
