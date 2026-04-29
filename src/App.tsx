@@ -13,6 +13,15 @@ import { PhaseA3 } from './phases/PhaseA3';
 import { PhaseA4 } from './phases/PhaseA4';
 import { PhaseA5 } from './phases/PhaseA5';
 import { PhaseA6 } from './phases/PhaseA6';
+import { PhaseB1 } from './phases/PhaseB1';
+import { PhaseB2 } from './phases/PhaseB2';
+import { PhaseB3 } from './phases/PhaseB3';
+import { PhaseB4 } from './phases/PhaseB4';
+import { PhaseB5 } from './phases/PhaseB5';
+import { PhaseC1 } from './phases/PhaseC1';
+import { PhaseC2 } from './phases/PhaseC2';
+import { PhaseC3 } from './phases/PhaseC3';
+import { PhaseC4 } from './phases/PhaseC4';
 import { Phase13 } from './phases/Phase13';
 import { Phase14 } from './phases/Phase14';
 import { Phase15 } from './phases/Phase15';
@@ -147,10 +156,15 @@ function renderPhase(id: PhaseId) {
     case 'a4': return <PhaseA4 />;
     case 'a5': return <PhaseA5 />;
     case 'a6': return <PhaseA6 />;
-    // B·C 영역은 후속 단계에서 채움 — 현재는 placeholder
-    case 'b1': case 'b2': case 'b3': case 'b4': case 'b5':
-    case 'c1': case 'c2': case 'c3': case 'c4':
-      return <Stub id={id} />;
+    case 'b1': return <PhaseB1 />;
+    case 'b2': return <PhaseB2 />;
+    case 'b3': return <PhaseB3 />;
+    case 'b4': return <PhaseB4 />;
+    case 'b5': return <PhaseB5 />;
+    case 'c1': return <PhaseC1 />;
+    case 'c2': return <PhaseC2 />;
+    case 'c3': return <PhaseC3 />;
+    case 'c4': return <PhaseC4 />;
     case 'p13': return <Phase13 />;
     case 'p14': return <Phase14 />;
     case 'p15': return <Phase15 />;
