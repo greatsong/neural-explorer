@@ -79,18 +79,18 @@ export function PhaseC1() {
   const wRef = useRef(W);
   useEffect(() => { wRef.current = W; }, [W]);
 
-  // 다음 단계 → — 한 칸씩 진행. 5→6 진입에서만 가중치 갱신.
+  // 다음 단계 → — 한 칸씩 진행. 6→1로 빠질 때 실제 W 갱신.
+  // 그래야 6단계(갱신)에서 *지금 W → 새 W* 변환이 보이고, 다음 누름에서 실제 적용된다.
   const advance = () => {
     const cur = stageIdx;
     if (cur === STAGES.length - 1) {
-      setStageIdx(0);
-      return;
-    }
-    if (cur === STAGES.length - 2) {
+      // 6 → 1: 갱신을 실제로 적용하고 다음 사이클의 1단계(예측)로
       const next_W = applyStep(W, t);
       setW(next_W);
       setHistory((h) => [...h, trace(next_W).loss]);
       setStepCount((s) => s + 1);
+      setStageIdx(0);
+      return;
     }
     setStageIdx(cur + 1);
   };
@@ -160,10 +160,10 @@ export function PhaseC1() {
         <span className="text-xs text-muted">η = {LR}</span>
       </div>
 
-      {/* 메인 */}
+      {/* 메인 — 좌: 다이어그램(SVG + 활성 단계 수식) + 손실곡선 / 우: 컨트롤 + 단계 진행표 */}
       <div className="mt-4 grid lg:grid-cols-[1.4fr_1fr] gap-4 items-start">
         <div className="space-y-3">
-          <Diagram W={W} t={t} stage={currentStage.id} />
+          <Diagram W={W} t={t} stage={currentStage.id} showFormula={showFormula} />
           <LossCurve history={history} />
         </div>
 
@@ -188,7 +188,7 @@ export function PhaseC1() {
               <button onClick={reset} className="btn-ghost">초기화</button>
             </div>
             <div className="text-[10px] text-muted leading-snug">
-              ※ <strong>5 → 6단계</strong>(은닉층 기울기 → 갱신)로 넘어갈 때만 실제 가중치가 움직여요. 다른 단계는 *그 시점의 값*만 보여 줍니다.
+              ※ 1~6단계는 *지금 W로 계산된 값*만 보여 줘요. 6단계(갱신)에서 다음 단계 →를 한 번 더 누르면 실제로 가중치가 움직여 다음 사이클의 1단계로 넘어갑니다.
             </div>
           </div>
 
@@ -231,8 +231,9 @@ export function PhaseC1() {
 /* ════════════════════════════════════════════════════════════
    다이어그램 — 입1·은1·출1
    각 단계에서 *새로 등장하는 라벨만* 보여 글자 겹침을 제거.
+   SVG 바로 아래에 *활성 단계의 수식 풀이*를 함께 띄워, 그림과 식이 한 시야에 들어오게 함.
 ══════════════════════════════════════════════════════════════ */
-function Diagram({ W, t, stage }: { W: Weights; t: Trace; stage: StageId }) {
+function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: StageId; showFormula: boolean }) {
   const W_SVG = 720, H_SVG = 260;
   const cy = 110;
   const xCx = 60, z1Cx = 220, hCx = 360, z2Cx = 500, yhCx = 640;
@@ -418,13 +419,95 @@ function Diagram({ W, t, stage }: { W: Weights; t: Trace; stage: StageId }) {
           </text>
         )}
       </svg>
+
+      {showFormula && <ActiveFormulaStrip W={W} t={t} stage={stage} />}
     </div>
   );
 }
 
 /* ════════════════════════════════════════════════════════════
-   식·풀이 카드 — 6단계의 식을 *한 번에* 보여주고, 모든 숫자가
-   현재 가중치로 실시간 업데이트. 활성 단계에는 배경 강조 + 'why' 노트.
+   활성 단계 수식 띠 — 다이어그램 카드 안 SVG 바로 아래에 위치.
+   현재 단계의 식 → 값 대입 → 결과 → 의미를 색 구분과 함께 표시. 모든 숫자 실시간.
+══════════════════════════════════════════════════════════════ */
+function ActiveFormulaStrip({ W, t, stage }: { W: Weights; t: Trace; stage: StageId }) {
+  const meta = STAGES.find((s) => s.id === stage)!;
+  const newW = applyStep(W, t);
+
+  return (
+    <div className="border-t border-border mt-3 pt-3 px-1">
+      <div className="flex items-baseline gap-2 mb-1.5">
+        <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-accent text-white">
+          {meta.num}
+        </span>
+        <span className="text-[12.5px] font-medium">{meta.label}</span>
+      </div>
+      <div className="font-mono text-[12px] leading-relaxed space-y-0.5">
+        {stage === 'predict' && (
+          <>
+            <div>z₁ = w₁·x + b₁ = <Sub>{W.w1.toFixed(2)}·{SAMPLE.x} + {W.b1.toFixed(2)}</Sub> = <Acc>{t.z1.toFixed(2)}</Acc></div>
+            <div>h = ReLU(z₁) = <Sub>max(0, {t.z1.toFixed(2)})</Sub> = <Acc>{t.h.toFixed(2)}</Acc>
+              {' '}<Note>{t.reluP === 1 ? '(z₁ > 0 → 그대로 통과, ReLU′=1)' : '(z₁ ≤ 0 → 0으로 막힘, ReLU′=0)'}</Note>
+            </div>
+            <div>z₂ = w₂·h + b₂ = <Sub>{W.w2.toFixed(2)}·{t.h.toFixed(2)} + {W.b2.toFixed(2)}</Sub> = <Acc>{t.z2.toFixed(2)}</Acc></div>
+            <div>ŷ = z₂ = <Acc>{t.yhat.toFixed(2)}</Acc></div>
+          </>
+        )}
+        {stage === 'error' && (
+          <>
+            <div>e = ŷ − y = <Sub>{t.yhat.toFixed(2)} − {SAMPLE.y}</Sub> = <Err>{t.e.toFixed(2)}</Err></div>
+            <div><Note>참고: 손실 ½·e² = {t.loss.toFixed(2)} (실제 갱신에는 e만 필요)</Note></div>
+          </>
+        )}
+        {stage === 'outputGrad' && (
+          <>
+            <div>dw₂ = e·h = <Sub><Err>{t.e.toFixed(2)}</Err>·{t.h.toFixed(2)}</Sub> = <Acc>{t.dw2.toFixed(2)}</Acc></div>
+            <div>db₂ = e = <Err>{t.db2.toFixed(2)}</Err> <Note>(b는 1이 곱해지는 상수항)</Note></div>
+          </>
+        )}
+        {stage === 'hiddenSignal' && (
+          <div>e_h = e·w₂·ReLU′(z₁) = <Sub><Err>{t.e.toFixed(2)}</Err>·{W.w2.toFixed(2)}·{t.reluP}</Sub> = <Err>{t.eh.toFixed(2)}</Err></div>
+        )}
+        {stage === 'hiddenGrad' && (
+          <>
+            <div>dw₁ = e_h·x = <Sub><Err>{t.eh.toFixed(2)}</Err>·{SAMPLE.x}</Sub> = <Acc>{t.dw1.toFixed(2)}</Acc></div>
+            <div>db₁ = e_h = <Err>{t.db1.toFixed(2)}</Err></div>
+          </>
+        )}
+        {stage === 'update' && (
+          <>
+            <div>w₂ ← <Sub>{W.w2.toFixed(2)} − {LR}·{t.dw2.toFixed(2)}</Sub> = <Acc>{newW.w2.toFixed(3)}</Acc></div>
+            <div>b₂ ← <Sub>{W.b2.toFixed(2)} − {LR}·{t.db2.toFixed(2)}</Sub> = <Acc>{newW.b2.toFixed(3)}</Acc></div>
+            <div>w₁ ← <Sub>{W.w1.toFixed(2)} − {LR}·{t.dw1.toFixed(2)}</Sub> = <Acc>{newW.w1.toFixed(3)}</Acc></div>
+            <div>b₁ ← <Sub>{W.b1.toFixed(2)} − {LR}·{t.db1.toFixed(2)}</Sub> = <Acc>{newW.b1.toFixed(3)}</Acc></div>
+          </>
+        )}
+      </div>
+      <div className="text-[10.5px] text-muted leading-snug pt-1.5 mt-1.5 border-t border-border/50">
+        → {whyFor(stage, t)}
+      </div>
+    </div>
+  );
+}
+
+function whyFor(stage: StageId, t: Trace): string {
+  if (stage === 'predict') return 'A1에서 본 곱·합·활성화 한 묶음을 두 번 적용. 출력층은 회귀라 ReLU 없이 그대로.';
+  if (stage === 'error') return t.e < 0
+    ? 'e의 부호가 모든 기울기의 부호를 결정. 음수라 모든 가중치가 *커지는* 방향으로 움직일 예정.'
+    : t.e > 0
+      ? 'e의 부호가 모든 기울기의 부호를 결정. 양수라 모든 가중치가 *작아지는* 방향으로 움직일 예정.'
+      : 'e가 0이라 갱신 없음 — 이미 정답.';
+  if (stage === 'outputGrad') return 'A4의 dw = e·x 식 그대로. 출력층 입장에서 그 층의 입력은 은닉 출력 h.';
+  if (stage === 'hiddenSignal') return t.reluP === 0
+    ? 'ReLU′(z₁)=0 — 길이 막혀 신호 끊김 (Dying ReLU). 은닉층 가중치는 갱신 안 됨.'
+    : '출력의 e가 w₂를 거꾸로 곱해져 은닉층까지 전달. 이 거꾸로 흐름이 곧 *역전파*.';
+  if (stage === 'hiddenGrad') return 'A4의 dw = e·x 식이 다시. e 자리에 e_h(전달받은 오차), x 자리에 이 층의 입력 x.';
+  return '모든 기울기에 η를 곱해 *반대 방향*으로 4개 가중치를 동시에 움직임. 다음 step에서 ŷ이 정답에 더 가까워져 손실이 줄어요.';
+}
+
+/* ════════════════════════════════════════════════════════════
+   우측 통합 식 카드 — 6단계 전체를 한눈에 보여주는 reference.
+   다이어그램 내부 ActiveFormulaStrip(현재 단계)와 짝이 되어,
+   "지금" 단계는 그림 옆에서, 6단계 흐름은 우측에서 비교 가능.
 ══════════════════════════════════════════════════════════════ */
 function FormulaCard({ W, t, stage }: { W: Weights; t: Trace; stage: StageId }) {
   const newW = applyStep(W, t);
@@ -440,14 +523,14 @@ function FormulaCard({ W, t, stage }: { W: Weights; t: Trace; stage: StageId }) 
       <StageBox id="predict" num={1} label="예측 — x를 두 층 통과" stage={stage}
         why="A1에서 본 곱·합·활성화 한 묶음을 *두 번* 적용. 출력층은 회귀라 ReLU 없이 그대로.">
         <Line>
-          z₁ = w₁·x + b₁ = <Sub>{W.w1}·{SAMPLE.x} + {W.b1}</Sub> = <Acc>{t.z1.toFixed(2)}</Acc>
+          z₁ = w₁·x + b₁ = <Sub>{W.w1.toFixed(2)}·{SAMPLE.x} + {W.b1.toFixed(2)}</Sub> = <Acc>{t.z1.toFixed(2)}</Acc>
         </Line>
         <Line>
           h = ReLU(z₁) = <Sub>max(0, {t.z1.toFixed(2)})</Sub> = <Acc>{t.h.toFixed(2)}</Acc>
           {' '}<Note>{t.reluP === 1 ? '(z₁ > 0 → 그대로 통과, ReLU′=1)' : '(z₁ ≤ 0 → 0으로 막힘, ReLU′=0)'}</Note>
         </Line>
         <Line>
-          z₂ = w₂·h + b₂ = <Sub>{W.w2}·{t.h.toFixed(2)} + {W.b2}</Sub> = <Acc>{t.z2.toFixed(2)}</Acc>
+          z₂ = w₂·h + b₂ = <Sub>{W.w2.toFixed(2)}·{t.h.toFixed(2)} + {W.b2.toFixed(2)}</Sub> = <Acc>{t.z2.toFixed(2)}</Acc>
         </Line>
         <Line>
           ŷ = z₂ = <Acc>{t.yhat.toFixed(2)}</Acc>
@@ -480,7 +563,7 @@ function FormulaCard({ W, t, stage }: { W: Weights; t: Trace; stage: StageId }) 
           ? 'ReLU′(z₁)=0 — z₁이 음수라 길이 막힘. 신호가 끊겨 e_h=0 (Dying ReLU). 은닉층 가중치는 갱신 안 됨.'
           : '출력의 e가 w₂를 *거꾸로 곱해져* 은닉층까지 전달. ReLU′(z₁)=1이라 길이 열림. — 이 거꾸로 흐름이 곧 *역전파*.'}>
         <Line>
-          e_h = e·w₂·ReLU′(z₁) = <Sub><Err>{t.e.toFixed(2)}</Err>·{W.w2}·{t.reluP}</Sub> = <Err>{t.eh.toFixed(2)}</Err>
+          e_h = e·w₂·ReLU′(z₁) = <Sub><Err>{t.e.toFixed(2)}</Err>·{W.w2.toFixed(2)}·{t.reluP}</Sub> = <Err>{t.eh.toFixed(2)}</Err>
         </Line>
       </StageBox>
 
