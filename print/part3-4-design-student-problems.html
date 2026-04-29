@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>Neural Explorer 활동지 3·4부 — 직접 만들기와 깊은 학습</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt;page-break-after:avoid}
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .meta{font-size:9pt;color:#777;margin-top:6pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+  .name{font-size:9.5pt;color:#555;margin-top:8pt}
+  .name span{display:inline-block;border-bottom:1px solid #888;min-width:80pt;margin:0 8pt}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt}
+  .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .tip{border-left-style:dashed}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#000;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb .blank{height:22pt;background:#fff}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0}
+  .bk{display:inline-block;border-bottom:1.5px solid #333;min-width:30pt;text-align:center;padding:0 4pt;margin:0 2pt}
+  .bk.lg{min-width:60pt}
+  .ans-area{border:1px solid #aaa;border-radius:4px;min-height:38pt;padding:6pt;margin:6pt 0;background:#fcfcfc}
+  .ans-area.lg{min-height:60pt}
+
+  .sf{margin:8pt auto;text-align:center}
+  .sf svg{max-width:100%!important;height:auto!important}
+  .cap{font-size:9pt;color:#666;margin-top:3pt;text-align:center}
+
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .ob{border:1.2px dashed #777;border-radius:5px;padding:8pt 10pt;margin:6pt 0}
+  .ob .lab{font-weight:700;font-size:10pt;margin-bottom:4pt}
+
+  /* 8x8 도트 그리드 */
+  .dot{border-collapse:collapse;margin:0 auto}
+  .dot td{width:18pt;height:18pt;border:1px solid #888;padding:0}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt}
+  ul,ol{padding-left:18pt;margin:4pt 0}
+  li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto}
+    .qh,.sf,.fm,.ex,.ib,.tb,.an,.ob,.dot{break-inside:avoid;page-break-inside:avoid}
+    .sh{break-after:avoid;page-break-after:avoid}
+    .sf svg{max-width:100%!important;height:auto!important}
+    .tb th,.qh .num{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<header class="lh">
+<div class="lab">NEURAL EXPLORER · WORKSHEET 3 / 7</div>
+<h1>3·4부 — 직접 만들기와 깊은 학습</h1>
+<div class="sub">도트 그림 학습 · 신경망 설계 · MNIST 도전</div>
+<div class="meta">앱 페이즈 10~12 · 대상: 고등학생 · 활동 시간 약 90분</div>
+
+<div class="name">학번 <span></span> 이름 <span></span></div>
+</header>
+<!-- ============================================================== -->
+<h2>STEP 1. 도트 그림 학습 (Phase 10)</h2>
+
+
+<div class="qc">
+<div class="qh"><span class="num">1-1</span>두 라벨 정하기 + 직접 그려보기</div>
+<div class="qd">선택한 두 라벨: A = <span class="bk lg"></span>    B = <span class="bk lg"></span></div>
+<div class="qd">아래 8×8 격자에 라벨 A를 한 장, B를 한 장 직접 칠해보세요. (검은 칸 = 픽셀 1)</div>
+<table style="margin:0 auto"><tr>
+<td style="padding:0 16pt">
+<div style="text-align:center;font-size:9pt;color:#555;margin-bottom:3pt">라벨 A</div>
+<table class="dot">
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+</td>
+<td style="padding:0 16pt">
+<div style="text-align:center;font-size:9pt;color:#555;margin-bottom:3pt">라벨 B</div>
+<table class="dot">
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+</td>
+</tr></table>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">1-2</span>학습 관찰</div>
+<div class="qd">앱에서 데이터 수를 늘려가며 학습시킨 결과:</div>
+<table class="tb">
+<tr><th>장 수 (라벨당)</th><th>3장</th><th>5장</th><th>10장</th></tr>
+<tr><td class="lbl">학습 정확도</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">테스트 (직접 그린 새 그림)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">1-3</span>가중치를 그림으로 보기</div>
+<div class="qd">앱은 학습 후 64개 가중치를 8×8 그림으로 시각화합니다. 그림이 어떻게 보이는지 표현해보세요.</div>
+<div class="ob">
+<div class="lab">관찰 — 가중치 시각화는 무엇처럼 보이는가? 두 라벨의 차이가 어디에 집중되어 있는가?</div>
+<div class="ans-area lg"></div>
+</div>
+<div class="qd">"단일 뉴런이 두 그림을 구분한다"는 결국 어떤 일을 한다는 뜻인지 한 줄로:</div>
+<div class="ans-area"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>보충 활동 ★. 평균 그림 빼기 — 가중치 색지도 예측하기</h2>
+<div class="ib tip" style="break-inside:avoid;page-break-inside:avoid">
+<div class="t">왜 이 활동을 할까?</div>
+앱이 학습 후 보여 주는 "가중치 색지도"는 사실 <strong>두 라벨의 평균 그림 차이</strong>와 매우 닮아 있습니다. 학습 전에 머리로 먼저 차이를 그려 보고, 앱의 결과와 비교해 보면 모델이 무엇을 본 것인지 한 번에 잡힙니다.
+</div>
+
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★1</span>두 라벨의 평균 그림을 그린다</div>
+<div class="qd">라벨 A(예: ●)와 라벨 B(예: ○)에 각각 5장씩 도트 그림을 그렸다고 가정합니다. 같은 자리의 칸이 5장 중 몇 장이나 칠해졌는지를 평균 격자에 옮겨 보세요. 0~5 사이의 숫자로 채웁니다.</div>
+<table class="tb" style="margin:8pt auto;width:auto">
+<tr><th colspan="9" style="background:#444">평균 ●(라벨 A)</th></tr>
+<tr><td class="blank">　</td><td class="blank">　</td><td class="blank">　</td><td class="blank">　</td><td class="blank">　</td><td class="blank">　</td><td class="blank">　</td><td class="blank">　</td></tr>
+<tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd" style="font-size:9pt;color:#666">※ 8×8 중 위쪽 4행만 예시로 적습니다. 실제 활동에서는 8행 모두 채우세요.</div>
+<table class="tb" style="margin:8pt auto;width:auto">
+<tr><th colspan="9" style="background:#444">평균 ○(라벨 B)</th></tr>
+<tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+</div>
+
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★2</span>차이 격자 — A − B를 칠하기 (예측)</div>
+<div class="qd">두 평균 격자를 같은 자리끼리 빼서 차이 격자를 만듭니다. 차이가 크게 양수인 칸은 진한 파랑, 크게 음수인 칸은 진한 주황으로 색칠하세요. (양수 = 라벨 A의 신호, 음수 = 라벨 B의 신호)</div>
+<table class="tb" style="margin:8pt auto;width:auto">
+<tr><th colspan="9" style="background:#444">차이 격자 (A − B) — 예측</th></tr>
+<tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">예측: "이 모델이 학습하면 → 차이가 큰 칸의 가중치가 (큰 양수 / 큰 음수 / 0 근처) 가 될 것이다."</div>
+<div class="ans-area"></div>
+</div>
+
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★3</span>앱의 색지도와 비교</div>
+<div class="qd">이제 페이즈 10에서 같은 두 라벨로 24장 정도를 그려 학습시키고, 학습 후 화면의 <strong>가중치 색지도</strong>를 화면 캡처 또는 스케치로 옮겨 적습니다. ★2의 예측 격자와 같은 자리끼리 비교해 보세요.</div>
+<div class="qd">일치도: ① 거의 같다 / ② 부분적으로 비슷하다 / ③ 많이 다르다 — 어느 쪽인가요? 다르다면 왜 다를까(데이터 부족? 라벨 불균형? 활성화 함수 영향?)?</div>
+<div class="ans-area"></div>
+<div class="qd">결론(한 줄): "신경망의 가중치 색지도는 결국 ___________ 이라고 말할 수 있다."</div>
+<div class="ans-area"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 2. 신경망 설계 — 단계 A·B·C 비교 실험 (Phase 11)</h2>
+
+
+
+<div class="qc">
+<div class="qh"><span class="num">2-1</span>단계 A·B·C 결과표</div>
+<div class="qd">세 단계 모두 <strong>같은 은닉층 크기(예: 8)</strong>로 학습시켰을 때:</div>
+<table class="tb">
+<tr><th>단계</th><th>분류 클래스</th><th>은닉층 크기</th><th>파라미터 수</th><th>시험 정확도</th></tr>
+<tr><td>A</td><td>0, 1 (2종)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>B</td><td>0, 1, 7 (3종)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>C</td><td>0~9 (10종)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">2-2</span>은닉 크기 늘려보기 (단계 C)</div>
+<table class="tb">
+<tr><th>은닉 크기</th><th>4</th><th>8</th><th>16</th><th>32</th></tr>
+<tr><td class="lbl">파라미터 수</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">시험 정확도</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="ob">
+<div class="lab">관찰 — 은닉을 키우면 정확도가 무한정 오르나? 어디서 멈추거나 떨어지나?</div>
+<div class="ans-area"></div>
+</div>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">2-3</span>왜 1과 7은 헷갈릴까</div>
+<div class="qd">단계 B(0, 1, 7)에서 1과 7을 모델이 자주 혼동하는 이유를, 픽셀 패턴 관점에서 설명해보세요.</div>
+<div class="ans-area"></div>
+</div>
+<!-- ============================================================== -->
+<h2>STEP 3. MNIST 도전 (Phase 12)</h2>
+
+
+<div class="qc">
+<div class="qh"><span class="num">3-1</span>구조와 학습 설정 변화 관찰</div>
+<table class="tb">
+<tr><th>설정</th><th>은닉층</th><th>학습률</th><th>에폭</th><th>학습 정확도</th><th>시험 정확도</th></tr>
+<tr><td>기본</td><td>[4]</td><td>0.05</td><td>3</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>은닉 키움</td><td>[32]</td><td>0.05</td><td>3</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>2층</td><td>[32, 16]</td><td>0.05</td><td>3</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>에폭 늘림</td><td>[32, 16]</td><td>0.05</td><td>10</td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">3-2</span>내가 그린 글씨 → 데이터 증강</div>
+<div class="qd">앱에서 본인이 직접 0~9 중 하나의 숫자를 그리고, 모델이 잘 못 맞히는 경우 → 그 그림을 추가 + 증강 후 재학습.</div>
+<table class="tb">
+<tr><th></th><th>증강 전 모델 예측</th><th>증강 후 모델 예측</th></tr>
+<tr><td class="lbl">내가 그린 숫자: <span class="bk"></span></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">증강 횟수 N</td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="ob">
+<div class="lab">관찰 — 증강이 왜 도움이 되었는가? (무엇을 모델이 새로 "보게" 되었는가)</div>
+<div class="ans-area"></div>
+</div>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">3-3</span>한계 — 무엇이 안 풀렸나</div>
+<div class="qd">아무리 키우고 증강해도 모델이 끝까지 헷갈리는 숫자 페어가 있다면 무엇이고, 사람이 보기에는 어떤 점이 다른가요?</div>
+<div class="ans-area"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>보충 활동 ★. 파라미터 예산 챌린지 — 1만 개 이하로 정확도 최대화</h2>
+<div class="ib tip" style="break-inside:avoid;page-break-inside:avoid">
+<div class="t">왜 이 활동을 할까?</div>
+모델을 무작정 키우면 정확도는 오를 수 있지만, 학습 시간·메모리·전력이 모두 비싸집니다. 실제 엔지니어는 "주어진 예산 안에서 최대한 좋은 모델"을 찾는 일을 합니다. 파라미터 1만 개라는 한도를 두고 구조를 직접 설계해 보세요.
+</div>
+
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★1</span>파라미터 수 계산하는 법</div>
+<div class="qd">은닉층이 한 개인 신경망의 파라미터 수는 다음 식으로 계산합니다.</div>
+<div class="fm">파라미터 수 ≈ (입력 수 × 은닉 크기) + (은닉 크기 × 출력 수) + 은닉 크기 + 출력 수</div>
+<div class="qd">MNIST(입력 784, 출력 10)일 때 은닉 크기에 따라 파라미터 수를 채워 보세요.</div>
+<table class="tb">
+<tr><th>은닉 크기 H</th><th>입력측 (784·H)</th><th>출력측 (H·10)</th><th>편향 (H + 10)</th><th>합계</th><th>1만 개 이하?</th></tr>
+<tr><td>8</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank">✓ / ✗</td></tr>
+<tr><td>12</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank">✓ / ✗</td></tr>
+<tr><td>16</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank">✓ / ✗</td></tr>
+<tr><td>32</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank">✓ / ✗</td></tr>
+</table>
+<div class="qd">★ 위 표에서 1만 개 한도를 넘지 않는 가장 큰 은닉 크기는 H = <span class="bk"></span> 정도입니다.</div>
+</div>
+
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★2</span>예산 안에서 정확도 최대화</div>
+<div class="qd">페이즈 12에서 위에서 고른 은닉 크기로 모델을 학습시키고, 시험 정확도를 기록합니다. 학습률·에폭만 바꿔 가며 같은 모델로 정확도를 더 높여 보세요. (구조는 그대로, 학습 조건만 변경)</div>
+<table class="tb">
+<tr><th>시도</th><th>학습률 η</th><th>에폭 수</th><th>훈련 정확도</th><th>시험 정확도</th><th>관찰</th></tr>
+<tr><td>1</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank" style="text-align:left"></td></tr>
+<tr><td>2</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank" style="text-align:left"></td></tr>
+<tr><td>3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank" style="text-align:left"></td></tr>
+</table>
+</div>
+
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★3</span>"키우기" vs "잘 쓰기" 비교</div>
+<div class="qd">예산을 풀어 H = 64 또는 128로도 같은 시도를 해 봅니다. 정확도는 얼마나 올랐나요? 그 추가 정확도를 위해 파라미터 수는 몇 배가 됐나요?</div>
+<table class="tb">
+<tr><th>모델</th><th>은닉 크기</th><th>파라미터 수</th><th>시험 정확도</th><th>1% 정확도당 파라미터 수</th></tr>
+<tr><td>예산형 (≤ 1만)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>풀 사이즈</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">결론(한 줄): "더 큰 모델은 ___________ 한 만큼 ___________ 한다."</div>
+<div class="ans-area"></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 4. 3·4부 마무리</h2>
+<div class="qc">
+<div class="qh"><span class="num">정리</span>핵심 정리 빈칸</div>
+<div class="fm">
+    문제가 어려워질수록(클래스 수↑, 모양 다양↑) 신경망은 더 ( <span class="bk lg"></span> )져야 한다.<br/>
+    그러나 무한정 키우면 ( <span class="bk lg"></span> ) 위험이 생기고, 이를 줄이는 한 가지 방법이 ( <span class="bk lg"></span> )이다.<br/>
+    은닉층은 입력의 ( <span class="bk lg"></span> )을 잡아내고, 출력층은 그것을 ( <span class="bk lg"></span> )해 분류한다.
+  </div>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">서술</span>친구에게 설명하기</div>
+<div class="qd">"왜 깊은 신경망이 필요한가"를 클래스 수·은닉층·파라미터·일반화 네 단어를 사용해 5~7문장으로 설명하세요.</div>
+<div class="ans-area lg" style="min-height:90pt"></div>
+</div>
+</body>
+</html>

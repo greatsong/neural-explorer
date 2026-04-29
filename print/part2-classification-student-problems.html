@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>Neural Explorer 활동지 2부 — 분류와 평가</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt;page-break-after:avoid}
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .meta{font-size:9pt;color:#777;margin-top:6pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+  .name{font-size:9.5pt;color:#555;margin-top:8pt}
+  .name span{display:inline-block;border-bottom:1px solid #888;min-width:80pt;margin:0 8pt}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt}
+  .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+  .sh{font-size:11pt;font-weight:700;margin:14pt 0 6pt;color:#222}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .tip{border-left-style:dashed}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#000;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb .blank{height:22pt;background:#fff}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0}
+  .bk{display:inline-block;border-bottom:1.5px solid #333;min-width:30pt;text-align:center;padding:0 4pt;margin:0 2pt}
+  .bk.lg{min-width:60pt}
+  .bk.xl{min-width:120pt}
+  .ans-area{border:1px solid #aaa;border-radius:4px;min-height:38pt;padding:6pt;margin:6pt 0;background:#fcfcfc}
+  .ans-area.lg{min-height:60pt}
+
+  .sf{margin:8pt auto;text-align:center}
+  .sf svg{max-width:100%!important;height:auto!important}
+  .cap{font-size:9pt;color:#666;margin-top:3pt;text-align:center}
+
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .ob{border:1.2px dashed #777;border-radius:5px;padding:8pt 10pt;margin:6pt 0}
+  .ob .lab{font-weight:700;font-size:10pt;margin-bottom:4pt}
+
+  /* 혼동행렬 2x2 그리드 */
+  .cm{display:grid;grid-template-columns:60pt 1fr 1fr;gap:0;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .cm .h{padding:6pt;font-size:9pt;color:#555;text-align:center;font-weight:600}
+  .cm .rh{padding:6pt;font-size:9pt;color:#555;text-align:right;font-weight:600;display:flex;align-items:center;justify-content:flex-end}
+  .cm .cell{border:1.5px solid #333;padding:10pt;text-align:center;min-height:54pt}
+  .cm .cell .lab{font-family:'JetBrains Mono',monospace;font-size:9pt;color:#555}
+  .cm .cell .v{font-family:'JetBrains Mono',monospace;font-size:18pt;font-weight:700;margin:3pt 0}
+  .cm .cell .d{font-size:8.5pt;color:#666}
+  .cm .good{background:#fff}
+  .cm .bad{background:#f5f5f5;border-style:dashed}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt}
+  ul,ol{padding-left:18pt;margin:4pt 0}
+  li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto;overflow:visible}
+    .qh,.sf,.fm,.ex,.ib,.tb,.an,.ob,.cm{break-inside:avoid;page-break-inside:avoid}
+    .sh{break-after:avoid;page-break-after:avoid}
+    .sf svg{max-width:100%!important;height:auto!important}
+    p,li{orphans:3;widows:3}
+    .tb th,.qh .num{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<header class="lh">
+<div class="lab">NEURAL EXPLORER · WORKSHEET 2 / 7</div>
+<h1>2부 — 분류와 평가</h1>
+<div class="sub">입시 합격 예측 · 데이터 추가 후 재학습 · 정확도 · 평가의 함정</div>
+<div class="meta">앱 페이즈 6~9 · 대상: 고등학생 · 활동 시간 약 75분</div>
+
+<div class="name">학번 <span></span> 이름 <span></span></div>
+</header>
+<!-- ============================================================== -->
+<h2>STEP 1. 입시 합격 예측 (Phase 6)</h2>
+
+
+<div class="qc">
+<div class="qh"><span class="num">1-1</span>시나리오 선택과 변수</div>
+<div class="qd">선택한 시나리오: <strong>A 정시 / B 학종</strong> (하나에 동그라미)</div>
+<div class="qd">이 시나리오의 4개 입력 변수와 의미:</div>
+<table class="tb">
+<tr><th>변수</th><th>x₁</th><th>x₂</th><th>x₃</th><th>x₄</th></tr>
+<tr><td class="lbl">이름</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">1-2</span>가중치 조정 — 5번 시도 기록</div>
+<div class="qd">앱 ② 탭에서 슬라이더로 <strong>w₁~w₄와 컷오프</strong>를 조절하며 학습 정확도를 최대한 올려보세요. 시도할 때마다 표에 기록.</div>
+<table class="tb">
+<tr><th>시도</th><th>w₁</th><th>w₂</th><th>w₃</th><th>w₄</th><th>컷오프</th><th>학습 정확도(10명)</th></tr>
+<tr><td>1</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>2</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>4</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">최종으로 정한 값: w₁=<span class="bk"></span> w₂=<span class="bk"></span> w₃=<span class="bk"></span> w₄=<span class="bk"></span> 컷오프=<span class="bk"></span></div>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">1-3</span>학습 정확도 vs 시험 정확도</div>
+<div class="qd">앱 ③ 탭에서 학습에 쓰지 않은 새 학생 20명에 적용한 결과:</div>
+<div class="fm">학습 정확도 = <span class="bk"></span>%    시험 정확도 = <span class="bk"></span>%</div>
+<div class="ob">
+<div class="lab">두 정확도가 차이 나는 이유는 무엇일까요?</div>
+<div class="ans-area"></div>
+</div>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">1-4</span>"비밀 공식"을 추적한다는 것</div>
+<div class="qd">대학은 가중치를 공개하지 않지만, 합격자/불합격자 명단의 점수만으로 그 비율을 거꾸로 찾을 수 있었습니다. 이것이 가능한 이유를 30자 이내로 적어보세요.</div>
+<div class="ans-area"></div>
+</div>
+<!-- ============================================================== -->
+<h2>STEP 2. 데이터 추가 후 재학습 (Phase 7)</h2>
+
+<div class="qc">
+<div class="qh"><span class="num">2-1</span>10명 → 40명, 무엇이 달라졌나</div>
+<table class="tb">
+<tr><th></th><th>10명일 때 (Phase 6 결과)</th><th>40명일 때 (Phase 7 결과)</th></tr>
+<tr><td class="lbl">최종 가중치 (w₁~w₄)</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">학습 정확도</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">시험 정확도</td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">2-2</span>가상 인물 합·불 통지</div>
+<div class="qd">앱 ③ 탭에서 가상 학생을 만들고 모델이 합·불을 어떻게 판단하는지 관찰.</div>
+<table class="tb">
+<tr><th>가상 학생</th><th>x₁</th><th>x₂</th><th>x₃</th><th>x₄</th><th>모델 판정</th><th>그 이유 (어떤 변수의 영향이 컸나)</th></tr>
+<tr><td>P1 (전체 우수)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P2 (한 영역 약점)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>P3 (경계선)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">2-3</span>일반화 (generalization)</div>
+<div class="ib tip">학습한 데이터에서 잘 맞히는 것보다, <strong>처음 보는 데이터에서 잘 맞히는 능력</strong>이 진짜 실력이에요. 이걸 일반화라고 합니다.</div>
+<div class="qd">데이터를 10명에서 40명으로 늘렸을 때 시험 정확도가 어떻게 달라졌고, 그 이유는 무엇인가요?</div>
+<div class="ans-area"></div>
+</div>
+<!-- ============================================================== -->
+<h2>STEP 3. 정확도와 혼동행렬 (Phase 8)</h2>
+
+
+<div class="qc">
+<div class="qh"><span class="num">3-1</span>혼동행렬 채우기</div>
+<div class="cm">
+<div class="h"></div><div class="h">실제 합격</div><div class="h">실제 불합격</div>
+<div class="rh">예측<br/>합격</div>
+<div class="cell good"><div class="lab">TP</div><div class="v">__</div><div class="d">합격을 합격으로</div></div>
+<div class="cell bad"><div class="lab">FP</div><div class="v">__</div><div class="d">불합격을 합격으로 (오인)</div></div>
+<div class="rh">예측<br/>불합격</div>
+<div class="cell bad"><div class="lab">FN</div><div class="v">__</div><div class="d">합격을 불합격으로 (놓침)</div></div>
+<div class="cell good"><div class="lab">TN</div><div class="v">__</div><div class="d">불합격을 불합격으로</div></div>
+</div>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">3-2</span>정확도 계산</div>
+<div class="fm">
+    정확도 = (TP + TN) / 전체 = ( <span class="bk"></span> + <span class="bk"></span> ) / 20 = <span class="bk lg"></span>%
+  </div>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">3-3</span>정확도의 함정 — 사고 실험</div>
+<div class="qd">합격자 1명 · 불합격자 99명인 시험에서 모델이 "<strong>전원 불합격</strong>"이라고만 외친다면?</div>
+<div class="fm">정확도 = <span class="bk lg"></span>%</div>
+<div class="qd">이 모델은 쓸모가 있나요? 한 줄로 비판하세요.</div>
+<div class="ans-area"></div>
+</div>
+<!-- ============================================================== -->
+<h2>STEP 4. 평가의 함정 — 정밀도와 재현율 (Phase 9)</h2>
+
+
+
+<div class="qc">
+<div class="qh"><span class="num">4-1</span>코로나 진단 — 임계값 변화 관찰</div>
+<div class="qd">앱에서 임계값을 0.3 / 0.5 / 0.7로 바꾸며 기록.</div>
+<table class="tb">
+<tr><th>임계값</th><th>TP</th><th>FP</th><th>FN</th><th>TN</th><th>정확도</th><th>정밀도</th><th>재현율</th></tr>
+<tr><td>0.3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>0.5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>0.7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">4-2</span>임계값을 어떻게 정해야 할까</div>
+<div class="ex">
+<strong>FN의 비용</strong> (놓치면) — 진짜 환자를 놓치면 본인 악화 + 주변 전염.<br/>
+<strong>FP의 비용</strong> (오인하면) — 음성인데 양성 판정받아 격리·재검사 부담.
+  </div>
+<div class="qd">코로나는 어느 쪽이 더 큰 문제일까요? 그 이유로 임계값을 <strong>높이면 / 낮추면</strong> 좋은가요? (동그라미)</div>
+<div class="ans-area"></div>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">4-3</span>암 조기검진 — 같은 비교</div>
+<table class="tb">
+<tr><th>임계값</th><th>정밀도</th><th>재현율</th></tr>
+<tr><td>0.3</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>0.5</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>0.7</td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">암 검진은 어느 쪽을 더 중요하게 봐야 할까요? 코로나와 비교해 같은가, 다른가?</div>
+<div class="ans-area"></div>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">4-4</span>1000명 중 5명 양성, 정확도 99.5%? — 함정 풀기</div>
+<div class="qd">암 검진(실제 양성 5명, 음성 995명)에서 모델이 모두 "음성"이라고만 답해도 정확도 99.5%가 나옵니다.</div>
+<div class="fm">
+    이 모델의 재현율 = TP / (TP + FN) = <span class="bk"></span> / ( <span class="bk"></span> + <span class="bk"></span> ) = <span class="bk lg"></span>%<br/>
+    이 모델의 정밀도 = TP / (TP + FP) = <span class="bk lg"></span>   (계산 불가? 그 이유는?)
+  </div>
+<div class="ans-area"></div>
+</div>
+<!-- ============================================================== -->
+<h2>보충 활동 ★. 인간 혼동행렬 — 카드로 직접 나누기</h2>
+<div class="ib tip" style="break-inside:avoid;page-break-inside:avoid">
+<div class="t">왜 이 활동을 할까?</div>
+공식 TP/(TP+FP)를 외우는 대신, "양성이라 부른 묶음"과 "실제 양성인 묶음"을 손으로 나눠 보면 분자·분모가 어디서 왔는지가 한 번에 잡힙니다. 모둠당 카드 20장이면 5분 안에 끝납니다.
+</div>
+
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★1</span>카드 만들기 (모둠 활동)</div>
+<div class="qd">아래 표대로 카드 20장을 준비합니다. 한 면은 <strong>실제 정답</strong>(합/불), 뒷면은 <strong>모델 예측</strong>(합/불)을 적어 둡니다.</div>
+<table class="tb">
+<tr><th>카드 #</th><th>실제 (앞면)</th><th>예측 (뒷면)</th><th>분류 결과</th></tr>
+<tr><td>1~6</td><td>합격</td><td>합격</td><td>TP — 제대로 잡음</td></tr>
+<tr><td>7~9</td><td>합격</td><td>불합격</td><td>FN — 놓침</td></tr>
+<tr><td>10~13</td><td>불합격</td><td>합격</td><td>FP — 잘못 부름</td></tr>
+<tr><td>14~20</td><td>불합격</td><td>불합격</td><td>TN — 제대로 거름</td></tr>
+</table>
+<div class="qd">한 장당 가로 5cm × 세로 8cm 종이로 만들면 적당합니다. 색지 두 장(예: 흰색·노란색)을 사용해 합격/불합격을 구분되게 해도 좋습니다.</div>
+</div>
+
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★2</span>두 가지 묶음으로 나누기</div>
+<div class="qd">아래 두 매트(빈 박스)에 카드를 직접 올려 보세요. 묶음 ⓐ를 만들어 그 안에서 정답 합격을 골라내 분자를 셉니다.</div>
+<table class="tb" style="margin-top:8pt">
+<tr>
+<td style="width:50%;vertical-align:top;text-align:left;padding:10pt;border:1.5px solid #888">
+<strong>묶음 ⓐ — "예측 = 합격"인 카드</strong><br/>
+<small style="color:#666">즉, 뒷면이 "합격"인 카드들만 모은 묶음</small>
+<div style="height:60pt;border:1px dashed #aaa;margin-top:6pt;background:#fafafa;border-radius:3px"></div>
+<div style="margin-top:6pt;font-size:9.5pt">
+  이 묶음의 카드 수 = <span class="bk"></span>장 (= TP + FP)<br/>
+  그중 실제도 합격인 카드 = <span class="bk"></span>장 (= TP)<br/>
+  <strong>정밀도 = </strong> <span class="bk"></span> / <span class="bk"></span> = <span class="bk lg"></span> %
+</div>
+</td>
+<td style="width:50%;vertical-align:top;text-align:left;padding:10pt;border:1.5px solid #888">
+<strong>묶음 ⓑ — "실제 = 합격"인 카드</strong><br/>
+<small style="color:#666">즉, 앞면이 "합격"인 카드들만 모은 묶음</small>
+<div style="height:60pt;border:1px dashed #aaa;margin-top:6pt;background:#fafafa;border-radius:3px"></div>
+<div style="margin-top:6pt;font-size:9.5pt">
+  이 묶음의 카드 수 = <span class="bk"></span>장 (= TP + FN)<br/>
+  그중 모델도 합격이라 부른 카드 = <span class="bk"></span>장 (= TP)<br/>
+  <strong>재현율 = </strong> <span class="bk"></span> / <span class="bk"></span> = <span class="bk lg"></span> %
+</div>
+</td>
+</tr>
+</table>
+</div>
+
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★3</span>혼동행렬 4칸을 채우고 다섯 지표 계산</div>
+<table class="tb">
+<tr><th></th><th>실제 합격</th><th>실제 불합격</th></tr>
+<tr><td class="lbl">예측 합격</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">예측 불합격</td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="fm">
+  정확도 = (TP + TN) / 전체 = ( <span class="bk"></span> + <span class="bk"></span> ) / 20 = <span class="bk lg"></span> %<br/>
+  정밀도 = TP / (TP + FP) = <span class="bk"></span> / ( <span class="bk"></span> + <span class="bk"></span> ) = <span class="bk lg"></span> %<br/>
+  재현율 = TP / (TP + FN) = <span class="bk"></span> / ( <span class="bk"></span> + <span class="bk"></span> ) = <span class="bk lg"></span> %<br/>
+  F1 점수 = 2 · P · R / (P + R) = <span class="bk lg"></span> %
+</div>
+<div class="qd">관찰: 묶음 ⓐ와 묶음 ⓑ는 <strong>겹치는 카드</strong>가 있나요? 그 겹치는 부분이 어떤 카드(TP/FP/FN/TN 중)인지 적어 보세요.</div>
+<div class="ans-area"></div>
+</div>
+
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★4</span>임계값을 옮기면 어느 묶음이 줄어들까</div>
+<div class="qd">모델이 "합격"이라 부르는 기준을 까다롭게 바꾸면(임계값↑), 묶음 ⓐ에서 빠지는 카드가 생깁니다. 그러면…</div>
+<table class="tb">
+<tr><th>변화</th><th>묶음 ⓐ 크기</th><th>TP</th><th>FP</th><th>정밀도</th><th>재현율</th></tr>
+<tr><td>임계값을 올린다</td><td class="blank">늘 / 줄</td><td class="blank">늘 / 줄</td><td class="blank">늘 / 줄</td><td class="blank">↑ / ↓</td><td class="blank">↑ / ↓</td></tr>
+<tr><td>임계값을 내린다</td><td class="blank">늘 / 줄</td><td class="blank">늘 / 줄</td><td class="blank">늘 / 줄</td><td class="blank">↑ / ↓</td><td class="blank">↑ / ↓</td></tr>
+</table>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP 5. 2부 마무리</h2>
+<div class="qc">
+<div class="qh"><span class="num">정리</span>지표 선택 가이드</div>
+<table class="tb">
+<tr><th>상황</th><th>가장 중요한 지표</th><th>그 이유</th></tr>
+<tr><td>스팸 메일 분류 (정상 메일을 스팸함에 넣으면 큰 손해)</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>암 조기검진 (놓치면 생존율 급락)</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>입시 합격 예측 (반반 비슷한 비율)</td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">서술</span>친구에게 설명하기</div>
+<div class="qd">"왜 정확도 하나만 보면 안 되는가?"를 정밀도·재현율 개념을 사용해 5~7문장으로 설명하세요.</div>
+<div class="ans-area lg" style="min-height:90pt"></div>
+</div>
+</body>
+</html>

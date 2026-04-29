@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>Neural Explorer 활동지 5부 — 분류를 넘어 생성으로</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt;page-break-after:avoid}
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .meta{font-size:9pt;color:#777;margin-top:6pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+  .name{font-size:9.5pt;color:#555;margin-top:8pt}
+  .name span{display:inline-block;border-bottom:1px solid #888;min-width:80pt;margin:0 8pt}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt}
+  .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .tip{border-left-style:dashed}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#000;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb .blank{height:22pt;background:#fff}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0}
+  .bk{display:inline-block;border-bottom:1.5px solid #333;min-width:30pt;text-align:center;padding:0 4pt;margin:0 2pt}
+  .bk.lg{min-width:60pt}
+  .ans-area{border:1px solid #aaa;border-radius:4px;min-height:38pt;padding:6pt;margin:6pt 0;background:#fcfcfc}
+  .ans-area.lg{min-height:60pt}
+
+  .sf{margin:8pt auto;text-align:center}
+  .sf svg{max-width:100%!important;height:auto!important}
+  .cap{font-size:9pt;color:#666;margin-top:3pt;text-align:center}
+
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .ob{border:1.2px dashed #777;border-radius:5px;padding:8pt 10pt;margin:6pt 0}
+  .ob .lab{font-weight:700;font-size:10pt;margin-bottom:4pt}
+
+  /* 8x8 도트 그리드 */
+  .dot{border-collapse:collapse;margin:0 auto}
+  .dot td{width:14pt;height:14pt;border:1px solid #aaa;padding:0}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt}
+  ul,ol{padding-left:18pt;margin:4pt 0}
+  li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto}
+    .qh,.sf,.fm,.ex,.ib,.tb,.an,.ob,.dot{break-inside:avoid;page-break-inside:avoid}
+    .sh{break-after:avoid;page-break-after:avoid}
+    .sf svg{max-width:100%!important;height:auto!important}
+    .tb th,.qh .num{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<header class="lh">
+<div class="lab">NEURAL EXPLORER · WORKSHEET 4 / 7 · BONUS</div>
+<h1>5부 — 분류를 넘어 생성으로</h1>
+<div class="sub">평균과 분포 · 오토인코더와 잠재 공간</div>
+<div class="meta">앱 페이즈 13~14 (히든 스테이지) · 대상: 고등학생 · 활동 시간 약 60분</div>
+
+<div class="name">학번 <span></span> 이름 <span></span></div>
+</header>
+<!-- ============================================================== -->
+<h2>STEP 1. 평균과 분포 — 가장 단순한 생성 모델 (Phase 13)</h2>
+
+
+<div class="qc">
+<div class="qh"><span class="num">1-1</span>평균 이미지 관찰</div>
+<div class="qd">선택한 라벨 페어: A = <span class="bk lg"></span>    B = <span class="bk lg"></span></div>
+<div class="qd">앱이 보여준 두 평균 이미지를 그대로 따라 그려보세요. 밝은 픽셀 = 자주 칠해진 자리.</div>
+<table style="margin:0 auto"><tr>
+<td style="padding:0 16pt">
+<div style="text-align:center;font-size:9pt;color:#555;margin-bottom:3pt">A 평균</div>
+<table class="dot">
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+</td>
+<td style="padding:0 16pt">
+<div style="text-align:center;font-size:9pt;color:#555;margin-bottom:3pt">B 평균</div>
+<table class="dot">
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+</td>
+</tr></table>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">1-2</span>분산이 의미하는 것</div>
+<div class="qd">앱은 분산 이미지도 보여줍니다. 분산이 큰(밝은) 픽셀은 어떤 자리이고, 그게 의미하는 바는 무엇인가요?</div>
+<div class="ans-area"></div>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">1-3</span>보간 슬라이더 — A에서 B로 가는 길</div>
+<div class="qd">앱에서 보간(blend) 슬라이더를 0 → 0.25 → 0.5 → 0.75 → 1로 옮기며 어떤 그림이 나오는지 관찰.</div>
+<table class="tb">
+<tr><th>blend</th><th>0</th><th>0.25</th><th>0.5</th><th>0.75</th><th>1</th></tr>
+<tr><td class="lbl">한 줄 묘사</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">중간 그림(0.5)이 두 라벨 어느 쪽으로도 분류되지 않는 "어중간한 그림"인 이유는?</div>
+<div class="ans-area"></div>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">1-4</span>노이즈 = 다양성</div>
+<div class="qd">노이즈 슬라이더를 0 → 0.2로 올리고 "다시 뽑기"를 5번 누른 결과:</div>
+<div class="ob">
+<div class="lab">관찰 — 같은 blend·다른 노이즈로 뽑힌 5장은 어떻게 비슷하고 어떻게 다른가? "생성 모델이 만드는 다양성"이란 무엇인가?</div>
+<div class="ans-area lg"></div>
+</div>
+</div>
+<!-- ============================================================== -->
+<h2>STEP 2. 오토인코더 — 잠재 공간으로 (Phase 14)</h2>
+
+
+
+<div class="qc">
+<div class="qh"><span class="num">2-1</span>구조 빈칸 채우기</div>
+<div class="fm">
+    입력(64픽셀) → 인코더 → 잠재(<span class="bk"></span>차원) → 디코더 → 출력(<span class="bk"></span>픽셀)<br/>
+    학습 목표: <span class="bk lg"></span>과 <span class="bk lg"></span>이(가) 같아지도록 W·b를 찾기
+  </div>
+<div class="qd">분류 신경망의 학습 목표(라벨 맞추기)와 무엇이 다른가요?</div>
+<div class="ans-area"></div>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">2-2</span>잠재 공간 탐험 — 좌표를 옮기며 관찰</div>
+<div class="qd">앱 ③ 탭에서 z₁·z₂ 슬라이더(또는 평면 위 점)를 옮기며 9개 좌표에서 어떤 그림이 나오는지 묘사.</div>
+<table class="tb">
+<tr><th>z₁ \ z₂</th><th>z₂ = −1.5</th><th>z₂ = 0</th><th>z₂ = +1.5</th></tr>
+<tr><td>z₁ = −1.5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>z₁ = 0</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>z₁ = +1.5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">평면 위 한 방향(예: z₁이 커질수록)에 그림이 어떻게 변하는지 한 줄로:</div>
+<div class="ans-area"></div>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">2-3</span>학습 데이터에 없던 좌표</div>
+<div class="qd">학습 데이터의 z 위치에서 멀리 떨어진 좌표(예: z₁ = z₂ = 3)에 점을 두면 어떤 그림이 나오나요? 그 이유는?</div>
+<div class="ans-area"></div>
+<div class="ib tip">현대 생성 AI(VAE, Stable Diffusion 등)는 훨씬 큰 잠재 공간(수백~수천 차원)에서 같은 일을 합니다 — 좌표를 잘 고르면 사진·그림·영상·음악도 만들 수 있어요.</div>
+</div>
+<!-- ============================================================== -->
+<h2>STEP 3. 5부 마무리</h2>
+<div class="qc">
+<div class="qh"><span class="num">정리</span>분류 vs 생성</div>
+<table class="tb">
+<tr><th></th><th>분류 (1~4부)</th><th>생성 (5부)</th></tr>
+<tr><td class="lbl">입력</td><td>그림</td><td class="blank"></td></tr>
+<tr><td class="lbl">출력</td><td>라벨(0/1, 0~9)</td><td class="blank"></td></tr>
+<tr><td class="lbl">학습 목표</td><td>라벨 맞히기</td><td class="blank"></td></tr>
+<tr><td class="lbl">대표 도구</td><td>단일 뉴런·MLP</td><td class="blank"></td></tr>
+</table>
+</div>
+<div class="qc">
+<div class="qh"><span class="num">서술</span>친구에게 설명하기</div>
+<div class="qd">"분류기를 뒤집으면 생성기가 된다"는 말의 뜻을 평균/잠재 공간 개념을 사용해 5~7문장으로 설명하세요.</div>
+<div class="ans-area lg" style="min-height:90pt"></div>
+</div>
+</body>
+</html>
