@@ -421,6 +421,22 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
       </svg>
 
       {showFormula && <ActiveFormulaStrip W={W} t={t} stage={stage} />}
+
+      <UpdatePreview W={W} t={t} />
+    </div>
+  );
+}
+
+/* 다이어그램 카드 하단 — 4개 가중치 갱신식 항상 표시 (단계 무관) */
+function UpdatePreview({ W, t }: { W: Weights; t: Trace }) {
+  const newW = applyStep(W, t);
+  return (
+    <div className="border-t border-border mt-3 pt-2.5 px-1 font-mono text-[11.5px] leading-relaxed space-y-0.5">
+      <div className="text-[10px] text-muted font-sans mb-1">갱신 식 — 한 step 후 새 값 (4개 동시 적용)</div>
+      <div>w₂ ← <Sub>{W.w2.toFixed(2)} − {LR}·{t.dw2.toFixed(2)}</Sub> = <Acc>{newW.w2.toFixed(3)}</Acc></div>
+      <div>b₂ ← <Sub>{W.b2.toFixed(2)} − {LR}·{t.db2.toFixed(2)}</Sub> = <Acc>{newW.b2.toFixed(3)}</Acc></div>
+      <div>w₁ ← <Sub>{W.w1.toFixed(2)} − {LR}·{t.dw1.toFixed(2)}</Sub> = <Acc>{newW.w1.toFixed(3)}</Acc></div>
+      <div>b₁ ← <Sub>{W.b1.toFixed(2)} − {LR}·{t.db1.toFixed(2)}</Sub> = <Acc>{newW.b1.toFixed(3)}</Acc></div>
     </div>
   );
 }

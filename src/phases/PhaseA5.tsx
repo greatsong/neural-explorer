@@ -211,20 +211,8 @@ export function PhaseA5() {
           <LossCurve history={history} />
         </div>
 
-        {/* 우측 컬럼 — Stage 1 / Stage 2 */}
+        {/* 우측 컬럼 — 컨트롤(위) → 단계 라벨/식 카드(아래). C1과 동일한 우선순위. */}
         <div className="space-y-3">
-          {!showFormula ? (
-            <StageLabels current={currentStage} stepCount={stepCount} />
-          ) : (
-            <FormulaCard
-              w={w} b={b}
-              grad={grad}
-              x={sampleX} y={sampleY} z={sampleZ} yhat={sampleYhat} e={sampleE}
-              current={currentStage}
-              stepCount={stepCount}
-            />
-          )}
-
           {/* 학습 컨트롤 — 직관/식 모드 공통 */}
           <div className="card p-3 space-y-2">
             <div className="grid grid-cols-3 gap-2 text-center font-mono text-xs">
@@ -252,6 +240,18 @@ export function PhaseA5() {
               어떻게 차례로 변하는지 직접 보세요. 갱신 단계로 넘어갈 때만 실제 가중치가 움직여요.
             </div>
           </div>
+
+          {!showFormula ? (
+            <StageLabels current={currentStage} stepCount={stepCount} />
+          ) : (
+            <FormulaCard
+              w={w} b={b}
+              grad={grad}
+              x={sampleX} y={sampleY} z={sampleZ} yhat={sampleYhat} e={sampleE}
+              current={currentStage}
+              stepCount={stepCount}
+            />
+          )}
 
           {converged && (
             <div className="aside-tip text-sm">
@@ -534,9 +534,17 @@ function NeuronView({
           />
         </g>
       </svg>
-      <div className="text-[11px] text-muted px-1 leading-snug">
+      <div className="border-t border-border mt-2 pt-2.5 px-1 font-mono text-[12px] leading-relaxed space-y-0.5">
+        <div className="text-[10px] text-muted font-sans mb-1">갱신 식 — 한 step 후 새 값</div>
+        <div>
+          w ← <span className="text-muted">{w.toFixed(3)} − {LR}·{grad.dw.toFixed(3)}</span> = <span style={{ color: 'rgb(var(--color-accent))', fontWeight: 600 }}>{(w - LR * grad.dw).toFixed(3)}</span>
+        </div>
+        <div>
+          b ← <span className="text-muted">{b.toFixed(3)} − {LR}·{grad.db.toFixed(3)}</span> = <span style={{ color: 'rgb(var(--color-accent))', fontWeight: 600 }}>{(b - LR * grad.db).toFixed(3)}</span>
+        </div>
+      </div>
+      <div className="text-[10.5px] text-muted px-1 leading-snug mt-1.5">
         대표 점 x = 3 (정답 y = 7)으로 그렸어요. 가중치 선 굵기는 |w|, 파란 화살표 굵기는 다섯 점 평균 |dw|·|db|에 비례.
-        오른쪽 라벨이 가리키는 단계와 그림이 함께 강조돼요.
       </div>
     </div>
   );
