@@ -8,18 +8,6 @@ import { PageToc } from './PageToc';
 import { TextbookPageNav } from './PageNav';
 import { OpenInApp } from './components';
 import { TextbookHome } from './pages/Home';
-import { TextbookP1 } from './pages/P1';
-import { TextbookP2 } from './pages/P2';
-import { TextbookP3 } from './pages/P3';
-import { TextbookP4 } from './pages/P4';
-import { TextbookP5 } from './pages/P5';
-import { TextbookP6 } from './pages/P6';
-import { TextbookP7 } from './pages/P7';
-import { TextbookP8 } from './pages/P8';
-import { TextbookP9 } from './pages/P9';
-import { TextbookP10 } from './pages/P10';
-import { TextbookP11 } from './pages/P11';
-import { TextbookP12 } from './pages/P12';
 import { TextbookStub } from './pages/Stub';
 
 interface Props { rawSlug?: string }
@@ -82,21 +70,8 @@ function PageHeader({ part, partTitle, pageTitle, subtitle, num, appPhase }: {
 }
 
 function renderPage(slug: TextbookSlug) {
-  switch (slug) {
-    case 'p1': return <TextbookP1 />;
-    case 'p2': return <TextbookP2 />;
-    case 'p3': return <TextbookP3 />;
-    case 'p4': return <TextbookP4 />;
-    case 'p5': return <TextbookP5 />;
-    case 'p6': return <TextbookP6 />;
-    case 'p7': return <TextbookP7 />;
-    case 'p8': return <TextbookP8 />;
-    case 'p9': return <TextbookP9 />;
-    case 'p10': return <TextbookP10 />;
-    case 'p11': return <TextbookP11 />;
-    case 'p12': return <TextbookP12 />;
-    default: return <TextbookStub slug={slug} />;
-  }
+  // visible 커리큘럼 본문(A·B·C 16편)은 후속 단계에서 채운다 — 일단 모두 placeholder.
+  return <TextbookStub slug={slug} />;
 }
 
 // (TS noUnusedLocals 회피 — 일부 빌드 환경에서 import만 하고 안 쓰는 경우 방지)

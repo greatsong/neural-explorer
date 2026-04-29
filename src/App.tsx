@@ -7,18 +7,12 @@ import { PHASES, isBonusPhase, isBonus2Phase } from './phases';
 import type { PhaseId } from './phases';
 import { Intro } from './Intro';
 import { Guide } from './Guide';
-import { Phase1 } from './phases/Phase1';
-import { Phase2 } from './phases/Phase2';
-import { Phase3 } from './phases/Phase3';
-import { Phase4 } from './phases/Phase4';
-import { Phase5 } from './phases/Phase5';
-import { Phase6 } from './phases/Phase6';
-import { Phase7 } from './phases/Phase7';
-import { Phase8 } from './phases/Phase8';
-import { Phase9 } from './phases/Phase9';
-import { Phase10 } from './phases/Phase10';
-import { Phase11 } from './phases/Phase11';
-import { Phase12 } from './phases/Phase12';
+import { PhaseA1 } from './phases/PhaseA1';
+import { PhaseA2 } from './phases/PhaseA2';
+import { PhaseA3 } from './phases/PhaseA3';
+import { PhaseA4 } from './phases/PhaseA4';
+import { PhaseA5 } from './phases/PhaseA5';
+import { PhaseA6 } from './phases/PhaseA6';
 import { Phase13 } from './phases/Phase13';
 import { Phase14 } from './phases/Phase14';
 import { Phase15 } from './phases/Phase15';
@@ -43,6 +37,8 @@ type View =
 export default function App() {
   const setCurrent = useApp((s) => s.setCurrent);
   const theme = useApp((s) => s.theme);
+  const legacyResetNotice = useApp((s) => s.legacyResetNotice);
+  const dismissLegacyResetNotice = useApp((s) => s.dismissLegacyResetNotice);
 
   const [view, setView] = useState<View>(() => readHash());
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -84,6 +80,20 @@ export default function App() {
         showMenuButton={isPhase}
         onMenuClick={() => setDrawerOpen((v) => !v)}
       />
+      {legacyResetNotice && (
+        <div role="status" className="bg-amber-50 border-b border-amber-200 text-amber-900 text-sm px-4 py-2 flex items-center gap-3">
+          <span className="flex-1">
+            교재가 새 구조(A·B·C)로 재구성되어 이전 진행도가 초기화됐어요. 다시 처음부터 즐겨주세요.
+          </span>
+          <button
+            type="button"
+            onClick={dismissLegacyResetNotice}
+            className="px-2 py-0.5 rounded border border-amber-300 hover:bg-amber-100"
+          >
+            닫기
+          </button>
+        </div>
+      )}
       <div className="flex-1 flex">
         {isPhase && (
           <Sidebar open={drawerOpen} onClose={() => setDrawerOpen(false)} />
@@ -120,26 +130,27 @@ function readHash(): View {
 }
 
 function isWide(id: PhaseId) {
-  return ['p5', 'p5b', 'p5c', 'p6', 'p7', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14', 'p15', 'p16', 'p17', 'p18', 'p19', 'p20', 'p21', 'p22'].includes(id);
+  // A6(기온 회귀), B/C 영역(분류·MNIST·은닉층 시각화), 5·6부 모두 와이드 레이아웃
+  return [
+    'a3', 'a5', 'a6',
+    'b2', 'b3', 'b4', 'b5',
+    'c1', 'c2', 'c3', 'c4',
+    'p13', 'p14', 'p15', 'p16', 'p17', 'p18', 'p19', 'p20', 'p21', 'p22',
+  ].includes(id);
 }
 
 function renderPhase(id: PhaseId) {
   switch (id) {
-    case 'p1': return <Phase1 />;
-    case 'p2': return <Phase2 />;
-    case 'p3': return <Phase3 />;
-    case 'p4': return <Phase4 />;
-    case 'p5': return <Phase5 />;
-    // p5b, p5c는 페이즈 5의 탭 3·5로 흡수됐으나 외부 링크 호환을 위해 페이즈 5로 라우팅
-    case 'p5b': return <Phase5 />;
-    case 'p5c': return <Phase5 />;
-    case 'p6': return <Phase6 />;
-    case 'p7': return <Phase7 />;
-    case 'p8': return <Phase8 />;
-    case 'p9': return <Phase9 />;
-    case 'p10': return <Phase10 />;
-    case 'p11': return <Phase11 />;
-    case 'p12': return <Phase12 />;
+    case 'a1': return <PhaseA1 />;
+    case 'a2': return <PhaseA2 />;
+    case 'a3': return <PhaseA3 />;
+    case 'a4': return <PhaseA4 />;
+    case 'a5': return <PhaseA5 />;
+    case 'a6': return <PhaseA6 />;
+    // B·C 영역은 후속 단계에서 채움 — 현재는 placeholder
+    case 'b1': case 'b2': case 'b3': case 'b4': case 'b5':
+    case 'c1': case 'c2': case 'c3': case 'c4':
+      return <Stub id={id} />;
     case 'p13': return <Phase13 />;
     case 'p14': return <Phase14 />;
     case 'p15': return <Phase15 />;
@@ -150,6 +161,6 @@ function renderPhase(id: PhaseId) {
     case 'p20': return <Phase20 />;
     case 'p21': return <Phase21 />;
     case 'p22': return <Phase22 />;
-    default:   return <Stub id={id} />;
+    default:    return <Stub id={id} />;
   }
 }

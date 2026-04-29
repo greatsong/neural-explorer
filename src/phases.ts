@@ -1,7 +1,9 @@
+// visible 커리큘럼 — A(알고리즘) / B(데이터·학습·분류) / C(모델 개선·일반화)
+// 히든 스테이지 — 5부(p13, p14) / 6부(p15~p22) 는 그대로 유지한다.
 export type PhaseId =
-  | 'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p5b' | 'p5c'
-  | 'p6' | 'p7' | 'p8' | 'p9'
-  | 'p10' | 'p11' | 'p12'
+  | 'a1' | 'a2' | 'a3' | 'a4' | 'a5' | 'a6'
+  | 'b1' | 'b2' | 'b3' | 'b4' | 'b5'
+  | 'c1' | 'c2' | 'c3' | 'c4'
   | 'p13' | 'p14'
   | 'p15' | 'p16' | 'p17' | 'p18' | 'p19' | 'p20' | 'p21' | 'p22';
 
@@ -11,37 +13,48 @@ export interface PhaseMeta {
   title: string;
   subtitle: string;
   group:
-    | '1부 — 뉴런의 기초'
-    | '2부 — 분류와 평가'
-    | '3부 — 직접 만들기'
-    | '4부 — 깊은 학습'
+    | 'A. 알고리즘의 이해'
+    | 'B. 데이터·학습·분류 출력'
+    | 'C. 모델 개선·일반화'
     | '5부 — 분류를 넘어 생성으로'
     | '6부 — 언어를 다루는 신경망';
 }
 
 export const PHASES: PhaseMeta[] = [
-  { id: 'p1',  num: '1',  title: '인공 뉴런 해부',          subtitle: '가중치·편향·활성화 함수', group: '1부 — 뉴런의 기초' },
-  { id: 'p2',  num: '2',  title: '순전파 퀴즈',             subtitle: '직접 계산해보기',         group: '1부 — 뉴런의 기초' },
-  { id: 'p3',  num: '3',  title: '손실함수와 경사하강법의 이해', subtitle: '제곱 오차 + 기울기 → 갱신 직관', group: '1부 — 뉴런의 기초' },
-  { id: 'p4',  num: '4',  title: '학습률의 이해',           subtitle: '슬라이더 한 칸 크기 = 보폭',  group: '1부 — 뉴런의 기초' },
-  { id: 'p5',  num: '5',  title: '오차 역전파의 이해',      subtitle: '출력 오차 → w·b로 역방향 전파 (5탭)', group: '1부 — 뉴런의 기초' },
-  { id: 'p6',  num: '6',  title: '입시 합격 예측',          subtitle: '정시 / 학종 시나리오',    group: '2부 — 분류와 평가' },
-  { id: 'p7',  num: '7',  title: '데이터 추가 후 재학습',   subtitle: '10명 → 40명',             group: '2부 — 분류와 평가' },
-  { id: 'p8',  num: '8',  title: '정확도',                  subtitle: '기본 평가 지표',          group: '2부 — 분류와 평가' },
-  { id: 'p9',  num: '9',  title: '평가의 함정',             subtitle: '정밀도와 재현율',         group: '2부 — 분류와 평가' },
-  { id: 'p10', num: '10', title: '도트 그림 학습',          subtitle: '직접 그리고 공유하기',    group: '3부 — 직접 만들기' },
-  { id: 'p11', num: '11', title: '신경망 설계',             subtitle: '복잡도와 신경망 크기',    group: '4부 — 깊은 학습' },
-  { id: 'p12', num: '12', title: 'MNIST 도전',              subtitle: '진짜 손글씨 분류',        group: '4부 — 깊은 학습' },
-  { id: 'p13', num: '13', title: '평균과 분포',              subtitle: '가장 단순한 생성 모델',   group: '5부 — 분류를 넘어 생성으로' },
-  { id: 'p14', num: '14', title: '오토인코더',               subtitle: '잠재 공간으로 그림 만들기', group: '5부 — 분류를 넘어 생성으로' },
-  { id: 'p15', num: '15', title: '텍스트가 숫자가 되기까지', subtitle: '인코딩 입문 — ASCII와 유니코드', group: '6부 — 언어를 다루는 신경망' },
-  { id: 'p16', num: '16', title: '토큰',                     subtitle: '단어보다 작고 글자보다 큰 조각', group: '6부 — 언어를 다루는 신경망' },
-  { id: 'p17', num: '17', title: '원-핫에서 임베딩으로',     subtitle: '단어가 벡터가 되는 이유', group: '6부 — 언어를 다루는 신경망' },
-  { id: 'p18', num: '18', title: 'Word2Vec 미니',            subtitle: '브라우저에서 직접 학습',  group: '6부 — 언어를 다루는 신경망' },
-  { id: 'p19', num: '19', title: '시퀀스',                   subtitle: '순서가 의미를 만드는 순간', group: '6부 — 언어를 다루는 신경망' },
-  { id: 'p20', num: '20', title: '어텐션',                   subtitle: '어디에 집중할지 정해보기', group: '6부 — 언어를 다루는 신경망' },
-  { id: 'p21', num: '21', title: '멀티헤드 트랜스포머',      subtitle: '여러 시선과 한 블록의 흐름', group: '6부 — 언어를 다루는 신경망' },
-  { id: 'p22', num: '22', title: 'GPT의 다음 토큰',          subtitle: '샘플링이 곧 창의성',      group: '6부 — 언어를 다루는 신경망' },
+  // A. 알고리즘의 이해 — 예측 → 오차 → 기울기 → 갱신 → 한 바퀴 → 실생활
+  { id: 'a1', num: 'A1', title: '인공 뉴런의 예측',  subtitle: '부품 → 곱·합·활성화 → 예측값',          group: 'A. 알고리즘의 이해' },
+  { id: 'a2', num: 'A2', title: '오차와 MSE',        subtitle: '예측 − 정답, 그리고 평균 제곱',         group: 'A. 알고리즘의 이해' },
+  { id: 'a3', num: 'A3', title: '경사하강법',         subtitle: '손실이 줄어드는 방향 + 보폭 η',         group: 'A. 알고리즘의 이해' },
+  { id: 'a4', num: 'A4', title: '기울기 계산하기',    subtitle: 'e·x 모양 + 표본 평균',                  group: 'A. 알고리즘의 이해' },
+  { id: 'a5', num: 'A5', title: '전체 흐름 완성',     subtitle: '예측 → 오차 → 기울기 → 갱신 한 묶음',   group: 'A. 알고리즘의 이해' },
+  { id: 'a6', num: 'A6', title: '기온 예측 프로젝트', subtitle: '인공 뉴런 1개로 서울 기온 회귀',         group: 'A. 알고리즘의 이해' },
+
+  // B. 데이터 수집·학습·분류 출력 — 도트 데이터 하나로 통일
+  { id: 'b1', num: 'B1', title: '문제 정의와 라벨',         subtitle: '동그라미 vs 세모, 입력·특징·정답',     group: 'B. 데이터·학습·분류 출력' },
+  { id: 'b2', num: 'B2', title: '데이터셋과 전처리',        subtitle: '기본 데이터 + 정제할 샘플 찾기',       group: 'B. 데이터·학습·분류 출력' },
+  { id: 'b3', num: 'B3', title: '학습 / 평가 데이터 나누기', subtitle: '왜 나눠야 하는가',                     group: 'B. 데이터·학습·분류 출력' },
+  { id: 'b4', num: 'B4', title: '이진 분류 모델 학습',      subtitle: '동그라미 vs 세모, 출력 뉴런 2개',     group: 'B. 데이터·학습·분류 출력' },
+  { id: 'b5', num: 'B5', title: '다중 분류와 소프트맥스',   subtitle: '동그라미·세모·네모, 출력 뉴런 3개',   group: 'B. 데이터·학습·분류 출력' },
+
+  // C. 모델 개선·일반화
+  { id: 'c1', num: 'C1', title: '평가와 일반화',                  subtitle: '학습 데이터와 평가 데이터의 차이', group: 'C. 모델 개선·일반화' },
+  { id: 'c2', num: 'C2', title: '일반화 — 새 데이터에서 틀리는 이유', subtitle: '학습엔 잘 맞는데… (과적합 직관)', group: 'C. 모델 개선·일반화' },
+  { id: 'c3', num: 'C3', title: '모델 복잡도 바꾸기',             subtitle: '은닉층·뉴런 수를 바꾸면 무엇이 달라지나', group: 'C. 모델 개선·일반화' },
+  { id: 'c4', num: 'C4', title: 'MNIST 도전',                     subtitle: '전체 흐름의 종합 예시',                group: 'C. 모델 개선·일반화' },
+
+  // 히든 스테이지 — 5부 (포털 진입 필요)
+  { id: 'p13', num: '13', title: '평균과 분포', subtitle: '가장 단순한 생성 모델',     group: '5부 — 분류를 넘어 생성으로' },
+  { id: 'p14', num: '14', title: '오토인코더',  subtitle: '잠재 공간으로 그림 만들기', group: '5부 — 분류를 넘어 생성으로' },
+
+  // 히든 스테이지 — 6부 (포털 진입 필요)
+  { id: 'p15', num: '15', title: '텍스트가 숫자가 되기까지', subtitle: '인코딩 입문 — ASCII와 유니코드',         group: '6부 — 언어를 다루는 신경망' },
+  { id: 'p16', num: '16', title: '토큰',                     subtitle: '단어보다 작고 글자보다 큰 조각',         group: '6부 — 언어를 다루는 신경망' },
+  { id: 'p17', num: '17', title: '원-핫에서 임베딩으로',     subtitle: '단어가 벡터가 되는 이유',                group: '6부 — 언어를 다루는 신경망' },
+  { id: 'p18', num: '18', title: 'Word2Vec 미니',            subtitle: '브라우저에서 직접 학습',                 group: '6부 — 언어를 다루는 신경망' },
+  { id: 'p19', num: '19', title: '시퀀스',                   subtitle: '순서가 의미를 만드는 순간',              group: '6부 — 언어를 다루는 신경망' },
+  { id: 'p20', num: '20', title: '어텐션',                   subtitle: '어디에 집중할지 정해보기',               group: '6부 — 언어를 다루는 신경망' },
+  { id: 'p21', num: '21', title: '멀티헤드 트랜스포머',      subtitle: '여러 시선과 한 블록의 흐름',             group: '6부 — 언어를 다루는 신경망' },
+  { id: 'p22', num: '22', title: 'GPT의 다음 토큰',          subtitle: '샘플링이 곧 창의성',                     group: '6부 — 언어를 다루는 신경망' },
 ];
 
 export const PHASE_GROUPS = Array.from(
@@ -52,7 +65,7 @@ export const PHASE_GROUPS = Array.from(
   }, new Map<PhaseMeta['group'], PhaseMeta[]>())
 );
 
-// 5부(생성)는 4부(p11+p12)를 모두 끝내고 포털을 통해 들어와야 보이는 히든 스테이지
+// 5부(생성)는 visible 커리큘럼(C3+C4)을 모두 끝내고 포털을 통해 들어와야 보이는 히든 스테이지
 export const BONUS_GROUP: PhaseMeta['group'] = '5부 — 분류를 넘어 생성으로';
 export const BONUS_PHASE_IDS: PhaseId[] = ['p13', 'p14'];
 
@@ -64,8 +77,9 @@ export function isBonusPhase(id: PhaseId) {
   return BONUS_PHASE_IDS.includes(id);
 }
 
-export function isPart4Done(completed: Record<PhaseId, boolean>) {
-  return Boolean(completed.p11 && completed.p12);
+// visible 커리큘럼(C 영역 마지막 두 페이즈) 완료 시 5부 포털 게이트가 열린다
+export function isVisibleCurriculumDone(completed: Record<PhaseId, boolean>) {
+  return Boolean(completed.c3 && completed.c4);
 }
 
 // 6부(언어)는 5부(p13+p14)를 모두 끝낸 사람만 두 번째 포털로 들어올 수 있는 히든 스테이지
@@ -83,3 +97,10 @@ export function isBonus2Phase(id: PhaseId) {
 export function isPart5Done(completed: Record<PhaseId, boolean>) {
   return Boolean(completed.p13 && completed.p14);
 }
+
+// visible 커리큘럼 ID 셋 — 라우팅·게이트에서 자주 쓴다
+export const VISIBLE_PHASE_IDS: PhaseId[] = [
+  'a1', 'a2', 'a3', 'a4', 'a5', 'a6',
+  'b1', 'b2', 'b3', 'b4', 'b5',
+  'c1', 'c2', 'c3', 'c4',
+];

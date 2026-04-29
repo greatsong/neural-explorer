@@ -1,17 +1,16 @@
 // 웹 교과서 구조 — phases.ts와 별도로 "교과서용" 묶음과 페이지를 정의한다.
-// 인앱 페이즈와 1:1로 대응하지만, 교과서는 4부(페이즈 1~12)까지만 다룬다.
+// 인앱 페이즈와 1:1로 대응하지만, 교과서는 visible 커리큘럼(A·B·C)까지만 다룬다.
 import type { PhaseId } from '../phases';
 
 export type TextbookSlug =
   | 'intro'
-  | 'p1' | 'p2' | 'p3' | 'p4' | 'p5'
-  | 'p6' | 'p7' | 'p8' | 'p9'
-  | 'p10'
-  | 'p11' | 'p12';
+  | 'a1' | 'a2' | 'a3' | 'a4' | 'a5' | 'a6'
+  | 'b1' | 'b2' | 'b3' | 'b4' | 'b5'
+  | 'c1' | 'c2' | 'c3' | 'c4';
 
 export interface TextbookPageMeta {
   slug: TextbookSlug;
-  num: string;          // "1", "2", ... 표지는 "0"
+  num: string;          // "A1", "B2" … 표지는 "0"
   title: string;        // 본문 제목
   short: string;        // 사이드바용 짧은 제목
   subtitle: string;     // 부제 — 표지·헤더에 사용
@@ -19,7 +18,7 @@ export interface TextbookPageMeta {
 }
 
 export interface TextbookPart {
-  num: '1부' | '2부' | '3부' | '4부';
+  num: 'A' | 'B' | 'C';
   title: string;
   caption: string;      // 부 도입 한 줄 설명
   pages: TextbookPageMeta[];
@@ -35,43 +34,39 @@ export const TEXTBOOK_INTRO: TextbookPageMeta = {
 
 export const TEXTBOOK_PARTS: TextbookPart[] = [
   {
-    num: '1부',
-    title: '뉴런의 기초',
-    caption: '인공 뉴런의 부품부터 자동 학습(경사 하강법)까지',
+    num: 'A',
+    title: '알고리즘의 이해',
+    caption: '예측 → 오차 → 기울기 → 갱신 — 학습 한 step을 손에 잡히게',
     pages: [
-      { slug: 'p1', num: '1', title: '인공 뉴런 해부', short: '인공 뉴런 해부', subtitle: '가중치·편향·활성화 함수', appPhase: 'p1' },
-      { slug: 'p2', num: '2', title: '순전파 — 입력에서 예측까지', short: '순전파', subtitle: '곱셈 → 합산 → 활성화의 한 방향 흐름', appPhase: 'p2' },
-      { slug: 'p3', num: '3', title: '손실함수와 경사하강법', short: '손실함수와 경사하강법', subtitle: '제곱 오차 + 기울기 → 갱신 직관', appPhase: 'p3' },
-      { slug: 'p4', num: '4', title: '학습률 — 보폭의 크기', short: '학습률', subtitle: '슬라이더 한 칸 크기 = 학습률 η', appPhase: 'p4' },
-      { slug: 'p5', num: '5', title: '오차 역전파 — 자동 학습', short: '오차 역전파', subtitle: '오차 → 변화량 → 수정의 한 묶음', appPhase: 'p5' },
+      { slug: 'a1', num: 'A1', title: '인공 뉴런의 예측',     short: '인공 뉴런의 예측', subtitle: '부품 → 곱·합·활성화 → 예측값',          appPhase: 'a1' },
+      { slug: 'a2', num: 'A2', title: '오차와 MSE',           short: '오차와 MSE',       subtitle: '예측 − 정답, 그리고 평균 제곱',         appPhase: 'a2' },
+      { slug: 'a3', num: 'A3', title: '경사하강법',            short: '경사하강법',       subtitle: '손실이 줄어드는 방향 + 보폭 η',         appPhase: 'a3' },
+      { slug: 'a4', num: 'A4', title: '기울기 계산하기',       short: '기울기 계산',      subtitle: 'e·x 모양 + 표본 평균',                  appPhase: 'a4' },
+      { slug: 'a5', num: 'A5', title: '전체 흐름 완성',        short: '전체 흐름',        subtitle: '예측 → 오차 → 기울기 → 갱신 한 묶음',   appPhase: 'a5' },
+      { slug: 'a6', num: 'A6', title: '기온 예측 프로젝트',    short: '기온 예측',        subtitle: '인공 뉴런 1개로 서울 기온 회귀',         appPhase: 'a6' },
     ],
   },
   {
-    num: '2부',
-    title: '분류와 평가',
-    caption: '두 갈래로 나누고, 그 결과가 얼마나 믿을 만한지 따져본다',
+    num: 'B',
+    title: '데이터·학습·분류 출력',
+    caption: '도트 데이터 하나로 통일 — 입력·라벨·출력 뉴런·소프트맥스',
     pages: [
-      { slug: 'p6', num: '6', title: '입시 합격 예측 — 분류 문제의 첫 만남', short: '입시 합격 예측', subtitle: '정시·학종 시나리오와 결정 경계', appPhase: 'p6' },
-      { slug: 'p7', num: '7', title: '데이터를 더 모으면 — 재학습', short: '데이터 추가 후 재학습', subtitle: '10명 → 40명, 결정 경계가 다시 그려진다', appPhase: 'p7' },
-      { slug: 'p8', num: '8', title: '정확도 — 가장 단순한 평가 지표', short: '정확도', subtitle: '맞춘 개수 ÷ 전체 개수', appPhase: 'p8' },
-      { slug: 'p9', num: '9', title: '평가의 함정 — 정밀도와 재현율', short: '평가의 함정', subtitle: '정확도만으로는 속을 수 있다', appPhase: 'p9' },
+      { slug: 'b1', num: 'B1', title: '문제 정의와 라벨',         short: '문제와 라벨',     subtitle: '동그라미 vs 세모, 입력·특징·정답',     appPhase: 'b1' },
+      { slug: 'b2', num: 'B2', title: '데이터셋과 전처리',        short: '데이터셋과 전처리', subtitle: '기본 데이터 + 정제할 샘플 찾기',     appPhase: 'b2' },
+      { slug: 'b3', num: 'B3', title: '학습 / 평가 데이터 나누기', short: '데이터 나누기',   subtitle: '왜 나눠야 하는가',                     appPhase: 'b3' },
+      { slug: 'b4', num: 'B4', title: '이진 분류 모델 학습',      short: '이진 분류',       subtitle: '동그라미 vs 세모, 출력 뉴런 2개',     appPhase: 'b4' },
+      { slug: 'b5', num: 'B5', title: '다중 분류와 소프트맥스',   short: '다중 분류',       subtitle: '동그라미·세모·네모, 출력 뉴런 3개',   appPhase: 'b5' },
     ],
   },
   {
-    num: '3부',
-    title: '직접 만들기',
-    caption: '내가 그린 데이터로, 내가 만든 분류기를 학습시킨다',
+    num: 'C',
+    title: '모델 개선·일반화',
+    caption: '새 데이터에서도 맞는가, 모델을 더 깊게 — MNIST로 종합',
     pages: [
-      { slug: 'p10', num: '10', title: '도트 그림 학습 — 내 데이터로 만든 분류기', short: '도트 그림 학습', subtitle: '직접 그리고, 학습시키고, 갤러리에 공유', appPhase: 'p10' },
-    ],
-  },
-  {
-    num: '4부',
-    title: '깊은 학습',
-    caption: '뉴런 한 개로는 풀 수 없는 문제 — 신경망을 더 크고 깊게',
-    pages: [
-      { slug: 'p11', num: '11', title: '신경망 설계 — 복잡도와 신경망 크기', short: '신경망 설계', subtitle: '2종 → 3종 → 10종, 더 복잡한 분류로', appPhase: 'p11' },
-      { slug: 'p12', num: '12', title: 'MNIST 도전 — 진짜 손글씨를 알아보다', short: 'MNIST 도전', subtitle: '원본 MNIST 6만 장 → 브라우저 실습용 300장 샘플, 28×28 픽셀의 세계', appPhase: 'p12' },
+      { slug: 'c1', num: 'C1', title: '평가와 일반화',                  short: '평가와 일반화',  subtitle: '학습 데이터와 평가 데이터의 차이', appPhase: 'c1' },
+      { slug: 'c2', num: 'C2', title: '일반화 — 새 데이터에서 틀리는 이유', short: '과적합 직관',   subtitle: '학습엔 잘 맞는데…',                appPhase: 'c2' },
+      { slug: 'c3', num: 'C3', title: '모델 복잡도 바꾸기',             short: '모델 복잡도',   subtitle: '은닉층·뉴런 수를 바꾸면 무엇이 달라지나', appPhase: 'c3' },
+      { slug: 'c4', num: 'C4', title: 'MNIST 도전',                     short: 'MNIST 도전',    subtitle: '전체 흐름의 종합 예시',                appPhase: 'c4' },
     ],
   },
 ];
