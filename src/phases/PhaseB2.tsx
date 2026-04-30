@@ -97,27 +97,54 @@ const SYN_DIRTY_IDS = new Set(SYN_DIRTY.map((s) => s.id));
 /* ────────── 학습 헬퍼 ──────────
    샘플 배열을 받아 한 번 끝까지 학습하고 epoch별 정확도(학습/평가) 곡선을 돌려 준다.
    학습 중 UI를 양보하기 위해 await new Promise(r => setTimeout(r, 0)). */
+/* baseline·current가 동일한 random init과 shuffle 순서를 쓰도록 Math.random을 시드로 임시 교체.
+   이렇게 해야 두 결과의 차이가 *데이터 차이*만 반영한다 (학생이 보는 +%p가 의미 있어진다). */
+function withSeededRandom<T>(seed: number, fn: () => T): T {
+  const orig = Math.random;
+  let s = seed >>> 0;
+  Math.random = () => {
+    s = (s + 0x6D2B79F5) >>> 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  try {
+    return fn();
+  } finally {
+    Math.random = orig;
+  }
+}
+
 async function runTraining(
   trainSamples: DotSample[],
   evalSamples: DotSample[],
   cancelRef: { current: boolean },
   onEpoch: (snapshot: { epoch: number; trainAcc: number; evalAcc: number }) => void,
+  seed: number = 1234,
 ): Promise<{ trainAcc: number; evalAcc: number }> {
+  // 학습용은 *적힌(=등록된) 라벨* 그대로 — 학생이 이 데이터를 그대로 두고 학습하는 시나리오.
   const train: TrainSample[] = trainSamples
     .filter((s) => TASK_LABELS.includes(s.label))
     .map((s) => ({ x: new Float32Array(s.pixels), y: labelIdx(s.label) }));
+  // 평가용은 *그림이 가리키는 진짜 라벨*로 채점 — 한 번도 학습에 쓰이지 않은 held-out 셋.
+  // 더러운 샘플도 평가에 포함하되, 정답은 "픽셀이 정말 의미하는 라벨"(mislabel이 있으면 그것)을 사용.
   const evalSet: TrainSample[] = evalSamples
-    .filter((s) => !s.noisy && !s.mislabel && TASK_LABELS.includes(s.label))
-    .map((s) => ({ x: new Float32Array(s.pixels), y: labelIdx(s.label) }));
+    .map((s) => ({ ...s, trueLabel: s.mislabel ?? s.label }))
+    .filter((s) => TASK_LABELS.includes(s.trueLabel))
+    .map((s) => ({ x: new Float32Array(s.pixels), y: labelIdx(s.trueLabel) }));
   if (train.length < 2 || evalSet.length < 2) {
     return { trainAcc: 0, evalAcc: 0 };
   }
-  const m = createDeepMLP([64, 2]);
+  // 모델 init을 seed로 고정 — baseline·current가 같은 출발점.
+  const m = withSeededRandom(seed, () => createDeepMLP([64, 2]));
   let lastTrainAcc = 0;
   let lastEvalAcc = 0;
+  // 매 epoch shuffle도 같은 seed에서 파생된 순서로 — baseline·current 모두 동일 순서로 학습
+  let shuffleSeed = seed;
   for (let ep = 0; ep < EPOCHS; ep++) {
     if (cancelRef.current) break;
-    const batches = shuffle(train);
+    const batches = withSeededRandom(shuffleSeed, () => shuffle(train));
+    shuffleSeed = (shuffleSeed * 1664525 + 1013904223) >>> 0;
     for (let i = 0; i < batches.length; i += BATCH_SIZE) {
       trainStep(m, batches.slice(i, i + BATCH_SIZE), LR);
     }
@@ -148,13 +175,23 @@ export function PhaseB2() {
   // store 측 데이터
   const storeSamples = useDot((s) => s.samples);
   const storeRemoved = useDot((s) => s.removedIds);
+  const storeTrainIds = useDot((s) => s.trainIds);
+  const storeEvalIds = useDot((s) => s.evalIds);
   const toggleRemoveStore = useDot((s) => s.toggleRemove);
   const resetRemoved = useDot((s) => s.resetRemoved);
+
+  // 진짜 held-out 평가 셋: B3에서 정해진 분할의 *평가 portion*을 그대로 가져온다.
+  // 학생의 제거(removedIds)는 평가에는 적용하지 않음 — 평가 셋은 모델이 한 번도 본 적 없는 고정 표본.
+  // 평가 정답은 *그림이 진짜로 가리키는 라벨*(mislabel이 있으면 그것)로 매겨, dirty 샘플도 모델이 맞히면 점수가 올라간다.
+  const heldOutEval = useMemo(() => {
+    const evalIdSet = new Set(storeEvalIds);
+    return storeSamples.filter((s) => evalIdSet.has(s.id));
+  }, [storeSamples, storeEvalIds]);
 
   // B2 로컬: 합성 dirty 샘플의 제거 토글 (store와 분리 — B3 이후에는 사라짐)
   const [localRemoved, setLocalRemoved] = useState<Set<string>>(() => new Set());
 
-  // 갤러리에 보일 전체 — store 36장 + 합성 12장
+  // 갤러리에 보일 전체 — store 150장 + 합성 4장 = 154장
   const allSamples: DotSample[] = useMemo(() => [...storeSamples, ...SYN_DIRTY], [storeSamples]);
 
   // 어떤 샘플이 "제거됨"인지 통합 판정
@@ -191,11 +228,21 @@ export function PhaseB2() {
     }));
   }, [allSamples]);
 
-  // 평가용 깨끗한 reference set (실제 store 샘플 중 noisy/mislabel 없는 것)
-  const evalRef = useMemo(
-    () => storeSamples.filter((s) => !s.noisy && !s.mislabel),
-    [storeSamples]
-  );
+  // baseline·current가 학습에 쓰는 *학습 portion* — store 분할의 train portion + 합성 dirty.
+  // baseline은 학생의 제거를 무시하고 train portion 전체 사용.
+  const baselineTrain = useMemo(() => {
+    const trainIdSet = new Set(storeTrainIds);
+    return [...storeSamples.filter((s) => trainIdSet.has(s.id)), ...SYN_DIRTY];
+  }, [storeSamples, storeTrainIds]);
+
+  // current는 학생의 제거를 적용한 train portion + 제거 후 남은 합성 dirty.
+  const currentTrain = useMemo(() => {
+    const trainIdSet = new Set(storeTrainIds);
+    return [
+      ...storeSamples.filter((s) => trainIdSet.has(s.id) && !storeRemoved.has(s.id)),
+      ...SYN_DIRTY.filter((s) => !localRemoved.has(s.id)),
+    ];
+  }, [storeSamples, storeTrainIds, storeRemoved, localRemoved]);
 
   // dirty 제거 카운트 — 합성 + store 양쪽
   const removedDirty = useMemo(() => {
@@ -228,7 +275,7 @@ export function PhaseB2() {
     const baseTrainHist: number[] = [];
     const baseEvalHist: number[] = [];
     setBaseline({ trainAcc: 0, evalAcc: 0, trainHist: [], evalHist: [] });
-    const bRes = await runTraining(allSamples, evalRef, cancelRef.current, (snap) => {
+    const bRes = await runTraining(baselineTrain, heldOutEval, cancelRef.current, (snap) => {
       baseTrainHist.push(snap.trainAcc);
       baseEvalHist.push(snap.evalAcc);
       setBaseline({
@@ -267,7 +314,7 @@ export function PhaseB2() {
     const trainHist: number[] = [];
     const evalHist: number[] = [];
     setCurrent({ trainAcc: 0, evalAcc: 0, trainHist: [], evalHist: [] });
-    const cRes = await runTraining(activeAll, evalRef, cancelRef.current, (snap) => {
+    const cRes = await runTraining(currentTrain, heldOutEval, cancelRef.current, (snap) => {
       trainHist.push(snap.trainAcc);
       evalHist.push(snap.evalAcc);
       setCurrent({
@@ -420,14 +467,14 @@ export function PhaseB2() {
                 <div className="grid grid-cols-2 gap-2">
                   <ResultCard
                     label="전처리 없음"
-                    sub={`전체 ${allSamples.filter((s) => TASK_LABELS.includes(s.label)).length}장`}
+                    sub={`학습 ${baselineTrain.filter((s) => TASK_LABELS.includes(s.label)).length}장 (그대로)`}
                     accent={false}
                     result={baseline}
                     isCurrent={stage === 'baseline'}
                   />
                   <ResultCard
                     label="전처리 후"
-                    sub={`active ${activeCount}장`}
+                    sub={`학습 ${currentTrain.filter((s) => TASK_LABELS.includes(s.label)).length}장 (제거 적용)`}
                     accent={true}
                     result={current}
                     isCurrent={stage === 'current'}
@@ -536,7 +583,7 @@ function ResultCard({
           </div>
         </div>
         <div>
-          <div className="text-muted text-[10px]">평가(깨끗한 set)</div>
+          <div className="text-muted text-[10px]">평가(held-out)</div>
           <div
             className="text-sm font-semibold"
             style={{ color: result.evalAcc >= 0.85 ? 'rgb(16,185,129)' : undefined }}
