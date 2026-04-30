@@ -21,7 +21,7 @@ import {
 import { NetworkDiagram, LayerEditor } from '../components/NetworkDiagram';
 
 export function PhaseC2() {
-  const meta = PHASES.find((p) => p.id === 'c2')!;
+  const meta = PHASES.find((p) => p.id === 'c3')!;
   const [samples, setSamples] = useState<Sample[] | null>(null);
   useEffect(() => { loadMnist().then(setSamples); }, []);
 
@@ -133,7 +133,7 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
     setFinal({ trainAcc, testAcc });
     if (beforeAcc !== null) setRetrainResult({ before: beforeAcc, after: testAcc });
     setTraining(false);
-    if (testAcc > 0.7) markCompleted('c2');
+    if (testAcc > 0.7) markCompleted('c3');
   };
 
   const startTrain = () => {

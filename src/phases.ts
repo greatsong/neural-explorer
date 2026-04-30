@@ -3,7 +3,7 @@
 export type PhaseId =
   | 'a1' | 'a2' | 'a3' | 'a4' | 'a5' | 'a6'
   | 'b1' | 'b2' | 'b3' | 'b4'
-  | 'c1' | 'c2'
+  | 'c1' | 'c2' | 'c3'
   | 'p13' | 'p14'
   | 'p15' | 'p16' | 'p17' | 'p18' | 'p19' | 'p20' | 'p21' | 'p22';
 
@@ -35,9 +35,10 @@ export const PHASES: PhaseMeta[] = [
   { id: 'b3', num: 'B3', title: '학습 / 평가 데이터 나누기', subtitle: '왜 나눠야 하는가',                     group: 'B. 데이터·학습·분류 출력' },
   { id: 'b4', num: 'B4', title: '이진 분류 모델 학습',      subtitle: '동그라미 vs 세모, 시그모이드 출력 1개', group: 'B. 데이터·학습·분류 출력' },
 
-  // C. 딥러닝 — 심층 신경망이 문제를 어떻게 해결하는지 이해하기
-  { id: 'c1', num: 'C1', title: '역전파 알고리즘의 이해', subtitle: '깊은 망의 가중치는 거꾸로 흘러 갱신된다', group: 'C. 딥러닝' },
-  { id: 'c2', num: 'C2', title: 'MNIST 도전',             subtitle: '진짜 손글씨 데이터에 깊은 망 적용',       group: 'C. 딥러닝' },
+  // C. 딥러닝 — 직관(C1) → 식 유도(C2) → 응용(C3)
+  { id: 'c1', num: 'C1', title: '역전파 직관',     subtitle: '한 사이클의 6단계 — 거꾸로 흐르는 신호', group: 'C. 딥러닝' },
+  { id: 'c2', num: 'C2', title: '역전파 식 유도',  subtitle: '사슬규칙으로 그 식이 나오는 이유',         group: 'C. 딥러닝' },
+  { id: 'c3', num: 'C3', title: 'MNIST 도전',      subtitle: '진짜 손글씨 데이터에 깊은 망 적용',         group: 'C. 딥러닝' },
 
   // 히든 스테이지 — 5부 (포털 진입 필요)
   { id: 'p13', num: '13', title: '평균과 분포', subtitle: '가장 단순한 생성 모델',     group: '5부 — 분류를 넘어 생성으로' },
@@ -74,9 +75,9 @@ export function isBonusPhase(id: PhaseId) {
   return BONUS_PHASE_IDS.includes(id);
 }
 
-// visible 커리큘럼(C 영역 마지막 두 페이즈) 완료 시 5부 포털 게이트가 열린다
+// visible 커리큘럼(C 영역의 마지막 두 페이즈 — 식 유도·MNIST) 완료 시 5부 포털 게이트가 열린다
 export function isVisibleCurriculumDone(completed: Record<PhaseId, boolean>) {
-  return Boolean(completed.c1 && completed.c2);
+  return Boolean(completed.c2 && completed.c3);
 }
 
 // 6부(언어)는 5부(p13+p14)를 모두 끝낸 사람만 두 번째 포털로 들어올 수 있는 히든 스테이지
@@ -99,5 +100,5 @@ export function isPart5Done(completed: Record<PhaseId, boolean>) {
 export const VISIBLE_PHASE_IDS: PhaseId[] = [
   'a1', 'a2', 'a3', 'a4', 'a5', 'a6',
   'b1', 'b2', 'b3', 'b4',
-  'c1', 'c2',
+  'c1', 'c2', 'c3',
 ];

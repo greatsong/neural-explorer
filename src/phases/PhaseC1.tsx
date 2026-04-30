@@ -8,7 +8,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { PHASES } from '../phases';
 import { useApp } from '../store';
-import { BackpropDerivation } from './PhaseC1Derivation';
 
 /* ──────── 모델·데이터 ──────── */
 interface Weights { w1: number; b1: number; w2: number; b2: number }
@@ -228,18 +227,10 @@ export function PhaseC1() {
           각 가중치는 A4에서 본 <code>dw = e · x</code> 모양의 식을 자기 층 입력 x로 똑같이 써서 갱신돼요.
           {' '}<strong>A5에서 본 한 step의 갱신식이 모든 층에 동시에 적용</strong>된다고 보면 됩니다.
         </p>
+        <p className="mt-2 text-[12.5px]">
+          이 식들이 <strong>왜 그 모양인지</strong>(예: <code>e_h = e·w₂</code>가 어디서 나오는지) 궁금하다면 — 다음 C2에서 사슬규칙으로 한 줄씩 유도합니다.
+        </p>
       </div>
-
-      {/* 식 유도 카드 — A4 스타일(KaTeX 단계별 펼치기)을 역전파에 맞춰 확장 */}
-      <BackpropDerivation
-        w1={W.w1} b1={W.b1} w2={W.w2} b2={W.b2}
-        x={SAMPLE.x} y={SAMPLE.y}
-        z1={t.z1} h={t.h} z2={t.z2} yhat={t.yhat}
-        e={t.e} reluP={t.reluP}
-        dw2={t.dw2} db2={t.db2}
-        eh={t.eh} ez1={t.ez1}
-        dw1={t.dw1} db1={t.db1}
-      />
     </article>
   );
 }
