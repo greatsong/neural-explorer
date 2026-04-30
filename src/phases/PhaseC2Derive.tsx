@@ -52,28 +52,18 @@ export function PhaseC2Derive() {
     <article>
       <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
       <h1>{meta.title}</h1>
-      <p className="text-muted mt-2 text-sm leading-relaxed">
-        C1에서 다이어그램으로 본 6단계의 식들 — <code>dw₂ = e·h</code>,{' '}
-        <code>e_h = e·w₂</code> 등 — 이 <strong>왜 그 모양인가</strong>?
-        합성 함수의 미분, 즉 <strong>사슬규칙(연쇄법칙)</strong>으로 한 줄씩 유도합니다.
-        같은 모델·같은 데이터(x = {SAMPLE.x}, y = {SAMPLE.y}, 초기 가중치 동일)를 써서,
-        C1에서 본 <code>e = -3.35</code>, <code>e_h = -5.02</code> 같은 숫자가 식에서 그대로
-        다시 나오는지 확인할 수 있습니다.
+      <p className="mt-3 text-base leading-relaxed">
+        C1에서 본 <strong className="text-accent">빨간 화살표</strong> — 출력 오차가 *거꾸로 흘러* 가중치를 고쳐 주던 신호 —
+        그 옆에 적힌 식들(<code>dw₂ = e·h</code>, <code>e_h = e·w₂</code> …)은 도대체 어디서 나온 걸까요?
       </p>
-
-      <div
-        className="mt-4 rounded-md border px-4 py-3 text-sm leading-relaxed"
-        style={{ borderColor: 'rgb(var(--color-accent))', backgroundColor: 'rgb(var(--color-accent-bg))' }}
-      >
-        <div className="text-[12px] font-mono mb-1 text-accent">왜 식 유도가 본질인가</div>
-        <p className="mb-1">
-          직관과 비유는 잊으면 끝이지만, <strong>사슬규칙은 한 번 이해하면 평생 다시 끌어낼 수 있는 지식</strong>입니다.
-          새로운 신경망 구조(RNN·Transformer·Diffusion …)를 만나도 결국 사슬규칙의 적용일 뿐이니까요.
-        </p>
-        <p className="text-[12.5px] text-muted">
-          A4에서 단일 뉴런으로 본 <code>dw = e·x</code>의 유도가, 여기서 두 층으로 자연스럽게 확장됩니다.
-        </p>
-      </div>
+      <p className="mt-2 text-base leading-relaxed">
+        답은 의외로 단순합니다 — A4에서 본 <strong>사슬규칙</strong>(영향이 사슬처럼 이어진다는 그 규칙)을 두 번 적용한 것이에요.
+        <em> "h가 1 변하면 ŷ은 얼마나 변하지? ŷ이 변하면 손실 L은 얼마나 변하지?"</em> — 이 두 변화량을{' '}
+        <strong>곱</strong>하면 e_h가 끝납니다. 같은 방식으로 다른 식들도 자연스럽게 나와요.
+      </p>
+      <p className="text-muted mt-2 text-[14px] leading-relaxed">
+        같은 데이터(x = {SAMPLE.x}, y = {SAMPLE.y}, 초기 가중치 동일)를 써서, C1에서 본 −3.35, −5.02 같은 숫자가 식에서 그대로 떨어지는지 직접 확인할 수 있습니다.
+      </p>
 
       {/* 식 유도 카드 — 8단계 펼치기 + 단계별 미니 다이어그램 강조 */}
       <BackpropDerivation
@@ -87,10 +77,10 @@ export function PhaseC2Derive() {
       />
 
       <div
-        className="mt-4 rounded-md border px-4 py-3 text-sm leading-relaxed"
+        className="mt-5 rounded-md border px-5 py-4 text-base leading-relaxed"
         style={{ borderColor: 'rgb(190,18,60)', backgroundColor: 'rgba(190,18,60,0.05)' }}
       >
-        <div className="text-[12px] font-mono mb-1" style={{ color: 'rgb(190,18,60)' }}>
+        <div className="text-[14px] font-mono mb-1.5 font-semibold" style={{ color: 'rgb(190,18,60)' }}>
           한 문장 정리
         </div>
         <p>
@@ -98,7 +88,7 @@ export function PhaseC2Derive() {
           출력 오차 e가 *가중치 거꾸로*(w₂)와 *활성함수 거꾸로*(ReLU′) 두 단계를 통과하며 입력층까지 흘러갑니다.
           A4의 <code>dw = e·x</code> 패턴이 모든 층에 그대로 반복되고, e 자리에는 그 층까지 흘러온 오차가 들어갈 뿐입니다.
         </p>
-        <p className="mt-2 text-[12.5px]">
+        <p className="mt-2 text-[14px]">
           다음 C3에서는 같은 사이클이 진짜 손글씨 데이터(MNIST)에서도 그대로 작동하는 모습을 봅니다.
         </p>
       </div>
