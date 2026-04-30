@@ -64,27 +64,24 @@ function drawTriangle(cx: number, cy: number, r: number): number[] {
   line(left.x, left.y, right.x, right.y);
   return p;
 }
+// B2 전용 합성 dirty: "그림과 적힌 라벨이 정반대"인 명백한 mislabel 데모용 4장만 추가.
+// 기본 데이터셋이 이미 라벨당 20% 오류를 갖고 있으므로 여기서는 *교사가 한눈에 짚어주기 좋은*
+// 두드러진 예시 4장만 더해 학생의 첫 클릭 동기를 만든다.
 const VARIANTS = [
   { cx: 3.5, cy: 3.5, r: 3 },
-  { cx: 3.5, cy: 3.5, r: 2.5 },
   { cx: 3, cy: 3, r: 2.5 },
-  { cx: 4, cy: 4, r: 2.5 },
-  { cx: 3.5, cy: 3.5, r: 2.7 },
-  { cx: 3.5, cy: 3.5, r: 2 },
 ];
 function buildSynDirty(): DotSample[] {
   const out: DotSample[] = [];
-  // 그림은 세모인데 적힌 라벨은 동그라미 — 6장
   VARIANTS.forEach((v, i) => {
+    // 세모 그림인데 라벨은 동그라미
     out.push({
       id: `syn-tc-${i}`,
       label: 'circle',
       pixels: drawTriangle(v.cx, v.cy, v.r),
       mislabel: 'triangle',
     });
-  });
-  // 그림은 동그라미인데 적힌 라벨은 세모 — 6장
-  VARIANTS.forEach((v, i) => {
+    // 동그라미 그림인데 라벨은 세모
     out.push({
       id: `syn-ct-${i}`,
       label: 'triangle',

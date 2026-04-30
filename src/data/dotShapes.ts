@@ -76,23 +76,39 @@ function makeShape(label: ShapeLabel, cx: number, cy: number, r: number): number
   return p;
 }
 
-/* 결정론적 변형 — 같은 라벨의 12장이 위치·크기로 살짝씩 다르게 생긴다 */
-const VARIANTS: { cx: number; cy: number; r: number }[] = [
-  { cx: 3.5, cy: 3.5, r: 3 },     // center, large
-  { cx: 3.5, cy: 3.5, r: 2.5 },   // center, medium
-  { cx: 3.5, cy: 3.5, r: 2 },     // center, small
-  { cx: 2.5, cy: 2.5, r: 2 },     // top-left small
-  { cx: 4.5, cy: 4.5, r: 2 },     // bottom-right small
-  { cx: 2.5, cy: 4.5, r: 2 },     // bottom-left
-  { cx: 4.5, cy: 2.5, r: 2 },     // top-right
-  { cx: 3.5, cy: 4.5, r: 2.5 },   // center-low medium
-  { cx: 3.5, cy: 2.5, r: 2.5 },   // center-high medium
-  { cx: 3, cy: 3, r: 2.5 },       // slight off-center
-  { cx: 4, cy: 4, r: 2.5 },       // slight off-center 2
-  { cx: 3.5, cy: 3.5, r: 2.7 },   // center, ~mid
-];
+/* 결정론적 변형 생성 — 라벨당 50장. 위치(cx,cy)·크기(r) 조합을 격자로 만든 뒤,
+   8×8 그리드를 벗어나는 조합을 제거하고 균등 추출해 50개로 맞춘다. */
+function buildVariantList(): { cx: number; cy: number; r: number }[] {
+  const all: { cx: number; cy: number; r: number }[] = [];
+  const radii = [2.0, 2.3, 2.5, 2.7, 3.0];
+  const grid = [2.5, 3, 3.5, 4, 4.5];
+  for (const r of radii) {
+    for (const cx of grid) {
+      for (const cy of grid) {
+        if (cx - r < -0.4 || cy - r < -0.4) continue;
+        if (cx + r > 7.4 || cy + r > 7.4) continue;
+        all.push({ cx, cy, r });
+      }
+    }
+  }
+  // 결정론적 균등 추출로 정확히 50개
+  if (all.length <= 50) return all;
+  const sampled: { cx: number; cy: number; r: number }[] = [];
+  const step = all.length / 50;
+  for (let i = 0; i < 50; i++) sampled.push(all[Math.floor(i * step)]);
+  return sampled;
+}
 
-/* 노이즈 — 결정론적으로 일부 샘플에 노이즈 픽셀 추가 */
+const VARIANTS = buildVariantList();
+const N_PER_LABEL = VARIANTS.length;
+
+// 라벨당 오류 인덱스 — 20% (10장).
+// 모두 *라벨 오류*로 통일: "픽셀만 깨진 noisy"는 학습에 영향이 약해 lesson을 흐리므로 제외.
+// 8장은 라벨만 swap, 2장은 라벨 swap + 픽셀 강노이즈(가장 명백히 "빼야 할" 표적).
+const MISLABEL_INDICES = new Set([4, 11, 19, 26, 33, 40, 44, 48]);  // 8장 — 라벨 swap
+const MISLABEL_NOISY_INDICES = new Set([7, 38]);                    // 2장 — 라벨 swap + 강노이즈
+
+/* 노이즈 — 결정론적으로 일부 샘플에 노이즈 픽셀 추가. */
 function addNoise(p: number[], seed: number, count: number): number[] {
   const out = [...p];
   let s = seed;
@@ -104,7 +120,7 @@ function addNoise(p: number[], seed: number, count: number): number[] {
   return out;
 }
 
-/* 데이터셋 — 라벨당 12장 = 36장. 일부에 noise·mislabel을 심는다. */
+/* 데이터셋 — 라벨당 50장 = 150장. 약 20%(라벨당 10장)가 더럽다. */
 function buildSamples(): DotSample[] {
   const out: DotSample[] = [];
   let counter = 0;
@@ -114,28 +130,26 @@ function buildSamples(): DotSample[] {
       const id = `${label}-${i + 1}`;
       const pixels = makeShape(label, v.cx, v.cy, v.r);
 
-      // 결정론적 노이즈/오라벨: B2 학생이 정제할 거리 만들기
-      // 라벨당 1개 노이즈, 라벨당 1개 mislabel(같은 라벨 그림인데 다른 라벨로 등록됨)
       let noisy = false;
       let mislabel: ShapeLabel | undefined;
       let finalPixels = pixels;
 
-      if (i === 5) {
-        // 노이즈 픽셀 추가 — 학생이 보고 "이상해 보인다"는 것을 잡아낼 후보
-        finalPixels = addNoise(pixels, counter * 7 + 11, 6);
+      if (MISLABEL_INDICES.has(i)) {
+        // 라벨만 잘못 — 그림은 정상 label인데, 적힌 라벨은 다음 라벨
+        mislabel = SHAPE_LABELS[(SHAPE_LABELS.indexOf(label) + 1) % SHAPE_LABELS.length];
+      } else if (MISLABEL_NOISY_INDICES.has(i)) {
+        // 라벨도 틀리고 픽셀도 깨짐 — 가장 명백히 "이건 빼야 한다"
+        finalPixels = addNoise(pixels, counter * 13 + 7, 8);
         noisy = true;
-      }
-      if (i === 9) {
-        // 오라벨 — 그림은 label인데, 다음 라벨로 잘못 적힌 것처럼
         mislabel = SHAPE_LABELS[(SHAPE_LABELS.indexOf(label) + 1) % SHAPE_LABELS.length];
       }
 
       out.push({
         id,
-        label: mislabel ?? label, // 데이터셋의 *적힌* 라벨 (mislabel이 있으면 잘못된 라벨)
+        label: mislabel ?? label,
         pixels: finalPixels,
         noisy,
-        mislabel: mislabel ? label : undefined, // 정답 라벨 (정제 후 학생이 발견)
+        mislabel: mislabel ? label : undefined,
       });
       counter += 1;
     });
@@ -145,4 +159,4 @@ function buildSamples(): DotSample[] {
 }
 
 export const DOT_SAMPLES_DEFAULT: DotSample[] = buildSamples();
-export const SAMPLES_PER_LABEL = VARIANTS.length;
+export const SAMPLES_PER_LABEL = N_PER_LABEL;
