@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { PHASES } from '../phases';
 import { useApp } from '../store';
+import { BackpropDerivation } from './PhaseC1Derivation';
 
 /* ──────── 모델·데이터 ──────── */
 interface Weights { w1: number; b1: number; w2: number; b2: number }
@@ -228,6 +229,17 @@ export function PhaseC1() {
           {' '}<strong>A5에서 본 한 step의 갱신식이 모든 층에 동시에 적용</strong>된다고 보면 됩니다.
         </p>
       </div>
+
+      {/* 식 유도 카드 — A4 스타일(KaTeX 단계별 펼치기)을 역전파에 맞춰 확장 */}
+      <BackpropDerivation
+        w1={W.w1} b1={W.b1} w2={W.w2} b2={W.b2}
+        x={SAMPLE.x} y={SAMPLE.y}
+        z1={t.z1} h={t.h} z2={t.z2} yhat={t.yhat}
+        e={t.e} reluP={t.reluP}
+        dw2={t.dw2} db2={t.db2}
+        eh={t.eh} ez1={t.ez1}
+        dw1={t.dw1} db1={t.db1}
+      />
     </article>
   );
 }
