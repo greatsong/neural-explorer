@@ -3,7 +3,9 @@
 // 각 단계 옆에 *지금 사이클의 수치 대입*도 같이 보여 다이어그램의 숫자와 연결한다.
 // 카드 상단의 미니 다이어그램은 현재까지 펼친 단계에 따라 활성 부분만 빨갛게 강조해
 // "이 식이 그림의 어디에서 나오는가"를 시각으로 보여준다.
-import { useState } from 'react';
+// 다이어그램은 sticky top, 버튼은 sticky bottom — 단계 박스가 길어져도 컨트롤이 항상 보임.
+// 새 단계 펼치면 그 박스로 자동 스크롤되어 사용자가 매번 스크롤할 필요 없음.
+import { useEffect, useRef, useState } from 'react';
 
 interface Args {
   w1: number; b1: number; w2: number; b2: number;
@@ -116,9 +118,11 @@ function MiniDiagram({ step, args }: { step: number; args: Args }) {
   const cy = 70;
   const xCx = 50, sum1Cx = 160, reluCx = 280, sum2Cx = 400, yhCx = 545;
 
-  const FWD = '#999';                   // 순전파/구조 (항상 회색)
+  // 순전파(구조)는 하늘색 계열, 역전파(신호)는 빨강 — 두 흐름이 한눈에 구분되도록.
+  const FWD = '#0284c7';                // sky-600 (순전파/구조 — 항상 활성)
+  const FWD_FILL = '#444';              // 노드 안 텍스트는 진한 회색 (가독성)
   const BACK = 'rgb(190, 18, 60)';      // 활성 역전파 신호
-  const OFF = '#d4d4d4';                // 아직 안 펼친 부분
+  const OFF = '#d4d4d4';                // 아직 안 펼친 부분의 역전파 화살표
 
   // 단계별 활성 매핑 (누적):
   //   2: ŷ + e
@@ -131,7 +135,7 @@ function MiniDiagram({ step, args }: { step: number; args: Args }) {
 
   return (
     <div className="rounded-md border border-border bg-bg/40 p-2">
-      <svg viewBox={`0 0 ${W_SVG} ${H_SVG}`} className="w-full" style={{ maxHeight: 200 }}>
+      <svg viewBox={`0 0 ${W_SVG} ${H_SVG}`} className="w-full" style={{ maxHeight: 150 }}>
         <defs>
           <marker id="dv-back" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
             <path d="M0,0 L6,3 L0,6 z" fill={BACK} />
@@ -153,23 +157,27 @@ function MiniDiagram({ step, args }: { step: number; args: Args }) {
 
         {/* 노드들 */}
         <circle cx={xCx} cy={cy} r={16} fill="white" stroke={FWD} strokeWidth={1.5} />
-        <text x={xCx} y={cy + 5} textAnchor="middle" fontSize={14} fontFamily="JetBrains Mono" fill="#444">x</text>
+        <text x={xCx} y={cy + 5} textAnchor="middle" fontSize={14} fontFamily="JetBrains Mono" fill={FWD_FILL}>x</text>
+        <text x={xCx} y={cy + 36} textAnchor="middle" fontSize={11.5} fontFamily="JetBrains Mono" fill={FWD}>= {args.x}</text>
 
         <circle cx={sum1Cx} cy={cy} r={20} fill="white" stroke={A(7) ? BACK : FWD} strokeWidth={A(7) ? 2.4 : 1.5} />
-        <text x={sum1Cx} y={cy + 6} textAnchor="middle" fontSize={17} fontWeight={700} fill={A(7) ? BACK : '#444'}>Σ</text>
+        <text x={sum1Cx} y={cy + 6} textAnchor="middle" fontSize={17} fontWeight={700} fill={A(7) ? BACK : FWD_FILL}>Σ</text>
         <text x={sum1Cx} y={cy + 36} textAnchor="middle" fontSize={11.5} fontFamily="JetBrains Mono" fill={A(7) ? BACK : FWD}>z₁ = {args.z1.toFixed(2)}</text>
 
         <rect x={reluCx - 26} y={cy - 14} width={52} height={28} rx={4}
               fill="white" stroke={A(6) ? BACK : FWD} strokeWidth={A(6) ? 2.4 : 1.5} />
-        <text x={reluCx} y={cy + 5} textAnchor="middle" fontSize={12.5} fontWeight={700} fill={A(6) ? BACK : '#444'}>ReLU</text>
+        <text x={reluCx} y={cy + 5} textAnchor="middle" fontSize={12.5} fontWeight={700} fill={A(6) ? BACK : FWD_FILL}>ReLU</text>
         <text x={reluCx} y={cy + 36} textAnchor="middle" fontSize={11.5} fontFamily="JetBrains Mono" fill={A(3) ? BACK : FWD}>h = {args.h.toFixed(2)}</text>
 
         <circle cx={sum2Cx} cy={cy} r={20} fill="white" stroke={A(3) ? BACK : FWD} strokeWidth={A(3) ? 2.4 : 1.5} />
-        <text x={sum2Cx} y={cy + 6} textAnchor="middle" fontSize={17} fontWeight={700} fill={A(3) ? BACK : '#444'}>Σ</text>
+        <text x={sum2Cx} y={cy + 6} textAnchor="middle" fontSize={17} fontWeight={700} fill={A(3) ? BACK : FWD_FILL}>Σ</text>
         <text x={sum2Cx} y={cy + 36} textAnchor="middle" fontSize={11.5} fontFamily="JetBrains Mono" fill={FWD}>z₂ = {args.z2.toFixed(2)}</text>
 
         <circle cx={yhCx} cy={cy} r={18} fill="white" stroke={A(2) ? BACK : FWD} strokeWidth={A(2) ? 2.6 : 1.5} />
-        <text x={yhCx} y={cy + 5} textAnchor="middle" fontSize={14} fontFamily="JetBrains Mono" fontWeight={700} fill={A(2) ? BACK : '#444'}>ŷ</text>
+        <text x={yhCx} y={cy + 5} textAnchor="middle" fontSize={14} fontFamily="JetBrains Mono" fontWeight={700} fill={A(2) ? BACK : FWD_FILL}>ŷ</text>
+        {/* 정답 y는 ŷ 위쪽에 — 항상 표시(데이터 컨텍스트) */}
+        <text x={yhCx} y={cy - 26} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono" fill={FWD_FILL}>정답 y = {args.y}</text>
+        <text x={yhCx} y={cy + 36} textAnchor="middle" fontSize={11.5} fontFamily="JetBrains Mono" fill={A(2) ? BACK : FWD}>ŷ = {args.yhat.toFixed(2)}</text>
 
         {/* ── 역전파 화살표 (단계별 활성) ── */}
         {/* dw₂ 화살표: ŷ → Σ₂ */}
@@ -253,6 +261,27 @@ function MiniDiagram({ step, args }: { step: number; args: Args }) {
 export function BackpropDerivation(props: Args) {
   const STEPS = buildSteps(props);
   const [step, setStep] = useState(1);
+  const stepsContainerRef = useRef<HTMLDivElement>(null);
+
+  // 새 단계 펼치면 그 박스 상단이 sticky 다이어그램 바로 아래에 오도록 자동 스크롤.
+  // ref 대신 컨테이너의 lastElementChild로 직접 찾아 ref 타이밍 이슈 회피.
+  const prevStepRef = useRef(step);
+  useEffect(() => {
+    if (step > prevStepRef.current) {
+      const id = setTimeout(() => {
+        const lastBox = stepsContainerRef.current?.lastElementChild as HTMLElement | null;
+        if (lastBox) {
+          const rect = lastBox.getBoundingClientRect();
+          const STICKY_OFFSET = 230;
+          const targetY = window.scrollY + rect.top - STICKY_OFFSET;
+          window.scrollTo({ top: Math.max(0, targetY), behavior: 'auto' });
+        }
+      }, 120);
+      prevStepRef.current = step;
+      return () => clearTimeout(id);
+    }
+    prevStepRef.current = step;
+  }, [step]);
 
   return (
     <div className="card p-4 mt-4">
@@ -277,7 +306,7 @@ export function BackpropDerivation(props: Args) {
         <MiniDiagram step={step} args={props} />
       </div>
 
-      <div className="mt-4 space-y-3">
+      <div ref={stepsContainerRef} className="mt-4 space-y-3">
         {STEPS.slice(0, step).map((s, i) => (
           <div
             key={i}
@@ -317,7 +346,10 @@ export function BackpropDerivation(props: Args) {
         ))}
       </div>
 
-      <div className="flex gap-2 mt-4 flex-wrap">
+      <div
+        className="flex gap-2 mt-4 flex-wrap sticky z-10 -mx-4 px-4 py-3 backdrop-blur border-t border-border"
+        style={{ bottom: 0, backgroundColor: 'rgb(var(--color-bg) / 0.95)' }}
+      >
         {step < STEPS.length ? (
           <button
             onClick={() => setStep((s) => Math.min(s + 1, STEPS.length))}
