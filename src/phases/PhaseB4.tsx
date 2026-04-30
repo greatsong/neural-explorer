@@ -711,13 +711,25 @@ function SimpleDiagram({ input, bias, w }: {
           const a = Math.min(1, Math.abs(w[i]) / maxAbs);
           const positive = w[i] >= 0;
           const color = positive ? 'rgb(59,130,246)' : 'rgb(190,18,60)';
+          const r = Math.floor(i / 8), c = i % 8;
           return (
-            <line key={i}
-              x1={inCx + inR} y1={cy}
-              x2={outCx - outR} y2={outCy}
-              stroke={color}
-              strokeWidth={0.3 + 0.9 * a}
-              opacity={0.1 + 0.75 * a} />
+            <g key={i}>
+              <line
+                x1={inCx + inR} y1={cy}
+                x2={outCx - outR} y2={outCy}
+                stroke={color}
+                strokeWidth={0.3 + 0.9 * a}
+                opacity={0.1 + 0.75 * a} />
+              {/* 호버 hit-area (투명 두꺼운 라인) */}
+              <line
+                x1={inCx + inR} y1={cy}
+                x2={outCx - outR} y2={outCy}
+                stroke="transparent"
+                strokeWidth={6}
+                style={{ cursor: 'help' }}>
+                <title>{`픽셀 (행 ${r}, 열 ${c}) → 출력  w[${i}] = ${w[i].toFixed(3)}`}</title>
+              </line>
+            </g>
           );
         })}
 
@@ -725,22 +737,33 @@ function SimpleDiagram({ input, bias, w }: {
         {Array.from({ length: 64 }).map((_, i) => {
           const cy = inY0 + i * inSpacing;
           const active = !!input && input[i] === 1;
+          const r = Math.floor(i / 8), c = i % 8;
           return (
-            <circle key={i} cx={inCx} cy={cy} r={inR}
-              fill={active ? 'rgb(var(--color-text))' : 'rgb(var(--color-bg))'}
-              stroke="rgb(var(--color-muted))"
-              strokeWidth={0.7} />
+            <g key={i} style={{ cursor: 'help' }}>
+              <circle cx={inCx} cy={cy} r={inR}
+                fill={active ? 'rgb(var(--color-text))' : 'rgb(var(--color-bg))'}
+                stroke="rgb(var(--color-muted))"
+                strokeWidth={0.7} />
+              {/* 호버용 큰 투명 원 */}
+              <circle cx={inCx} cy={cy} r={inR + 2} fill="transparent">
+                <title>{`픽셀 (행 ${r}, 열 ${c}) — 값 ${active ? 1 : 0}, w[${i}] = ${w[i].toFixed(3)}`}</title>
+              </circle>
+            </g>
           );
         })}
 
         {/* 출력 뉴런 σ */}
-        <circle cx={outCx} cy={outCy} r={outR}
-          fill="rgb(var(--color-accent-bg))"
-          stroke="rgb(16,185,129)" strokeWidth={2.5} />
-        <text x={outCx} y={outCy - 2} textAnchor="middle" fontSize={12} fill="rgb(var(--color-text))" fontWeight={700}>
+        <g style={{ cursor: 'help' }}>
+          <circle cx={outCx} cy={outCy} r={outR}
+            fill="rgb(var(--color-accent-bg))"
+            stroke="rgb(16,185,129)" strokeWidth={2.5}>
+            <title>{`출력 뉴런 σ — 편향(bias) b = ${bias.toFixed(3)}`}</title>
+          </circle>
+        </g>
+        <text x={outCx} y={outCy - 2} textAnchor="middle" fontSize={12} fill="rgb(var(--color-text))" fontWeight={700} style={{ pointerEvents: 'none' }}>
           σ
         </text>
-        <text x={outCx} y={outCy + 10} textAnchor="middle" fontSize={8.5} fill="rgb(var(--color-muted))">
+        <text x={outCx} y={outCy + 10} textAnchor="middle" fontSize={8.5} fill="rgb(var(--color-muted))" style={{ pointerEvents: 'none' }}>
           b={bias.toFixed(2)}
         </text>
         <text x={outCx} y={outCy + outR + 14} textAnchor="middle" fontSize={10} fill="rgb(var(--color-muted))">
@@ -807,16 +830,28 @@ function HiddenDiagram({
       if (isSel) {
         const a = Math.min(1, Math.abs(wH[i]) / selMaxAbs);
         const positive = wH[i] >= 0;
+        const r = Math.floor(i / 8), c = i % 8;
         inputHiddenLines.push(
-          <line key={`s-${h}-${i}`}
-            x1={inCx + inR} y1={cy}
-            x2={hX - hR} y2={hy}
-            stroke={positive ? 'rgb(59,130,246)' : 'rgb(190,18,60)'}
-            strokeWidth={0.35 + 0.9 * a}
-            opacity={0.18 + 0.7 * a} />
+          <g key={`s-${h}-${i}`}>
+            <line
+              x1={inCx + inR} y1={cy}
+              x2={hX - hR} y2={hy}
+              stroke={positive ? 'rgb(59,130,246)' : 'rgb(190,18,60)'}
+              strokeWidth={0.35 + 0.9 * a}
+              opacity={0.18 + 0.7 * a} />
+            {/* 호버 hit-area */}
+            <line
+              x1={inCx + inR} y1={cy}
+              x2={hX - hR} y2={hy}
+              stroke="transparent"
+              strokeWidth={6}
+              style={{ cursor: 'help' }}>
+              <title>{`픽셀 (행 ${r}, 열 ${c}) → h${h}  W₁[h${h}][${i}] = ${wH[i].toFixed(3)}`}</title>
+            </line>
+          </g>
         );
       } else {
-        // mesh — 매우 옅은 회색
+        // mesh — 매우 옅은 회색 (호버 없음)
         inputHiddenLines.push(
           <line key={`b-${h}-${i}`}
             x1={inCx + inR} y1={cy}
@@ -853,11 +888,20 @@ function HiddenDiagram({
         {Array.from({ length: 64 }).map((_, i) => {
           const cy = inY0 + i * inSpacing;
           const active = !!input && input[i] === 1;
+          const r = Math.floor(i / 8), c = i % 8;
+          const tip = selH >= 0
+            ? `픽셀 (행 ${r}, 열 ${c}) — 값 ${active ? 1 : 0}, W₁[h${selH}][${i}] = ${hiddenWeights[selH][i].toFixed(3)}`
+            : `픽셀 (행 ${r}, 열 ${c}) — 값 ${active ? 1 : 0} (은닉 뉴런을 클릭하면 그 뉴런으로 가는 가중치가 보여요)`;
           return (
-            <circle key={i} cx={inCx} cy={cy} r={inR}
-              fill={active ? 'rgb(var(--color-text))' : 'rgb(var(--color-bg))'}
-              stroke="rgb(var(--color-muted))"
-              strokeWidth={0.7} />
+            <g key={i} style={{ cursor: 'help' }}>
+              <circle cx={inCx} cy={cy} r={inR}
+                fill={active ? 'rgb(var(--color-text))' : 'rgb(var(--color-bg))'}
+                stroke="rgb(var(--color-muted))"
+                strokeWidth={0.7} />
+              <circle cx={inCx} cy={cy} r={inR + 2} fill="transparent">
+                <title>{tip}</title>
+              </circle>
+            </g>
           );
         })}
 
@@ -870,12 +914,22 @@ function HiddenDiagram({
           const isOutSel = selected === 'out';
           const color = positive ? 'rgb(59,130,246)' : 'rgb(190,18,60)';
           return (
-            <line key={h}
-              x1={hX + hR} y1={hy}
-              x2={outCx - outR} y2={outCy}
-              stroke={color}
-              strokeWidth={0.6 + 2.2 * a}
-              opacity={isOutSel ? Math.max(0.55, 0.25 + 0.7 * a) : (0.25 + 0.65 * a)} />
+            <g key={h}>
+              <line
+                x1={hX + hR} y1={hy}
+                x2={outCx - outR} y2={outCy}
+                stroke={color}
+                strokeWidth={0.6 + 2.2 * a}
+                opacity={isOutSel ? Math.max(0.55, 0.25 + 0.7 * a) : (0.25 + 0.65 * a)} />
+              <line
+                x1={hX + hR} y1={hy}
+                x2={outCx - outR} y2={outCy}
+                stroke="transparent"
+                strokeWidth={8}
+                style={{ cursor: 'help' }}>
+                <title>{`h${h} → 출력  W₂[${h}] = ${w.toFixed(3)}`}</title>
+              </line>
+            </g>
           );
         })}
 
@@ -885,16 +939,18 @@ function HiddenDiagram({
           const isSel = selected === h;
           return (
             <g key={h} style={{ cursor: 'pointer' }} onClick={() => onSelect(h)}>
+              <title>{`은닉 h${h} — 편향 b₁[${h}] = ${b1[h].toFixed(3)}, 출력으로의 가중치 W₂[${h}] = ${W2[h].toFixed(3)} (클릭하면 입력→h${h} 가중치 강조)`}</title>
               <circle cx={hX} cy={hy} r={hR + 4} fill="transparent" />
               <circle cx={hX} cy={hy} r={hR}
                 fill={isSel ? 'rgb(var(--color-accent))' : 'rgb(var(--color-accent-bg))'}
                 stroke={isSel ? 'rgb(var(--color-accent))' : 'rgb(var(--color-border))'}
                 strokeWidth={isSel ? 2 : 1.2} />
               <text x={hX} y={hy + 3} textAnchor="middle" fontSize={9}
-                fill={isSel ? 'white' : 'rgb(var(--color-text))'} fontWeight={isSel ? 700 : 500}>
+                fill={isSel ? 'white' : 'rgb(var(--color-text))'} fontWeight={isSel ? 700 : 500}
+                style={{ pointerEvents: 'none' }}>
                 h{h}
               </text>
-              <text x={hX + hR + 4} y={hy + 3} fontSize={8.5} fill="rgb(var(--color-muted))">
+              <text x={hX + hR + 4} y={hy + 3} fontSize={8.5} fill="rgb(var(--color-muted))" style={{ pointerEvents: 'none' }}>
                 b={b1[h].toFixed(2)}
               </text>
             </g>
@@ -903,16 +959,18 @@ function HiddenDiagram({
 
         {/* 출력 뉴런 — 클릭하면 W2 막대 패널 */}
         <g style={{ cursor: 'pointer' }} onClick={() => onSelect('out')}>
+          <title>{`출력 σ — 편향 b₂ = ${b2.toFixed(3)} (클릭하면 8개 W₂ 막대가 보여요)`}</title>
           <circle cx={outCx} cy={outCy} r={outR + 4} fill="transparent" />
           <circle cx={outCx} cy={outCy} r={outR}
             fill="rgb(var(--color-accent-bg))"
             stroke={selected === 'out' ? 'rgb(var(--color-accent))' : 'rgb(16,185,129)'}
             strokeWidth={selected === 'out' ? 3 : 2} />
           <text x={outCx} y={outCy - 2} textAnchor="middle" fontSize={12} fontWeight={700}
-            fill={selected === 'out' ? 'rgb(var(--color-accent))' : 'rgb(var(--color-text))'}>
+            fill={selected === 'out' ? 'rgb(var(--color-accent))' : 'rgb(var(--color-text))'}
+            style={{ pointerEvents: 'none' }}>
             σ
           </text>
-          <text x={outCx} y={outCy + 10} textAnchor="middle" fontSize={8.5} fill="rgb(var(--color-muted))">
+          <text x={outCx} y={outCy + 10} textAnchor="middle" fontSize={8.5} fill="rgb(var(--color-muted))" style={{ pointerEvents: 'none' }}>
             b={b2.toFixed(2)}
           </text>
         </g>
@@ -963,7 +1021,12 @@ function HeatmapPanel({ w, bias, title, subtitle, outWeight }: {
           const x = (i % SIZE) * cell;
           const y = Math.floor(i / SIZE) * cell;
           const v = w[i] / maxAbs;
-          return <rect key={i} x={x} y={y} width={cell} height={cell} fill={weightColor(v)} />;
+          const r = Math.floor(i / SIZE), c = i % SIZE;
+          return (
+            <rect key={i} x={x} y={y} width={cell} height={cell} fill={weightColor(v)} style={{ cursor: 'help' }}>
+              <title>{`(행 ${r}, 열 ${c}) — w[${i}] = ${w[i].toFixed(3)}`}</title>
+            </rect>
+          );
         })}
         {Array.from({ length: SIZE + 1 }).map((_, i) => (
           <g key={i} stroke="rgb(var(--color-border))" strokeWidth={0.4} opacity={0.5}>
