@@ -73,10 +73,25 @@ export function PhaseB4() {
       setLogs([]);
       setTrainAcc(null);
       setEvalAcc(null);
-      setModel(null);
+      const layers = useHidden ? [64, 8, 1] : [64, 1];
+      setModel(createDeepMLP(layers, 'sigmoid'));
       setPickedId(null);
     }
+    // useHidden은 의도적으로 deps에서 제외 — 별도 effect에서 처리
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistedModel]);
+
+  // 페이즈 진입 / 은닉층 토글 시 학습 전이라면 랜덤 초기 가중치로 모델 생성 →
+  // "학습 전 다이어그램에 의미 없는 노이즈 패턴 → 학습 후 의미 있는 패턴" 변화를 학생이 체감하도록.
+  useEffect(() => {
+    if (running) return;
+    if (logs.length > 0) return;  // 학습 중이거나 끝난 모델은 보존
+    const layers = useHidden ? [64, 8, 1] : [64, 1];
+    setModel(createDeepMLP(layers, 'sigmoid'));
+    setWeightTick((t) => t + 1);
+    // running·logs 변화로 매번 재생성하지 않고, useHidden 토글에만 반응
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useHidden]);
 
   // unmount 시 학습 정지
   const cancelRef = useRef(false);
@@ -167,9 +182,14 @@ export function PhaseB4() {
     setLogs([]);
     setTrainAcc(null);
     setEvalAcc(null);
-    setModel(null);
+    // 모델을 null로 두지 않고 새 랜덤 초기 가중치로 재생성 →
+    // 학생이 다이어그램에서 "학습 전 → 학습 후" 변화를 보게.
+    const layers = useHidden ? [64, 8, 1] : [64, 1];
+    setModel(createDeepMLP(layers, 'sigmoid'));
+    setWeightTick((t) => t + 1);
     setBinaryModel(null);
     setPickedId(null);
+    completedRef.current = false;
   }
 
   // 완료 처리 — eval ≥ 80% 또는 일정 epoch
@@ -246,6 +266,12 @@ export function PhaseB4() {
                 갱신 #{weightTick}
               </div>
             </div>
+            {logs.length === 0 && model && (
+              <div className="mt-2 text-[11px] text-muted bg-surface/50 border border-dashed border-border rounded-md px-2 py-1.5 leading-snug">
+                <strong>학습 전</strong> — 지금 보이는 가중치는 작은 <strong>랜덤 초기값</strong>이에요.
+                의미 없는 노이즈 패턴이 학습 시작 후 점점 동그라미·세모를 구분하는 모양으로 바뀝니다.
+              </div>
+            )}
             <NetworkViz
               model={model}
               useHidden={useHidden}
