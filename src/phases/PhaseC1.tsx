@@ -376,36 +376,32 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
             </text>
           </g>
         )}
-        {/* dw₂ + db₂ — Σ₂ → ŷ 사이 */}
+        {/* dw₂ + db₂ — w₂ 통로(ReLU → Σ₂)와 같은 가로 위치, 거꾸로 화살표 */}
         {opDw2 > 0 && (
           <g>
-            <line x1={yhCx - 24} y1={cy + 30} x2={sum2Cx + 28} y2={cy + 30}
+            <line x1={sum2Cx - 28} y1={cy + 30} x2={reluCx + 34} y2={cy + 30}
                   stroke={BACK} strokeWidth={1.5} strokeDasharray="4 3"
                   markerEnd="url(#c1-back)" />
-            <text x={(sum2Cx + yhCx) / 2} y={cy + 80} textAnchor="middle"
+            <text x={(reluCx + sum2Cx) / 2} y={cy + 80} textAnchor="middle"
                   fontSize={12} fontFamily="JetBrains Mono" fill={BACK} fontWeight={600}>
               dw₂ = {t.dw2.toFixed(2)}
             </text>
-            <text x={(sum2Cx + yhCx) / 2} y={cy + 96} textAnchor="middle"
+            <text x={(reluCx + sum2Cx) / 2} y={cy + 96} textAnchor="middle"
                   fontSize={10} fontFamily="JetBrains Mono" fill={BACK}>
               db₂ = {t.db2.toFixed(2)}
             </text>
           </g>
         )}
-        {/* e_h — ReLU 우측(h 쪽). h의 오차 = e·w₂ */}
+        {/* e_h — ReLU 박스 *위쪽* (h 노드의 오차). dw₂와 가로 위치 충돌 회피 + h가 ReLU 출력이라 박스 옆이 의미적 위치 */}
         {opEh > 0 && (
           <g>
-            <text x={(reluCx + sum2Cx) / 2} y={cy + 80} textAnchor="middle"
-                  fontSize={12} fontFamily="JetBrains Mono" fill={BACK} fontWeight={600}>
-              e_h = {t.eh.toFixed(2)}
-            </text>
-            <text x={(reluCx + sum2Cx) / 2} y={cy + 96} textAnchor="middle"
-                  fontSize={9} fontFamily="JetBrains Mono" fill={BACK}>
-              = e · w₂
+            <text x={reluCx} y={cy - 32} textAnchor="middle"
+                  fontSize={11} fontFamily="JetBrains Mono" fill={BACK} fontWeight={600}>
+              e_h = {t.eh.toFixed(2)} <tspan fontSize={9} fontWeight={400}>(= e·w₂)</tspan>
             </text>
           </g>
         )}
-        {/* e_z₁ — ReLU 좌측(z₁ 쪽). ReLU′ 문지기 통과 후 = e_h · ReLU′(z₁) */}
+        {/* e_z₁ — ReLU 좌측(z₁ 쪽). ReLU′ 문지기 통과 후 */}
         {opEh > 0 && (
           <g>
             <text x={(sum1Cx + reluCx) / 2} y={cy + 80} textAnchor="middle"
