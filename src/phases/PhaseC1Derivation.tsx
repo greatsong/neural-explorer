@@ -5,7 +5,18 @@
 // "이 식이 그림의 어디에서 나오는가"를 시각으로 보여준다.
 // 다이어그램은 sticky top, 버튼은 sticky bottom — 단계 박스가 길어져도 컨트롤이 항상 보임.
 // 새 단계 펼치면 그 박스로 자동 스크롤되어 사용자가 매번 스크롤할 필요 없음.
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+
+/** *텍스트* 패턴을 <strong>으로 자동 변환 — 학생용 강조. */
+function emph(text: string): ReactNode {
+  const parts = text.split(/(\*[^*]+\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+      return <strong key={i} className="font-semibold text-text">{part.slice(1, -1)}</strong>;
+    }
+    return part;
+  });
+}
 
 interface Args {
   w1: number; b1: number; w2: number; b2: number;
@@ -114,9 +125,10 @@ function buildSteps(a: Args): DerivStep[] {
    빨갛게 누적 강조. 본문 위 큰 다이어그램과 같은 노드 배치.
 ══════════════════════════════════════════════════════════════ */
 function MiniDiagram({ step, args }: { step: number; args: Args }) {
-  const W_SVG = 600, H_SVG = 170;
-  const cy = 70;
-  const xCx = 50, sum1Cx = 160, reluCx = 280, sum2Cx = 400, yhCx = 545;
+  // viewBox를 살짝 더 크게(위쪽 여유 +20, 아래쪽 +10) — 정답 y/ReLU′ 라벨이 잘리지 않도록
+  const W_SVG = 620, H_SVG = 200;
+  const cy = 90;
+  const xCx = 50, sum1Cx = 165, reluCx = 290, sum2Cx = 415, yhCx = 565;
 
   // 순전파(구조)는 하늘색 계열, 역전파(신호)는 빨강 — 두 흐름이 한눈에 구분되도록.
   const FWD = '#0284c7';                // sky-600 (순전파/구조 — 항상 활성)
@@ -135,7 +147,7 @@ function MiniDiagram({ step, args }: { step: number; args: Args }) {
 
   return (
     <div className="rounded-md border border-border bg-bg/40 p-2">
-      <svg viewBox={`0 0 ${W_SVG} ${H_SVG}`} className="w-full" style={{ maxHeight: 150 }}>
+      <svg viewBox={`0 0 ${W_SVG} ${H_SVG}`} className="w-full" style={{ maxHeight: 240 }}>
         <defs>
           <marker id="dv-back" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
             <path d="M0,0 L6,3 L0,6 z" fill={BACK} />
@@ -247,11 +259,11 @@ function MiniDiagram({ step, args }: { step: number; args: Args }) {
         )}
       </svg>
       <div className="text-[13px] text-muted leading-snug px-1 pb-1 pt-0.5">
-        {step <= 1 && '단계를 펼칠수록 *역전파 신호가 거꾸로 흘러* 활성 부분이 빨갛게 누적됩니다.'}
+        {step <= 1 && emph('단계를 펼칠수록 *역전파 신호가 거꾸로 흘러* 활성 부분이 빨갛게 누적됩니다.')}
         {step === 2 && 'ŷ에서 측정된 오차 e가 출발점.'}
         {(step === 3 || step === 4) && 'ŷ → Σ₂ 사이로 dw₂·db₂ 신호. 출력층 가중치 그래디언트.'}
-        {step === 5 && '★ Σ₂ → ReLU 사이로 *w₂를 거꾸로 통과* — h의 오차 e_h.'}
-        {step === 6 && '★ ReLU 박스 내부 *문지기 거꾸로 통과* — z₁의 오차 e_z₁.'}
+        {step === 5 && emph('★ Σ₂ → ReLU 사이로 *w₂를 거꾸로 통과* — h의 오차 e_h.')}
+        {step === 6 && emph('★ ReLU 박스 내부 *문지기 거꾸로 통과* — z₁의 오차 e_z₁.')}
         {(step === 7 || step === 8) && 'ReLU → Σ₁ → x 사이로 dw₁·db₁ 신호. 입력층까지 도달.'}
       </div>
     </div>
@@ -272,7 +284,7 @@ export function BackpropDerivation(props: Args) {
         const lastBox = stepsContainerRef.current?.lastElementChild as HTMLElement | null;
         if (lastBox) {
           const rect = lastBox.getBoundingClientRect();
-          const STICKY_OFFSET = 230;
+          const STICKY_OFFSET = 320; // sticky 다이어그램 영역(SVG 240 + 캡션 ~60) + 여유 20
           const targetY = window.scrollY + rect.top - STICKY_OFFSET;
           window.scrollTo({ top: Math.max(0, targetY), behavior: 'auto' });
         }
@@ -293,9 +305,9 @@ export function BackpropDerivation(props: Args) {
       </div>
       <p className="text-[14px] text-muted mt-1.5 leading-relaxed">
         모든 식은 <strong>사슬규칙(연쇄법칙)</strong>에서 한 줄씩 나옵니다.
-        아래 미니 다이어그램은 *지금까지 펼친 단계*에 해당하는 부분만 빨갛게 강조 —
+        아래 미니 다이어그램은 <strong>지금까지 펼친 단계</strong>에 해당하는 부분만 빨갛게 강조 —
         식과 그림이 어디서 만나는지 한눈에 보이도록.
-        식 아래 <span style={{ color: 'rgb(190,18,60)' }}>붉은 줄</span>은 *지금 사이클의 수치 대입*.
+        식 아래 <span style={{ color: 'rgb(190,18,60)' }}>붉은 줄</span>은 <strong>지금 사이클의 수치 대입</strong>.
       </p>
 
       {/* 미니 다이어그램 — sticky로 viewport 상단에 고정. 단계 펼쳐 카드가 길어져도 항상 보임. */}
@@ -339,7 +351,7 @@ export function BackpropDerivation(props: Args) {
                     {s.numeric}
                   </pre>
                 )}
-                <div className="text-[13.5px] text-muted mt-2.5 leading-relaxed">{s.why}</div>
+                <div className="text-[13.5px] text-muted mt-2.5 leading-relaxed">{emph(s.why)}</div>
               </div>
             </div>
           </div>

@@ -53,7 +53,7 @@ export function PhaseC2Derive() {
       <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
       <h1>{meta.title}</h1>
       <p className="mt-3 text-base leading-relaxed">
-        C1에서 본 <strong className="text-accent">빨간 화살표</strong> — 출력 오차가 *거꾸로 흘러* 가중치를 고쳐 주던 신호 —
+        C1에서 본 <strong className="text-accent">빨간 화살표</strong> — 출력 오차가 <strong>거꾸로 흘러</strong> 가중치를 고쳐 주던 신호 —
         그 옆에 적힌 식들(<code>dw₂ = e·h</code>, <code>e_h = e·w₂</code> …)은 도대체 어디서 나온 걸까요?
       </p>
       <p className="mt-2 text-base leading-relaxed">
@@ -85,7 +85,7 @@ export function PhaseC2Derive() {
         </div>
         <p>
           역전파는 마법이 아니라 <strong>합성 함수의 미분</strong>입니다 —{' '}
-          출력 오차 e가 *가중치 거꾸로*(w₂)와 *활성함수 거꾸로*(ReLU′) 두 단계를 통과하며 입력층까지 흘러갑니다.
+          출력 오차 e가 <strong>가중치 거꾸로</strong>(w₂)와 <strong>활성함수 거꾸로</strong>(ReLU′) 두 단계를 통과하며 입력층까지 흘러갑니다.
           A4의 <code>dw = e·x</code> 패턴이 모든 층에 그대로 반복되고, e 자리에는 그 층까지 흘러온 오차가 들어갈 뿐입니다.
         </p>
         <p className="mt-2 text-[14px]">
