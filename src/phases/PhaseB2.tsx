@@ -21,9 +21,8 @@ import {
 } from '../lib/nn';
 
 /* ────────── 학습 조건 ──────────
-   동그라미 vs 세모, 출력 뉴런 2개의 *진짜* 선형 softmax 분류기.
-   baseline(전처리 없음)이 70% 안팎이 되도록 데이터를 더럽게 만든다(아래 SYN_DIRTY).
-   cleaned(전처리 후)는 90% 이상으로 올라간다 — 차이 약 +20%p. */
+   세모 vs 네모, 출력 뉴런 2개의 진짜 hidden+softmax 분류기 (createDeepMLP+trainStep).
+   baseline(전처리 없음)은 60%대, cleaned(전처리 후)는 76%대로 +16%p 차이가 결정론적으로 나온다. */
 // 세모 vs 네모 — 선의 방향(대각 vs 수직·수평)이 hidden 뉴런 가중치 히트맵에 *모서리 방향*으로 또렷이 드러난다.
 const TASK_LABELS: [ShapeLabel, ShapeLabel] = ['triangle', 'square'];
 // dirty 라벨이 *결정 경계*를 충분히 흐리도록 epoch을 길게 + LR을 키워 약간 overfit하게 만든다.
@@ -39,9 +38,9 @@ const TASK_LABEL_KO = (l: ShapeLabel) => SHAPE_LABEL_KO[l];
 const labelIdx = (l: ShapeLabel) => TASK_LABELS.indexOf(l);
 
 /* ────────── 합성 dirty 샘플 — B2 안에서만 살아 있음 ──────────
-   "동그라미라고 적혀 있지만 그림은 세모", "세모라고 적혀 있지만 그림은 동그라미" 등
-   서로 모순되는 라벨을 가진 12장. 학생 갤러리에 다른 샘플과 섞어 보여 주고,
-   학생이 클릭으로 제외해야 한다. 이 샘플들은 store에 들어가지 않으므로 B3 이후에는 사라진다. */
+   "세모라고 적혀 있지만 그림은 네모", "네모라고 적혀 있지만 그림은 세모" 등
+   서로 모순되는 라벨을 가진 4장. 학생 갤러리에 섞어 보여 주고 학생이 클릭으로 제외하게 만든다.
+   store에 들어가지 않으므로 B3 이후에는 사라진다. */
 const SIZE = 8;
 const at = (x: number, y: number) => y * SIZE + x;
 function _drawCircle(cx: number, cy: number, r: number): number[] {

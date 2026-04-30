@@ -1,6 +1,6 @@
 // PhaseB4 — 이진 분류 모델 학습 (시그모이드 출력 뉴런 1개)
 // 출력 뉴런 하나가 점수 z를 만들고, σ(z)로 0~1 사이 확률을 만든다.
-// 0.5를 기준으로 동그라미(σ<0.5)와 세모(σ≥0.5)를 가른다.
+// 0.5를 기준으로 세모(σ<0.5)와 네모(σ≥0.5)를 가른다.
 // 진짜 미니배치 SGD: createDeepMLP([..., 1], 'sigmoid') + trainStep + shuffle.
 // 평가 데이터는 useActiveEval()로 B3 분할과 자동 연동.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -16,8 +16,8 @@ import {
 import { type DotSample, type ShapeLabel, SHAPE_LABEL_KO } from '../data/dotShapes';
 import { PHASES } from '../phases';
 
-// 라벨 해석 — y=0 동그라미(σ<0.5), y=1 세모(σ≥0.5)
-const TARGET_LABELS: [ShapeLabel, ShapeLabel] = ['circle', 'triangle'];
+// 라벨 해석 — y=0 세모(σ<0.5), y=1 네모(σ≥0.5)
+const TARGET_LABELS: [ShapeLabel, ShapeLabel] = ['triangle', 'square'];
 const NEG_LABEL = TARGET_LABELS[0];
 const POS_LABEL = TARGET_LABELS[1];
 const BATCH_SIZE = 16;
@@ -98,7 +98,7 @@ export function PhaseB4() {
   useEffect(() => () => { cancelRef.current = true; }, []);
 
   function labelIdx(lbl: ShapeLabel): number {
-    return TARGET_LABELS.indexOf(lbl);  // 0(circle) | 1(triangle)
+    return TARGET_LABELS.indexOf(lbl);  // 0(triangle) | 1(square)
   }
 
   async function startTraining() {
@@ -222,11 +222,11 @@ export function PhaseB4() {
       <p className="text-muted mt-2 text-sm">{meta.subtitle}</p>
 
       <p className="mt-4 text-[15px] leading-relaxed">
-        라벨 후보가 <strong>동그라미</strong>·<strong>세모</strong> 둘이라서 출력 뉴런 하나면 충분해요.
+        라벨 후보가 <strong>세모</strong>·<strong>네모</strong> 둘이라서 출력 뉴런 하나면 충분해요.
         그 뉴런이 점수 <span className="font-mono">z</span>를 만들고, <strong>시그모이드</strong>가
         그 점수를 <span className="font-mono">0~1 사이 확률</span>로 바꿉니다.
         확률이 <span className="font-mono">0.5</span>보다 크면 <strong>{SHAPE_LABEL_KO[POS_LABEL]}</strong>,
-        작으면 <strong>{SHAPE_LABEL_KO[NEG_LABEL]}</strong>으로 답해요.
+        작으면 <strong>{SHAPE_LABEL_KO[NEG_LABEL]}</strong>로 답해요.
       </p>
 
       {/* ── 메인 한 viewport ── */}
@@ -269,7 +269,7 @@ export function PhaseB4() {
             {logs.length === 0 && model && (
               <div className="mt-2 text-[11px] text-muted bg-surface/50 border border-dashed border-border rounded-md px-2 py-1.5 leading-snug">
                 <strong>학습 전</strong> — 지금 보이는 가중치는 작은 <strong>랜덤 초기값</strong>이에요.
-                의미 없는 노이즈 패턴이 학습 시작 후 점점 동그라미·세모를 구분하는 모양으로 바뀝니다.
+                의미 없는 노이즈 패턴이 학습 시작 후 점점 세모·네모를 구분하는 모양으로 바뀝니다.
               </div>
             )}
             <NetworkViz
@@ -529,7 +529,7 @@ function PickedScoreCard({ sample, score }: {
       {/* 시그모이드 출력 — 0~1 막대, 0.5 기준선 */}
       <div className="mt-2.5">
         <div className="flex items-baseline justify-between text-[11px]">
-          <span className="text-muted">σ(z) 막대 — 0이면 동그라미, 1이면 세모</span>
+          <span className="text-muted">σ(z) 막대 — 0이면 세모, 1이면 네모</span>
           <span className="font-mono">{score.sigma.toFixed(3)}</span>
         </div>
         <div className="relative mt-1 h-3 bg-surface rounded-sm overflow-hidden border border-border">
@@ -1132,11 +1132,11 @@ function ColorLegend() {
     <div className="mt-1 flex items-center justify-center gap-3 text-[10px] text-muted flex-wrap">
       <span className="flex items-center gap-1">
         <span className="inline-block w-3 h-3 rounded-sm" style={{ background: 'rgb(190,18,60)' }} />
-        −가중치 (동그라미 쪽으로 끌어내림)
+        −가중치 (세모 쪽으로 끌어내림)
       </span>
       <span className="flex items-center gap-1">
         <span className="inline-block w-3 h-3 rounded-sm" style={{ background: 'rgb(59,130,246)' }} />
-        +가중치 (세모 쪽으로 끌어올림)
+        +가중치 (네모 쪽으로 끌어올림)
       </span>
     </div>
   );

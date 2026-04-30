@@ -30,10 +30,10 @@ export const PHASES: PhaseMeta[] = [
   { id: 'a6', num: 'A6', title: '기온 예측 프로젝트', subtitle: '인공 뉴런 1개로 서울 기온 회귀',         group: 'A. 알고리즘의 이해' },
 
   // B. 데이터 수집·학습·분류 출력 — 도트 데이터 하나로 통일
-  { id: 'b1', num: 'B1', title: '문제 정의와 라벨',         subtitle: '동그라미 vs 세모, 입력·특징·정답',     group: 'B. 데이터·학습·분류 출력' },
+  { id: 'b1', num: 'B1', title: '문제 정의와 라벨',         subtitle: '세모 vs 네모, 입력·특징·정답',         group: 'B. 데이터·학습·분류 출력' },
   { id: 'b2', num: 'B2', title: '데이터셋과 전처리',        subtitle: '기본 데이터 + 정제할 샘플 찾기',       group: 'B. 데이터·학습·분류 출력' },
   { id: 'b3', num: 'B3', title: '학습 / 평가 데이터 나누기', subtitle: '왜 나눠야 하는가',                     group: 'B. 데이터·학습·분류 출력' },
-  { id: 'b4', num: 'B4', title: '이진 분류 모델 학습',      subtitle: '동그라미 vs 세모, 시그모이드 출력 1개', group: 'B. 데이터·학습·분류 출력' },
+  { id: 'b4', num: 'B4', title: '이진 분류 모델 학습',      subtitle: '세모 vs 네모, 시그모이드 출력 1개',     group: 'B. 데이터·학습·분류 출력' },
 
   // C. 딥러닝 — 직관(C1) → 식 유도(C2) → 응용(C3)
   { id: 'c1', num: 'C1', title: '역전파 직관',     subtitle: '한 사이클의 6단계 — 거꾸로 흐르는 신호', group: 'C. 딥러닝' },

@@ -3,7 +3,7 @@ import type { PhaseId } from '../phases';
 
 const PREVIEWS: Partial<Record<PhaseId, string[]>> = {
   b1: [
-    '도트 그림 분류 — 입력 8×8=64 픽셀, 라벨 동그라미/세모',
+    '도트 그림 분류 — 입력 8×8=64 픽셀, 라벨 세모/네모',
     '회귀(A6) → 분류(B)로 질문이 바뀌는 지점',
   ],
   b2: [
@@ -15,7 +15,7 @@ const PREVIEWS: Partial<Record<PhaseId, string[]>> = {
     '"평가 데이터를 보고 모델 구조를 고치면 부정행위"',
   ],
   b4: [
-    '동그라미 vs 세모 — 출력 뉴런 1개 + 시그모이드',
+    '세모 vs 네모 — 출력 뉴런 1개 + 시그모이드',
     'epoch 한 줄 직관',
   ],
   c1: ['역전파 — 깊은 망의 가중치는 거꾸로 흘러 갱신된다'],

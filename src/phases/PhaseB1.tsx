@@ -21,7 +21,7 @@ const FLOW: { id: string; title: string; body: string }[] = [
   {
     id: 'b4',
     title: 'B4 · 시그모이드로 이진 분류',
-    body: '동그라미 vs 세모 — 출력 뉴런 1개의 점수를 0~1 확률로 바꿔서 0.5를 기준으로 골라요.',
+    body: '세모 vs 네모 — 출력 뉴런 1개의 점수를 0~1 확률로 바꿔서 0.5를 기준으로 골라요.',
   },
 ];
 
@@ -30,9 +30,9 @@ export function PhaseB1() {
   const markCompleted = useApp((s) => s.markCompleted);
   const samples = useDot((s) => s.samples);
 
-  // 라벨별 깨끗한(노이즈/오라벨 없는) 샘플 5~6장씩. 분류 대상은 동그라미/세모 두 개.
+  // 라벨별 깨끗한(노이즈/오라벨 없는) 샘플 5~6장씩. 분류 대상은 세모/네모 두 개.
   const gallery = useMemo(() => {
-    const labels: ShapeLabel[] = ['circle', 'triangle'];
+    const labels: ShapeLabel[] = ['triangle', 'square'];
     const map: Record<ShapeLabel, DotSample[]> = { circle: [], triangle: [], square: [] };
     for (const s of samples) {
       if (s.mislabel || s.noisy) continue;
@@ -62,7 +62,7 @@ export function PhaseB1() {
       {/* 도입 — 회귀 → 분류 한 단락 */}
       <p className="leading-relaxed text-[15px]">
         지금까지는 <strong>숫자(기온)</strong>를 맞췄어요. 이제부터는 <strong>종류</strong>를 맞힙니다 —
-        그림이 동그라미인가, 세모인가? B 영역에서는 도트로 그린 작은 그림 한 묶음을 가지고
+        그림이 세모인가, 네모인가? B 영역에서는 도트로 그린 작은 그림 한 묶음을 가지고
         분류 모델을 처음부터 끝까지 따라 만들어요.
       </p>
 
@@ -74,7 +74,7 @@ export function PhaseB1() {
         </div>
         <div className="card p-2.5">
           <div className="font-medium mb-0.5">라벨이란?</div>
-          <div className="text-muted">각 그림에 붙은 정답(동그라미·세모)을 라벨이라고 불러요.</div>
+          <div className="text-muted">각 그림에 붙은 정답(세모·네모)을 라벨이라고 불러요.</div>
         </div>
         <div className="card p-2.5">
           <div className="font-medium mb-0.5">입력 형식</div>

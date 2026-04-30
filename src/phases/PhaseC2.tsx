@@ -168,10 +168,10 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
     <article>
       <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
       <h1>{meta.title}</h1>
-      {/* B5 → C2 다리. "같은 구조" 표현 금지. */}
+      {/* B4 → C2 다리. "같은 구조" 표현 금지. */}
       <p className="mt-2 text-sm leading-relaxed">
-        B5에서는 출력 뉴런 3개로 동그라미·세모·네모를 갈랐죠. MNIST는 입력이 28×28로 훨씬 크고, 출력 뉴런을 10개로 늘려 0~9 숫자를 가립니다.
-        softmax로 확률을 만든다는 출력층의 원리는 같지만, <strong>C1에서 본 역전파</strong>가 모든 층에 동시 적용되어 은닉층을 더 키워도 학습이 가능합니다.
+        B4에서는 출력 뉴런 1개로 세모·네모를 시그모이드로 갈랐죠. MNIST는 입력이 28×28로 훨씬 크고, 출력 뉴런을 10개로 늘려 0~9 숫자를 가립니다.
+        시그모이드 대신 <strong>softmax</strong>로 여러 클래스의 확률을 동시에 만들고, <strong>C1에서 본 역전파</strong>가 모든 층에 동시 적용되어 은닉층을 더 키워도 학습이 가능합니다.
       </p>
 
       <div className="aside-tip mt-3 text-sm">

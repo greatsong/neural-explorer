@@ -7,8 +7,8 @@ import { useDot, useActiveSamples, useActiveTrain, useActiveEval } from '../dotS
 import { type DotSample, type ShapeLabel, SHAPE_LABEL_KO } from '../data/dotShapes';
 import { PHASES } from '../phases';
 
-// B4가 사용하는 두 라벨만 분할 통계에 표시 (square는 데이터셋엔 있어도 분류 대상이 아님)
-const SHAPE_LABEL_LIST: ShapeLabel[] = ['circle', 'triangle'];
+// B4가 사용하는 두 라벨만 분할 통계에 표시 (circle은 데이터셋엔 있어도 분류 대상이 아님)
+const SHAPE_LABEL_LIST: ShapeLabel[] = ['triangle', 'square'];
 
 export function PhaseB3() {
   const meta = PHASES.find((p) => p.id === 'b3')!;
@@ -37,10 +37,10 @@ export function PhaseB3() {
   }
 
   // 라벨별 카운트 — *실제 분할 결과*에서 산출
-  // square 데이터는 분류 대상이 아니라 표·갤러리에서 모두 제외한다
-  const activeBin = active.filter((s) => s.label !== 'square');
-  const trainBin = trainData.filter((s) => s.label !== 'square');
-  const evalBin = evalData.filter((s) => s.label !== 'square');
+  // circle 데이터는 분류 대상이 아니라 표·갤러리에서 모두 제외한다
+  const activeBin = active.filter((s) => s.label !== 'circle');
+  const trainBin = trainData.filter((s) => s.label !== 'circle');
+  const evalBin = evalData.filter((s) => s.label !== 'circle');
 
   const labelCounts: Record<ShapeLabel, { total: number; train: number; evalN: number }> = {
     circle: { total: 0, train: 0, evalN: 0 },
