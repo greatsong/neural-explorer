@@ -27,9 +27,12 @@ function buildSteps(a: Args): DerivStep[] {
   return [
     {
       tex:
-        `L = \\tfrac{1}{2}(\\hat{y} - y)^2,\\quad ` +
-        `\\hat{y} = z_2 = w_2 h + b_2,\\quad ` +
-        `h = \\text{ReLU}(z_1),\\quad z_1 = w_1 x + b_1`,
+        `\\begin{aligned}` +
+        `L &= \\tfrac{1}{2}(\\hat{y} - y)^2 \\\\ ` +
+        `\\hat{y} &= z_2 = w_2 h + b_2 \\\\ ` +
+        `h &= \\text{ReLU}(z_1) \\\\ ` +
+        `z_1 &= w_1 x + b_1` +
+        `\\end{aligned}`,
       why:
         '함수 합성 — x 한 점이 두 층을 통과해 손실 L까지 가는 전체 식. ' +
         '아래 모든 그래디언트는 이 합성에서 *사슬규칙*으로 한 줄씩 나옵니다.',
@@ -43,9 +46,11 @@ function buildSteps(a: Args): DerivStep[] {
     },
     {
       tex:
+        `\\begin{aligned}` +
         `\\dfrac{\\partial L}{\\partial w_2} ` +
-        `= \\dfrac{\\partial L}{\\partial \\hat{y}} \\cdot \\dfrac{\\partial \\hat{y}}{\\partial w_2} ` +
-        `= e \\cdot h`,
+        `&= \\dfrac{\\partial L}{\\partial \\hat{y}} \\cdot \\dfrac{\\partial \\hat{y}}{\\partial w_2} \\\\ ` +
+        `&= e \\cdot h` +
+        `\\end{aligned}`,
       why:
         'w₂ → ŷ → L 사슬. ŷ = w₂h + b₂에서 w₂가 1 변하면 ŷ은 h만큼 변하므로 ' +
         '곱해지는 것은 h. A4의 *e·x* 모양 그대로 — "그 층의 입력"이 x에서 h로 바뀐 것.',
@@ -60,9 +65,11 @@ function buildSteps(a: Args): DerivStep[] {
     },
     {
       tex:
-        `\\boxed{\\;e_h \\equiv \\dfrac{\\partial L}{\\partial h} ` +
-        `= \\dfrac{\\partial L}{\\partial \\hat{y}} \\cdot \\dfrac{\\partial \\hat{y}}{\\partial h} ` +
-        `= e \\cdot w_2\\;}`,
+        `\\begin{aligned}` +
+        `e_h \\equiv \\dfrac{\\partial L}{\\partial h} ` +
+        `&= \\dfrac{\\partial L}{\\partial \\hat{y}} \\cdot \\dfrac{\\partial \\hat{y}}{\\partial h} \\\\ ` +
+        `&= e \\cdot w_2` +
+        `\\end{aligned}`,
       why:
         '★ h → ŷ → L 사슬. ŷ = w₂h + b₂에서 *h가 1 변하면 ŷ은 w₂만큼 변한다* — ' +
         '그래서 거꾸로 흐를 때도 같은 w₂가 곱해집니다. ' +
@@ -72,25 +79,27 @@ function buildSteps(a: Args): DerivStep[] {
     },
     {
       tex:
-        `\\boxed{\\;e_{z_1} \\equiv \\dfrac{\\partial L}{\\partial z_1} ` +
-        `= \\dfrac{\\partial L}{\\partial h} \\cdot \\dfrac{\\partial h}{\\partial z_1} ` +
-        `= e_h \\cdot \\text{ReLU}'(z_1)\\;}`,
+        `\\begin{aligned}` +
+        `e_{z_1} \\equiv \\dfrac{\\partial L}{\\partial z_1} ` +
+        `&= \\dfrac{\\partial L}{\\partial h} \\cdot \\dfrac{\\partial h}{\\partial z_1} \\\\ ` +
+        `&= e_h \\cdot \\text{ReLU}'(z_1)` +
+        `\\end{aligned}`,
       why:
         '★ z₁ → h → L 사슬. h = ReLU(z₁)이라 ∂h/∂z₁ = ReLU′(z₁) — z₁ > 0이면 1, ≤ 0이면 0. ' +
         '*ReLU 문지기*가 식에 등장하는 자리. 이번 사이클은 z₁ > 0이라 1이 곱해져 ' +
         'e_h와 e_z₁이 같은 수치가 되지만, *통과 단계 자체는 식에 명시*됩니다.',
       numeric:
         `= ${fSign(a.eh)} \\cdot ${a.reluP} = ${f(a.ez1)}` +
-        (a.reluP === 1
-          ? '\\;\\;(\\text{문지기 열림 — 같은 값})'
-          : '\\;\\;(\\text{문지기 막힘 — 신호 끊김})'),
+        (a.reluP === 1 ? '\\;\\;\\text{(문지기 열림)}' : '\\;\\;\\text{(문지기 막힘)}'),
       highlight: true,
     },
     {
       tex:
+        `\\begin{aligned}` +
         `\\dfrac{\\partial L}{\\partial w_1} ` +
-        `= \\dfrac{\\partial L}{\\partial z_1} \\cdot \\dfrac{\\partial z_1}{\\partial w_1} ` +
-        `= e_{z_1} \\cdot x`,
+        `&= \\dfrac{\\partial L}{\\partial z_1} \\cdot \\dfrac{\\partial z_1}{\\partial w_1} \\\\ ` +
+        `&= e_{z_1} \\cdot x` +
+        `\\end{aligned}`,
       why:
         'w₁ → z₁ → h → ŷ → L의 긴 사슬을 적은 결과 — 마지막 곱은 z₁ = w₁x + b₁에서 ' +
         '∂z₁/∂w₁ = x. 다시 *e·x* 모양 (e 자리에 z₁까지 거꾸로 흘러온 e_z₁).',
