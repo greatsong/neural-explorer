@@ -1,6 +1,8 @@
 // PhaseC1 — 역전파 알고리즘의 이해
 // 인공 뉴런 2개 직렬(입력 → 뉴런 1 → 뉴런 2 → 출력), 데이터 1쌍(x=2, y=5)으로 한 step의 6단계를 따라간다.
-// 1쌍으로 단순화 — 평균 없이 e, e_h, dw가 직관적으로 이어진다.
+// 1쌍으로 단순화 — 평균 없이 e, e_h, e_z₁, dw가 직관적으로 이어진다.
+// e_h = e·w₂ 는 *h의 진짜 오차*(∂L/∂h), e_z₁ = e_h·ReLU′(z₁) 는 z₁의 오차(∂L/∂z₁).
+// ReLU′=1이면 두 값이 같은 수치라 "ReLU 문지기"가 식에서 명시적으로 보인다.
 // 다이어그램은 단계마다 *그 단계에서 새로 등장하는 라벨만* 보여 글자 겹침을 제거.
 
 import { useEffect, useRef, useState } from 'react';
@@ -20,7 +22,8 @@ interface Trace {
   z1: number; h: number; z2: number; yhat: number; reluP: 0 | 1;
   e: number;
   dw2: number; db2: number;
-  eh: number;
+  eh: number;       // ∂L/∂h = e · w₂  (h의 오차)
+  ez1: number;      // ∂L/∂z₁ = eh · ReLU′(z₁)  (z₁의 오차)
   dw1: number; db1: number;
   loss: number;
 }
@@ -33,11 +36,12 @@ function trace(W: Weights): Trace {
   const e = yhat - SAMPLE.y;
   const dw2 = e * h;
   const db2 = e;
-  const eh = e * W.w2 * reluP;
-  const dw1 = eh * SAMPLE.x;
-  const db1 = eh;
+  const eh = e * W.w2;          // h의 오차 (활성함수 거치기 전)
+  const ez1 = eh * reluP;       // z₁의 오차 (ReLU 문지기 통과 후)
+  const dw1 = ez1 * SAMPLE.x;
+  const db1 = ez1;
   const loss = 0.5 * e * e;
-  return { z1, h, z2, yhat, reluP, e, dw2, db2, eh, dw1, db1, loss };
+  return { z1, h, z2, yhat, reluP, e, dw2, db2, eh, ez1, dw1, db1, loss };
 }
 
 function applyStep(W: Weights, t: Trace): Weights {
@@ -55,8 +59,8 @@ const STAGES: { id: StageId; num: number; label: string; sub: string }[] = [
   { id: 'predict',      num: 1, label: '예측',          sub: 'x → z₁ → h → z₂ → ŷ' },
   { id: 'error',        num: 2, label: '오차',          sub: 'e = ŷ − y' },
   { id: 'outputGrad',   num: 3, label: '출력층 기울기', sub: 'dw₂ = e·h,  db₂ = e' },
-  { id: 'hiddenSignal', num: 4, label: '거꾸로 흐른 신호',   sub: 'e_h = e · w₂ · ReLU′(z₁)  ← 역전파 핵심' },
-  { id: 'hiddenGrad',   num: 5, label: '뉴런 1 기울기', sub: 'dw₁ = e_h·x,  db₁ = e_h' },
+  { id: 'hiddenSignal', num: 4, label: '거꾸로 흐른 신호',   sub: 'e_h = e·w₂  →  e_z₁ = e_h·ReLU′(z₁)  ← 역전파 핵심' },
+  { id: 'hiddenGrad',   num: 5, label: '뉴런 1 기울기', sub: 'dw₁ = e_z₁·x,  db₁ = e_z₁' },
   { id: 'update',       num: 6, label: '갱신',          sub: 'w ← w − η·dw' },
 ];
 
@@ -141,7 +145,7 @@ export function PhaseC1() {
         A1에서 본 *인공 뉴런이 2개 직렬*(입력 → 뉴런 1 → 뉴런 2 → 출력)로 연결된 가장 작은 망에 *데이터 1쌍*(x = {SAMPLE.x}, y = {SAMPLE.y})만 두고
         한 step의 6단계를 따라가요. <strong>다음 단계 →</strong>를 한 번씩 누르며
         예측 → 오차 → 뉴런 2 기울기 → 거꾸로 흐른 신호 → 뉴런 1 기울기 → 갱신이 어떤 숫자로 이어지는지 직접 보세요.
-        <strong> 거꾸로 흐른 신호</strong> 단계가 역전파의 핵심입니다.
+        <strong> 거꾸로 흐른 신호</strong> 단계가 역전파의 핵심 — 출력 오차가 *w₂를 거꾸로 통과*해 h의 오차가 되고, 다시 *ReLU 문지기*를 거꾸로 통과해 z₁의 오차가 됩니다.
       </p>
 
       {/* 모드 토글 */}
@@ -388,16 +392,29 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
             </text>
           </g>
         )}
-        {/* e_h — ReLU 박스 아래 */}
+        {/* e_h — ReLU 우측(h 쪽). h의 오차 = e·w₂ */}
         {opEh > 0 && (
           <g>
-            <text x={reluCx} y={cy + 80} textAnchor="middle"
+            <text x={(reluCx + sum2Cx) / 2} y={cy + 80} textAnchor="middle"
                   fontSize={12} fontFamily="JetBrains Mono" fill={BACK} fontWeight={600}>
               e_h = {t.eh.toFixed(2)}
             </text>
-            <text x={reluCx} y={cy + 96} textAnchor="middle"
+            <text x={(reluCx + sum2Cx) / 2} y={cy + 96} textAnchor="middle"
                   fontSize={9} fontFamily="JetBrains Mono" fill={BACK}>
-              = e · w₂ · ReLU′(z₁)
+              = e · w₂
+            </text>
+          </g>
+        )}
+        {/* e_z₁ — ReLU 좌측(z₁ 쪽). ReLU′ 문지기 통과 후 = e_h · ReLU′(z₁) */}
+        {opEh > 0 && (
+          <g>
+            <text x={(sum1Cx + reluCx) / 2} y={cy + 80} textAnchor="middle"
+                  fontSize={12} fontFamily="JetBrains Mono" fill={BACK} fontWeight={600}>
+              e_z₁ = {t.ez1.toFixed(2)}
+            </text>
+            <text x={(sum1Cx + reluCx) / 2} y={cy + 96} textAnchor="middle"
+                  fontSize={9} fontFamily="JetBrains Mono" fill={BACK}>
+              = e_h · ReLU′({t.reluP})
             </text>
           </g>
         )}
@@ -487,12 +504,15 @@ function ActiveFormulaStrip({ W, t, stage }: { W: Weights; t: Trace; stage: Stag
           </>
         )}
         {stage === 'hiddenSignal' && (
-          <div>e_h = e·w₂·ReLU′(z₁) = <Sub><Err>{t.e.toFixed(2)}</Err>·{W.w2.toFixed(2)}·{t.reluP}</Sub> = <Err>{t.eh.toFixed(2)}</Err></div>
+          <>
+            <div>e_h = e·w₂ = <Sub><Err>{t.e.toFixed(2)}</Err>·{W.w2.toFixed(2)}</Sub> = <Err>{t.eh.toFixed(2)}</Err> <Note>(h의 오차 — w₂ 거꾸로)</Note></div>
+            <div>e_z₁ = e_h·ReLU′(z₁) = <Sub><Err>{t.eh.toFixed(2)}</Err>·{t.reluP}</Sub> = <Err>{t.ez1.toFixed(2)}</Err> {t.reluP === 1 ? <Note>(ReLU′=1 → 문지기 열려 있어 같은 값)</Note> : <Note>(ReLU′=0 → 문지기 막혀 신호 끊김)</Note>}</div>
+          </>
         )}
         {stage === 'hiddenGrad' && (
           <>
-            <div>dw₁ = e_h·x = <Sub><Err>{t.eh.toFixed(2)}</Err>·{SAMPLE.x}</Sub> = <Acc>{t.dw1.toFixed(2)}</Acc></div>
-            <div>db₁ = e_h = <Err>{t.db1.toFixed(2)}</Err></div>
+            <div>dw₁ = e_z₁·x = <Sub><Err>{t.ez1.toFixed(2)}</Err>·{SAMPLE.x}</Sub> = <Acc>{t.dw1.toFixed(2)}</Acc></div>
+            <div>db₁ = e_z₁ = <Err>{t.db1.toFixed(2)}</Err></div>
           </>
         )}
         {stage === 'update' && (
@@ -520,9 +540,9 @@ function whyFor(stage: StageId, t: Trace): string {
       : 'e가 0이라 갱신 없음 — 이미 정답.';
   if (stage === 'outputGrad') return 'A4의 dw = e·x 식 그대로. 출력층 입장에서 그 층의 입력은 뉴런 1 출력 h.';
   if (stage === 'hiddenSignal') return t.reluP === 0
-    ? 'ReLU′(z₁)=0 — 길이 막혀 신호 끊김 (Dying ReLU). 뉴런 1 가중치는 갱신 안 됨.'
-    : '출력의 e가 w₂를 거꾸로 곱해져 뉴런 1까지 전달. 이 거꾸로 흐름이 곧 *역전파*.';
-  if (stage === 'hiddenGrad') return 'A4의 dw = e·x 식이 다시. e 자리에 e_h(전달받은 오차), x 자리에 이 층의 입력 x.';
+    ? 'e_h = e·w₂ 까지는 살아 있지만 ReLU′(z₁)=0 — 문지기가 막혀 e_z₁=0 (Dying ReLU). 뉴런 1 가중치는 갱신 안 됨.'
+    : '두 번 거꾸로: ① w₂ 통과 → h의 오차 e_h, ② ReLU′ 통과 → z₁의 오차 e_z₁. 이번엔 ReLU′=1이라 두 값이 같은 수치. 이 거꾸로 흐름이 *역전파*.';
+  if (stage === 'hiddenGrad') return 'A4의 dw = e·x 식이 다시. e 자리에 e_z₁(z₁까지 거꾸로 흘러온 오차), x 자리에 이 층의 입력 x.';
   return '모든 기울기에 η를 곱해 *반대 방향*으로 4개 가중치를 동시에 움직임. 다음 step에서 ŷ이 정답에 더 가까워져 손실이 줄어요.';
 }
 
@@ -580,22 +600,27 @@ function FormulaCard({ W, t, stage }: { W: Weights; t: Trace; stage: StageId }) 
         </Line>
       </StageBox>
 
-      <StageBox id="hiddenSignal" num={4} label="거꾸로 흐른 신호 e_h ★ 역전파 핵심" stage={stage}
+      <StageBox id="hiddenSignal" num={4} label="거꾸로 흐른 신호 — w₂ 통과 → ReLU 통과 ★ 역전파 핵심" stage={stage}
         why={t.reluP === 0
-          ? 'ReLU′(z₁)=0 — z₁이 음수라 길이 막힘. 신호가 끊겨 e_h=0 (Dying ReLU). 뉴런 1 가중치는 갱신 안 됨.'
-          : '출력의 e가 w₂를 *거꾸로 곱해져* 뉴런 1까지 전달. ReLU′(z₁)=1이라 길이 열림. — 이 거꾸로 흐름이 곧 *역전파*.'}>
+          ? 'e_h(=e·w₂)는 살아 있지만 ReLU′(z₁)=0 — 문지기가 막혀 e_z₁=0 (Dying ReLU). 뉴런 1 가중치는 갱신 안 됨.'
+          : '두 번 거꾸로: ① w₂ 통과 → h의 오차 e_h, ② ReLU′ 통과 → z₁의 오차 e_z₁. ReLU′=1이라 두 값이 같은 수치 — 그러나 *통과 자체*는 식에 명시.'}>
         <Line>
-          e_h = e·w₂·ReLU′(z₁) = <Sub><Err>{t.e.toFixed(2)}</Err>·{W.w2.toFixed(2)}·{t.reluP}</Sub> = <Err>{t.eh.toFixed(2)}</Err>
+          e_h = e·w₂ = <Sub><Err>{t.e.toFixed(2)}</Err>·{W.w2.toFixed(2)}</Sub> = <Err>{t.eh.toFixed(2)}</Err>
+          {' '}<Note>(h의 오차 — w₂ 거꾸로 통과)</Note>
+        </Line>
+        <Line>
+          e_z₁ = e_h·ReLU′(z₁) = <Sub><Err>{t.eh.toFixed(2)}</Err>·{t.reluP}</Sub> = <Err>{t.ez1.toFixed(2)}</Err>
+          {' '}<Note>{t.reluP === 1 ? '(ReLU′=1, z₁>0이라 문지기 열림 → e_h와 같은 값)' : '(ReLU′=0, z₁≤0이라 문지기 막힘 → 끊김)'}</Note>
         </Line>
       </StageBox>
 
       <StageBox id="hiddenGrad" num={5} label="뉴런 1 기울기 — w₁·b₁를 얼마나" stage={stage}
-        why="A4의 dw = e·x 식이 다시. e 자리에 e_h(전달받은 오차), x 자리에 이 층의 입력 x. 깊은 망에서도 모든 층이 같은 모양.">
+        why="A4의 dw = e·x 식이 다시. e 자리에 e_z₁(z₁까지 거꾸로 흘러온 오차), x 자리에 이 층의 입력 x. 깊은 망에서도 모든 층이 같은 모양.">
         <Line>
-          dw₁ = e_h·x = <Sub><Err>{t.eh.toFixed(2)}</Err>·{SAMPLE.x}</Sub> = <Acc>{t.dw1.toFixed(2)}</Acc>
+          dw₁ = e_z₁·x = <Sub><Err>{t.ez1.toFixed(2)}</Err>·{SAMPLE.x}</Sub> = <Acc>{t.dw1.toFixed(2)}</Acc>
         </Line>
         <Line>
-          db₁ = e_h = <Err>{t.db1.toFixed(2)}</Err>
+          db₁ = e_z₁ = <Err>{t.db1.toFixed(2)}</Err>
         </Line>
       </StageBox>
 
@@ -616,7 +641,7 @@ function FormulaCard({ W, t, stage }: { W: Weights; t: Trace; stage: StageId }) 
       </StageBox>
 
       <div className="text-[10.5px] text-muted leading-snug pt-1 border-t border-border">
-        색 안내 — <Err>e·e_h·db</Err>(오차 계열) · <Acc>dw·새 가중치</Acc>(갱신 계열) · <Note>대입한 숫자</Note>는 흐림.
+        색 안내 — <Err>e·e_h·e_z₁·db</Err>(오차 계열) · <Acc>dw·새 가중치</Acc>(갱신 계열) · <Note>대입한 숫자</Note>는 흐림.
       </div>
     </div>
   );
