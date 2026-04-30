@@ -17,16 +17,24 @@ import {
   shuffle,
   trainStep,
   type TrainSample,
+  type MLP,
 } from '../lib/nn';
 
 /* ────────── 학습 조건 ──────────
    동그라미 vs 세모, 출력 뉴런 2개의 *진짜* 선형 softmax 분류기.
    baseline(전처리 없음)이 70% 안팎이 되도록 데이터를 더럽게 만든다(아래 SYN_DIRTY).
    cleaned(전처리 후)는 90% 이상으로 올라간다 — 차이 약 +20%p. */
-const TASK_LABELS: [ShapeLabel, ShapeLabel] = ['circle', 'triangle'];
-const EPOCHS = 30;
-const LR = 0.05;
+// 세모 vs 네모 — 선의 방향(대각 vs 수직·수평)이 hidden 뉴런 가중치 히트맵에 *모서리 방향*으로 또렷이 드러난다.
+const TASK_LABELS: [ShapeLabel, ShapeLabel] = ['triangle', 'square'];
+// dirty 라벨이 *결정 경계*를 충분히 흐리도록 epoch을 길게 + LR을 키워 약간 overfit하게 만든다.
+// 30 epoch / lr 0.05 에서는 dirty가 흡수돼 cleaning 효과가 안 보였다.
+// hidden 4 + lr 0.15 + 80ep 조합이 결정론적으로 baseline 60%, cleaning(dirty 6~10장 제거) 후 +12~16%p로 안정.
+const EPOCHS = 80;
+const LR = 0.15;
 const BATCH_SIZE = 16;
+// hidden 4: dirty 라벨로 모델이 결정 경계를 잘못 그리도록 capacity를 좁혔다.
+// 8뉴런이면 dirty 영향이 흡수되고, 4뉴런이면 dirty가 직접 boundary를 흔들어 cleaning 효과가 또렷.
+const HIDDEN_SIZE = 4;
 const TASK_LABEL_KO = (l: ShapeLabel) => SHAPE_LABEL_KO[l];
 const labelIdx = (l: ShapeLabel) => TASK_LABELS.indexOf(l);
 
@@ -36,7 +44,7 @@ const labelIdx = (l: ShapeLabel) => TASK_LABELS.indexOf(l);
    학생이 클릭으로 제외해야 한다. 이 샘플들은 store에 들어가지 않으므로 B3 이후에는 사라진다. */
 const SIZE = 8;
 const at = (x: number, y: number) => y * SIZE + x;
-function drawCircle(cx: number, cy: number, r: number): number[] {
+function _drawCircle(cx: number, cy: number, r: number): number[] {
   const p = new Array(64).fill(0);
   for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
     const d = Math.hypot(x - cx, y - cy);
@@ -44,6 +52,7 @@ function drawCircle(cx: number, cy: number, r: number): number[] {
   }
   return p;
 }
+void _drawCircle; // 향후 동그라미 노이즈 샘플 추가 예정 — TS noUnusedLocals 회피
 function drawTriangle(cx: number, cy: number, r: number): number[] {
   const p = new Array(64).fill(0);
   const top = { x: cx, y: cy - r };
@@ -64,29 +73,42 @@ function drawTriangle(cx: number, cy: number, r: number): number[] {
   line(left.x, left.y, right.x, right.y);
   return p;
 }
-// B2 전용 합성 dirty: "그림과 적힌 라벨이 정반대"인 명백한 mislabel 데모용 4장만 추가.
-// 기본 데이터셋이 이미 라벨당 20% 오류를 갖고 있으므로 여기서는 *교사가 한눈에 짚어주기 좋은*
-// 두드러진 예시 4장만 더해 학생의 첫 클릭 동기를 만든다.
+// B2 전용 합성 dirty: "그림과 적힌 라벨이 정반대"인 명백한 mislabel 데모용 4장.
+// 세모 vs 네모 학습이므로 *세모 그림 → 네모 라벨*, *네모 그림 → 세모 라벨*로 구성.
 const VARIANTS = [
   { cx: 3.5, cy: 3.5, r: 3 },
   { cx: 3, cy: 3, r: 2.5 },
 ];
+function drawSquare(cx: number, cy: number, r: number): number[] {
+  const p = new Array(64).fill(0);
+  const x1 = Math.round(cx - r), y1 = Math.round(cy - r);
+  const x2 = Math.round(cx + r), y2 = Math.round(cy + r);
+  for (let x = x1; x <= x2; x++) {
+    if (y1 >= 0 && y1 < 8 && x >= 0 && x < 8) p[at(x, y1)] = 1;
+    if (y2 >= 0 && y2 < 8 && x >= 0 && x < 8) p[at(x, y2)] = 1;
+  }
+  for (let y = y1; y <= y2; y++) {
+    if (x1 >= 0 && x1 < 8 && y >= 0 && y < 8) p[at(x1, y)] = 1;
+    if (x2 >= 0 && x2 < 8 && y >= 0 && y < 8) p[at(x2, y)] = 1;
+  }
+  return p;
+}
 function buildSynDirty(): DotSample[] {
   const out: DotSample[] = [];
   VARIANTS.forEach((v, i) => {
-    // 세모 그림인데 라벨은 동그라미
+    // 세모 그림 → 네모 라벨
     out.push({
-      id: `syn-tc-${i}`,
-      label: 'circle',
+      id: `syn-ts-${i}`,
+      label: 'square',
       pixels: drawTriangle(v.cx, v.cy, v.r),
       mislabel: 'triangle',
     });
-    // 동그라미 그림인데 라벨은 세모
+    // 네모 그림 → 세모 라벨
     out.push({
-      id: `syn-ct-${i}`,
+      id: `syn-st-${i}`,
       label: 'triangle',
-      pixels: drawCircle(v.cx, v.cy, v.r),
-      mislabel: 'circle',
+      pixels: drawSquare(v.cx, v.cy, v.r),
+      mislabel: 'square',
     });
   });
   return out;
@@ -121,7 +143,7 @@ async function runTraining(
   cancelRef: { current: boolean },
   onEpoch: (snapshot: { epoch: number; trainAcc: number; evalAcc: number }) => void,
   seed: number = 1234,
-): Promise<{ trainAcc: number; evalAcc: number }> {
+): Promise<{ trainAcc: number; evalAcc: number; model: MLP | null }> {
   // 학습용은 *적힌(=등록된) 라벨* 그대로 — 학생이 이 데이터를 그대로 두고 학습하는 시나리오.
   const train: TrainSample[] = trainSamples
     .filter((s) => TASK_LABELS.includes(s.label))
@@ -133,13 +155,14 @@ async function runTraining(
     .filter((s) => TASK_LABELS.includes(s.trueLabel))
     .map((s) => ({ x: new Float32Array(s.pixels), y: labelIdx(s.trueLabel) }));
   if (train.length < 2 || evalSet.length < 2) {
-    return { trainAcc: 0, evalAcc: 0 };
+    return { trainAcc: 0, evalAcc: 0, model: null };
   }
   // 모델 init을 seed로 고정 — baseline·current가 같은 출발점.
-  const m = withSeededRandom(seed, () => createDeepMLP([64, 2]));
+  // [64, HIDDEN_SIZE, 2]: 입력 64픽셀 → ReLU 4뉴런 → softmax 2클래스.
+  // hidden 4뉴런 각각이 작은 8×8 특징맵을 학습 — CNN의 첫 conv 필터처럼 *모서리·선* 방향 패턴이 드러난다.
+  const m = withSeededRandom(seed, () => createDeepMLP([64, HIDDEN_SIZE, 2]));
   let lastTrainAcc = 0;
   let lastEvalAcc = 0;
-  // 매 epoch shuffle도 같은 seed에서 파생된 순서로 — baseline·current 모두 동일 순서로 학습
   let shuffleSeed = seed;
   for (let ep = 0; ep < EPOCHS; ep++) {
     if (cancelRef.current) break;
@@ -151,11 +174,9 @@ async function runTraining(
     lastTrainAcc = evaluate(m, train);
     lastEvalAcc = evaluate(m, evalSet);
     onEpoch({ epoch: ep + 1, trainAcc: lastTrainAcc, evalAcc: lastEvalAcc });
-    // UI yield
-    // eslint-disable-next-line no-await-in-loop
     await new Promise((r) => setTimeout(r, 0));
   }
-  return { trainAcc: lastTrainAcc, evalAcc: lastEvalAcc };
+  return { trainAcc: lastTrainAcc, evalAcc: lastEvalAcc, model: m };
 }
 
 interface TrainResult {
@@ -163,9 +184,10 @@ interface TrainResult {
   evalAcc: number;
   trainHist: number[];
   evalHist: number[];
+  model: MLP | null;
 }
 
-const EMPTY_RESULT: TrainResult = { trainAcc: 0, evalAcc: 0, trainHist: [], evalHist: [] };
+const EMPTY_RESULT: TrainResult = { trainAcc: 0, evalAcc: 0, trainHist: [], evalHist: [], model: null };
 
 /* ────────── 메인 컴포넌트 ────────── */
 export function PhaseB2() {
@@ -219,9 +241,9 @@ export function PhaseB2() {
     [allSamples, storeRemoved, localRemoved]
   );
 
-  // 라벨별 그룹 — UI 갤러리 렌더링 (동그라미/세모만, 네모는 B5에서)
+  // 라벨별 그룹 — UI 갤러리 렌더링 (이번 페이즈 학습 대상: 세모/네모)
   const grouped = useMemo(() => {
-    const labels: ShapeLabel[] = ['circle', 'triangle'];
+    const labels: ShapeLabel[] = [...TASK_LABELS];
     return labels.map((lbl) => ({
       label: lbl,
       items: allSamples.filter((s) => s.label === lbl),
@@ -274,7 +296,7 @@ export function PhaseB2() {
     setStage('baseline');
     const baseTrainHist: number[] = [];
     const baseEvalHist: number[] = [];
-    setBaseline({ trainAcc: 0, evalAcc: 0, trainHist: [], evalHist: [] });
+    setBaseline({ ...EMPTY_RESULT });
     const bRes = await runTraining(baselineTrain, heldOutEval, cancelRef.current, (snap) => {
       baseTrainHist.push(snap.trainAcc);
       baseEvalHist.push(snap.evalAcc);
@@ -283,6 +305,7 @@ export function PhaseB2() {
         evalAcc: snap.evalAcc,
         trainHist: baseTrainHist.slice(),
         evalHist: baseEvalHist.slice(),
+        model: null,
       });
     });
     if (cancelRef.current.current) {
@@ -290,13 +313,13 @@ export function PhaseB2() {
       setStage('idle');
       return;
     }
-    setBaseline((prev) => ({
-      ...prev,
+    setBaseline({
       trainAcc: bRes.trainAcc,
       evalAcc: bRes.evalAcc,
       trainHist: baseTrainHist.slice(),
       evalHist: baseEvalHist.slice(),
-    }));
+      model: bRes.model,
+    });
 
     // current: active set 기반
     setStage('current');
@@ -313,7 +336,7 @@ export function PhaseB2() {
     }
     const trainHist: number[] = [];
     const evalHist: number[] = [];
-    setCurrent({ trainAcc: 0, evalAcc: 0, trainHist: [], evalHist: [] });
+    setCurrent({ ...EMPTY_RESULT });
     const cRes = await runTraining(currentTrain, heldOutEval, cancelRef.current, (snap) => {
       trainHist.push(snap.trainAcc);
       evalHist.push(snap.evalAcc);
@@ -322,6 +345,7 @@ export function PhaseB2() {
         evalAcc: snap.evalAcc,
         trainHist: trainHist.slice(),
         evalHist: evalHist.slice(),
+        model: null,
       });
     });
     if (cancelRef.current.current) {
@@ -334,6 +358,7 @@ export function PhaseB2() {
       evalAcc: cRes.evalAcc,
       trainHist: trainHist.slice(),
       evalHist: evalHist.slice(),
+      model: cRes.model,
     });
     setIsTraining(false);
     setStage('done');
@@ -375,7 +400,7 @@ export function PhaseB2() {
 
       {/* 도입 한 단락 */}
       <p className="leading-relaxed text-[15px]">
-        그림이 잘못 분류돼 있거나 점들이 깨져 있으면 모델은 <strong>잘못된 것을 외워요</strong>.
+        그림이 잘못 분류돼 있거나 점들이 깨져 있으면 모델은 <strong>잘못된 것을 학습해요</strong>.
         먼저 데이터를 다듬은 뒤 학습해야 모델이 진짜 패턴을 배웁니다.
         같은 모델·같은 학습 시간으로 <strong>전처리 없음 vs 전처리 후</strong>를 나란히 비교해 보세요.
       </p>
@@ -385,7 +410,7 @@ export function PhaseB2() {
         <div className="card p-3">
           <div className="flex items-baseline justify-between flex-wrap gap-2">
             <div className="text-sm font-medium">
-              데이터 갤러리 ({allSamples.length}장 · 동그라미·세모만 학습)
+              데이터 갤러리 ({allSamples.length}장 · 세모·네모만 학습)
             </div>
             <div className="text-[12px] text-muted">
               그림과 라벨이 어울리지 않거나 점이 깨진 샘플을 클릭해 <strong>제외</strong>해 보세요.
@@ -444,7 +469,7 @@ export function PhaseB2() {
         {/* 우: 비교 학습 패널 */}
         <div className="space-y-3">
           <div className="card p-3">
-            <div className="text-sm font-medium mb-1">두 학습 비교 — 동그라미 vs 세모</div>
+            <div className="text-sm font-medium mb-1">두 학습 비교 — 세모 vs 네모</div>
 
             {!hasStarted ? (
               <div className="mt-2 space-y-2">
@@ -482,6 +507,18 @@ export function PhaseB2() {
                 </div>
 
                 <AccuracyCurve baseline={baseline.evalHist} current={current.evalHist} />
+
+                {/* Hidden 4뉴런 가중치 히트맵 — baseline vs current 비교 */}
+                {(baseline.model || current.model) && (
+                  <div className="rounded-md border border-border bg-bg/40 p-2">
+                    <div className="text-[11px] font-medium mb-1">학습된 hidden 4뉴런이 본 특징</div>
+                    <div className="text-[10px] text-muted mb-2 leading-snug">
+                      각 뉴런이 입력 64픽셀 중 어느 곳에 반응하는지(파랑 +/빨강 −) — CNN의 첫 층처럼 *모서리·선의 방향*이 드러나요.
+                      더러운 데이터로 학습한 baseline은 특징이 흐릿하거나 뒤섞인 모양이 되기 쉽습니다.
+                    </div>
+                    <HiddenWeightsCompare baseline={baseline.model} current={current.model} />
+                  </div>
+                )}
 
                 <div className="flex flex-wrap gap-2">
                   {isTraining ? (
@@ -663,6 +700,76 @@ function AccuracyCurve({ baseline, current }: { baseline: number[]; current: num
           epoch
         </text>
       </svg>
+    </div>
+  );
+}
+
+/* ────────── Hidden 뉴런 가중치 비교 — baseline vs current ──────────
+   각 hidden 뉴런 j의 64개 입력 가중치를 8×8 히트맵으로 그린다 (파랑 +, 빨강 −).
+   학생은 두 모델이 *어떤 입력 영역에 반응하도록* 학습됐는지 시각적으로 비교한다. */
+function HiddenWeightsCompare({ baseline, current }: { baseline: MLP | null; current: MLP | null }) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <HiddenWeightsRow label="전처리 없음" model={baseline} accent={false} />
+      <HiddenWeightsRow label="전처리 후" model={current} accent={true} />
+    </div>
+  );
+}
+
+function HiddenWeightsRow({ label, model, accent }: { label: string; model: MLP | null; accent: boolean }) {
+  // 모델이 없으면 placeholder
+  if (!model || model.layers.length < 3) {
+    return (
+      <div className={`rounded-sm border ${accent ? 'border-accent/40' : 'border-border'} p-1.5`}>
+        <div className="text-[10px] text-muted text-center">{label}</div>
+        <div className="text-[10px] text-muted text-center py-3">학습 후 표시</div>
+      </div>
+    );
+  }
+  const W1 = model.weights[0];
+  const inDim = model.layers[0];   // 64
+  const hidDim = model.layers[1];  // 4 (HIDDEN_SIZE)
+  // 각 hidden 뉴런 j의 64개 가중치 추출 — w1[i*hidDim + j]
+  const hiddenWeights: Float32Array[] = [];
+  for (let j = 0; j < hidDim; j++) {
+    const w = new Float32Array(inDim);
+    for (let i = 0; i < inDim; i++) w[i] = W1[i * hidDim + j];
+    hiddenWeights.push(w);
+  }
+
+  return (
+    <div className={`rounded-sm border ${accent ? 'border-accent/40 bg-accent/5' : 'border-border bg-surface/40'} p-1.5`}>
+      <div className="text-[10px] font-medium text-center mb-1">{label}</div>
+      <div className="grid grid-cols-4 gap-1">
+        {hiddenWeights.map((w, j) => <MiniHeatmap key={j} w={w} idx={j} />)}
+      </div>
+    </div>
+  );
+}
+
+function MiniHeatmap({ w, idx }: { w: Float32Array; idx: number }) {
+  const SIZE = 8, cell = 8, total = SIZE * cell;
+  let maxAbs = 0;
+  for (let i = 0; i < w.length; i++) {
+    const a = Math.abs(w[i]); if (a > maxAbs) maxAbs = a;
+  }
+  if (maxAbs < 1e-6) maxAbs = 1;
+  return (
+    <div className="text-center">
+      <svg viewBox={`0 0 ${total} ${total}`} width={total} height={total} className="block mx-auto border border-border rounded-sm bg-bg">
+        {Array.from({ length: SIZE * SIZE }).map((_, i) => {
+          const x = (i % SIZE) * cell;
+          const y = Math.floor(i / SIZE) * cell;
+          const v = w[i] / maxAbs;
+          // 파랑(+) / 빨강(-) — 절대값에 따라 진하게
+          const intensity = Math.min(1, Math.abs(v));
+          const color = v >= 0
+            ? `rgba(59, 130, 246, ${intensity.toFixed(3)})`
+            : `rgba(190, 18, 60, ${intensity.toFixed(3)})`;
+          return <rect key={i} x={x} y={y} width={cell} height={cell} fill={color}><title>{`(${Math.floor(i/8)},${i%8}) w=${w[i].toFixed(2)}`}</title></rect>;
+        })}
+      </svg>
+      <div className="text-[9px] text-muted font-mono mt-0.5">h{idx}</div>
     </div>
   );
 }

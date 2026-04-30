@@ -102,11 +102,22 @@ function buildVariantList(): { cx: number; cy: number; r: number }[] {
 const VARIANTS = buildVariantList();
 const N_PER_LABEL = VARIANTS.length;
 
-// 라벨당 오류 인덱스 — 20% (10장).
-// 모두 *라벨 오류*로 통일: "픽셀만 깨진 noisy"는 학습에 영향이 약해 lesson을 흐리므로 제외.
-// 8장은 라벨만 swap, 2장은 라벨 swap + 픽셀 강노이즈(가장 명백히 "빼야 할" 표적).
-const MISLABEL_INDICES = new Set([4, 11, 19, 26, 33, 40, 44, 48]);  // 8장 — 라벨 swap
-const MISLABEL_NOISY_INDICES = new Set([7, 38]);                    // 2장 — 라벨 swap + 강노이즈
+// 라벨당 오류 인덱스 — 30% (15장).
+// 모두 *라벨 오류*로 통일. hidden layer를 가진 모델은 라벨 노이즈에 더 민감하므로 30%면 lesson이 명확해진다.
+// 12장은 라벨만 swap, 3장은 라벨 swap + 픽셀 강노이즈.
+const MISLABEL_INDICES = new Set([2, 6, 11, 15, 19, 24, 28, 32, 36, 41, 45, 48]);  // 12장
+const MISLABEL_NOISY_INDICES = new Set([4, 22, 39]);                                // 3장
+
+// B2 학습은 *세모 vs 네모* 이진 분류이므로, 두 task 라벨 사이에서 직접 mislabel을
+// 일으키면 dirty가 결정 경계를 정확히 흐리고 학생이 cleaning 효과를 또렷이 본다.
+// 기존 cycle(circle→triangle→square→circle)에서는 square의 mislabel이 circle로 가
+// 학습 단계에서 필터링돼 효과가 분산됐다.
+function mislabelTo(label: ShapeLabel): ShapeLabel {
+  if (label === 'triangle') return 'square';
+  if (label === 'square') return 'triangle';
+  // circle은 task 밖이므로 cycle 그대로 — 학생 갤러리에서 "동그란데 세모라고 적힌" 명백한 mislabel로 보인다.
+  return 'triangle';
+}
 
 /* 노이즈 — 결정론적으로 일부 샘플에 노이즈 픽셀 추가. */
 function addNoise(p: number[], seed: number, count: number): number[] {
@@ -135,13 +146,13 @@ function buildSamples(): DotSample[] {
       let finalPixels = pixels;
 
       if (MISLABEL_INDICES.has(i)) {
-        // 라벨만 잘못 — 그림은 정상 label인데, 적힌 라벨은 다음 라벨
-        mislabel = SHAPE_LABELS[(SHAPE_LABELS.indexOf(label) + 1) % SHAPE_LABELS.length];
+        // 라벨만 잘못 — 그림은 정상 label인데, 적힌 라벨은 task swap 결과
+        mislabel = mislabelTo(label);
       } else if (MISLABEL_NOISY_INDICES.has(i)) {
         // 라벨도 틀리고 픽셀도 깨짐 — 가장 명백히 "이건 빼야 한다"
         finalPixels = addNoise(pixels, counter * 13 + 7, 8);
         noisy = true;
-        mislabel = SHAPE_LABELS[(SHAPE_LABELS.indexOf(label) + 1) % SHAPE_LABELS.length];
+        mislabel = mislabelTo(label);
       }
 
       out.push({
