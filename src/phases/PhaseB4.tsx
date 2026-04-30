@@ -3,7 +3,7 @@
 // 0.5를 기준으로 동그라미(σ<0.5)와 세모(σ≥0.5)를 가른다.
 // 진짜 미니배치 SGD: createDeepMLP([..., 1], 'sigmoid') + trainStep + shuffle.
 // 평가 데이터는 useActiveEval()로 B3 분할과 자동 연동.
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useApp } from '../store';
 import {
   useDot, useActiveTrain, useActiveEval,
@@ -215,10 +215,14 @@ export function PhaseB4() {
         <div className="space-y-3">
           <div className="card p-3">
             <div className="flex items-baseline justify-between flex-wrap gap-2">
-              <div className="text-sm font-medium">학습 진행 (미니배치 SGD)</div>
+              <div>
+                <div className="text-sm font-medium">학습 진행</div>
+                <div className="text-[11px] text-muted">
+                  학습 데이터를 한 번에 {BATCH_SIZE}장씩 묶어 가중치를 한 번 갱신해요.
+                </div>
+              </div>
               <div className="text-[11px] font-mono text-muted">
-                epoch <span className="text-accent font-semibold">{logs.length}</span> / {epochs}
-                <span className="ml-2">batch={BATCH_SIZE}</span>
+                epoch(학습회차) <span className="text-accent font-semibold">{logs.length}</span> / {epochs}
               </div>
             </div>
             <TrainingChart logs={logs} totalEpochs={epochs} />
@@ -235,7 +239,7 @@ export function PhaseB4() {
               <div>
                 <div className="text-sm font-medium">신경망 구조 + 실시간 가중치</div>
                 <div className="text-[11px] text-muted">
-                  학습이 한 epoch 진행될 때마다 가중치가 갱신되고 색이 바뀌어요.
+                  학습이 한 epoch(학습회차) 진행될 때마다 가중치가 갱신되고 색이 바뀌어요.
                 </div>
               </div>
               <div className="text-[11px] font-mono text-muted">
@@ -304,15 +308,16 @@ export function PhaseB4() {
         <div className="space-y-3">
           <div className="card p-3 space-y-3">
             <div className="text-sm font-medium">학습 컨트롤</div>
-            <div className="text-[11px] text-muted">
-              모델: <span className="font-mono">
-                createDeepMLP([{useHidden ? '64, 8, 1' : '64, 1'}], 'sigmoid')
+            <div className="text-[11px] text-muted leading-snug">
+              모델 구조:{' '}
+              <span className="font-mono text-text">
+                입력 64 → {useHidden ? '은닉 8 → ' : ''}출력 1 (시그모이드)
               </span>
             </div>
 
             <div>
               <div className="flex items-baseline justify-between text-[12px] font-mono">
-                <span className="text-muted">epoch</span>
+                <span className="text-muted">epoch(학습회차)</span>
                 <span className="text-accent font-semibold">{epochs}</span>
               </div>
               <input
@@ -390,7 +395,7 @@ export function PhaseB4() {
 
           {/* epoch 한 줄 직관 */}
           <div className="rounded-md border border-border bg-surface/40 px-3 py-2 text-[12px] leading-snug">
-            <strong>epoch</strong> = 학습 데이터를 한 번 다 본 횟수. 매 epoch마다 가중치가 한 번 갱신돼요.
+            <strong>epoch(학습회차)</strong> = 학습 데이터를 한 번 다 본 횟수. 매 epoch(학습회차)마다 가중치가 한 번 갱신돼요.
           </div>
         </div>
       </div>
@@ -409,7 +414,7 @@ export function PhaseB4() {
   );
 }
 
-/* ────────── 학습 곡선 (BCE 손실 주황 + train 녹색 + eval 파랑) ────────── */
+/* ────────── 학습 곡선 (손실 주황 + train 녹색 + eval 파랑) ────────── */
 function TrainingChart({ logs, totalEpochs }: { logs: EpochLog[]; totalEpochs: number }) {
   const W = 720, H = 220, padL = 40, padR = 44, padT = 12, padB = 26;
   const lossMax = Math.max(0.5, ...logs.map((l) => l.loss));
@@ -436,12 +441,12 @@ function TrainingChart({ logs, totalEpochs }: { logs: EpochLog[]; totalEpochs: n
       <line x1={padL} y1={syAcc(1)} x2={W - padR} y2={syAcc(1)}
         stroke="rgb(16,185,129)" strokeOpacity={0.3} strokeDasharray="3 3" strokeWidth={1} />
 
-      <text x={padL - 6} y={padT + 8} textAnchor="end" fontSize={10} fill="rgb(var(--color-accent))">손실(BCE)</text>
+      <text x={padL - 6} y={padT + 8} textAnchor="end" fontSize={10} fill="rgb(var(--color-accent))">손실</text>
       <text x={W - padR + 6} y={padT + 8} fontSize={10} fill="rgb(16,185,129)">학습 정확도</text>
       <text x={W - padR + 6} y={padT + 22} fontSize={10} fill="rgb(59,130,246)">평가 정확도</text>
       <text x={padL - 6} y={H - padB + 4} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">0</text>
       <text x={W - padR + 6} y={H - padB + 4} fontSize={10} fill="rgb(var(--color-muted))">100%</text>
-      <text x={W - padR} y={H - 6} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">epoch</text>
+      <text x={W - padR} y={H - 6} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">epoch(학습회차)</text>
 
       <path d={lossPath} fill="none" stroke="rgb(var(--color-accent))" strokeWidth={1.8} />
       <path d={trainPath} fill="none" stroke="rgb(16,185,129)" strokeWidth={1.8} />
@@ -591,12 +596,12 @@ function NetworkViz({ model, useHidden, tick, pickedSample }: {
     const wOut = new Float32Array(64);
     for (let i = 0; i < 64; i++) wOut[i] = W1[i];
     return (
-      <div className="mt-2 grid lg:grid-cols-[1fr_auto] gap-x-4 gap-y-3 items-center">
-        {/* 좌: 다이어그램 */}
+      <div className="mt-2 grid lg:grid-cols-[1fr_auto] gap-x-4 gap-y-3 items-start">
+        {/* 좌: 다이어그램 — 입력 64뉴런 컬럼 → 출력 1뉴런, 64개 가중치 라인 */}
         <SimpleDiagram
           input={pickedSample?.pixels ?? null}
           bias={b1[0]}
-          weightNorm={vecNorm(wOut)}
+          w={wOut}
         />
         {/* 우: 가중치 히트맵 */}
         <HeatmapPanel
@@ -618,20 +623,15 @@ function NetworkViz({ model, useHidden, tick, pickedSample }: {
   const W2 = model.weights[1];      // 8 × 1
   const b2 = model.biases[1][0];
 
-  // 은닉 뉴런별 입력 가중치 (8 × 64)와 노름
+  // 은닉 뉴런별 입력 가중치 (8 × 64)
   const hiddenWeights: Float32Array[] = [];
-  const hiddenNorms: number[] = [];
   for (let h = 0; h < hidDim; h++) {
     const wH = new Float32Array(64);
     for (let i = 0; i < 64; i++) wH[i] = W1[i * hidDim + h];
     hiddenWeights.push(wH);
-    hiddenNorms.push(vecNorm(wH));
   }
   // 출력 뉴런 자체의 "입력 가중치"는 없음(은닉 8개의 출력을 받음).
   // selected === 'out'이면 W2(8개) 막대를 대신 보여준다.
-
-  // 출력 가중치(8개)와 클릭 선택 셀렉터 처리
-  const maxNorm = Math.max(...hiddenNorms, 1e-6);
   const maxW2 = Math.max(...Array.from(W2).map((v) => Math.abs(v)), 1e-6);
 
   const safeSelected: number | 'out' =
@@ -639,12 +639,11 @@ function NetworkViz({ model, useHidden, tick, pickedSample }: {
 
   return (
     <div className="mt-2 grid lg:grid-cols-[1fr_auto] gap-x-4 gap-y-3 items-start">
-      {/* 좌: 다이어그램 */}
+      {/* 좌: 다이어그램 — 입력 64뉴런 컬럼 → 은닉 8뉴런 → 출력 1뉴런 */}
       <HiddenDiagram
         input={pickedSample?.pixels ?? null}
         hidDim={hidDim}
-        hiddenNorms={hiddenNorms}
-        maxNorm={maxNorm}
+        hiddenWeights={hiddenWeights}
         b1={b1}
         W2={W2}
         maxW2={maxW2}
@@ -674,89 +673,103 @@ function NetworkViz({ model, useHidden, tick, pickedSample }: {
   );
 }
 
-/* ────────── 다이어그램 (은닉 없음) — 입력 8×8 → 출력 σ ────────── */
-function SimpleDiagram({ input, bias, weightNorm }: {
-  input: number[] | null; bias: number; weightNorm: number;
+/* ────────── 다이어그램 (은닉 없음) — 입력 64뉴런 컬럼 → 출력 σ ──────────
+   64개 입력 뉴런을 세로 한 줄로 늘어놓고, 64개 가중치 라인이 모두 출력 1뉴런으로 모인다.
+   각 라인의 색·굵기·투명도가 그 픽셀의 가중치 부호·크기를 그대로 보여준다. */
+function SimpleDiagram({ input, bias, w }: {
+  input: number[] | null; bias: number; w: Float32Array;
 }) {
-  const W = 320, H = 200;
-  const inX = 18, inY = 50, inSize = 100, cell = inSize / 8;
-  const outCx = 260, outCy = inY + inSize / 2, outR = 30;
-  // 연결선: 입력 grid 우변 중앙 → 출력 좌변
-  const lineX1 = inX + inSize, lineX2 = outCx - outR;
-  const lineY = outCy;
+  const W = 540, H = 400;
+  const inCx = 36;
+  const inY0 = 22, inSpacing = 5.6, inR = 2.3;
+  const outCx = 470, outCy = H / 2, outR = 26;
+
+  let maxAbs = 0;
+  for (let i = 0; i < 64; i++) {
+    const a = Math.abs(w[i]);
+    if (a > maxAbs) maxAbs = a;
+  }
+  if (maxAbs < 1e-6) maxAbs = 1;
 
   return (
     <div className="rounded-md border border-border bg-bg/50 p-2">
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
-        {/* 입력 8x8 그리드 */}
-        <text x={inX + inSize / 2} y={inY - 8} textAnchor="middle" fontSize={10} fill="rgb(var(--color-muted))">
-          입력 x (8×8)
-        </text>
-        <rect x={inX} y={inY} width={inSize} height={inSize} fill="rgb(var(--color-bg))" stroke="rgb(var(--color-border))" />
-        {input && input.map((v, i) => {
-          if (v === 0) return null;
-          const cx = inX + (i % 8) * cell;
-          const cy = inY + Math.floor(i / 8) * cell;
-          return <rect key={i} x={cx} y={cy} width={cell} height={cell} fill="rgb(var(--color-text))" />;
-        })}
-        {/* 격자 */}
-        {Array.from({ length: 9 }).map((_, i) => (
-          <g key={i} stroke="rgb(var(--color-border))" strokeWidth={0.4} opacity={0.6}>
-            <line x1={inX + i * cell} y1={inY} x2={inX + i * cell} y2={inY + inSize} />
-            <line x1={inX} y1={inY + i * cell} x2={inX + inSize} y2={inY + i * cell} />
-          </g>
-        ))}
-
-        {/* 연결선 — 64개 가중치 다발을 한 줄로 표현 */}
-        <line x1={lineX1} y1={lineY} x2={lineX2} y2={lineY}
-          stroke="rgb(var(--color-accent))"
-          strokeWidth={Math.min(6, 1 + weightNorm * 0.5)}
-          opacity={0.7} />
-        <text x={(lineX1 + lineX2) / 2} y={lineY - 8} textAnchor="middle" fontSize={10} fill="rgb(var(--color-muted))">
-          64개 w · +b={bias.toFixed(2)}
-        </text>
-        <text x={(lineX1 + lineX2) / 2} y={lineY + 16} textAnchor="middle" fontSize={9} fill="rgb(var(--color-muted))">
-          |w|₂ = {weightNorm.toFixed(2)}
-        </text>
-
-        {/* 출력 뉴런 — 활성 표시(녹색 링) */}
-        <circle cx={outCx} cy={outCy} r={outR} fill="rgb(var(--color-accent-bg))"
-          stroke="rgb(16,185,129)" strokeWidth={2.5} />
-        <text x={outCx} y={outCy - 4} textAnchor="middle" fontSize={11} fill="rgb(var(--color-text))" fontWeight={600}>
-          σ
-        </text>
-        <text x={outCx} y={outCy + 10} textAnchor="middle" fontSize={9} fill="rgb(var(--color-muted))">
-          출력
-        </text>
-
-        {/* 출력 → σ(z) 화살표 */}
-        <line x1={outCx + outR} y1={outCy} x2={W - 18} y2={outCy}
-          stroke="rgb(var(--color-muted))" strokeWidth={1.2} markerEnd="url(#nv-arrow)" />
-        <text x={W - 18} y={outCy - 8} textAnchor="end" fontSize={10} fill="rgb(var(--color-text))">
-          σ(z)
-        </text>
-        <text x={W - 18} y={outCy + 14} textAnchor="end" fontSize={9} fill="rgb(var(--color-muted))">
-          0~1 확률
-        </text>
-
         <defs>
           <marker id="nv-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M0,0 L10,5 L0,10 Z" fill="rgb(var(--color-muted))" />
           </marker>
         </defs>
+
+        {/* 입력 컬럼 라벨 */}
+        <text x={inCx} y={12} textAnchor="middle" fontSize={10} fill="rgb(var(--color-muted))">
+          입력 64뉴런
+        </text>
+
+        {/* 입력 → 출력 64개 가중치 라인 (색=부호, 굵기·투명도=|w|) */}
+        {Array.from({ length: 64 }).map((_, i) => {
+          const cy = inY0 + i * inSpacing;
+          const a = Math.min(1, Math.abs(w[i]) / maxAbs);
+          const positive = w[i] >= 0;
+          const color = positive ? 'rgb(59,130,246)' : 'rgb(190,18,60)';
+          return (
+            <line key={i}
+              x1={inCx + inR} y1={cy}
+              x2={outCx - outR} y2={outCy}
+              stroke={color}
+              strokeWidth={0.3 + 0.9 * a}
+              opacity={0.1 + 0.75 * a} />
+          );
+        })}
+
+        {/* 입력 뉴런 64개 — 픽셀=1이면 채움, 아니면 빈 원 */}
+        {Array.from({ length: 64 }).map((_, i) => {
+          const cy = inY0 + i * inSpacing;
+          const active = !!input && input[i] === 1;
+          return (
+            <circle key={i} cx={inCx} cy={cy} r={inR}
+              fill={active ? 'rgb(var(--color-text))' : 'rgb(var(--color-bg))'}
+              stroke="rgb(var(--color-muted))"
+              strokeWidth={0.7} />
+          );
+        })}
+
+        {/* 출력 뉴런 σ */}
+        <circle cx={outCx} cy={outCy} r={outR}
+          fill="rgb(var(--color-accent-bg))"
+          stroke="rgb(16,185,129)" strokeWidth={2.5} />
+        <text x={outCx} y={outCy - 2} textAnchor="middle" fontSize={12} fill="rgb(var(--color-text))" fontWeight={700}>
+          σ
+        </text>
+        <text x={outCx} y={outCy + 10} textAnchor="middle" fontSize={8.5} fill="rgb(var(--color-muted))">
+          b={bias.toFixed(2)}
+        </text>
+        <text x={outCx} y={outCy + outR + 14} textAnchor="middle" fontSize={10} fill="rgb(var(--color-muted))">
+          출력
+        </text>
+
+        {/* 출력 → σ(z) 화살표 */}
+        <line x1={outCx + outR} y1={outCy} x2={W - 16} y2={outCy}
+          stroke="rgb(var(--color-muted))" strokeWidth={1.2} markerEnd="url(#nv-arrow)" />
+        <text x={W - 16} y={outCy - 8} textAnchor="end" fontSize={10} fill="rgb(var(--color-text))">
+          σ(z)
+        </text>
+        <text x={W - 16} y={outCy + 14} textAnchor="end" fontSize={9} fill="rgb(var(--color-muted))">
+          0~1 확률
+        </text>
       </svg>
     </div>
   );
 }
 
-/* ────────── 다이어그램 (은닉 있음) — 입력 → 8 은닉 → 출력 σ ────────── */
+/* ────────── 다이어그램 (은닉 있음) — 입력 64뉴런 → 은닉 8뉴런 → 출력 σ ──────────
+   입력↔은닉 라인 512개는 기본적으로 매우 옅게(mesh) 표시.
+   은닉 뉴런 하나를 선택하면 그 뉴런으로 들어가는 64개 라인이 가중치 부호별로 강조됨. */
 function HiddenDiagram({
-  input, hidDim, hiddenNorms, maxNorm, b1, W2, maxW2, b2, selected, onSelect,
+  input, hidDim, hiddenWeights, b1, W2, maxW2, b2, selected, onSelect,
 }: {
   input: number[] | null;
   hidDim: number;
-  hiddenNorms: number[];
-  maxNorm: number;
+  hiddenWeights: Float32Array[];
   b1: Float32Array;
   W2: Float32Array;
   maxW2: number;
@@ -764,12 +777,57 @@ function HiddenDiagram({
   selected: number | 'out';
   onSelect: (s: number | 'out') => void;
 }) {
-  const W = 460, H = 320;
-  const inX = 14, inY = 110, inSize = 100, cell = inSize / 8;
-  const inRightX = inX + inSize, inMidY = inY + inSize / 2;
-  const hX = 270, hRadius = 12;
-  const hStartY = 24, hStepY = (H - 50) / hidDim;
-  const outCx = 420, outCy = H / 2, outR = 26;
+  const W = 540, H = 400;
+  const inCx = 36;
+  const inY0 = 22, inSpacing = 5.6, inR = 2.3;
+  const hX = 290, hR = 12;
+  const hY0 = 50, hStep = (H - 100) / hidDim;
+  const outCx = 470, outCy = H / 2, outR = 22;
+
+  // 선택된 은닉 뉴런의 64개 가중치에 대한 maxAbs (라인 색칠 정규화용)
+  const selH = typeof selected === 'number' ? selected : -1;
+  let selMaxAbs = 1;
+  if (selH >= 0) {
+    let m = 0;
+    const wH = hiddenWeights[selH];
+    for (let i = 0; i < 64; i++) {
+      const a = Math.abs(wH[i]); if (a > m) m = a;
+    }
+    if (m > 1e-6) selMaxAbs = m;
+  }
+
+  // 입력 → 은닉 모든 라인을 한 번에 렌더 (선택된 h만 강조)
+  const inputHiddenLines: ReactNode[] = [];
+  for (let h = 0; h < hidDim; h++) {
+    const hy = hY0 + h * hStep + hStep / 2;
+    const isSel = selH === h;
+    const wH = hiddenWeights[h];
+    for (let i = 0; i < 64; i++) {
+      const cy = inY0 + i * inSpacing;
+      if (isSel) {
+        const a = Math.min(1, Math.abs(wH[i]) / selMaxAbs);
+        const positive = wH[i] >= 0;
+        inputHiddenLines.push(
+          <line key={`s-${h}-${i}`}
+            x1={inCx + inR} y1={cy}
+            x2={hX - hR} y2={hy}
+            stroke={positive ? 'rgb(59,130,246)' : 'rgb(190,18,60)'}
+            strokeWidth={0.35 + 0.9 * a}
+            opacity={0.18 + 0.7 * a} />
+        );
+      } else {
+        // mesh — 매우 옅은 회색
+        inputHiddenLines.push(
+          <line key={`b-${h}-${i}`}
+            x1={inCx + inR} y1={cy}
+            x2={hX - hR} y2={hy}
+            stroke="rgb(var(--color-muted))"
+            strokeWidth={0.25}
+            opacity={0.05} />
+        );
+      }
+    }
+  }
 
   return (
     <div className="rounded-md border border-border bg-bg/50 p-2">
@@ -780,49 +838,55 @@ function HiddenDiagram({
           </marker>
         </defs>
 
-        {/* 입력 그리드 */}
-        <text x={inX + inSize / 2} y={inY - 8} textAnchor="middle" fontSize={10} fill="rgb(var(--color-muted))">
-          입력 x (8×8)
+        {/* 라벨들 */}
+        <text x={inCx} y={12} textAnchor="middle" fontSize={10} fill="rgb(var(--color-muted))">
+          입력 64뉴런
         </text>
-        <rect x={inX} y={inY} width={inSize} height={inSize} fill="rgb(var(--color-bg))" stroke="rgb(var(--color-border))" />
-        {input && input.map((v, i) => {
-          if (v === 0) return null;
-          const cx = inX + (i % 8) * cell;
-          const cy = inY + Math.floor(i / 8) * cell;
-          return <rect key={i} x={cx} y={cy} width={cell} height={cell} fill="rgb(var(--color-text))" />;
-        })}
-        {Array.from({ length: 9 }).map((_, i) => (
-          <g key={i} stroke="rgb(var(--color-border))" strokeWidth={0.4} opacity={0.6}>
-            <line x1={inX + i * cell} y1={inY} x2={inX + i * cell} y2={inY + inSize} />
-            <line x1={inX} y1={inY + i * cell} x2={inX + inSize} y2={inY + i * cell} />
-          </g>
-        ))}
+        <text x={hX} y={28} textAnchor="middle" fontSize={10} fill="rgb(var(--color-muted))">
+          은닉 {hidDim} (ReLU)
+        </text>
 
-        {/* 입력 → 은닉 라인 (각 은닉의 |w|₂가 굵기/투명도) */}
+        {/* 입력 → 은닉 라인 (mesh + 선택된 hidden 강조) */}
+        {inputHiddenLines}
+
+        {/* 입력 뉴런 64개 */}
+        {Array.from({ length: 64 }).map((_, i) => {
+          const cy = inY0 + i * inSpacing;
+          const active = !!input && input[i] === 1;
+          return (
+            <circle key={i} cx={inCx} cy={cy} r={inR}
+              fill={active ? 'rgb(var(--color-text))' : 'rgb(var(--color-bg))'}
+              stroke="rgb(var(--color-muted))"
+              strokeWidth={0.7} />
+          );
+        })}
+
+        {/* 은닉 → 출력 라인 (W2[h] 부호·크기) */}
         {Array.from({ length: hidDim }).map((_, h) => {
-          const hy = hStartY + h * hStepY + hStepY / 2;
-          const op = 0.25 + 0.65 * (hiddenNorms[h] / maxNorm);
-          const sw = 0.6 + 1.6 * (hiddenNorms[h] / maxNorm);
-          const isSel = selected === h;
+          const hy = hY0 + h * hStep + hStep / 2;
+          const w = W2[h];
+          const positive = w >= 0;
+          const a = Math.abs(w) / maxW2;
+          const isOutSel = selected === 'out';
+          const color = positive ? 'rgb(59,130,246)' : 'rgb(190,18,60)';
           return (
             <line key={h}
-              x1={inRightX} y1={inMidY}
-              x2={hX - hRadius} y2={hy}
-              stroke={isSel ? 'rgb(var(--color-accent))' : 'rgb(var(--color-muted))'}
-              strokeWidth={isSel ? sw + 1 : sw}
-              opacity={isSel ? 0.9 : op} />
+              x1={hX + hR} y1={hy}
+              x2={outCx - outR} y2={outCy}
+              stroke={color}
+              strokeWidth={0.6 + 2.2 * a}
+              opacity={isOutSel ? Math.max(0.55, 0.25 + 0.7 * a) : (0.25 + 0.65 * a)} />
           );
         })}
 
         {/* 은닉 뉴런 — 클릭 가능 */}
         {Array.from({ length: hidDim }).map((_, h) => {
-          const hy = hStartY + h * hStepY + hStepY / 2;
+          const hy = hY0 + h * hStep + hStep / 2;
           const isSel = selected === h;
           return (
             <g key={h} style={{ cursor: 'pointer' }} onClick={() => onSelect(h)}>
-              <circle cx={hX} cy={hy} r={hRadius + 2}
-                fill="transparent" stroke="transparent" />
-              <circle cx={hX} cy={hy} r={hRadius}
+              <circle cx={hX} cy={hy} r={hR + 4} fill="transparent" />
+              <circle cx={hX} cy={hy} r={hR}
                 fill={isSel ? 'rgb(var(--color-accent))' : 'rgb(var(--color-accent-bg))'}
                 stroke={isSel ? 'rgb(var(--color-accent))' : 'rgb(var(--color-border))'}
                 strokeWidth={isSel ? 2 : 1.2} />
@@ -830,51 +894,29 @@ function HiddenDiagram({
                 fill={isSel ? 'white' : 'rgb(var(--color-text))'} fontWeight={isSel ? 700 : 500}>
                 h{h}
               </text>
-              <text x={hX + hRadius + 4} y={hy + 3} fontSize={8.5} fill="rgb(var(--color-muted))">
+              <text x={hX + hR + 4} y={hy + 3} fontSize={8.5} fill="rgb(var(--color-muted))">
                 b={b1[h].toFixed(2)}
               </text>
             </g>
           );
         })}
 
-        {/* "은닉(ReLU)" 라벨 */}
-        <text x={hX} y={14} textAnchor="middle" fontSize={10} fill="rgb(var(--color-muted))">
-          은닉 {hidDim} (ReLU)
-        </text>
-
-        {/* 은닉 → 출력 라인 (W2[h] 부호와 크기) */}
-        {Array.from({ length: hidDim }).map((_, h) => {
-          const hy = hStartY + h * hStepY + hStepY / 2;
-          const w = W2[h];
-          const positive = w >= 0;
-          const op = 0.25 + 0.7 * (Math.abs(w) / maxW2);
-          const sw = 0.6 + 2.2 * (Math.abs(w) / maxW2);
-          const color = positive ? 'rgb(59,130,246)' : 'rgb(190,18,60)';
-          return (
-            <line key={h}
-              x1={hX + hRadius} y1={hy}
-              x2={outCx - outR} y2={outCy}
-              stroke={color} strokeWidth={sw} opacity={op} />
-          );
-        })}
-
-        {/* 출력 뉴런 — 클릭하면 출력 가중치 막대 패널 */}
+        {/* 출력 뉴런 — 클릭하면 W2 막대 패널 */}
         <g style={{ cursor: 'pointer' }} onClick={() => onSelect('out')}>
-          <circle cx={outCx} cy={outCy} r={outR + 4}
-            fill="transparent" stroke="transparent" />
+          <circle cx={outCx} cy={outCy} r={outR + 4} fill="transparent" />
           <circle cx={outCx} cy={outCy} r={outR}
             fill="rgb(var(--color-accent-bg))"
             stroke={selected === 'out' ? 'rgb(var(--color-accent))' : 'rgb(16,185,129)'}
             strokeWidth={selected === 'out' ? 3 : 2} />
-          <text x={outCx} y={outCy - 3} textAnchor="middle" fontSize={11} fontWeight={700}
+          <text x={outCx} y={outCy - 2} textAnchor="middle" fontSize={12} fontWeight={700}
             fill={selected === 'out' ? 'rgb(var(--color-accent))' : 'rgb(var(--color-text))'}>
             σ
           </text>
-          <text x={outCx} y={outCy + 9} textAnchor="middle" fontSize={8} fill="rgb(var(--color-muted))">
+          <text x={outCx} y={outCy + 10} textAnchor="middle" fontSize={8.5} fill="rgb(var(--color-muted))">
             b={b2.toFixed(2)}
           </text>
         </g>
-        <text x={outCx} y={outCy + outR + 14} textAnchor="middle" fontSize={9} fill="rgb(var(--color-muted))">
+        <text x={outCx} y={outCy + outR + 14} textAnchor="middle" fontSize={10} fill="rgb(var(--color-muted))">
           출력
         </text>
 
@@ -998,12 +1040,6 @@ function ColorLegend() {
       </span>
     </div>
   );
-}
-
-function vecNorm(v: Float32Array): number {
-  let s = 0;
-  for (let i = 0; i < v.length; i++) s += v[i] * v[i];
-  return Math.sqrt(s);
 }
 
 function weightColor(v: number): string {

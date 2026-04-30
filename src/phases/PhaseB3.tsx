@@ -226,9 +226,23 @@ export function PhaseB3() {
             </div>
           </div>
 
-          {/* PLAN ## 10-1 #3 — 글자 그대로 */}
-          <div className="aside-warn text-[14px] leading-relaxed">
-            ⚠ 평가 데이터를 보고 모델 구조를 고치면 <strong>부정행위</strong>예요 — 시험 문제로 공부한 셈이라, 새 데이터에서는 다시 약해집니다.
+          {/* 평가 데이터를 보고 구조를 고치면 — 검증 데이터셋이 따로 필요한 이유 */}
+          <div className="aside-warn text-[14px] leading-relaxed space-y-2">
+            <div>
+              ⚠ <strong>평가 데이터를 보고 모델 구조를 고치면</strong> 그것도 일종의 *시험 문제로 공부*한 셈이에요.
+              모델 구조나 학습률 같은 설정값을 바꾸면서 매번 평가 점수를 본다면, 평가 데이터에만 잘 맞는 모델이 만들어집니다.
+            </div>
+            <div className="text-[13px]">
+              그래서 진짜 ML 프로젝트에서는 보통 데이터를 <strong>세 묶음</strong>으로 나눠요:
+              <ul className="list-disc pl-5 mt-1 space-y-0.5">
+                <li><strong>학습용 (train)</strong> — 가중치를 갱신하는 데 쓰는 묶음.</li>
+                <li><strong>검증용 (validation)</strong> — 학습 도중 모델 구조·학습률 등 설정값을 비교·선택하는 묶음.</li>
+                <li><strong>평가용 (test)</strong> — 모든 결정이 끝난 뒤 *딱 한 번만* 꺼내 일반화 점수를 재는 묶음.</li>
+              </ul>
+            </div>
+            <div className="text-[12px] text-muted">
+              본 교재에서는 단순화를 위해 학습용·평가용 둘만 나누지만, 실제로는 검증용을 따로 둬서 평가용을 끝까지 *손대지 않고* 보존한다는 사실을 기억해 두세요.
+            </div>
           </div>
 
           <div className="card p-3 text-[12px] text-muted leading-relaxed">
