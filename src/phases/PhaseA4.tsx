@@ -26,7 +26,7 @@ const DERIV_STEPS: { tex: string; why: string; highlight?: boolean }[] = [
   },
   {
     tex: `L = \\tfrac{1}{2}(\\hat{y} - y)^2`,
-    why: '½은 약분용. 최저가 되는 위치는 SE와 같다.',
+    why: '½ 을 곱해 두면 미분할 때 제곱에서 떨어지는 2와 약분돼 식이 깔끔해져요. 최솟값 위치는 SE와 그대로 같습니다.',
   },
   {
     tex: `\\frac{\\partial L}{\\partial w} = (\\hat{y} - y)\\cdot \\frac{\\partial}{\\partial w}(wx + b - y)`,
@@ -162,8 +162,8 @@ export function PhaseA4() {
             </div>
           </div>
           <p className="text-[11px] text-muted mt-1">
-            제곱의 기울기는 2 × □ — 그 안의 □가 또 w에 의존하니 한 번 더 곱한다.
-            ½과 2가 약분되며 깔끔한 한 줄이 남아요.
+            <strong>사슬규칙</strong>: 제곱(겉)의 미분 = 2 · (안), (안 = ŷ − y)을 또 w로 미분하면 x가 떨어진다 → 두 미분이 곱해져 e·x.
+            ½과 2가 약분돼 깔끔한 한 줄이 남아요.
           </p>
 
           <div className="mt-3 space-y-2">

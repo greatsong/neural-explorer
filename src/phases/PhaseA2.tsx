@@ -5,16 +5,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../store';
 import { PHASES } from '../phases';
 
-// 정답 데이터 — 대략 y ≈ 2x + 1 방향에 노이즈가 있는 5개 점
+// 정답 데이터 — A2~A5 가 공유하는 정확한 직선 y = 2x + 1.
+// (실생활 노이즈 데이터는 A6 의 서울 기온에서 따로 만난다.)
 const DATA: { x: number; y: number }[] = [
-  { x: 1, y: 2.8 },
-  { x: 2, y: 5.1 },
-  { x: 3, y: 6.6 },
-  { x: 4, y: 9.2 },
-  { x: 5, y: 10.9 },
+  { x: 1, y: 3 },
+  { x: 2, y: 5 },
+  { x: 3, y: 7 },
+  { x: 4, y: 9 },
+  { x: 5, y: 11 },
 ];
 
-const MSE_TARGET = 0.4; // 이 이하로 낮추면 a2 완료 처리
+const MSE_TARGET = 0.05; // 정답 직선 근처에 가면 a2 완료 처리
 
 export function PhaseA2() {
   const meta = PHASES.find((p) => p.id === 'a2')!;

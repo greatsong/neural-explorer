@@ -8,12 +8,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { PHASES } from '../phases';
 import { useApp } from '../store';
 
-// 정답: y = 2x + 0.7
+// 정답: y = 2x + 1 — A2~A5 가 공유하는 데이터.
 const DATA: [number, number][] = [
-  [1, 2.7], [2, 4.7], [3, 6.7], [4, 8.7], [5, 10.7],
+  [1, 3], [2, 5], [3, 7], [4, 9], [5, 11],
 ];
 const W_TRUE = 2;
-const B_TRUE = 0.7;
+const B_TRUE = 1;
 const N = DATA.length;
 
 type VarMode = 'w' | 'b';
@@ -30,46 +30,47 @@ const CONF: Record<VarMode, {
   curvature: string; // 안정 조건 설명용
 }> = {
   b: {
-    vMin: -3, vMax: 4, vStart: -2,
+    vMin: -3, vMax: 5, vStart: -2,
     fixedLabel: `w = ${W_TRUE} (고정)`,
-    lrMin: 0.005, lrMax: 1.3, lrStep: 0.005, lrInit: 0.1,
-    ticks: [-2, -1, 0, 1, 2, 3, 4],
+    lrMin: 0.01, lrMax: 2.6, lrStep: 0.01, lrInit: 0.5,
+    ticks: [-2, -1, 0, 1, 2, 3, 4, 5],
     varLabel: 'b',
     fixedDesc: 'w를 정답값으로 고정한 채 b만 움직여 봐요.',
     axisLabel: 'b',
-    curvature: '0 < η < 1 (b 단면의 곡률은 약 2)',
+    curvature: '0 < η < 2 (½MSE 기준 b 단면의 곡률은 1)',
   },
   w: {
     vMin: -1, vMax: 5, vStart: -0.5,
     fixedLabel: `b = ${B_TRUE} (고정)`,
-    lrMin: 0.0005, lrMax: 0.08, lrStep: 0.0005, lrInit: 0.02,
+    lrMin: 0.001, lrMax: 0.3, lrStep: 0.001, lrInit: 0.05,
     ticks: [-1, 0, 1, 2, 3, 4, 5],
     varLabel: 'w',
     fixedDesc: 'b를 정답값으로 고정한 채 w만 움직여 봐요.',
     axisLabel: 'w',
-    curvature: '0 < η < 약 0.09 (w 단면 곡률은 약 22 — x² 합이 크기 때문)',
+    curvature: '0 < η < 약 0.18 (w 단면 곡률은 11 = x² 의 평균)',
   },
 };
 
 const TRUE_OF = (mode: VarMode) => (mode === 'b' ? B_TRUE : W_TRUE);
 
-const mseAt = (v: number, mode: VarMode) => {
+// 손실 L = ½ · MSE = (1/(2N)) · Σ e² — A4 의 ½ 도입과 일치시켜 둔다.
+const lossAt = (v: number, mode: VarMode) => {
   const w = mode === 'w' ? v : W_TRUE;
   const b = mode === 'b' ? v : B_TRUE;
   return DATA.reduce((s, [x, y]) => {
     const e = (w * x + b) - y;
     return s + e * e;
-  }, 0) / N;
+  }, 0) / (2 * N);
 };
 
-// b에 대한 미분: (2/N) Σ (pred − y), w에 대한 미분: (2/N) Σ x · (pred − y)
+// ½MSE 의 기울기 — db = (1/N) Σ e, dw = (1/N) Σ x · e (인수 2가 ½ 와 약분).
 const slopeAt = (v: number, mode: VarMode) => {
   const w = mode === 'w' ? v : W_TRUE;
   const b = mode === 'b' ? v : B_TRUE;
-  return (2 / N) * DATA.reduce((s, [x, y]) => {
+  return DATA.reduce((s, [x, y]) => {
     const factor = mode === 'w' ? x : 1;
     return s + factor * ((w * x + b) - y);
-  }, 0);
+  }, 0) / N;
 };
 
 type Scenario = {
@@ -85,13 +86,17 @@ const SCENARIOS: Scenario[] = [
   { id: 'small',   label: '느림', color: 'rgb(59,130,246)', note: '느림' },
 ];
 
-// 변수별 시나리오 학습률 (안정 한계가 변수마다 달라 매핑이 다르다)
+// 변수별 시나리오 학습률 — ½MSE 기준 critical η: b=2, w=2/11≈0.1818.
+// w 의 진동 칩은 정확히 critical 값으로 둬 한 step 만에 반대편 같은 거리로 떨어지는 모습을 보인다.
 const SC_LR: Record<VarMode, Record<Scenario['id'], number>> = {
-  b: { diverge: 1.2, big: 1.0, mid: 0.1, small: 0.01 },
-  w: { diverge: 0.10, big: 0.06, mid: 0.02, small: 0.002 },
+  b: { diverge: 2.5, big: 2.0, mid: 0.5, small: 0.05 },
+  w: { diverge: 0.25, big: 2 / 11, mid: 0.05, small: 0.005 },
 };
 
 type Trail = { points: { v: number; mse: number }[]; color: string; label: string; id: Scenario['id'] };
+
+// 칩에 표시할 학습률 포맷터 — 무한소수는 소수점 3자리에서 자른다(반올림 X, "0.1818..." 회피).
+const fmtLr = (lr: number) => (Math.trunc(lr * 1000) / 1000).toString();
 
 export function PhaseA3() {
   const meta = PHASES.find((p) => p.id === 'a3')!;
@@ -104,7 +109,7 @@ export function PhaseA3() {
   const [v, setV] = useState(conf.vStart);
   const [lr, setLr] = useState(conf.lrInit);
   const [history, setHistory] = useState<{ v: number; mse: number }[]>([
-    { v: conf.vStart, mse: mseAt(conf.vStart, mode) },
+    { v: conf.vStart, mse: lossAt(conf.vStart, mode) },
   ]);
 
   // 4개 시나리오 자취
@@ -122,16 +127,16 @@ export function PhaseA3() {
     setMode(next);
     setV(c.vStart);
     setLr(c.lrInit);
-    setHistory([{ v: c.vStart, mse: mseAt(c.vStart, next) }]);
+    setHistory([{ v: c.vStart, mse: lossAt(c.vStart, next) }]);
     setTrails({ diverge: null, big: null, mid: null, small: null });
     setActiveScenario(null);
     setSeen(new Set());
   };
 
-  const mse = mseAt(v, mode);
+  const mse = lossAt(v, mode);
   const slope = slopeAt(v, mode);
   const nextV = v - lr * slope;
-  const nextMse = mseAt(nextV, mode);
+  const nextMse = lossAt(nextV, mode);
   const reached = mse < 0.05;
 
   // 완료 처리: 직접 수렴 도달 또는 4개 시나리오를 모드 어디서든 모두 본 적 있을 때
@@ -141,27 +146,27 @@ export function PhaseA3() {
 
   const stepOnce = () => {
     setV(nextV);
-    setHistory((h) => [...h, { v: nextV, mse: mseAt(nextV, mode) }]);
+    setHistory((h) => [...h, { v: nextV, mse: lossAt(nextV, mode) }]);
   };
 
   const reset = () => {
     setV(conf.vStart);
-    setHistory([{ v: conf.vStart, mse: mseAt(conf.vStart, mode) }]);
+    setHistory([{ v: conf.vStart, mse: lossAt(conf.vStart, mode) }]);
   };
 
   const runScenario = (sc: Scenario) => {
     const sLr = SC_LR[mode][sc.id];
     let vv = conf.vStart;
-    const points: { v: number; mse: number }[] = [{ v: vv, mse: mseAt(vv, mode) }];
+    const points: { v: number; mse: number }[] = [{ v: vv, mse: lossAt(vv, mode) }];
     for (let i = 0; i < 10; i++) {
       const g = slopeAt(vv, mode);
       const next = vv - sLr * g;
       if (!isFinite(next) || Math.abs(next) > 50) {
-        points.push({ v: vv, mse: mseAt(vv, mode) });
+        points.push({ v: vv, mse: lossAt(vv, mode) });
         break;
       }
       vv = next;
-      points.push({ v: vv, mse: mseAt(vv, mode) });
+      points.push({ v: vv, mse: lossAt(vv, mode) });
     }
     setTrails((t) => ({ ...t, [sc.id]: { points, color: sc.color, label: sc.label, id: sc.id } }));
     setActiveScenario(sc.id);
@@ -185,10 +190,14 @@ export function PhaseA3() {
       <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
       <h1>{meta.title}</h1>
       <p className="text-muted mt-2">
-        손실이 줄어드는 방향은 곡선의 <strong>기울기 부호의 반대쪽</strong>이에요.
+        손실을 줄이려면 <strong>기울기 방향의 반대로</strong> 움직여요 — 그래서 식에 빼기가 들어갑니다.
         한 step에 얼마나 옮길지 정하는 보폭이 <strong className="text-accent">학습률 η</strong> —
         새 {conf.varLabel} = {conf.varLabel} − η × 기울기. 이 한 줄이 경사하강법의 전부예요.
       </p>
+      <div className="aside-note mt-3 text-[12px]">
+        <strong>여기 손실 L 은 ½ · MSE</strong> = MSE ÷ 2 예요. A2 에서 본 MSE 와 똑같은 모양의 곡선이고
+        세로축 값만 정확히 절반 — ½ 을 곱해 두면 다음 A4 에서 미분할 때 제곱에서 나오는 2 와 약분돼 식이 깔끔해집니다.
+      </div>
 
       {/* ── 변수 토글 ────────────────────────────────────────── */}
       <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -242,7 +251,7 @@ export function PhaseA3() {
             </label>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
               <Stat label={`현재 ${conf.varLabel}`} value={v.toFixed(3)} />
-              <Stat label="MSE" value={mse.toFixed(3)} highlight={reached} />
+              <Stat label="손실 L" value={mse.toFixed(3)} highlight={reached} />
               <Stat label="기울기" value={slope.toFixed(3)} />
               <Stat label={`다음 ${conf.varLabel}`} value={nextV.toFixed(3)} accent />
             </div>
@@ -263,7 +272,7 @@ export function PhaseA3() {
             <div className="flex items-baseline justify-between">
               <div className="text-sm font-medium">손실 추이</div>
               <div className="text-[11px] text-muted font-mono">
-                step {history.length - 1} · MSE {mse.toFixed(3)}
+                step {history.length - 1} · L {mse.toFixed(3)}
               </div>
             </div>
             <MiniLossHistory history={history} />
@@ -271,11 +280,11 @@ export function PhaseA3() {
         </div>
       </div>
 
-      {/* ── 강조: η는 별개의 학습률이 아니라 "이 보폭" ────────────── */}
+      {/* ── 강조: η = 학습률 = 한 step의 보폭 ──────────────────── */}
       <div className="aside-tip mt-4 text-sm">
-        <strong>η는 "학습률"이라는 별도 개념이 아니에요.</strong>{' '}
-        경사하강법의 <strong>보폭</strong> — 매 step마다 기울기 방향으로 얼마나 옮길지를 정하는 한 숫자입니다.
-        같은 곡선·같은 출발점이어도 보폭만 바꾸면 결과가 이렇게 달라져요 ↓
+        <strong>η = 학습률 = 한 step의 보폭.</strong>{' '}
+        매 step마다 기울기 방향으로 얼마나 옮길지를 정하는 한 숫자예요.
+        같은 곡선·같은 출발점이어도 이 한 숫자만 바꾸면 결과가 이렇게 달라집니다 ↓
       </div>
 
       {/* ── 4개 시나리오 비교 ─────────────────────────────────────── */}
@@ -299,7 +308,7 @@ export function PhaseA3() {
                 }}
               >
                 {isSeen && !active && <span className="mr-1">✓</span>}
-                η = {sLr} <span className="opacity-70 ml-1">{sc.note}</span>
+                η = {fmtLr(sLr)} <span className="opacity-70 ml-1">{sc.note}</span>
               </button>
             );
           })}
@@ -311,21 +320,21 @@ export function PhaseA3() {
           {SCENARIOS.map((sc) => {
             const tr = trails[sc.id];
             const last = tr?.points[tr.points.length - 1];
-            const final = last ? mseAt(last.v, mode) : null;
+            const final = last ? lossAt(last.v, mode) : null;
             const diverged = last ? Math.abs(last.v) >= 50 : false;
             const sLr = SC_LR[mode][sc.id];
             return (
               <div key={sc.id} className="card p-2.5"
                 style={{ borderColor: tr ? sc.color : undefined, borderWidth: tr ? 1.5 : 1 }}>
                 <div className="text-xs font-mono" style={{ color: sc.color }}>
-                  η = {sLr}
+                  η = {fmtLr(sLr)}
                 </div>
                 <div className="text-xs text-muted mt-1">{sc.note}</div>
                 {tr && final !== null && (
                   <div className="font-mono text-[11px] mt-1">
                     {diverged
                       ? <span style={{ color: sc.color }}>발산 ({conf.varLabel} ≫ 곡선 밖)</span>
-                      : <>10 step → MSE <span style={{ color: sc.color, fontWeight: 700 }}>{final.toFixed(3)}</span></>
+                      : <>10 step → L <span style={{ color: sc.color, fontWeight: 700 }}>{final.toFixed(3)}</span></>
                     }
                   </div>
                 )}
@@ -361,7 +370,7 @@ function LossCurve({
 }) {
   const W = 600, H = 360;
   const padL = 44, padR = 16, padT = 18, padB = 34;
-  const lMax = Math.max(mseAt(conf.vMin, mode), mseAt(conf.vMax, mode)) * 1.05;
+  const lMax = Math.max(lossAt(conf.vMin, mode), lossAt(conf.vMax, mode)) * 1.05;
 
   const sx = useMemo(
     () => (vv: number) => padL + ((vv - conf.vMin) / (conf.vMax - conf.vMin)) * (W - padL - padR),
@@ -376,7 +385,7 @@ function LossCurve({
     const parts: string[] = [];
     const step = (conf.vMax - conf.vMin) / 200;
     for (let vv = conf.vMin; vv <= conf.vMax + 0.0001; vv += step) {
-      parts.push(`${parts.length === 0 ? 'M' : 'L'}${sx(vv).toFixed(2)},${sy(mseAt(vv, mode)).toFixed(2)}`);
+      parts.push(`${parts.length === 0 ? 'M' : 'L'}${sx(vv).toFixed(2)},${sy(lossAt(vv, mode)).toFixed(2)}`);
     }
     return parts.join(' ');
   }, [mode, conf.vMin, conf.vMax, sx, sy]);
@@ -415,7 +424,7 @@ function LossCurve({
             fontSize={11} fill="rgb(var(--color-muted))">{vv}</text>
         ))}
         <text x={W - padR - 4} y={H - padB - 6} textAnchor="end" fontSize={11} fill="rgb(var(--color-muted))">{conf.axisLabel}</text>
-        <text x={padL + 6} y={padT + 12} fontSize={11} fill="rgb(var(--color-muted))">MSE</text>
+        <text x={padL + 6} y={padT + 12} fontSize={11} fill="rgb(var(--color-muted))">L</text>
 
         {/* 정답 v 수직선 */}
         <line x1={sx(trueV)} y1={padT} x2={sx(trueV)} y2={H - padB}
@@ -482,11 +491,11 @@ function LossCurve({
           y={sy(mse) - 10}
           textAnchor={v > conf.vMax - (conf.vMax - conf.vMin) * 0.2 ? 'end' : 'start'}
           fontSize={11} fill="rgb(var(--color-text))" fontWeight={600}>
-          {conf.varLabel} = {v.toFixed(2)}, MSE = {mse.toFixed(2)}
+          {conf.varLabel} = {v.toFixed(2)}, L = {mse.toFixed(2)}
         </text>
       </svg>
       <div className="text-[11px] text-muted px-2 pb-2 leading-snug">
-        가로축 = {conf.varLabel} 후보, 세로축 = MSE ({conf.fixedLabel}).{' '}
+        가로축 = {conf.varLabel} 후보, 세로축 = 손실 L = ½·MSE ({conf.fixedLabel}).{' '}
         <span style={{ color: 'rgb(190,18,60)' }}>● 빨강</span>=현재 위치,{' '}
         <span style={{ color: 'rgb(251,146,60)' }}>주황 선</span>=현재 기울기(접선),{' '}
         <span className="text-accent">점선 화살표</span>=현재 η로 한 step 옮긴 위치.

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>[교사용] Neural Explorer 활동지 3 — 알고리즘의 이해</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt;page-break-after:avoid}
+
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .tlab{display:inline-block;background:#000;color:#fff;font-size:9pt;padding:1pt 8pt;border-radius:3px;margin-right:8pt;letter-spacing:1px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0;break-inside:auto;page-break-inside:auto}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt}
+  .qh .num{display:inline-block;background:#000;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#1a1a1a;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb td.fa{font-family:'JetBrains Mono',monospace;font-weight:700;color:#7a4f00;background:#fff8e1}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0}
+
+  /* 정답 / 자주 틀림 / 수업 팁 / 앱 운영 박스 */
+  .ans{background:#fff8e1;border:1.2px solid #c89000;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .ans .lab{display:inline-block;background:#000;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600;letter-spacing:0.5px}
+  .ans .v{font-family:'JetBrains Mono',monospace;font-weight:600}
+  .pf{background:#fce4e4;border:1.2px solid #b04040;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .pf .lab{display:inline-block;background:#b04040;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .tt{background:#e8f1ff;border:1.2px solid #3060a0;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .tt .lab{display:inline-block;background:#3060a0;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt}
+  ul,ol{padding-left:18pt;margin:4pt 0}
+  li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto;overflow:visible}
+    .qh,.fm,.ex,.ib,.tb,.an,.ans,.pf,.tt{break-inside:avoid;page-break-inside:avoid}
+    p,li{orphans:3;widows:3}
+    .tb th,.qh .num,.lh .tlab{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .ans,.pf,.tt,.tb td.fa{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header class="lh">
+<div><span class="tlab">교사용</span><span class="lab">NEURAL EXPLORER · 활동지 3 · 정답·해설·수업 팁</span></div>
+<h1 style="margin-top:6pt">A — 알고리즘의 이해</h1>
+<div class="sub">예측 → 오차 → 기울기 → 갱신을 한 묶음으로 (학생용과 동일 구조 + 정답)</div>
+<div class="obj"><strong>핵심 메시지</strong> 학생이 A 영역(A1~A5)을 마칠 때 <em>"학습 = 손실을 줄이는 방향으로 w·b를 한 step 만큼 미는 일을 반복"</em>을 자기 말로 말할 수 있어야 한다. 수식보다 <strong>한 사이클의 흐름</strong>에 집중시킬 것.</div>
+</header>
+
+<div class="an"><span class="lab">앱 운영</span>A2~A5 가 같은 데이터(<span class="mono">y = 2x + 1</span>, 5점)를 공유하도록 통일했음. 학생이 A2 에서 슬라이더로 직접 찾던 (w, b)를 A3~A5 가 자동으로 찾아 가는 흐름임을 칠판 한 줄로 먼저 적어 둘 것: <strong>"손으로 한 일을 컴퓨터가 자동으로 한다"</strong>. ½MSE 규약으로 통일 — 손실 L = ½ · MSE 라고 표기.</div>
+
+<!-- ============================================================== -->
+<h2>STEP A1. 인공 뉴런의 예측</h2>
+
+<div class="qc">
+<div class="qh"><span class="num">A1-1</span>부품 이름 + 앱 A1 초기값 — 정답</div>
+<table class="tb">
+<tr><th>기호</th><th>이름</th><th>역할</th><th>앱 A1 초기값</th></tr>
+<tr><td class="mono">x₁, x₂</td><td class="fa">입력</td><td>모델이 받는 외부 신호 (특징값)</td><td class="mono">2, 3</td></tr>
+<tr><td class="mono">w₁, w₂</td><td class="fa">가중치</td><td>각 입력의 영향 정도 (양수=촉진, 음수=억제)</td><td class="mono">1, 1</td></tr>
+<tr><td class="mono">b</td><td class="fa">편향</td><td>입력과 무관하게 z를 위·아래로 미는 문턱</td><td class="mono">0</td></tr>
+<tr><td class="mono">활성화</td><td class="fa">비선형 함수</td><td>z를 비선형으로 변형해 ŷ을 만든다</td><td class="mono">ReLU</td></tr>
+<tr><td class="mono">ŷ</td><td class="fa">예측값</td><td>활성화 통과 후의 출력</td><td class="fa">5</td></tr>
+</table>
+<div class="ans"><span class="lab">정답</span>z = 1·2 + 1·3 + 0 = <span class="v">5</span>,&nbsp; ŷ = ReLU(5) = <span class="v">5</span>. 마지막 빈칸: <strong>커</strong>(가중치 |w| 가 클수록 그 입력의 영향이 커진다).</div>
+<div class="tt"><span class="lab">수업 팁</span>'가중치=영향력, 편향=기본 점수' 비유. 학생이 "음수 w=억제"를 자기 말로 말할 때까지 다음으로 안 넘어감.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A1-2</span>순전파 손계산 ① — 정답</div>
+<div class="fm">
+  z = 1.5 · 2 + (−1) · 3 + 2 = 3 − 3 + 2 = <span class="v" style="color:#7a4f00">2</span><br/>
+  ŷ = ReLU(z) = max(0, 2) = <span class="v" style="color:#7a4f00">2</span>
+</div>
+<div class="pf"><span class="lab">자주 틀림</span>(−1)·3 의 부호. <span class="mono">−13</span>이라 적는 학생 있음. 부호와 절댓값 분리해 큰 글씨로 시범.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A1-3</span>순전파 손계산 ② — 정답</div>
+<table class="tb">
+<tr><th>w₁</th><th>w₂</th><th>z = w₁·2 + w₂·3</th><th>ŷ = ReLU(z)</th></tr>
+<tr><td>1</td><td>1</td><td class="fa">5</td><td class="fa">5</td></tr>
+<tr><td>2</td><td>−1</td><td class="fa">1</td><td class="fa">1</td></tr>
+<tr><td>−2</td><td>1</td><td class="fa">−1</td><td class="fa">0</td></tr>
+<tr><td>0.5</td><td>0.5</td><td class="fa">2.5</td><td class="fa">2.5</td></tr>
+</table>
+<div class="ans"><span class="lab">정답</span>관찰 ①: z가 음수일 때 ReLU(z) = <strong>0</strong>. 관찰 ②: w가 음수면 그 입력은 z를 <strong>작아지게</strong> 한다.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A1-4</span>같은 z, 다른 활성화 — 정답</div>
+<table class="tb">
+<tr><th>z</th><th>ReLU(z)</th><th>linear(z)</th><th>sigmoid(z)</th></tr>
+<tr><td>−2</td><td class="fa">0</td><td class="fa">−2</td><td>≈ 0.12</td></tr>
+<tr><td>0</td><td class="fa">0</td><td class="fa">0</td><td class="fa">0.5</td></tr>
+<tr><td>+2</td><td class="fa">2</td><td class="fa">2</td><td>≈ 0.88</td></tr>
+</table>
+<div class="ans"><span class="lab">정답</span>관찰 ①: ReLU 는 z 가 음수일 때 출력이 <strong>0</strong>에 고정. 관찰 ②: sigmoid 출력은 <strong>0과 1</strong> 사이.</div>
+<div class="tt"><span class="lab">수업 팁</span>sigmoid 0.12, 0.88 은 외울 필요 없음. 앱에서 슬라이더로 직접 확인하게 할 것.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A1-5</span>활성화가 없으면 — 정답 예시</div>
+<div class="ans"><span class="lab">서술 예시</span>활성화 없이 ŷ = w·x + b 로만 두면 뉴런 여러 개를 쌓아도 결국 <strong>하나의 직선 변환</strong>으로 합쳐진다. 곡선·꺾인 패턴을 표현할 수 없음. (선형 변환의 합성은 선형이라는 사실을 직관 수준으로 짚고, 다음 영역 B/C 에서 깊은 망 동기로 연결.)</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP A2. 오차와 MSE</h2>
+
+<div class="qc">
+<div class="qh"><span class="num">A2-1</span>한 점의 오차 — 정답</div>
+<table class="tb">
+<tr><th>ŷ</th><th>3</th><th>4.5</th><th>5</th><th>6</th><th>7</th></tr>
+<tr><td class="lbl">e = ŷ − 5</td><td class="fa">−2</td><td class="fa">−0.5</td><td class="fa">0</td><td class="fa">+1</td><td class="fa">+2</td></tr>
+<tr><td class="lbl">e²</td><td class="fa">4</td><td class="fa">0.25</td><td class="fa">0</td><td class="fa">1</td><td class="fa">4</td></tr>
+</table>
+<div class="ans"><span class="lab">정답</span>e = 0 의 의미: <strong>예측이 정답과 정확히 일치 (학습 종료의 한 점 지표)</strong>. ŷ=3, ŷ=7 의 e² 같은가? <strong>같다</strong>(둘 다 4). 이유: e² 은 부호를 무시하고 거리의 제곱만 본다 → MSE 가 부호를 자동으로 상쇄하는 이유.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A2-2</span>MSE 식 빈칸 — 정답</div>
+<div class="fm">
+  ① e<sub>i</sub> = <span style="color:#7a4f00;font-weight:700">ŷ<sub>i</sub></span> − <span style="color:#7a4f00;font-weight:700">y<sub>i</sub></span><br/>
+  ② e<sub>i</sub>² = ( <span style="color:#7a4f00;font-weight:700">ŷ<sub>i</sub> − y<sub>i</sub></span> )²<br/>
+  ③ MSE = ( <span style="color:#7a4f00;font-weight:700">1</span> / N ) · Σ <span style="color:#7a4f00;font-weight:700">e<sub>i</sub>²</span>
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A2-3</span>다섯 점 표 — MSE 손계산 정답</div>
+<table class="tb">
+<tr><th>x</th><th>y</th><th>ŷ = x + 2</th><th>e = ŷ − y</th><th>e²</th></tr>
+<tr><td>1</td><td>3</td><td class="fa">3</td><td class="fa">0</td><td class="fa">0</td></tr>
+<tr><td>2</td><td>5</td><td class="fa">4</td><td class="fa">−1</td><td class="fa">1</td></tr>
+<tr><td>3</td><td>7</td><td class="fa">5</td><td class="fa">−2</td><td class="fa">4</td></tr>
+<tr><td>4</td><td>9</td><td class="fa">6</td><td class="fa">−3</td><td class="fa">9</td></tr>
+<tr><td>5</td><td>11</td><td class="fa">7</td><td class="fa">−4</td><td class="fa">16</td></tr>
+<tr><td class="lbl" colspan="4" style="text-align:right">Σ e² =</td><td class="fa">30</td></tr>
+<tr><td class="lbl" colspan="4" style="text-align:right">MSE = Σe² ÷ 5 =</td><td class="fa">6</td></tr>
+</table>
+<div class="tt"><span class="lab">수업 팁</span>이 MSE 가 0 으로 가도록 (w, b)를 직접 슬라이드해 보게 하기. (w=2, b=1 에서 MSE=0). 그러고 나서 STEP A3 으로 넘어가면 <strong>"이 일을 자동으로 하는 알고리즘이 경사하강법"</strong>이라는 메시지가 박힘.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A2-4</span>|e| vs e² — 정답</div>
+<table class="tb">
+<tr><th>e</th><th>1</th><th>2</th><th>3</th><th>5</th><th>10</th></tr>
+<tr><td class="lbl">|e|</td><td class="fa">1</td><td class="fa">2</td><td class="fa">3</td><td class="fa">5</td><td class="fa">10</td></tr>
+<tr><td class="lbl">e²</td><td class="fa">1</td><td class="fa">4</td><td class="fa">9</td><td class="fa">25</td><td class="fa">100</td></tr>
+</table>
+<div class="ans"><span class="lab">정답</span>e가 1→10 으로 10배 커지면 |e| 도 <strong>10</strong>배, e² 은 <strong>100</strong>배. 큰 실수에 더 큰 벌점을 주는 쪽: <strong>e²</strong>.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A2-5</span>왜 제곱? — 정답</div>
+<ol style="padding-left:24pt;font-size:10pt">
+<li><strong>부호 상쇄 방지</strong> — +3 + (−3) = <span class="ans" style="display:inline;padding:1pt 4pt">0</span> → "오차 없음"처럼 보임. 제곱하면 모두 <span class="ans" style="display:inline;padding:1pt 4pt">양수</span>가 됨.</li>
+<li><strong>큰 오차에 더 큰 페널티</strong> — 1²=<span class="ans" style="display:inline;padding:1pt 4pt">1</span>, 10²=<span class="ans" style="display:inline;padding:1pt 4pt">100</span>. 큰 실수가 <strong>폭발적</strong>으로 커진다.</li>
+<li><strong>매끄러운 곡선</strong> — e² 은 <strong>포물선(2차 곡선)</strong> 모양이라 한 점에서 <strong>기울기</strong>를 정확히 잴 수 있음.</li>
+</ol>
+<div class="ans"><span class="lab">서술 예시</span>매끄러운 곡선이라야 "어느 방향으로 얼마나 옮길지"의 <strong>기울기 정보</strong>가 매 점에서 살아 있어, 다음 STEP 의 경사하강법이 작동한다. 절댓값 |e| 는 0 에서 꺾여 미분이 정의되지 않아 같은 일을 못 함.</div>
+<div class="tt"><span class="lab">수업 팁</span>"꺾인 함수 vs 매끄러운 함수"를 손바닥으로 그려 보이는 시범. ‘미분’ 단어 안 써도 됨 — '한 점에서 어느 쪽이 내리막인지 잴 수 있다'로 충분.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP A3. 경사하강법 — 손실을 줄이는 방향</h2>
+
+<div class="an"><span class="lab">앱 운영</span>A3 은 ½MSE 규약으로 손실 L = ½·MSE 를 표시. A2 의 MSE 와 같은 모양 곡선이지만 세로축 값만 정확히 절반 — 그 이유는 다음 A4 의 ½ 도입과 같이 보면 한 줄로 풀린다.</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A3-1</span>한 점 옆 살짝 — 정답</div>
+<div class="fm">
+  b = 0.5 → ½ · (0.5 − 1)² = <span class="v" style="color:#7a4f00">0.125</span><br/>
+  b = 1   → ½ · (1   − 1)² = <span class="v" style="color:#7a4f00">0</span><br/>
+  b = 1.5 → ½ · (1.5 − 1)² = <span class="v" style="color:#7a4f00">0.125</span>
+</div>
+<div class="ans"><span class="lab">정답</span>b=0.5 에서 손실을 줄이려면 b를 <strong>오른쪽</strong>(↑정답 1 쪽). b=1.5 에서는 <strong>왼쪽</strong>. b=1 에서는 <strong>움직이지 않는다</strong> (= 학습 종료 신호).</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A3-2</span>갱신 식 빈칸 — 정답</div>
+<div class="fm" style="font-size:11pt">
+  새 w = w <span class="v" style="color:#7a4f00">−</span> η · ( <span class="v" style="color:#7a4f00">∂L/∂w</span> = dw )<br/>
+  새 b = b <span class="v" style="color:#7a4f00">−</span> η · ( <span class="v" style="color:#7a4f00">∂L/∂b</span> = db )
+</div>
+<div class="ans"><span class="lab">정답</span>기울기 양수(+) 이면 새 w 는 <strong>작아진다</strong>. 빼기는 곧 "기울기와 <strong>반대</strong> 방향으로 가라"는 뜻.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A3-3</span>4 시나리오 — 정답</div>
+<div class="qd">조건: 정답 b=1, 시작 b=−2, w=2 고정. 모든 점의 e = b − 1 = −3 → db = 평균(e) = <strong>−3</strong>. 한 step 새 b = −2 − η·(−3) = −2 + 3η.</div>
+<table class="tb">
+<tr><th>η</th><th>3·η</th><th>새 b</th><th>거리 |새 b − 1|</th><th>시나리오</th></tr>
+<tr><td>2.5</td><td class="fa">7.5</td><td class="fa">5.5</td><td class="fa">4.5</td><td class="fa">발산</td></tr>
+<tr><td>2.0</td><td class="fa">6</td><td class="fa">4</td><td class="fa">3</td><td class="fa">진동</td></tr>
+<tr><td>0.5</td><td class="fa">1.5</td><td class="fa">−0.5</td><td class="fa">1.5</td><td class="fa">수렴</td></tr>
+<tr><td>0.05</td><td class="fa">0.15</td><td class="fa">−1.85</td><td class="fa">2.85</td><td class="fa">느림</td></tr>
+</table>
+<div class="ans"><span class="lab">정답 해석</span>처음 거리 |−2−1|=3 기준. <strong>발산</strong>: η=2.5 에서 새 거리 4.5 → 처음보다 멀어짐. <strong>진동</strong>: η=2.0 에서 새 거리 3 → 정답 반대편 같은 거리, 다음 step 다시 −2 로 돌아옴. <strong>수렴</strong>: η=0.5 에서 거리 3 → 1.5 로 줄음. <strong>느림</strong>: η=0.05 에서 거리 2.85 → 거의 그대로.</div>
+<div class="pf"><span class="lab">자주 틀림</span>"3·η = ?" 를 거꾸로 적는 학생. 그리고 거리는 <strong>절댓값</strong>이라는 점 — 음수 b 에서도 거리는 양수.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A3-4</span>η가 너무 크면 / 너무 작으면 — 정답 예시</div>
+<div class="ans"><span class="lab">정답 예시</span>너무 크면 → <strong>정답을 지나쳐 점점 멀어진다 (발산)</strong>. 너무 작으면 → <strong>정답에 거의 닿지 못하고 한없이 느림</strong>. 딱 좋으면 → <strong>몇 step 만에 손실이 안정적으로 0 근처로</strong>. 결국 η 는 한 step 의 <strong>보폭</strong>.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP A4. 기울기 계산하기 — dw·db 유도</h2>
+
+<div class="qc">
+<div class="qh"><span class="num">A4-1</span>사슬규칙 한 단계씩 — 정답</div>
+<div class="fm">
+  ① L = ½ · (ŷ − y)² &nbsp; (½ 은 미분 시 2 와 약분되도록)<br/>
+  ② ∂L/∂ŷ = (ŷ − y) = <span class="v" style="color:#7a4f00">e</span><br/>
+  ③ ∂ŷ/∂w = ∂/∂w(w·x + b) = <span class="v" style="color:#7a4f00">x</span><br/>
+  ④ ∂ŷ/∂b = ∂/∂b(w·x + b) = <span class="v" style="color:#7a4f00">1</span><br/>
+  ⑤ ∂L/∂w = e · <span class="v" style="color:#7a4f00">x</span>,&nbsp; ∂L/∂b = e · <span class="v" style="color:#7a4f00">1</span> = e
+</div>
+<div class="fm">
+  dw = (1/N) · Σ <span class="v" style="color:#7a4f00">e<sub>i</sub> · x<sub>i</sub></span><br/>
+  db = (1/N) · Σ <span class="v" style="color:#7a4f00">e<sub>i</sub></span>
+</div>
+<div class="tt"><span class="lab">수업 팁</span>"사슬규칙" 단어를 두 번 쓰면 충분 — 겉(제곱) 미분 × 속(선형) 미분 = e·x. 더 깊이 안 들어감.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A4-2</span>다섯 점 직접 계산표 — 정답</div>
+<table class="tb">
+<tr><th>x</th><th>y</th><th>ŷ = 1.5x</th><th>e = ŷ − y</th><th>e · x</th></tr>
+<tr><td>1</td><td>3</td><td class="fa">1.5</td><td class="fa">−1.5</td><td class="fa">−1.5</td></tr>
+<tr><td>2</td><td>5</td><td class="fa">3</td><td class="fa">−2</td><td class="fa">−4</td></tr>
+<tr><td>3</td><td>7</td><td class="fa">4.5</td><td class="fa">−2.5</td><td class="fa">−7.5</td></tr>
+<tr><td>4</td><td>9</td><td class="fa">6</td><td class="fa">−3</td><td class="fa">−12</td></tr>
+<tr><td>5</td><td>11</td><td class="fa">7.5</td><td class="fa">−3.5</td><td class="fa">−17.5</td></tr>
+<tr><td class="lbl" colspan="3" style="text-align:right">합 →</td><td class="fa">Σe = −12.5</td><td class="fa">Σ(e·x) = −42.5</td></tr>
+<tr><td class="lbl" colspan="3" style="text-align:right">÷ 5 →</td><td class="fa">db = −2.5</td><td class="fa">dw = −8.5</td></tr>
+</table>
+<div class="ans"><span class="lab">정답</span>dw, db 둘 다 <strong>음수(−)</strong>. 그래서 갱신 식의 빼기에 의해 새 w·b 는 <strong>커진다</strong> (정답 w=2, b=1 쪽). "손실을 줄이려면 w·b 를 <strong>키워야</strong>"라는 결론.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A4-3</span>다음 step 예고 — 정답</div>
+<div class="fm">
+  새 w = 1.5 − 0.05 · (−8.5) = <span class="v" style="color:#7a4f00">1.925</span><br/>
+  새 b = 0  − 0.05 · (−2.5) = <span class="v" style="color:#7a4f00">0.125</span>
+</div>
+<div class="ans"><span class="lab">정답</span>1.5 → 1.925 (정답 2 에 가까워짐), 0 → 0.125 (정답 1 에 가까워짐). A5 에서 시작점만 바꿔 다시 한 step 굴려 봄.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP A5. 전체 흐름 완성</h2>
+
+<div class="qc">
+<div class="qh"><span class="num">A5-1</span>4단계 라벨 — 정답</div>
+<table class="tb">
+<tr><th>#</th><th>단계</th><th>일어나는 일</th><th>페이즈</th></tr>
+<tr><td>1</td><td class="fa">예측</td><td>입력 x 로 ŷ 을 계산 (z → 활성화)</td><td>A1</td></tr>
+<tr><td>2</td><td class="fa">오차</td><td>e = ŷ − y, 평균 제곱 → 손실</td><td>A2</td></tr>
+<tr><td>3</td><td class="fa">기울기</td><td>dw = 평균(e·x), db = 평균(e)</td><td>A4</td></tr>
+<tr><td>4</td><td class="fa">갱신</td><td>w·b ← w·b − η · 기울기</td><td>A3</td></tr>
+</table>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A5-2</span>한 step 검산 — 정답</div>
+<table class="tb">
+<tr><th>x</th><th>y</th><th>ŷ = 0·x + 0</th><th>e = ŷ − y</th><th>e · x</th></tr>
+<tr><td>1</td><td>3</td><td class="fa">0</td><td class="fa">−3</td><td class="fa">−3</td></tr>
+<tr><td>2</td><td>5</td><td class="fa">0</td><td class="fa">−5</td><td class="fa">−10</td></tr>
+<tr><td>3</td><td>7</td><td class="fa">0</td><td class="fa">−7</td><td class="fa">−21</td></tr>
+<tr><td>4</td><td>9</td><td class="fa">0</td><td class="fa">−9</td><td class="fa">−36</td></tr>
+<tr><td>5</td><td>11</td><td class="fa">0</td><td class="fa">−11</td><td class="fa">−55</td></tr>
+<tr><td class="lbl" colspan="3" style="text-align:right">합 →</td><td class="fa">Σe = −35</td><td class="fa">Σ(e·x) = −125</td></tr>
+</table>
+<div class="fm">
+  dw = −125 ÷ 5 = <span class="v" style="color:#7a4f00">−25</span>,&nbsp; db = −35 ÷ 5 = <span class="v" style="color:#7a4f00">−7</span><br/>
+  새 w = 0 − 0.05 · (−25) = <span class="v" style="color:#7a4f00">1.25</span><br/>
+  새 b = 0 − 0.05 · (−7)  = <span class="v" style="color:#7a4f00">0.35</span>
+</div>
+<div class="ans"><span class="lab">정답</span>한 step 만에 (0, 0) → (1.25, 0.35) 로 정답 (2, 1)에 <strong>가까워졌다</strong>. ReLU(0)=0 이라 시작에서 z=0 이고, 한 step 후 z 가 양수 구간이 되어 ŷ = w·x + b 그대로 따라간다.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A5-3</span>한 점만 다시 — 정답</div>
+<table class="tb">
+<tr><th>모델</th><th>ŷ = w·3 + b</th><th>e = ŷ − 7</th><th>e²</th></tr>
+<tr><td>처음 (w=0, b=0)</td><td class="fa">0</td><td class="fa">−7</td><td class="fa">49</td></tr>
+<tr><td>새 (w=1.25, b=0.35)</td><td class="fa">4.1</td><td class="fa">−2.9</td><td class="fa">8.41</td></tr>
+</table>
+<div class="ans"><span class="lab">정답</span>e² 이 49 → 8.41 로 <strong>줄었다</strong>. 한 step 의 의미 = "손실이 실제로 줄어드는 방향으로 한 발자국".</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A5-4</span>왜 빼기인가 — 정답 예시</div>
+<div class="ans"><span class="lab">서술 예시</span>기울기는 손실이 <strong>커지는</strong> 방향을 알려 준다. 줄이려면 <strong>반대로</strong> 가야 하므로 "− 기울기" 방향으로 한 step 의 <strong>보폭(η)</strong> 만큼 옮긴다 → 식에 빼기가 들어간다.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">A5-5</span>학습 종료 신호 — 정답</div>
+<div class="fm">
+  새 w = w − η · 0 = <span class="v" style="color:#7a4f00">w</span>,&nbsp; 새 b = b − η · 0 = <span class="v" style="color:#7a4f00">b</span>
+</div>
+<div class="ans"><span class="lab">정답</span>기울기 0 이면 더 이상 <strong>움직이지</strong> 않는다 → 학습 종료 신호. 이때의 (w, b) 가 손실 곡선의 최저점.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>STEP A6. 마무리</h2>
+
+<div class="qc">
+<div class="qh"><span class="num">정리</span>학습 흐름도 — 정답</div>
+<div class="fm" style="font-size:11pt">
+  입력 x → ( <span class="v" style="color:#7a4f00">가중</span> 합산 + b ) → ( <span class="v" style="color:#7a4f00">활성화</span> 함수 ) → 예측 ŷ<br/>
+  → 정답 y 와 비교: ( <span class="v" style="color:#7a4f00">손실(MSE)</span> ) 측정<br/>
+  → ( <span class="v" style="color:#7a4f00">기울기(미분)</span> )로 손실 줄어드는 방향 찾기<br/>
+  → w·b ( <span class="v" style="color:#7a4f00">갱신 (← − η · 기울기)</span> ) — 새 w·b 로 다시 ① 부터 반복
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">서술</span>친구에게 설명 — 채점 루브릭</div>
+<table class="tb">
+<tr><th>수준</th><th>특징</th></tr>
+<tr><td class="lbl">상</td><td style="text-align:left">예측·오차·MSE·기울기·학습률·갱신 6 단어를 모두 사용. "예측을 만들고, 정답과의 차이를 숫자(MSE)로 만든 뒤, 손실을 줄이는 <strong>방향(기울기)</strong>으로 한 step 의 <strong>보폭(η)</strong> 만큼 w·b 를 옮긴다. 이걸 반복" 의 흐름이 살아 있음.</td></tr>
+<tr><td class="lbl">중</td><td style="text-align:left">5 개 이상 단어 사용. 흐름 중 한두 단계의 인과 연결이 약함 (예: 왜 빼기인가? 가 빠지거나 학습률을 단순 "속도"로만 설명).</td></tr>
+<tr><td class="lbl">하</td><td style="text-align:left">단어 나열에 그치고 흐름이 안 이어짐. 또는 식만 적고 무슨 뜻인지 자기 말로 풀지 못함.</td></tr>
+</table>
+<div class="tt"><span class="lab">수업 팁</span>학생이 "왜 <strong>제곱</strong>하는가?", "왜 <strong>빼기</strong>인가?" 두 질문에 자기 말로 답할 수 있으면 A 영역 통과로 봐도 좋음.</div>
+</div>
+
+</body>
+</html>

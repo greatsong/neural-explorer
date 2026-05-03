@@ -32,9 +32,10 @@
 
   /* 프로젝터로 학생들이 보는 화면이라 기본 폰트를 키운다.
      Tailwind의 fontSize는 rem 기반이라 html font-size를 올리면 모든 텍스트가 비례 확대.
-     데스크톱 18px (12.5% 확대) — 모바일에선 16px로 되돌림. */
+     데스크톱 22px — 별도 브라우저 확대 없이도 교실에서 읽히게.
+     모바일은 16px 그대로(가독성보다 동작 우선). */
   html {
-    font-size: 18px;
+    font-size: 22px;
   }
   @media (max-width: 767px) {
     html { font-size: 16px; }
