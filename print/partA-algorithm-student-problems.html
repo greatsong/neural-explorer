@@ -25,7 +25,7 @@
   .name span{display:inline-block;border-bottom:1px solid #888;min-width:80pt;margin:0 8pt}
 
   /* 카드 */
-  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0;break-inside:auto;page-break-inside:auto}
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0;break-inside:avoid;page-break-inside:avoid}
   .qh{font-weight:700;margin-bottom:6pt;font-size:11pt;break-inside:avoid;page-break-inside:avoid}
   .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
   .qd{font-size:10pt;color:#444;margin-bottom:6pt}
@@ -73,7 +73,7 @@
   @media print{
     @page{size:A4;margin:12mm 10mm 14mm}
     body{font-size:9.6pt;line-height:1.55;padding:0}
-    .qc{break-inside:auto;page-break-inside:auto;overflow:visible}
+    .qc{break-inside:avoid;page-break-inside:avoid;overflow:visible}
     .qh,.sf,.fm,.gv,.ex,.ib,.tb,.an,.ob{break-inside:avoid;page-break-inside:avoid}
     .sh{break-after:avoid;page-break-after:avoid}
     .sf svg{max-width:100%!important;height:auto!important}

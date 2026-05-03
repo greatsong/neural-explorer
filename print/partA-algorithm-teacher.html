@@ -20,7 +20,7 @@
   .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
   .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
 
-  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0;break-inside:auto;page-break-inside:auto}
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0;break-inside:avoid;page-break-inside:avoid}
   .qh{font-weight:700;margin-bottom:6pt;font-size:11pt}
   .qh .num{display:inline-block;background:#000;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
   .qd{font-size:10pt;color:#444;margin-bottom:6pt}
@@ -55,7 +55,7 @@
   @media print{
     @page{size:A4;margin:12mm 10mm 14mm}
     body{font-size:9.6pt;line-height:1.55;padding:0}
-    .qc{break-inside:auto;page-break-inside:auto;overflow:visible}
+    .qc{break-inside:avoid;page-break-inside:avoid;overflow:visible}
     .qh,.fm,.ex,.ib,.tb,.an,.ans,.pf,.tt{break-inside:avoid;page-break-inside:avoid}
     p,li{orphans:3;widows:3}
     .tb th,.qh .num,.lh .tlab{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
