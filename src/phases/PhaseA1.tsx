@@ -118,8 +118,8 @@ export function PhaseA1() {
       {/* 미니 퀴즈 */}
       <div className="card p-3 mt-4">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <div className="text-sm font-medium">미니 순전파 퀴즈</div>
-          <div className="text-[11px] text-muted">
+          <div className="text-base font-medium">미니 순전파 퀴즈</div>
+          <div className="text-sm text-muted font-mono">
             x₁={QUIZ.qx1}, x₂={QUIZ.qx2}, w₁={QUIZ.qw1}, w₂={QUIZ.qw2}, b={QUIZ.qb}, 활성화 = ReLU
           </div>
         </div>
@@ -195,19 +195,19 @@ function NeuronDiagram({
         <Edge x1={70} y1={60} x2={240} y2={100} label={`w₁=${w1.toFixed(1)}`} weight={w1} />
         <Edge x1={70} y1={140} x2={240} y2={100} label={`w₂=${w2.toFixed(1)}`} weight={w2} />
         {/* Σ 노드 */}
-        <circle cx={260} cy={100} r={26} fill="rgb(var(--color-accent-bg))" stroke="rgb(var(--color-accent))" />
-        <text x={260} y={104} textAnchor="middle" fill="rgb(var(--color-accent))" fontSize={14} fontWeight={600}>Σ</text>
+        <circle cx={260} cy={100} r={30} fill="rgb(var(--color-accent-bg))" stroke="rgb(var(--color-accent))" />
+        <text x={260} y={106} textAnchor="middle" fill="rgb(var(--color-accent))" fontSize={18} fontWeight={600}>Σ</text>
         {/* 편향 표시 */}
         {Math.abs(b) > 0.001 && (
           <>
-            <text x={260} y={62} textAnchor="middle" fill="rgb(var(--color-muted))" fontSize={11}>b={b.toFixed(1)}</text>
-            <line x1={260} y1={68} x2={260} y2={74} stroke="rgb(var(--color-muted))" strokeWidth={1.5} />
+            <text x={260} y={58} textAnchor="middle" fill="rgb(var(--color-muted))" fontSize={13}>b={b.toFixed(1)}</text>
+            <line x1={260} y1={64} x2={260} y2={70} stroke="rgb(var(--color-muted))" strokeWidth={1.5} />
           </>
         )}
         {/* 활성화 박스 */}
-        <rect x={326} y={78} width={84} height={44} rx={6}
+        <rect x={322} y={76} width={92} height={48} rx={6}
               fill="rgb(var(--color-accent-bg))" stroke="rgb(var(--color-accent))" />
-        <text x={368} y={104} textAnchor="middle" fill="rgb(var(--color-accent))" fontSize={12} fontWeight={600}>
+        <text x={368} y={106} textAnchor="middle" fill="rgb(var(--color-accent))" fontSize={15} fontWeight={600}>
           {ACT_LABEL[act]}
         </text>
         {/* 연결선 */}
@@ -228,13 +228,13 @@ function Node({ cx, cy, label, accent }: { cx: number; cy: number; label: string
       <circle
         cx={cx}
         cy={cy}
-        r={20}
+        r={24}
         fill={accent ? 'rgb(var(--color-accent))' : 'rgb(var(--color-surface))'}
         stroke={accent ? 'rgb(var(--color-accent))' : 'rgb(var(--color-muted))'}
         strokeOpacity={accent ? 1 : 0.6}
       />
-      <text x={cx} y={cy + 4} textAnchor="middle"
-            fill={accent ? '#fff' : 'rgb(var(--color-text))'} fontSize={11}>
+      <text x={cx} y={cy + 5} textAnchor="middle"
+            fill={accent ? '#fff' : 'rgb(var(--color-text))'} fontSize={14}>
         {label}
       </text>
     </g>
@@ -242,8 +242,8 @@ function Node({ cx, cy, label, accent }: { cx: number; cy: number; label: string
 }
 
 function ValueBadge({ cx, cy, label }: { cx: number; cy: number; label: string }) {
-  const w = label.length * 6.4 + 10;
-  const h = 16;
+  const w = label.length * 7.8 + 12;
+  const h = 19;
   return (
     <g>
       <rect
@@ -257,7 +257,7 @@ function ValueBadge({ cx, cy, label }: { cx: number; cy: number; label: string }
         strokeOpacity={0.55}
         strokeWidth={0.8}
       />
-      <text x={cx} y={cy + 4} textAnchor="middle" fill="rgb(var(--color-accent))" fontSize={11} fontWeight={600}>
+      <text x={cx} y={cy + 5} textAnchor="middle" fill="rgb(var(--color-accent))" fontSize={13} fontWeight={600}>
         {label}
       </text>
     </g>
@@ -278,8 +278,8 @@ function Edge({
       ? 'rgb(var(--color-accent))'
       : 'rgb(190, 18, 60)';
   const opacity = Math.abs(weight) < 0.05 ? 0.5 : 0.85;
-  const labelW = label.length * 6.2 + 10;
-  const labelH = 14;
+  const labelW = label.length * 7.8 + 12;
+  const labelH = 18;
   return (
     <g>
       <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={stroke} strokeWidth={sw} strokeOpacity={opacity} strokeLinecap="round" />
@@ -294,7 +294,7 @@ function Edge({
         strokeOpacity={0.55}
         strokeWidth={0.8}
       />
-      <text x={mx} y={my + 3.5} textAnchor="middle" fill={stroke} fontSize={10} fontWeight={600}>
+      <text x={mx} y={my + 4.5} textAnchor="middle" fill={stroke} fontSize={13} fontWeight={600}>
         {label}
       </text>
     </g>
