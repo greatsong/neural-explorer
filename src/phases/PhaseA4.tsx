@@ -48,25 +48,33 @@ const DERIV_STEPS: { tex: string; why: string; highlight?: boolean }[] = [
   },
   {
     tex: `L = \\tfrac{1}{2}(\\hat{y} - y)^2`,
-    why: '½ 을 곱해 두면 미분할 때 제곱에서 떨어지는 2와 약분돼 식이 깔끔해져요. 최솟값 위치는 SE와 그대로 같습니다.',
+    why: '½ 을 곱해 두면, 나중에 기울기를 구할 때 제곱에서 떨어지는 2 와 약분돼 식이 깔끔해져요. 최솟값 위치는 SE 와 그대로 같습니다.',
   },
   {
-    tex: `\\frac{\\partial L}{\\partial w} = (\\hat{y} - y)\\cdot \\frac{\\partial}{\\partial w}(wx + b - y)`,
-    why: '½ × 2 = 1 약분. ŷ = wx + b였으니 안쪽도 풀어 적었다.',
+    tex: `\\frac{\\partial L}{\\partial w} = \\frac{\\partial L}{\\partial \\hat{y}} \\cdot \\frac{\\partial \\hat{y}}{\\partial w}`,
+    why: 'L 은 ŷ 을 거쳐 w 에 의존해요 — 그래서 w 가 변할 때 L 이 얼마나 변하는지 알려면, 두 단계의 기울기 (L↔ŷ, ŷ↔w) 를 곱하면 돼요. 다음에 두 인수를 각각 계산.',
   },
   {
-    tex: `\\frac{\\partial L}{\\partial w} = (\\hat{y} - y)\\cdot x = e\\cdot x`,
-    why: '안쪽 (wx + b − y)에서 w가 1 변하면 식 전체는 x만큼 변한다 → x가 곱해져 나옴.',
+    tex: `\\frac{\\partial L}{\\partial \\hat{y}} = \\tfrac{1}{2}\\cdot 2(\\hat{y} - y) = (\\hat{y} - y)`,
+    why: '외측 인수 — ŷ 이 한 칸 변할 때 L 이 얼마나 변하는가. 제곱에서 떨어진 2 가 ½ 과 약분돼 (ŷ − y) 만 남아요.',
+  },
+  {
+    tex: `\\frac{\\partial \\hat{y}}{\\partial w} = \\frac{\\partial (wx + b)}{\\partial w} = x`,
+    why: '내측 인수 — w 가 한 칸 움직이면 ŷ 이 얼마나 변하나? ŷ = wx + b 에서 wx 항은 x 만큼 변하고, b 는 w 와 무관해 그대로 → 결과 x.',
+  },
+  {
+    tex: `\\frac{\\partial L}{\\partial w} = \\frac{\\partial L}{\\partial \\hat{y}} \\cdot \\frac{\\partial \\hat{y}}{\\partial w} = (\\hat{y} - y)\\cdot x = e\\cdot x`,
+    why: '앞 두 단계에서 구한 외측 (ŷ − y) 와 내측 x 를 두 자리에 그대로 끼워 넣어 곱하면 끝 — x 가 큰 샘플일수록 w 의 변화에 책임이 크다는 뜻.',
     highlight: true,
   },
   {
-    tex: `\\begin{aligned}\\frac{\\partial L}{\\partial b} &= (\\hat{y} - y)\\cdot \\frac{\\partial}{\\partial b}(wx + b - y) \\\\ &= (\\hat{y} - y)\\cdot 1 = e\\end{aligned}`,
-    why: 'b 쪽도 똑같이 사슬규칙. 안쪽 (wx + b − y)에서 b가 1 변하면 식 전체는 1만큼 변하니 곱해질 게 없다 → 그대로 e.',
+    tex: `\\begin{aligned}\\frac{\\partial L}{\\partial b} &= \\frac{\\partial L}{\\partial \\hat{y}} \\cdot \\frac{\\partial \\hat{y}}{\\partial b} \\\\ &= (\\hat{y} - y)\\cdot \\frac{\\partial (wx + b)}{\\partial b} \\\\ &= (\\hat{y} - y)\\cdot 1 = e\\end{aligned}`,
+    why: 'b 쪽도 같은 방식 — 외측은 그대로 (ŷ − y). 내측은 ŷ = wx + b 를 풀어 쓴 뒤 b 쪽에서 보면, b 가 1 변할 때 wx + b 도 1 만큼 변하니 1. 둘을 곱하면 그대로 e.',
     highlight: true,
   },
   {
-    tex: `\\begin{aligned}\\mathrm{dw} &= \\overline{e\\cdot x} = \\tfrac{1}{N}\\sum_{i=1}^{N} e_i\\, x_i \\\\ \\mathrm{db} &= \\overline{e} = \\tfrac{1}{N}\\sum_{i=1}^{N} e_i\\end{aligned}`,
-    why: '점이 N개면 한 점에서 만든 e·x와 e를 각각 평균낸다. 이 두 숫자가 A3에서 본 보폭 식의 "기울기" 자리에 들어간다.',
+    tex: `\\begin{aligned}\\mathrm{dw} &= \\text{평균}(e\\cdot x) = \\tfrac{1}{N}\\sum_{i=1}^{N} e_i\\, x_i \\\\ \\mathrm{db} &= \\text{평균}(e) = \\tfrac{1}{N}\\sum_{i=1}^{N} e_i\\end{aligned}`,
+    why: '점이 N 개면 한 점에서 만든 e·x 와 e 를 각각 더한 뒤 N 으로 나눠 평균을 낸다. 이 두 숫자가 A3 에서 본 보폭 식의 "기울기" 자리에 들어간다.',
     highlight: true,
   },
 ];
@@ -185,8 +193,8 @@ export function PhaseA4() {
             </div>
           </div>
           <p className="text-[11px] text-muted mt-1">
-            <strong>사슬규칙</strong>: 제곱(겉)의 미분 = 2 · (안), (안 = ŷ − y)을 또 w로 미분하면 x가 떨어진다 → 두 미분이 곱해져 e·x.
-            ½과 2가 약분돼 깔끔한 한 줄이 남아요.
+            <strong>두 단계 기울기를 곱한다</strong> — 제곱(겉)이 한 칸 변할 때 결과는 2(ŷ−y) 만큼 변하고, 안(ŷ−y)을 다시 w 쪽에서 보면 x 만큼 변해요. 두 변화가 곱해져 e·x.
+            ½ 과 2 가 약분돼 깔끔한 한 줄이 남아요.
           </p>
 
           <div className="mt-3 space-y-2">
