@@ -18,8 +18,10 @@ interface AppState {
   dismissLegacyResetNotice: () => void;
 }
 
-const STORAGE_KEY = 'neural-explorer-state-v2';
-const LEGACY_KEY = 'neural-explorer-state';
+// v3 — C 영역(C1=MNIST 소개, C2=MNIST 도전) 재구성 + 새 그룹 D(역전파 심화) 도입.
+// 기존 c1·c2·c3 진행도가 새 ID 체계와 안 맞아 한 번만 리셋 후 안내한다.
+const STORAGE_KEY = 'neural-explorer-state-v3';
+const LEGACY_KEY = 'neural-explorer-state-v2';
 
 // 옛 키(neural-explorer-state)를 발견하면 한 번만 안내하고 새 스키마로 진입한다.
 // 마이그레이션 없음 — 진행도는 리셋. (1~4부 → A/B/C 재구성으로 ID 체계가 달라졌기 때문)

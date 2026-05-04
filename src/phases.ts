@@ -1,9 +1,10 @@
-// visible 커리큘럼 — A(알고리즘) / B(데이터·학습·분류) / C(딥러닝)
+// visible 커리큘럼 — A(알고리즘) / B(데이터·학습·분류) / C(딥러닝) / D(심화: 역전파)
 // 히든 스테이지 — 5부(p13, p14) / 6부(p15~p22) 는 그대로 유지한다.
 export type PhaseId =
   | 'a1' | 'a2' | 'a3' | 'a4' | 'a5' | 'a6'
   | 'b1' | 'b2' | 'b3' | 'b4'
-  | 'c1' | 'c2' | 'c3'
+  | 'c1' | 'c2'
+  | 'd1' | 'd2' | 'd3'
   | 'p13' | 'p14'
   | 'p15' | 'p16' | 'p17' | 'p18' | 'p19' | 'p20' | 'p21' | 'p22';
 
@@ -16,6 +17,7 @@ export interface PhaseMeta {
     | 'A. 알고리즘의 이해'
     | 'B. 데이터·학습·분류 출력'
     | 'C. 딥러닝'
+    | '심화 학습 — 역전파 알고리즘 이해하기'
     | '5부 — 분류를 넘어 생성으로'
     | '6부 — 언어를 다루는 신경망';
 }
@@ -35,10 +37,14 @@ export const PHASES: PhaseMeta[] = [
   { id: 'b3', num: 'B3', title: '학습 / 평가 데이터 나누기', subtitle: '왜 나눠야 하는가',                     group: 'B. 데이터·학습·분류 출력' },
   { id: 'b4', num: 'B4', title: '이진 분류 모델 학습',      subtitle: '세모 vs 네모, 시그모이드 출력 1개',     group: 'B. 데이터·학습·분류 출력' },
 
-  // C. 딥러닝 — 직관(C1) → 식 유도(C2) → 응용(C3)
-  { id: 'c1', num: 'C1', title: '역전파 직관',     subtitle: '한 사이클의 6단계 — 거꾸로 흐르는 신호', group: 'C. 딥러닝' },
-  { id: 'c2', num: 'C2', title: '역전파 식 유도',  subtitle: '사슬규칙으로 그 식이 나오는 이유',         group: 'C. 딥러닝' },
-  { id: 'c3', num: 'C3', title: 'MNIST 도전',      subtitle: '진짜 손글씨 데이터에 깊은 망 적용',         group: 'C. 딥러닝' },
+  // C. 딥러닝 — MNIST 데이터셋·문제 의미 소개(C1) → 실제 모델로 도전(C2)
+  { id: 'c1', num: 'C1', title: 'MNIST 데이터셋 소개', subtitle: '왜 손글씨 숫자 분류가 의미 있는가',     group: 'C. 딥러닝' },
+  { id: 'c2', num: 'C2', title: 'MNIST 도전',          subtitle: '진짜 손글씨 데이터에 깊은 망 적용',     group: 'C. 딥러닝' },
+
+  // 심화 학습 — 역전파를 직관 → 스캐폴딩 → 식 유도 순서로 깊게.
+  { id: 'd1', num: 'D1', title: '역전파 직관',                  subtitle: '한 사이클의 6단계 — 거꾸로 흐르는 신호', group: '심화 학습 — 역전파 알고리즘 이해하기' },
+  { id: 'd2', num: 'D2', title: '한 뉴런에서 두 뉴런으로',     subtitle: '숫자와 그림으로 한 단계씩 따라가기',     group: '심화 학습 — 역전파 알고리즘 이해하기' },
+  { id: 'd3', num: 'D3', title: '역전파 식 유도',                subtitle: '사슬규칙으로 그 식이 나오는 이유',         group: '심화 학습 — 역전파 알고리즘 이해하기' },
 
   // 히든 스테이지 — 5부 (포털 진입 필요)
   { id: 'p13', num: '13', title: '평균과 분포', subtitle: '가장 단순한 생성 모델',     group: '5부 — 분류를 넘어 생성으로' },
@@ -75,9 +81,9 @@ export function isBonusPhase(id: PhaseId) {
   return BONUS_PHASE_IDS.includes(id);
 }
 
-// visible 커리큘럼(C 영역의 마지막 두 페이즈 — 식 유도·MNIST) 완료 시 5부 포털 게이트가 열린다
+// visible 커리큘럼(C 영역의 MNIST 도전과 D 영역의 역전파 식 유도) 완료 시 5부 포털 게이트가 열린다
 export function isVisibleCurriculumDone(completed: Record<PhaseId, boolean>) {
-  return Boolean(completed.c2 && completed.c3);
+  return Boolean(completed.c2 && completed.d3);
 }
 
 // 6부(언어)는 5부(p13+p14)를 모두 끝낸 사람만 두 번째 포털로 들어올 수 있는 히든 스테이지
@@ -100,5 +106,6 @@ export function isPart5Done(completed: Record<PhaseId, boolean>) {
 export const VISIBLE_PHASE_IDS: PhaseId[] = [
   'a1', 'a2', 'a3', 'a4', 'a5', 'a6',
   'b1', 'b2', 'b3', 'b4',
-  'c1', 'c2', 'c3',
+  'c1', 'c2',
+  'd1', 'd2', 'd3',
 ];
