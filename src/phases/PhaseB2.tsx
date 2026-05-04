@@ -21,7 +21,7 @@ import {
 } from '../lib/nn';
 
 /* ────────── 학습 조건 ──────────
-   세모 vs 네모, 출력 뉴런 2개의 진짜 hidden+softmax 분류기 (createDeepMLP+trainStep).
+   세모 vs 네모, 출력 뉴런 1개 (sigmoid) hidden+분류기 (createDeepMLP+trainStep). B4 와 동일 구조.
    baseline(전처리 없음)은 60%대, cleaned(전처리 후)는 76%대로 +16%p 차이가 결정론적으로 나온다. */
 // 세모 vs 네모 — 선의 방향(대각 vs 수직·수평)이 hidden 뉴런 가중치 히트맵에 *모서리 방향*으로 또렷이 드러난다.
 const TASK_LABELS: [ShapeLabel, ShapeLabel] = ['triangle', 'square'];
@@ -157,9 +157,10 @@ async function runTraining(
     return { trainAcc: 0, evalAcc: 0, model: null };
   }
   // 모델 init을 seed로 고정 — baseline·current가 같은 출발점.
-  // [64, HIDDEN_SIZE, 2]: 입력 64픽셀 → ReLU 4뉴런 → softmax 2클래스.
-  // hidden 4뉴런 각각이 작은 8×8 특징맵을 학습 — CNN의 첫 conv 필터처럼 *모서리·선* 방향 패턴이 드러난다.
-  const m = withSeededRandom(seed, () => createDeepMLP([64, HIDDEN_SIZE, 2]));
+  // [64, HIDDEN_SIZE, 1] + sigmoid: 입력 64픽셀 → ReLU 4뉴런 → 출력 1뉴런 (B4 와 동일 구조).
+  // 출력 1개라 hidden→output 가중치 w2[j] 부호가 곧 클래스 방향 (양수=네모, 음수=세모) 으로
+  // 해석돼 hidden 뉴런 4개 각각에 "→ 세모/네모" 라벨을 붙일 수 있다.
+  const m = withSeededRandom(seed, () => createDeepMLP([64, HIDDEN_SIZE, 1], 'sigmoid'));
   let lastTrainAcc = 0;
   let lastEvalAcc = 0;
   let shuffleSeed = seed;
@@ -512,8 +513,9 @@ export function PhaseB2() {
                   <div className="rounded-md border border-border bg-bg/40 p-2">
                     <div className="text-[11px] font-medium mb-1">학습된 hidden 4뉴런이 본 특징</div>
                     <div className="text-[10px] text-muted mb-2 leading-snug">
-                      각 뉴런이 입력 64픽셀 중 어느 곳에 반응하는지(파랑 +/빨강 −) — CNN의 첫 층처럼 *모서리·선의 방향*이 드러나요.
-                      더러운 데이터로 학습한 baseline은 특징이 흐릿하거나 뒤섞인 모양이 되기 쉽습니다.
+                      각 뉴런이 입력 64픽셀 중 어느 곳에 반응하는지 보여 줘요. <span className="font-medium" style={{ color: 'rgb(59,130,246)' }}>파랑</span> 칸 = 그 자리에 점이 찍히면 뉴런 점수가 <strong>올라가요(+)</strong>, <span className="font-medium" style={{ color: 'rgb(190,18,60)' }}>빨강</span> 칸 = 점이 찍히면 점수가 <strong>내려가요(−)</strong>.
+                      각 카드 아래 배지 (<span className="font-medium" style={{ color: 'rgb(59,130,246)' }}>→ 네모</span> / <span className="font-medium" style={{ color: 'rgb(190,18,60)' }}>→ 세모</span>) 는 그 뉴런이 출력으로 어느 쪽에 표를 던지는지 — hidden→output 가중치의 부호와 크기로 결정돼요.
+                      학습이 잘 되면 *모서리·선의 방향*이 또렷이 드러납니다. 더러운 데이터로 학습한 baseline 은 그 모양이 흐릿하거나 뒤섞이기 쉽습니다.
                     </div>
                     <HiddenWeightsCompare baseline={baseline.model} current={current.model} />
                   </div>
@@ -726,6 +728,7 @@ function HiddenWeightsRow({ label, model, accent }: { label: string; model: MLP 
     );
   }
   const W1 = model.weights[0];
+  const W2 = model.weights[model.weights.length - 1]; // hidden→output (sigmoid 1) — w2[j]
   const inDim = model.layers[0];   // 64
   const hidDim = model.layers[1];  // 4 (HIDDEN_SIZE)
   // 각 hidden 뉴런 j의 64개 가중치 추출 — w1[i*hidDim + j]
@@ -740,13 +743,13 @@ function HiddenWeightsRow({ label, model, accent }: { label: string; model: MLP 
     <div className={`rounded-sm border ${accent ? 'border-accent/40 bg-accent/5' : 'border-border bg-surface/40'} p-1.5`}>
       <div className="text-[10px] font-medium text-center mb-1">{label}</div>
       <div className="grid grid-cols-4 gap-1">
-        {hiddenWeights.map((w, j) => <MiniHeatmap key={j} w={w} idx={j} />)}
+        {hiddenWeights.map((w, j) => <MiniHeatmap key={j} w={w} idx={j} outW={W2[j]} />)}
       </div>
     </div>
   );
 }
 
-function MiniHeatmap({ w, idx }: { w: Float32Array; idx: number }) {
+function MiniHeatmap({ w, idx, outW }: { w: Float32Array; idx: number; outW: number }) {
   const SIZE = 8, cell = 8, total = SIZE * cell;
   let maxAbs = 0;
   for (let i = 0; i < w.length; i++) {
@@ -768,7 +771,18 @@ function MiniHeatmap({ w, idx }: { w: Float32Array; idx: number }) {
           return <rect key={i} x={x} y={y} width={cell} height={cell} fill={color}><title>{`(${Math.floor(i/8)},${i%8}) w=${w[i].toFixed(2)}`}</title></rect>;
         })}
       </svg>
-      <div className="text-[9px] text-muted font-mono mt-0.5">h{idx}</div>
+      {/* hidden→output 가중치 부호로 그 뉴런이 어느 클래스에 표 던지는지 표시.
+          양수 = 네모(파랑), 음수 = 세모(빨강). 절대값 = 영향력 크기. */}
+      <div
+        className="text-[9px] font-mono mt-0.5 px-1 py-0.5 rounded-sm"
+        style={{
+          color: outW >= 0 ? 'rgb(59, 130, 246)' : 'rgb(190, 18, 60)',
+          backgroundColor: outW >= 0 ? 'rgba(59,130,246,0.08)' : 'rgba(190,18,60,0.08)',
+        }}
+        title={`h${idx} → output 가중치 = ${outW.toFixed(3)}`}
+      >
+        h{idx} → {outW >= 0 ? '네모' : '세모'} {outW >= 0 ? '+' : ''}{outW.toFixed(2)}
+      </div>
     </div>
   );
 }

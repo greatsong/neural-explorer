@@ -41,7 +41,7 @@ export const PHASES: PhaseMeta[] = [
 
   // C. 딥러닝 — MNIST 데이터셋·문제 의미 소개(C1) → 실제 모델로 도전(C2)
   { id: 'c1', num: 'C1', title: 'MNIST 데이터셋 소개', subtitle: '왜 손글씨 숫자 분류가 의미 있는가',     group: 'C. 딥러닝' },
-  { id: 'c2', num: 'C2', title: 'MNIST 도전',          subtitle: '진짜 손글씨 데이터에 깊은 망 적용',     group: 'C. 딥러닝' },
+  { id: 'c2', num: 'C2', title: '미니 MNIST 도전',     subtitle: '실제 데이터 일부(300장)로 작은 모델을 직접 학습',     group: 'C. 딥러닝' },
 
   // 심화 학습 — 역전파를 직관 → 스캐폴딩 → 식 유도 순서로 깊게.
   { id: 'd1', num: 'D1', title: '역전파 직관',                  subtitle: '한 사이클의 6단계 — 거꾸로 흐르는 신호', group: '심화 학습 — 역전파 알고리즘 이해하기' },
@@ -97,6 +97,16 @@ export const BONUS2_PHASE_IDS: PhaseId[] = ['p15', 'p16', 'p17', 'p18', 'p19', '
 
 export function isBonus2Group(group: PhaseMeta['group']) {
   return group === BONUS2_GROUP;
+}
+
+// 사이드바에서만 숨기고 메인 페이지(Intro)에는 카드로 노출하는 그룹.
+// 라우팅(#/d1, #/e1 등)은 그대로 살아 있어 메인 카드에서 진입 가능.
+const SIDEBAR_HIDDEN_GROUPS: PhaseMeta['group'][] = [
+  '심화 학습 — 역전파 알고리즘 이해하기',
+  '자기주도 심층 탐구',
+];
+export function isSidebarHiddenGroup(group: PhaseMeta['group']) {
+  return SIDEBAR_HIDDEN_GROUPS.includes(group);
 }
 
 export function isBonus2Phase(id: PhaseId) {

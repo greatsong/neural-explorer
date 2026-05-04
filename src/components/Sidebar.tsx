@@ -1,4 +1,4 @@
-import { PHASE_GROUPS, isBonusGroup, isBonus2Group } from '../phases';
+import { PHASE_GROUPS, isBonusGroup, isBonus2Group, isSidebarHiddenGroup } from '../phases';
 import { useApp } from '../store';
 import type { PhaseId } from '../phases';
 
@@ -17,10 +17,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     onClose();
   };
 
-  // 5·6부는 메뉴에서 항상 숨김 (인지 과부하 방지)
+  // 5·6부 + 심화학습(D)·자기주도 심층 탐구(E) 그룹은 사이드바에서 숨김.
+  // 메인 페이지(Intro) 카드에서만 진입하도록 한다 — 인지 과부하 방지.
   const visibleGroups = PHASE_GROUPS.filter(([group]) => {
     if (isBonusGroup(group)) return false;
     if (isBonus2Group(group)) return false;
+    if (isSidebarHiddenGroup(group)) return false;
     return true;
   });
 

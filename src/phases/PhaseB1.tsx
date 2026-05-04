@@ -1,7 +1,7 @@
 // PhaseB1 — 문제 정의와 라벨
 // A6의 회귀(숫자 예측)에서 B 영역의 분류(종류 맞히기)로 전환하는 도입.
 // 교차 엔트로피 같은 손실 이야기는 여기서 다루지 않는다 — 분류·라벨·앞으로의 흐름만.
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { PHASES } from '../phases';
 import { useApp } from '../store';
 import { useDot } from '../dotStore';
@@ -41,14 +41,14 @@ export function PhaseB1() {
     return labels.map((lbl) => ({ label: lbl, items: map[lbl].slice(0, 6) }));
   }, [samples]);
 
-  const [understood, setUnderstood] = useState(false);
+  // B1 은 개념 소개 페이지 — 진입만 해도 완료 처리 (별도 확인 버튼 없음).
   const completedRef = useRef(false);
   useEffect(() => {
-    if (understood && !completedRef.current) {
+    if (!completedRef.current) {
       completedRef.current = true;
       markCompleted('b1');
     }
-  }, [understood, markCompleted]);
+  }, [markCompleted]);
 
   return (
     <article>
@@ -117,16 +117,6 @@ export function PhaseB1() {
         </div>
       </div>
 
-      {/* 다음으로 */}
-      <div className="mt-4 flex justify-end">
-        <button
-          className={understood ? 'btn-ghost' : 'btn-primary'}
-          onClick={() => setUnderstood(true)}
-          disabled={understood}
-        >
-          {understood ? '✓ B2로 넘어가요' : 'B2로 넘어가기'}
-        </button>
-      </div>
     </article>
   );
 }

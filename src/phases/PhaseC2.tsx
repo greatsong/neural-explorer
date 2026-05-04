@@ -173,6 +173,9 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
         B4에서는 출력 뉴런 1개로 세모·네모를 시그모이드로 갈랐죠. MNIST는 입력이 28×28로 훨씬 크고, 출력 뉴런을 10개로 늘려 0~9 숫자를 가립니다.
         시그모이드 대신 <strong>softmax</strong>로 여러 클래스의 확률을 동시에 만들고, <strong>C1에서 본 역전파</strong>가 모든 층에 동시 적용되어 은닉층을 더 키워도 학습이 가능합니다.
       </p>
+      <p className="mt-2 text-sm leading-relaxed text-muted">
+        진짜 MNIST 는 7만 장이 넘지만, 브라우저에서 다 돌리면 메모리·시간 부담이 커요. 그래서 여기선 <strong>실제 MNIST 에서 300장만 골라</strong> 작은 모델로 학습 사이클 전체를 직접 굴려 봅니다 — 한 마디로 <strong>"미니 MNIST 도전"</strong>. 데이터·모델 크기는 작아도 예측 → 오차 → 기울기 → 갱신의 흐름은 풀 데이터와 동일해요.
+      </p>
 
       <div className="aside-tip mt-3 text-sm">
         <div className="font-medium">엔진은 A5의 갱신식 그대로</div>
@@ -224,7 +227,7 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
       <h2>🛠 학습 설정</h2>
       <div className="grid lg:grid-cols-2 gap-6 items-start mt-3">
         <div className="space-y-4">
-          <Slider label="에폭 수" value={epochs} setValue={setEpochs} min={1} max={40} step={1} format={(v) => `${v}회`} />
+          <Slider label="에폭 수" value={epochs} setValue={setEpochs} min={1} max={100} step={1} format={(v) => `${v}회`} />
           <Slider label="학습률" value={lr} setValue={setLr} min={0.005} max={0.2} step={0.005} format={(v) => v.toFixed(3)} />
           <div className="card p-4 text-sm font-mono">
             <div className="text-xs text-muted">구조</div>
@@ -266,33 +269,6 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
           <h2>✏️ 직접 숫자 그리기</h2>
           <p className="text-muted text-sm">28×28 캔버스에 숫자 하나를 그려보세요. 어떤 숫자라고 추측할까요?</p>
           <DigitTester model={model} onTeach={teachDigit} disabled={training} />
-
-          <details className="mt-4 card p-4 text-sm">
-            <summary className="cursor-pointer font-medium">🤔 왜 자신 있게 틀릴까? — 분포·위치·확신도 이야기</summary>
-            <div className="mt-3 space-y-3 leading-relaxed">
-              <div>
-                <div className="font-medium">1. 학습 데이터 ≠ 우리가 그린 그림</div>
-                <p className="text-muted mt-1">
-                  학습용 MNIST는 미국 우체국 손글씨를 28×28에 맞춰 <strong>가운데 정렬·크기 정규화·일정한 굵기</strong>로 다듬은 데이터예요.
-                  반면 우리 캔버스는 280×280에 굵은 펜으로 자유롭게 그린 뒤 28×28로 줄여요. 결과물의 위치·굵기·강도 분포가 학습 데이터와 다릅니다.
-                  "본 적 없는 모양"을 만나면, 비슷해 보이는 다른 숫자로 자신 있게 잘못 답하기도 해요.
-                </p>
-              </div>
-              <div>
-                <div className="font-medium">2. MLP는 위치를 그대로 기억해요</div>
-                <p className="text-muted mt-1">
-                  지금 모델은 단순 다층 퍼셉트론이라 픽셀 위치 자체가 특징이 됩니다. 같은 5라도 5픽셀 옆으로 옮겨 그리면 거의 다른 입력처럼 들어가요.
-                  CNN(합성곱 신경망)을 쓰면 위치 변화에 강해지지만, 이번 단계에선 일부러 단순하게 두었어요.
-                </p>
-              </div>
-              <div>
-                <div className="font-medium">3. 확신도 50%대는 사실 "잘 모르겠다"</div>
-                <p className="text-muted mt-1">
-                  1: 57%, 2: 36%처럼 두 후보가 비등하면 헷갈린다는 뜻이에요. 학습 분포에 없던 그림을 만났다는 또 다른 신호이기도 합니다.
-                </p>
-              </div>
-            </div>
-          </details>
 
           <h2>🧪 직접 가르쳐 보기 — 데이터 증강과 재학습</h2>
           <p className="text-muted text-sm">
