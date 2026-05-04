@@ -94,15 +94,17 @@ export function PhaseA5() {
   };
 
   // 단계별 진행 — 학생이 직접 *예측 → 오차 → 기울기 → 갱신*을 한 번씩 클릭하며
-  // 각 단계의 변화를 손에 잡히도록 한다. 갱신 단계(3 → 4)에서만 실제 가중치가 움직임.
-  // manualStage: 다음에 보여 줄 단계 인덱스. 0~3 cycle.
+  // 각 단계의 변화를 손에 잡히도록 한다.
+  // 갱신 타이밍: update 화면에서는 식·숫자만 먼저 보여주고, 다음 클릭(update→predict)
+  // 에서야 실제 w·b 가 움직이도록 한 박자 늦춘다. 식 좌변·우변 숫자가 옛값 기준으로
+  // 정확히 일치해야 학생이 식과 변화의 인과를 따라갈 수 있다.
   const advanceStage = () => {
     const cur = stageIdx;
     // predict(0) → error(1) → gradient(2) → update(3) → predict(0)으로 다시
     const next = (cur + 1) % STAGE_ORDER.length;
     setStageIdx(next);
-    // update 단계로 진입할 때(=cur 2 → next 3) 실제 가중치 갱신
-    if (cur === STAGE_ORDER.length - 2) {
+    // update 단계에서 다음(predict)으로 넘어갈 때(=cur 3 → next 0) 실제 가중치 갱신
+    if (cur === STAGE_ORDER.length - 1) {
       const cw = wRef.current;
       const cb = bRef.current;
       const g = gradient(cw, cb);
