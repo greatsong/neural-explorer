@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>Neural Explorer 활동지 C부 — 딥러닝 [정답·해설]</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt;page-break-after:avoid}
+
+  /* 헤더 */
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt;page-break-after:avoid}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .meta{font-size:9pt;color:#777;margin-top:6pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+  .name{font-size:9.5pt;color:#555;margin-top:8pt}
+  .name span{display:inline-block;border-bottom:1px solid #888;min-width:80pt;margin:0 8pt}
+
+  /* 카드 */
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0;break-inside:auto;page-break-inside:auto}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt;break-inside:avoid;page-break-inside:avoid}
+  .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+  .sh{font-size:11pt;font-weight:700;margin:14pt 0 6pt;color:#222;break-after:avoid;page-break-after:avoid}
+
+  /* 개념 박스 */
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0;break-inside:avoid;page-break-inside:avoid}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .tip{border-left-style:dashed}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px;break-inside:avoid;page-break-inside:avoid}
+
+  /* 표 */
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#1a1a1a;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb .blank{height:22pt;background:#fff}
+  .tb .blank.tall{height:30pt}
+
+  /* 빈칸 */
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .bk{display:inline-block;border-bottom:1.5px solid #333;min-width:30pt;text-align:center;padding:0 4pt;margin:0 2pt}
+  .bk.lg{min-width:60pt}
+  .bk.xl{min-width:120pt}
+  .ans-area{border:1px solid #aaa;border-radius:4px;min-height:38pt;padding:6pt;margin:6pt 0;background:#fcfcfc}
+  .ans-area.lg{min-height:60pt}
+
+  /* SVG */
+  .sf{margin:8pt auto;text-align:center;break-inside:avoid;page-break-inside:avoid}
+  .sf svg{max-width:100%!important;height:auto!important}
+  .cap{font-size:9pt;color:#666;margin-top:3pt;text-align:center}
+
+  /* 앱 안내 */
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  /* 관찰 박스 */
+  .ob{border:1.2px dashed #777;border-radius:5px;padding:8pt 10pt;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .ob .lab{font-weight:700;font-size:10pt;margin-bottom:4pt}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt}
+  ul,ol{padding-left:18pt;margin:4pt 0}
+  li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto;overflow:visible}
+    .qh,.sf,.fm,.gv,.ex,.ib,.tb,.an,.ob{break-inside:avoid;page-break-inside:avoid}
+    .sh{break-after:avoid;page-break-after:avoid}
+    .sf svg{max-width:100%!important;height:auto!important}
+    p,li{orphans:3;widows:3}
+    /* 흑백 강제 */
+    .tb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .qh .num{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<header class="lh">
+<div class="lab">NEURAL EXPLORER · WORKSHEET C / TEACHER ANSWER KEY</div>
+<h1>C — 딥러닝 [정답·해설]</h1>
+<div class="sub">역전파 한 사이클 손계산 + 사슬규칙 식 유도 + MNIST·증강의 <em>교사용 답안</em></div>
+<div class="meta">앱 페이즈 C1~C3 · 학생 활동지 partC-improvement-student-problems.html에 대한 모범 답안과 해설</div>
+<div class="lh obj">학생이 손으로 채우는 모든 빈칸·표·서술에 대한 모범 답안과 <em>왜 그렇게 되는지</em> 짧은 해설을 함께 제공합니다. 자기 학습용으로도, 교사 채점용으로도 쓸 수 있습니다.</div>
+</header>
+
+
+<!-- ============================================================== -->
+<h2>0. 한 사이클이 무엇인가 [정답·해설]</h2>
+
+<div class="ib">
+<div class="t">이 단원의 한 줄 요약</div>
+인공 뉴런 2개의 직렬 모델에서 데이터 1쌍(x=2, y=5)을 두고 6단계 — 예측 → 오차 → 출력 쪽 기울기 → 거꾸로 흐른 신호 → 입력 쪽 기울기 → 갱신 — 을 돌리면 손실이 5.61에서 0.37로 줄어듭니다. 이 한 사이클이 모든 깊은 망의 기본 단위.
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">0-1</span>모델 구조 그리기 — 화살표·라벨 [정답]</div>
+<div class="qd">학생은 다이어그램 위에 화살표(→)를 그리고 가중치·편향 라벨, 노드 이름을 채웁니다. 모범 답안은 다음과 같습니다.</div>
+<div class="fm">
+x —(w₁, b₁)→ Σ → z₁ —(ReLU)→ h —(w₂, b₂)→ Σ → z₂ → ŷ<br/>
+화살표 라벨: 첫 화살표 = w₁, 두 번째(Σ→ReLU 사이)는 그대로 z₁, 세 번째 = w₂, 마지막 출력은 z₂ = ŷ. 편향 b₁·b₂는 각 Σ 노드 위에 별도 입력선으로 표기.
+</div>
+<div class="qd">한 줄 정리 — 이 모델의 식: <span class="mono">ŷ = w₂ · ReLU(<strong>w₁·x + b₁</strong>) + <strong>b₂</strong></span></div>
+<div class="qd">"깊은 망"이란 이름은 어디서 나왔나? — <span class="mono">곱·합·활성화 한 묶음을 <strong>2</strong>번 적용해서, 뉴런이 직렬로 <strong>2</strong>개</span>이기 때문이다.</div>
+<div class="ib tip">
+<div class="t">해설</div>
+"깊다(deep)"는 단지 층 수를 말합니다. 1층(perceptron) → 2층 이상이면 "깊은 망". 이 활동지의 모델은 가장 작은 깊은 망(2층)이고, 식의 모양은 GPT의 1750억 파라미터 모델까지 동일합니다.
+</div>
+</div>
+
+
+<!-- ============================================================== -->
+<h2>STEP C1. 한 사이클을 손으로 — 6단계 [정답·해설]</h2>
+
+<h3>C1-1. ① 예측 — x를 두 뉴런에 통과시키기</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-1</span>z₁ → h → z₂ → ŷ [정답]</div>
+<div class="fm">
+① z₁ = w₁·x + b₁ = <strong>0.5</strong> · <strong>2</strong> + <strong>0.1</strong> = <strong>1.1</strong><br/>
+② h = ReLU(z₁) = max(0, <strong>1.1</strong>) = <strong>1.1</strong><br/>
+③ z₂ = w₂·h + b₂ = <strong>1.5</strong> · <strong>1.1</strong> + <strong>0.0</strong> = <strong>1.65</strong><br/>
+④ ŷ = z₂ = <strong>1.65</strong> &nbsp;(회귀라 활성화 없음)
+</div>
+<div class="qd">관찰 — z₁이 (<strong>양수</strong>) → ReLU′(z₁) = <strong>1</strong>. 길이 (<strong>열려</strong>) 있다 → <strong>뉴런 1이 다음 층까지 신호를 전달한다.</strong></div>
+<div class="qd">왜 이 한 사실이 중요한가 한 줄로: <strong>ReLU′(z₁)=1이라 ④-b 단계에서 e_h가 그대로 e_z₁이 되어 뉴런 1의 가중치도 갱신된다.</strong></div>
+<div class="ib tip">
+<div class="t">해설</div>
+A1에서 본 인공 뉴런 한 개의 곱·합이 두 번 반복된 모양. z₁이 양수라는 점이 핵심 — 음수였다면 ReLU 문지기에서 막혀 e_z₁=0, 뉴런 1은 학습 불가(죽은 ReLU).
+</div>
+</div>
+
+<h3>C1-2. ② 오차 — 예측과 정답의 차</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-2</span>e = ŷ − y [정답]</div>
+<div class="fm">
+e = ŷ − y = <strong>1.65</strong> − 5 = <strong>−3.35</strong><br/>
+손실 ½·e² = ½ · (<strong>−3.35</strong>)² = <strong>5.6113</strong> ≈ <strong>5.61</strong>
+</div>
+<div class="qd">e의 부호는 (<strong>음수</strong>). 한 줄 의미: 모델이 정답보다 (<strong>작게</strong>) 예측 중 → <strong>ŷ을 더 키워야 한다.</strong></div>
+<div class="ib tip">
+<div class="t">해설 — 왜 e 한 숫자가 출발점인가</div>
+다음에 등장할 dw₂, db₂, e_h, e_z₁, dw₁, db₁ 여섯 숫자가 모두 e에 무엇인가를 곱한 형태입니다. 그래서 e의 부호가 4개 가중치 모두의 갱신 방향(키울까/줄일까)을 결정. 예시 답: "e가 음수면 4개 가중치를 모두 키우는 방향으로 움직인다."<br/>
+<strong>채점 기준</strong>: "부호" 또는 "방향"이 들어갔는지 / e가 모든 기울기에 곱해진다는 사실을 짚었는지.
+</div>
+</div>
+
+<h3>C1-3. ③ 출력 쪽 기울기 — 뉴런 2의 dw₂·db₂</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-3</span>dw₂ = e·h, db₂ = e [정답]</div>
+<div class="fm">
+dw₂ = e · h = (<strong>−3.35</strong>) · (<strong>1.1</strong>) = <strong>−3.685</strong><br/>
+db₂ = e · 1 = <strong>−3.35</strong>
+</div>
+<div class="qd">왜 식이 <span class="mono">e·h</span>인가 — 예시 답안: <strong>A4의 dw = e·x에서 "그 층의 입력"이 x가 아니라 뉴런 1의 출력 h로 바뀐 것이다.</strong></div>
+<div class="ib tip">
+<div class="t">해설</div>
+한 층 분의 dw 식은 항상 "그 층의 오차 × 그 층의 입력". 뉴런 2 입장에서 입력은 h. b는 항상 1을 곱한 상수항이라 db = e가 됩니다.<br/>
+<strong>채점 기준</strong>: "그 층의 입력" 또는 "h가 뉴런 2의 입력"이라는 표현이 들어갔는지.
+</div>
+</div>
+
+<h3>C1-4. ④ 거꾸로 흐른 신호 — w₂ 거꾸로 → ReLU 거꾸로 ★ 역전파 핵심</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-4</span>두 번 거꾸로 통과 — e_h = e·w₂  →  e_z₁ = e_h·ReLU′(z₁) [정답]</div>
+
+<div class="qd"><strong>④-a. 가중치 w₂ 거꾸로 통과 — h의 오차</strong></div>
+<div class="fm">
+e_h = e · w₂ = (<strong>−3.35</strong>) · (<strong>1.5</strong>) = <strong>−5.025</strong> &nbsp;<span style="color:#666">← h(은닉 활성값)의 오차 ∂L/∂h</span>
+</div>
+
+<div class="qd"><strong>④-b. ReLU 문지기 거꾸로 통과 — z₁의 오차</strong></div>
+<div class="fm">
+z₁ = (<strong>1.1</strong>) &gt; 0이므로 ReLU′(z₁) = <strong>1</strong><br/>
+e_z₁ = e_h · ReLU′(z₁) = (<strong>−5.025</strong>) · (<strong>1</strong>) = <strong>−5.025</strong> &nbsp;<span style="color:#666">← z₁(활성화 전 값)의 오차 ∂L/∂z₁</span>
+</div>
+
+<div class="ib tip">
+<div class="t">발견! — e_h와 e_z₁이 같은 수치인 이유 [정답]</div>
+ReLU′(z₁) = 1이라 e_h에 1을 곱한 e_z₁은 e_h와 <strong>같은 숫자</strong>(−5.025)가 됩니다. 그래도 식에서 ReLU′ 자리는 사라지지 않아요 — z₁이 살아 있다(문지기가 열렸다)는 사실을 식이 기록하는 것. 두 값이 같은가요? → <strong>예, 같다 (−5.025)</strong>
+</div>
+
+<div class="ob">
+<div class="lab">생각해보기 — 만약 z₁이 음수였다면? [정답]</div>
+ReLU′(z₁) = (<strong>0</strong>)이 되어 e_z₁ = e_h · (<strong>0</strong>) = <strong>0</strong>. 그러면 뉴런 1의 가중치는 (<strong>움직이지 않는다</strong>). 이때 e_h는 (<strong>살아 있음</strong>) — 가중치 w₂를 거꾸로 통과한 신호 자체는 살아 있지만 ReLU 문지기에서 막혀버린 것. 이런 현상의 이름: <strong>죽은 ReLU (dying ReLU)</strong>.
+</div>
+<div class="qd">관찰 — 지금 |e_h|=5.025는 |e|=3.35보다 (<strong>크다</strong>). 그 까닭은 곱해진 w₂가 1보다 (<strong>큰</strong>) 값이기 때문이다 → <strong>w₂=1.5가 신호를 1.5배로 증폭시켜 거꾸로 보냈다.</strong></div>
+
+<div class="ib tip">
+<div class="t">해설 — 이 카드가 왜 핵심인가</div>
+뉴런 1은 자기 정답이 없어 직접 e를 계산할 수 없습니다. 그래서 출력의 e가 <strong>두 번 거꾸로</strong> 흘러 뉴런 1까지 책임을 운반: ① 가중치 w₂를 거꾸로 통과해 h의 오차 e_h, ② ReLU 문지기를 거꾸로 통과해 z₁의 오차 e_z₁. 이 거꾸로 흐름이 곧 역전파(backpropagation). 순전파에서 ReLU 문지기를 만났던 것처럼, 역전파에서도 같은 위치에서 같은 문지기를 만납니다 — 이번엔 z₁&gt;0이라 둘 다 통과하지만, 음수 케이스에선 ②에서 막힙니다.<br/>
+<strong>채점 기준</strong>: ④-a 식·결과(2점), ④-b ReLU′ 값+e_z₁ 결과(2점), 두 값이 같은 이유(2점), 음수 케이스 답(2점). 총 8점.
+</div>
+</div>
+
+<h3>C1-5. ⑤ 입력 쪽 기울기 — 뉴런 1의 dw₁·db₁</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-5</span>dw₁ = e_z₁·x, db₁ = e_z₁ [정답]</div>
+<div class="fm">
+dw₁ = e_z₁ · x = (<strong>−5.025</strong>) · (<strong>2</strong>) = <strong>−10.05</strong><br/>
+db₁ = e_z₁ · 1 = <strong>−5.025</strong>
+</div>
+<div class="qd">관찰 — 이 패턴이 (<strong>모든</strong>) 층에 똑같이 적용된다. 자기 말로 한 줄: <strong>층마다 "그 층의 오차 × 그 층의 입력"이라는 같은 모양으로 dw가 결정된다.</strong></div>
+<div class="ib tip">
+<div class="t">해설</div>
+뉴런 1과 뉴런 2의 식이 둘 다 d_가중치 = (그 층의 오차) × (그 층의 입력) 모양. 뉴런 2는 (e, h), 뉴런 1은 (e_z₁, x). 단지 "그 층의 오차"가 출력층은 e, 그 앞 층은 e_z₁로 바뀔 뿐.<br/>
+<strong>채점 기준</strong>: "모든 층" 또는 "같은 모양"이라는 일반화 표현이 들어갔는지.
+</div>
+</div>
+
+<h3>C1-6. ⑥ 갱신 — 4개 가중치를 동시에</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-6</span>w ← w − η·dw &nbsp;(η = 0.05) [정답]</div>
+<table class="tb">
+<tr><th>가중치</th><th>현재값</th><th>기울기</th><th>η · 기울기</th><th>새 값</th></tr>
+<tr><td class="lbl">w₂</td><td>1.5</td><td>−3.685</td><td>−0.18425</td><td><strong>1.684</strong></td></tr>
+<tr><td class="lbl">b₂</td><td>0.0</td><td>−3.35</td><td>−0.1675</td><td><strong>0.168</strong></td></tr>
+<tr><td class="lbl">w₁</td><td>0.5</td><td>−10.05</td><td>−0.5025</td><td><strong>1.003</strong></td></tr>
+<tr><td class="lbl">b₁</td><td>0.1</td><td>−5.025</td><td>−0.25125</td><td><strong>0.351</strong></td></tr>
+</table>
+<div class="qd">관찰 — 4개 dw·db가 모두 (<strong>음수</strong>)였으므로, 빼기를 거쳐 가중치는 모두 (<strong>커졌다</strong>). 이는 e가 (<strong>음수</strong>)였기 때문에 모델이 ŷ을 (<strong>키우는</strong>) 방향으로 움직인 것이다.</div>
+<div class="ib tip">
+<div class="t">해설</div>
+"w ← w − η·dw"의 빼기가 핵심. dw가 음수면 −(음수)=+가 되어 w가 커지고, 양수면 줄어듭니다. e가 한 부호로 통일되어 있어 4개 가중치가 같은 방향으로 움직였어요. 학습률 η=0.05가 한 걸음의 크기를 결정.
+</div>
+</div>
+
+<h3>C1-7. 갱신 후 — 손실이 정말 줄었는가? [정답]</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-7</span>새 가중치로 같은 x = 2를 다시 통과 [정답]</div>
+<div class="qd">갱신 전 손실 ½·e² = <strong>5.61</strong>. 새 가중치(w₁=1.003, b₁=0.351, w₂=1.684, b₂=0.168)로 다시 통과:</div>
+<div class="fm">
+새 z₁ = <strong>1.003</strong> · 2 + <strong>0.351</strong> = <strong>2.357</strong><br/>
+새 h = ReLU(2.357) = <strong>2.357</strong><br/>
+새 z₂ = 1.684 · 2.357 + 0.168 = <strong>4.136</strong><br/>
+새 ŷ = <strong>4.136</strong>, &nbsp; 새 e = ŷ − 5 = <strong>−0.864</strong><br/>
+새 손실 ½·e² = ½ · 0.7465 ≈ <strong>0.373</strong>
+</div>
+<div class="qd">새 손실은 갱신 전 손실보다 (<strong>작다</strong>). 자기 말로 한 줄: <strong>한 사이클(한 step)을 한 번만 돌렸을 뿐인데 손실이 5.61 → 0.37로 약 1/15로 줄었다 — 이 사이클이 학습 그 자체이다.</strong></div>
+<div class="ib tip">
+<div class="t">해설</div>
+손실이 정말로 줄었다는 사실이 학습이 작동한다는 결정적 증거. 정답 ŷ=5에서 1.65 → 4.14로 가까워졌고, 사이클을 더 돌리면 5에 점점 다가갑니다.<br/>
+<strong>채점 기준</strong>: "손실이 줄었다" + 그 의미 한 줄(학습이 작동한다 / ŷ이 정답에 가까워졌다 등)이 들어갔는지.
+</div>
+</div>
+
+<h3>C1-8. 한 사이클 흐름 띠 [정답]</h3>
+<div class="qc">
+<div class="qh"><span class="num">C1-8</span>한 step의 6단계를 한 줄로 [정답]</div>
+<div class="fm" style="font-size:11pt">
+① <strong>예측 (ŷ)</strong> → ② <strong>오차 (e)</strong> → ③ <strong>출력 쪽 기울기 (dw₂, db₂)</strong> → ④ <strong>거꾸로 흐른 신호 (e_h, e_z₁)</strong> → ⑤ <strong>입력 쪽 기울기 (dw₁, db₁)</strong> → ⑥ <strong>갱신 (w ← w − η·dw)</strong>
+</div>
+<div class="qd">"역전파의 핵심"은 ④번 단계. 까닭: <strong>출력의 오차 e가 두 번 거꾸로(w₂를 거꾸로, ReLU 문지기를 거꾸로) 통과해 뉴런 1까지 책임을 가져오는 단계이기 때문 — 이 거꾸로 흐름이 곧 backpropagation의 정의.</strong></div>
+<div class="qd">자기 말로 두 줄 — 예시 답안:</div>
+<div class="ib"><div class="t">예시 답안</div>출력층의 오차 e가 가중치 w₂를 거꾸로 통과해 h의 오차 e_h가 되고, 다시 ReLU 문지기를 거꾸로 통과해 z₁의 오차 e_z₁이 된다. 이번엔 z₁&gt;0이라 ReLU′=1이어서 e_h와 e_z₁이 같은 수치가 되지만, 통과 자체는 식에 명시된다. 이렇게 두 번 거꾸로 흘러 운반된 신호가 뉴런 1의 가중치를 갱신하는 출발점이 된다.</div>
+<div class="ib tip">
+<div class="t">채점 기준 (4개 단어 사용)</div>
+<ul><li>"w₂"가 들어갔는가</li><li>"거꾸로"가 들어갔는가</li><li>"ReLU′"가 들어갔는가</li><li>"문지기"가 들어갔는가</li></ul>
+4개 중 3개 이상이면 만점, 2개면 부분 점수.
+</div>
+</div>
+
+
+<!-- ============================================================== -->
+<h2>보충 ★. 한 사이클을 한 번 더 [정답·해설]</h2>
+
+<div class="ib tip">
+<div class="t">두 번째 사이클 출발 가중치</div>
+C1-6의 결과 — w₁=1.003, b₁=0.351, w₂=1.684, b₂=0.168. 데이터(x=2, y=5), η=0.05는 그대로.
+</div>
+
+<h3>★1. 출발 가중치 옮겨 적기 [정답]</h3>
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★1</span>두 번째 사이클의 출발점 [정답]</div>
+<table class="tb">
+<tr><th>가중치</th><th>w₁</th><th>b₁</th><th>w₂</th><th>b₂</th></tr>
+<tr><td class="lbl">첫 사이클 후 새 값</td><td><strong>1.003</strong></td><td><strong>0.351</strong></td><td><strong>1.684</strong></td><td><strong>0.168</strong></td></tr>
+</table>
+<div class="ib tip">
+<div class="t">해설</div>
+C1-6 마지막 줄을 그대로 옮겨 적는 칸. 자릿수는 학생 활동지에 맞춰 소수 셋째 자리까지 반올림.
+</div>
+</div>
+
+<h3>★2. 6단계 한 흐름 [정답]</h3>
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★2</span>두 번째 사이클의 표 [정답]</div>
+<table class="tb">
+<tr><th>단계</th><th>식</th><th>값 대입</th><th>결과</th><th>한 줄 의미</th></tr>
+<tr><td class="lbl">① 예측 z₁</td><td><span class="mono">w₁·x + b₁</span></td><td>1.003·2 + 0.351</td><td><strong>2.357</strong></td><td>뉴런 1의 곱·합</td></tr>
+<tr><td class="lbl">  예측 h</td><td><span class="mono">ReLU(z₁)</span></td><td>max(0, 2.357)</td><td><strong>2.357</strong></td><td>z₁&gt;0이라 그대로 통과</td></tr>
+<tr><td class="lbl">  예측 ŷ</td><td><span class="mono">w₂·h + b₂</span></td><td>1.684·2.357 + 0.168</td><td><strong>4.137</strong></td><td>5에 더 가까워졌다</td></tr>
+<tr><td class="lbl">② 오차 e</td><td><span class="mono">ŷ − y</span></td><td>4.137 − 5</td><td><strong>−0.863</strong></td><td>여전히 작게 예측</td></tr>
+<tr><td class="lbl">③ 출력 쪽 dw₂</td><td><span class="mono">e·h</span></td><td>(−0.863)·2.357</td><td><strong>−2.034</strong></td><td>w₂를 키우는 방향</td></tr>
+<tr><td class="lbl">  출력 쪽 db₂</td><td><span class="mono">e</span></td><td>그대로</td><td><strong>−0.863</strong></td><td>b₂를 키우는 방향</td></tr>
+<tr><td class="lbl">④-a h의 오차 e_h</td><td><span class="mono">e·w₂</span></td><td>(−0.863)·1.684</td><td><strong>−1.453</strong></td><td>w₂ 거꾸로 통과</td></tr>
+<tr><td class="lbl">④-b z₁의 오차 e_z₁</td><td><span class="mono">e_h·ReLU′(z₁)</span></td><td>(−1.453)·1</td><td><strong>−1.453</strong></td><td>ReLU′=1, 같은 값</td></tr>
+<tr><td class="lbl">⑤ 입력 쪽 dw₁</td><td><span class="mono">e_z₁·x</span></td><td>(−1.453)·2</td><td><strong>−2.906</strong></td><td>w₁을 키우는 방향</td></tr>
+<tr><td class="lbl">  입력 쪽 db₁</td><td><span class="mono">e_z₁</span></td><td>그대로</td><td><strong>−1.453</strong></td><td>b₁을 키우는 방향</td></tr>
+</table>
+<div class="ib tip">
+<div class="t">해설</div>
+모든 기울기의 절댓값이 첫 사이클보다 작아졌다는 점에 주목 — |e|가 3.35 → 0.86으로 줄어 그 비율로 모든 dw가 줄었습니다. 이게 학습이 "수렴"하는 모습.
+</div>
+</div>
+
+<h3>★3. 갱신 — 4개 가중치 동시에 [정답]</h3>
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★3</span>w ← w − η·dw [정답]</div>
+<table class="tb">
+<tr><th>가중치</th><th>현재값 (★1)</th><th>기울기 (★2)</th><th>η·기울기</th><th>두 번째 사이클 후 새 값</th></tr>
+<tr><td class="lbl">w₂</td><td>1.684</td><td>−2.034</td><td>−0.1017</td><td><strong>1.786</strong></td></tr>
+<tr><td class="lbl">b₂</td><td>0.168</td><td>−0.863</td><td>−0.04315</td><td><strong>0.211</strong></td></tr>
+<tr><td class="lbl">w₁</td><td>1.003</td><td>−2.906</td><td>−0.1453</td><td><strong>1.148</strong></td></tr>
+<tr><td class="lbl">b₁</td><td>0.351</td><td>−1.453</td><td>−0.07265</td><td><strong>0.424</strong></td></tr>
+</table>
+<div class="ib tip">
+<div class="t">해설</div>
+첫 사이클의 갱신 폭(예: w₁: 0.5 → 1.003, +0.503)에 비해 두 번째 사이클의 폭은 작아졌습니다(w₁: 1.003 → 1.148, +0.145). 정답에 가까워질수록 한 걸음의 크기가 작아지는 자연스러운 수렴.
+</div>
+</div>
+
+<h3>★4. 손실 추이 [정답]</h3>
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★4</span>세 시점의 손실 [정답]</div>
+<table class="tb">
+<tr><th>시점</th><th>가중치 출처</th><th>x=2일 때 ŷ</th><th>e = ŷ − 5</th><th>손실 ½·e²</th></tr>
+<tr><td class="lbl">시작 (학습 전)</td><td>초기</td><td><strong>1.65</strong></td><td><strong>−3.35</strong></td><td><strong>5.611</strong></td></tr>
+<tr><td class="lbl">1 사이클 후</td><td>C1-6</td><td><strong>4.136</strong></td><td><strong>−0.864</strong></td><td><strong>0.373</strong></td></tr>
+<tr><td class="lbl">2 사이클 후</td><td>★3</td><td><strong>≈ 4.96</strong></td><td><strong>≈ −0.04</strong></td><td><strong>≈ 0.001</strong></td></tr>
+</table>
+<div class="qd">손실은 (<strong>계속 줄어들고</strong>) 있다. 두 번째 사이클의 감소 폭은 첫 번째보다 (<strong>작다</strong>) — 줄어드는 속도가 둔해진다.</div>
+<div class="qd">예시 답안: <strong>오차 e가 작아지면서 모든 기울기 dw가 같은 비율로 작아져 한 걸음의 보폭이 줄었기 때문이다.</strong></div>
+<div class="qd">★ 사이클이 반복된다 — 의미 한 줄: 100번, 1000번 돌리면 ŷ은 (<strong>정답 5</strong>)에 점점 가까워진다.</div>
+<div class="ib tip">
+<div class="t">해설</div>
+2 사이클 후 ŷ ≈ 4.96 계산: 새 z₁ = 1.148·2 + 0.424 = 2.720, h = 2.720, z₂ = 1.786·2.720 + 0.211 ≈ 5.069. 따라서 ŷ ≈ 5.07, e ≈ +0.07, 손실 ≈ 0.0024 (학생 자릿수에 따라 ≈0.001~0.003). 이미 정답 5를 살짝 지나칠 수 있어요(이래서 학습률 조절이 필요). 이 시점부터는 보통 학습률을 줄이거나 step 수를 늘려 미세 조정합니다.<br/>
+<strong>채점 기준</strong>: 손실이 계속 줄어든다는 사실 + 감소 폭이 작아진다는 관찰 + 그 까닭을 e의 감소와 연결했는지.
+</div>
+</div>
+
+
+<!-- ============================================================== -->
+<h2>STEP C2. 식 유도 — 사슬규칙으로 한 줄씩 [정답·해설]</h2>
+
+<div class="ib">
+<div class="t">이 단원의 한 줄 요약</div>
+A4의 단일 뉴런 <span class="mono">dw = e·x</span>를 만든 사슬규칙이 두 층에 자연스럽게 확장됩니다. e_h = e·w₂, e_z₁ = e_h·ReLU′(z₁), 그리고 모든 dw·db에서 *그 층의 입력*이 곱해진다는 공통 패턴이 한 줄로 정리됩니다. 학생이 식을 외우는 게 아니라 <strong>스스로 다시 끌어낼 수 있는</strong> 수준이 목표.
+</div>
+
+<h3>C2-1. 합성 함수 옮겨 적기 [정답]</h3>
+<div class="qc">
+<div class="qh"><span class="num">C2-1</span>x → ŷ → L의 식 4줄 [정답]</div>
+<div class="fm">
+L = ½(<strong>ŷ</strong> − y)²<br/>
+ŷ = z₂ = w₂ · <strong>h</strong> + b₂<br/>
+h = ReLU(<strong>z₁</strong>)<br/>
+z₁ = w₁ · <strong>x</strong> + b₁
+</div>
+<div class="qd">e의 정의: ½ · 2 · (ŷ−y) = <strong>ŷ − y = e</strong>. ½과 2가 약분되어 e가 깔끔하게 나오는 것이 ½을 도입한 이유.</div>
+<div class="ib tip">
+<div class="t">해설</div>
+이 4줄이 모든 미분의 출발점. 합성 함수가 명확히 적혀 있으면 사슬규칙은 *기계적*으로 따라온다. 학생이 "왜 ½인가?"를 물으면 — A2에서 미분 결과가 깔끔해지도록 도입한 약분 장치라는 점을 다시 짚어줄 것.<br/>
+<strong>채점 기준</strong>: 4식 모두 정확(각 1점, 총 4점), e = ŷ−y(2점). 총 6점.
+</div>
+</div>
+
+<h3>C2-2. ★ e_h 유도 [정답]</h3>
+<div class="qc">
+<div class="qh"><span class="num">C2-2</span>e_h = ∂L/∂h [정답]</div>
+<div class="fm">
+∂L/∂ŷ = <strong>e</strong> &nbsp;(C2-1에서)<br/>
+ŷ = w₂h + b₂에서 ∂ŷ/∂h = <strong>w₂</strong><br/>
+e_h = (<strong>e</strong>) · (<strong>w₂</strong>) = <strong>e · w₂</strong>
+</div>
+<div class="qd">관찰 한 줄 정답 예시: <strong>"순전파에서 h가 w₂배로 증폭돼 ŷ에 도달했으므로, 역전파에서도 ŷ의 변화가 같은 w₂배로 h에 되돌아간다. 같은 가중치 w₂가 두 방향으로 작용한다."</strong></div>
+<div class="qd">검산: e_h = (−3.35) · (1.50) = <strong>−5.025 ≈ −5.02</strong>. C1-4의 값과 같음 ✓</div>
+<div class="ib tip">
+<div class="t">해설 — 이 한 줄이 역전파의 핵심</div>
+"w₂를 거꾸로 통과"라는 비유의 정확한 의미가 ∂ŷ/∂h = w₂에서 나온다. 학생이 이 한 줄을 *외우지 않고 다시 끌어낼 수 있다면* 다른 활성함수·다른 구조에서도 그래디언트를 직접 적을 수 있다.<br/>
+<strong>채점 기준</strong>: 빈칸 4개 정답(각 1점), 관찰 한 줄(2점), 검산(1점). 총 7점. 핵심 문제이므로 가중치 높음.
+</div>
+</div>
+
+<h3>C2-3. ★ e_z₁ 유도 [정답]</h3>
+<div class="qc">
+<div class="qh"><span class="num">C2-3</span>e_z₁ = ∂L/∂z₁ [정답]</div>
+<div class="fm">
+∂h/∂z₁ = ReLU′(z₁) = <strong>1</strong> &nbsp;(z₁ = 1.10 &gt; 0이므로)<br/>
+e_z₁ = e_h · (<strong>1</strong>) = <strong>e_h = −5.025</strong>
+</div>
+<div class="qd">e_h와 e_z₁의 관계 — 정답 예시: <strong>"이번엔 ReLU′ = 1이라 두 값이 같지만, ReLU 통과라는 *단계 자체*는 식에 명시된다. z₁ ≤ 0이면 ReLU′ = 0이 되어 신호가 끊기고 뉴런 1 가중치가 갱신 안 된다(Dying ReLU)."</strong></div>
+<div class="ib tip">
+<div class="t">해설</div>
+이 단계가 *활성함수가 역전파에서 등장하는 자리*. 학생이 ReLU′를 빠뜨리고 e_h를 곧장 dw₁·db₁에 쓰면 *Dying ReLU 케이스를 설명할 수 없다*. 이 점을 강조.<br/>
+<strong>채점 기준</strong>: 빈칸 3개(각 1점), 관계 한 줄(2점, "통과 단계 명시" + "음수일 때 끊김"). 총 5점.
+</div>
+</div>
+
+<h3>C2-4. dw·db 일반 패턴 [정답]</h3>
+<div class="qc">
+<div class="qh"><span class="num">C2-4</span>모든 d_가중치 = (그 층의 오차) × (그 층의 입력) [정답]</div>
+<div class="fm">
+∂L/∂w₂ = e · <strong>h</strong> = <strong>−3.685</strong> &nbsp;(C1-3과 일치 ✓)<br/>
+∂L/∂b₂ = e · 1 = <strong>−3.35</strong><br/>
+∂L/∂w₁ = e_z₁ · <strong>x</strong> = <strong>−10.05</strong> &nbsp;(C1-5와 일치 ✓)<br/>
+∂L/∂b₁ = e_z₁ · 1 = <strong>−5.025</strong>
+</div>
+<div class="qd">한 패턴 정답 예시: <strong>"사슬규칙으로 풀어보면 모든 층의 d_가중치가 (그 층의 오차) × (그 층의 입력) 한 패턴으로 정리된다. 출력층에선 e와 h, 입력층에선 e_z₁과 x. 거꾸로 흐른 신호가 그 층까지의 *오차*로 쓰인다는 점만 다르다."</strong></div>
+<div class="ib tip">
+<div class="t">해설</div>
+A4의 단일 뉴런 식이 다층에 그대로 확장됨을 학생이 *식으로* 확인하는 자리. C1에서 손으로 푼 값(−3.685, −10.05 등)이 사슬규칙으로도 같게 나온다는 *일치 경험*이 핵심.<br/>
+<strong>채점 기준</strong>: 4식 정답(각 1점, 총 4점), 한 패턴 서술(3점, "사슬규칙" + "그 층의 입력" + "거꾸로" 단어 포함). 총 7점.
+</div>
+</div>
+
+<h3>C2-5. 한 문장 요약 [정답]</h3>
+<div class="qc">
+<div class="qh"><span class="num">C2-5</span>역전파 = 합성 함수의 미분 [정답]</div>
+<div class="ib">
+<div class="t">예시 답안</div>
+역전파는 <strong>합성 함수</strong>의 미분이다 — 손실 L까지의 합성 식 (L → ŷ → h → z₁ → x)을 <strong>사슬규칙</strong>으로 풀면, 출력 오차 e가 *<strong>가중치 거꾸로</strong>* (× w₂)와 *<strong>ReLU 문지기</strong>* (× ReLU′(z₁)) 두 단계를 거꾸로 통과하며 입력층까지 흘러간다. 모든 층의 d_가중치는 (그 층의 오차) × (그 층의 입력) 한 패턴으로 같다.
+</div>
+<div class="ib tip">
+<div class="t">채점 기준 (4개 단어 사용)</div>
+<ul><li>"합성 함수"가 들어갔는가</li><li>"사슬규칙"이 들어갔는가</li><li>"가중치 거꾸로" 또는 "w₂ 거꾸로"가 들어갔는가</li><li>"ReLU 문지기" 또는 "ReLU′"가 들어갔는가</li></ul>
+4개 모두 들어가면 8점, 3개면 6점, 2개면 3점.
+</div>
+</div>
+
+
+<!-- ============================================================== -->
+<h2>STEP C3. MNIST와 데이터 증강 [정답·해설]</h2>
+
+<h3>C3-1. B5와 MNIST를 나란히 [정답]</h3>
+<div class="qc">
+<div class="qh"><span class="num">C3-1</span>입력·출력의 크기 비교 [정답]</div>
+<table class="tb">
+<tr><th>항목</th><th>B5의 모델 (○△□)</th><th>MNIST [정답]</th></tr>
+<tr><td class="lbl">입력 픽셀 수</td><td>예: 8×8 = 64</td><td><strong>28×28 = 784</strong></td></tr>
+<tr><td class="lbl">출력 뉴런 수 = 라벨 수</td><td>3</td><td><strong>10 (0~9 숫자)</strong></td></tr>
+<tr><td class="lbl">출력층 활성화</td><td>softmax</td><td><strong>softmax</strong></td></tr>
+<tr><td class="lbl">한 그림의 종류</td><td>도형 3종</td><td><strong>손글씨 숫자 10종</strong></td></tr>
+</table>
+<div class="qd">MNIST가 더 어려운 이유 한 줄: <strong>입력이 64 → 784로 약 12배 늘고, 라벨이 3 → 10으로 늘어, 가중치 수와 분류 경계의 복잡도가 동시에 커지기 때문이다.</strong></div>
+<div class="qd">두 모델의 학습 식 <span class="mono">w ← w − η·dw</span>는 (<strong>같다</strong>). 사이클이 (<strong>모든</strong>) 층에 동시에 적용된다.</div>
+<div class="ib tip">
+<div class="t">해설</div>
+이 카드의 핵심은 "식은 같고, 크기만 다르다"는 일반화. C1에서 본 6단계가 그대로 784픽셀·10라벨에도 적용됩니다.<br/>
+<strong>채점 기준</strong>: 입력 크기 + 라벨 수 둘 다 짚었는지.
+</div>
+</div>
+
+<h3>C3-2. "내가 그린 숫자가 안 맞는 까닭" [정답]</h3>
+<div class="qc">
+<div class="qh"><span class="num">C3-2</span>학습 데이터와 내 그림은 무엇이 다른가 [정답]</div>
+<div class="fm">
+① 학습 데이터는 (<strong>중앙 정렬된</strong>) 28×28인데, 내 그림은 보통 (<strong>자유 위치</strong>) 280×280이라 크기·해상도가 다르다.<br/>
+② 단순 다층 퍼셉트론은 픽셀의 (<strong>위치</strong>)에 민감해서, 한쪽으로 치우쳐 그린 글씨를 다른 숫자로 본다.<br/>
+③ 모델의 (<strong>확신도(softmax 최대값)</strong>)가 50%대로 낮으면, 후보끼리 박빙이라 작은 차이로도 답이 바뀐다.
+</div>
+<div class="qd">한 문장 합치기 — 예시 답안: <strong>내 그림이 학습 분포(중앙 정렬·일정한 굵기·28×28)와 다른 위치·해상도·기울기로 들어가는데, 모델이 픽셀 위치에 민감하고 확신도까지 낮아서 자신 있게 틀린다.</strong></div>
+<div class="ib tip">
+<div class="t">해설</div>
+①은 "정렬·해상도", ②는 "위치 민감성", ③은 "확신도"가 핵심 키워드. ②와 C3-5의 답이 직접 연결됩니다.<br/>
+<strong>채점 기준</strong>: ①에 "정렬"·"중앙"·"28×28" 중 하나, ②에 "위치"·"공간", ③에 "확신도"·"softmax"·"확률"이 들어갔는지.
+</div>
+</div>
+
+<h3>C3-3. 데이터 증강 4가지 — 효과 짝짓기 [정답]</h3>
+<div class="qc">
+<div class="qh"><span class="num">C3-3</span>4가지 변형의 짝 [정답]</div>
+<table class="tb">
+<tr><th>변형</th><th>예시 범위</th><th>짝</th><th>효과 — 모범 답안</th></tr>
+<tr><td class="lbl">회전</td><td>±약 26°</td><td><strong>㉠</strong></td><td>기울어진 글씨도 같은 숫자로 인식</td></tr>
+<tr><td class="lbl">이동</td><td>±4px</td><td><strong>㉡</strong></td><td>치우친 위치에서도 같은 숫자로 인식</td></tr>
+<tr><td class="lbl">스케일</td><td>0.8~1.2배</td><td><strong>㉢</strong></td><td>크고 작은 글씨 모두 같은 숫자로 인식</td></tr>
+<tr><td class="lbl">전단(찌그러뜨리기)</td><td>x·y ±0.2</td><td><strong>㉣</strong></td><td>비스듬한 변형(획 미끄러짐)에 강해짐</td></tr>
+</table>
+<div class="ib tip">
+<div class="t">해설</div>
+회전=각도, 이동=위치, 스케일=크기, 전단=비스듬함 — 변환의 이름과 효과의 키워드가 1:1로 대응합니다. 학생이 효과 칸을 자기 말로 적었는지가 채점 포인트.<br/>
+<strong>채점 기준</strong>: 짝 4개 모두 정답이면 만점, 효과 칸은 키워드(기울기/위치/크기/비스듬함)가 보이면 정답.
+</div>
+</div>
+
+<h3>C3-4. 1장 → N장 → 재학습 [정답]</h3>
+<div class="qc">
+<div class="qh"><span class="num">C3-4</span>틀린 그림 1장으로 시작 [정답]</div>
+<div class="fm">
+틀린 그림 1장은 본래 학습 데이터에 (<strong>없던 / 부족했던</strong>) 분포의 그림이었다.<br/>
+→ 한 장만 그대로 추가하면 모델은 그 한 장을 (<strong>외워(과적합해)</strong>) 버리기 쉽다.<br/>
+→ 그래서 그 한 장을 N장으로 (<strong>증강(변형 복제)</strong>)해 분포의 폭을 넓힌다.<br/>
+→ 다시 학습하면, 그 분포의 그림에서도 (<strong>일반화(올바르게 분류)</strong>)할 수 있게 된다.
+</div>
+<div class="qd">N을 너무 작게 → (<strong>여전히 외움(과적합)</strong>), 너무 크게 → (<strong>학습이 느려짐 / 다른 데이터를 압도</strong>) 위험.</div>
+<div class="qd">★ 다시 학습할 때, 변하는 것은 (<strong>학습 데이터의 분포 폭(입력의 다양성)</strong>)이고, 변하지 않는 것은 (<strong>한 사이클의 6단계 — 예측·오차·기울기·갱신 식</strong>)이다.</div>
+<div class="ib tip">
+<div class="t">해설</div>
+이 카드의 핵심 일반화: "사이클 식은 그대로, 데이터만 바뀐다." C1과 C2를 잇는 다리.<br/>
+<strong>채점 기준</strong>: 변하는 것에 "데이터/분포", 변하지 않는 것에 "사이클/식/6단계"가 들어갔는지.
+</div>
+</div>
+
+<h3>C3-5. 같은 4를 어디에 그릴까 [정답]</h3>
+<div class="qc">
+<div class="qh"><span class="num">C3-5</span>위치가 다르면 픽셀 입장에선 다른 입력 [정답]</div>
+<div class="qd">예측 — 더 잘 맞힐 쪽: <strong>(나) 가운데에 크게</strong>.</div>
+<div class="qd">이유 — 예시 답안: <strong>학습 분포(MNIST)는 숫자가 중앙에 정렬되어 있어, 단순 MLP가 "4의 픽셀은 가운데 어느 자리"라는 식으로 픽셀 위치를 외운다. (가)처럼 왼쪽 위에 작게 그리면 픽셀 위치가 학습 분포와 어긋나 다른 숫자로 본다.</strong></div>
+<div class="qd">처치 한 단어 예측: <strong>이동 증강 (translation augmentation)</strong></div>
+<div class="ib tip">
+<div class="t">해설</div>
+C3-2의 ②와 직결되는 카드. "픽셀 위치"와 "학습 분포" 두 단어가 핵심. 처치는 이동 증강 또는 단순히 "증강".<br/>
+<strong>채점 기준</strong>: "픽셀 위치"·"학습 분포" 두 단어 사용 / 처치 답에 "이동" 또는 "증강"이 들어갔는지.
+</div>
+</div>
+
+<h3>C3-6. "외운 것 vs 일반화한 것" [정답]</h3>
+<div class="qc">
+<div class="qh"><span class="num">C3-6</span>학습 정확도 98% vs 내 그림 50% [정답]</div>
+<div class="ib"><div class="t">예시 답안 (5~6줄)</div>학습 정확도는 학습 분포 안의 데이터에 대한 점수이고, 내 그림은 학습 분포와 다른 사용 분포에 속한다. 두 분포가 어긋나면 모델은 "외운 패턴"만으로는 새 입력을 풀지 못한다. 증강은 학습 분포의 폭을 사용 분포 쪽으로 넓혀, 외운 것이 아니라 같은 숫자의 여러 변형까지 포함한 일반화로 바꾼다.</div>
+<div class="qd">"외운 것"과 "일반화한 것"의 차이 한 줄: <strong>외운 것은 학습 데이터에서만 작동하지만, 일반화한 것은 학습 분포 밖의 변형(위치·크기·기울기)에도 같은 답을 낸다.</strong></div>
+<div class="ib tip">
+<div class="t">채점 기준 (3개 단어 사용)</div>
+<ul><li>"학습 분포"가 들어갔는가</li><li>"사용 분포"가 들어갔는가</li><li>"증강"이 들어갔는가</li></ul>
+세 단어 모두 들어가면 만점, 두 개면 부분 점수.
+</div>
+</div>
+
+
+<!-- ============================================================== -->
+<h2>보충 ★★. 분포 불일치 4측면 [정답·해설]</h2>
+
+<h3>★★1. 4측면 비교 + 처치 짝짓기 [정답]</h3>
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★★1</span>네 측면을 한 표에 [정답]</div>
+<table class="tb">
+<tr><th>측면</th><th>MNIST</th><th>내 그림 분포 [정답]</th><th>처치 [정답]</th></tr>
+<tr><td class="lbl">위치 (정렬)</td><td>중앙 정렬</td><td><strong>한쪽으로 치우침 / 자유 위치</strong></td><td><strong>㉠ 이동 증강</strong></td></tr>
+<tr><td class="lbl">굵기 (획)</td><td>일정</td><td><strong>들쑥날쑥 / 마우스·압력에 따라 변동</strong></td><td><strong>㉡ 굵기 정규화</strong></td></tr>
+<tr><td class="lbl">크기·해상도</td><td>28×28</td><td><strong>280×280 (자유 그리기 캔버스)</strong></td><td><strong>㉢ 다운샘플링·중앙 잘라내기</strong></td></tr>
+<tr><td class="lbl">모양 (기울기)</td><td>거의 똑바름</td><td><strong>살짝 기울어짐 / 비스듬함</strong></td><td><strong>㉣ 회전·전단 증강</strong></td></tr>
+</table>
+<div class="qd">가장 큰 차이를 만드는 측면: <strong>(위치 또는 크기·해상도) — 학생 답에 따라 둘 다 정답으로 인정.</strong></div>
+<div class="qd">예시 답안: <strong>단순 MLP는 픽셀 위치에 민감하고, 280×280 → 28×28로 줄이는 과정에서 정렬이 어긋나면 픽셀 자체가 학습 분포와 전혀 달라지기 때문이다.</strong></div>
+<div class="ib tip">
+<div class="t">해설</div>
+짝짓기는 측면 이름과 처치 이름이 1:1 — "위치=이동", "굵기=굵기 정규화", "크기·해상도=다운샘플링", "모양=회전·전단".<br/>
+<strong>채점 기준</strong>: 짝 4개 정답 + 까닭 한 줄에 "픽셀 위치" 또는 "정렬"이 들어갔는지.
+</div>
+</div>
+
+<h3>★★2. 같은 7을 두 가지로 그려보기 [정답]</h3>
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★★2</span>(가) MNIST 풍 · (나) 내 글씨 풍 [정답]</div>
+<div class="qd">예시 답안 — 눈으로 본 차이: <strong>(가)는 28×28 가운데에 똑바른 7이 들어가 학습 데이터와 모양이 거의 같지만, (나)는 한쪽 구석에 비스듬히 7이 그려져 픽셀 단위로는 거의 다른 그림처럼 보인다.</strong></div>
+<div class="qd">픽셀 단위에서 가장 크게 다른 측면: <strong>위치 (정렬)</strong> — 또는 답에 따라 <strong>모양 (기울기)</strong>도 정답.</div>
+<div class="ib tip">
+<div class="t">해설</div>
+실제로 7을 두 가지로 그려본 학생이라면, 같은 숫자라는 사실이 사람 눈에는 분명해도 픽셀 벡터로는 코사인 유사도가 크게 떨어집니다. 이 체험이 "분포 불일치"의 직관.<br/>
+<strong>채점 기준</strong>: 차이를 한 줄로 적었는지 + 측면 1가지를 4개 보기 안에서 골랐는지.
+</div>
+</div>
+
+<h3>★★3. 분포의 폭이 넓어진다 [정답]</h3>
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★★3</span>한 장 vs 한 장 + 증강 N장 [정답]</div>
+<div class="qd">학생은 오른쪽 박스에 점 4~6개를 더 흩뿌려 그립니다. 점들이 가운데 점 주변으로 흩어지면 정답.</div>
+<div class="qd">두 박스의 가장 큰 차이: 분포의 (<strong>폭(너비)</strong>)이 (<strong>넓어</strong>)졌다.</div>
+<div class="qd">일반화에 필요한 것: (<strong>분포의 폭</strong>) — 단순한 양이 아니라 폭이 핵심.</div>
+<div class="qd">예시 답안: <strong>같은 그림 1000장을 복제해 양만 늘리면 모델은 그 한 점을 더 강하게 외울 뿐이다. 변형으로 점들을 흩어 분포의 폭을 넓혀야 모델이 "그 영역 안의 어느 점이든 같은 답"이라고 일반화할 수 있다.</strong></div>
+<div class="ib tip">
+<div class="t">해설</div>
+"양 vs 폭"의 구분이 이 카드의 핵심. 같은 한 점을 N번 복제 = 양 증가, 변형으로 흩뿌리기 = 폭 증가.<br/>
+<strong>채점 기준</strong>: "폭" 또는 "넓이/다양성"이라는 단어가 들어갔는지 / 단순한 양과 구별했는지.
+</div>
+</div>
+
+<h3>★★4. 분포 불일치가 위험한 현장 [예시 답안]</h3>
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★★4</span>1~2가지 시나리오 [예시 답안]</div>
+<table class="tb">
+<tr><th>현장</th><th>학습 분포</th><th>사용 분포</th><th>왜 위험한가</th></tr>
+<tr><td><strong>의료 영상 (흉부 X-ray)</strong></td><td>특정 병원 A의 장비·환자군</td><td>다른 병원 B, 다른 인구·연령·장비</td><td>같은 병이라도 영상 톤·해상도가 달라 정확도 급락 → 오진 위험</td></tr>
+<tr><td><strong>자율주행 (보행자 인식)</strong></td><td>맑은 낮·도시 도로 데이터 위주</td><td>야간·우천·눈길·시골 도로</td><td>그림자·반사·가려짐이 학습 분포에 부족해 보행자 미감지 가능 → 사고 위험</td></tr>
+</table>
+<div class="ib tip">
+<div class="t">해설 (채점 기준)</div>
+의료 영상·자율주행·음성 인식·표정 인식 중 하나면 정답. 핵심은 "학습 분포에 없던 환경"을 구체적으로 짚었는지.<br/>
+<strong>채점 기준</strong>: 현장 1개 이상 / 학습 분포와 사용 분포의 구체적 차이가 1줄 이상 / 위험이 명시적인지(오진·사고 등).
+</div>
+</div>
+
+<h3>★★5. 한 사이클과 분포를 잇는 한 문장 [정답]</h3>
+<div class="qc" style="break-inside:avoid;page-break-inside:avoid">
+<div class="qh"><span class="num">★★5</span>두 단어를 모두 사용 [정답]</div>
+<div class="ib"><div class="t">예시 답안</div>한 사이클은 학습 데이터의 오차를 줄이는 방향으로 가중치를 움직이지만, 학습 분포와 사용 분포가 다르면 — 즉 분포 불일치가 있으면 — 학습 정확도와 사용 정확도 사이에 일반화 격차가 생긴다.</div>
+<div class="ib tip">
+<div class="t">채점 기준</div>
+<ul><li>"분포 불일치"가 들어갔는가</li><li>"일반화 격차"가 들어갔는가</li><li>한 사이클(학습)과 분포 차이의 인과 관계가 한 문장으로 이어졌는가</li></ul>
+</div>
+</div>
+
+
+<!-- ============================================================== -->
+<h2>마무리. 한 사이클의 종합 정리 [정답·해설]</h2>
+
+<div class="qc">
+<div class="qh"><span class="num">정리1</span>흐름도 [정답]</div>
+<div class="fm" style="font-size:11pt">
+  ① 한 사이클의 정체 = 6단계 — (<strong>예측</strong>) → (<strong>오차</strong>) → 출력 쪽 기울기 → (<strong>거꾸로 흐른 신호 e_h, e_z₁</strong>) → 입력 쪽 기울기 → (<strong>갱신</strong>)<br/>
+  &nbsp;&nbsp;&nbsp;&nbsp;↓ 한 줄: <strong>이 6단계가 한 step의 전부이고, 손실은 한 번 돌릴 때마다 줄어든다.</strong><br/>
+  ② 출력 쪽 오차 e가 (<strong>w₂</strong>)를 거꾸로 통과해 e_h, 다시 (<strong>ReLU 문지기</strong>)를 거꾸로 통과해 (<strong>e_z₁</strong>)이 되고, dw·db로 4개 가중치가 동시에 움직임<br/>
+  &nbsp;&nbsp;&nbsp;&nbsp;↓ 한 줄: <strong>이 거꾸로 흐름이 곧 역전파(backpropagation)이다.</strong><br/>
+  ③ 같은 사이클이 (<strong>모든 층</strong>)에 동시에 적용되어, 입력이 784픽셀이고 라벨이 10개인 (<strong>MNIST</strong>)도 학습 가능<br/>
+  &nbsp;&nbsp;&nbsp;&nbsp;↓ 한 줄: <strong>식은 같고 크기만 다르다 — GPT의 거대 모델까지 같은 원리.</strong><br/>
+  ④ 학습 분포와 (<strong>사용</strong>) 분포가 다르면, 학습 정확도가 높아도 사용에서 무너짐 — 이 차이의 이름은 (<strong>분포 불일치 / 일반화 격차</strong>)<br/>
+  &nbsp;&nbsp;&nbsp;&nbsp;↓ 한 줄: <strong>학습 정확도는 학습 분포 안에서의 점수일 뿐.</strong><br/>
+  ⑤ 그 차이를 메우는 도구 = (<strong>데이터 증강</strong>)<br/>
+  &nbsp;&nbsp;&nbsp;&nbsp;— 변형 4가지: (<strong>회전</strong>) · (<strong>이동</strong>) · (<strong>스케일</strong>) · (<strong>전단</strong>)
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">정리2</span>C1·C2 핵심을 자기 말로 한 줄씩 [예시 답안]</div>
+<table class="tb">
+<tr><th>구분</th><th>핵심 한 줄 [예시]</th></tr>
+<tr><td class="lbl">C1 (한 사이클의 6단계)</td><td><strong>출력 오차 e가 w₂를 거꾸로 통과해 뉴런 1까지 책임을 운반(=역전파)하면, 4개 가중치가 동시에 갱신되어 손실이 줄어든다.</strong></td></tr>
+<tr><td class="lbl">C2 (MNIST·증강·분포)</td><td><strong>같은 사이클이 784픽셀·10라벨에도 그대로 작동하지만, 학습 분포와 사용 분포가 어긋나면 정확도가 떨어지고, 데이터 증강으로 분포의 폭을 넓혀 일반화 격차를 줄인다.</strong></td></tr>
+</table>
+<div class="qd">접속어: <strong>"그런데"가 가장 자연스러움</strong> — C1에서 "사이클은 작동한다"는 사실이, C2의 "그런데 분포가 다르면 무너진다"로 자연스럽게 이어집니다. "그래서/따라서"도 허용 가능.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">정리3</span>용어 5개 한 줄 사전 [정답]</div>
+<table class="tb">
+<tr><th>용어</th><th>한 줄 정의 [모범 답안]</th><th>처음 등장</th></tr>
+<tr><td class="lbl">역전파</td><td>출력층의 오차 e가 가중치(w₂)와 활성함수(ReLU′)를 거꾸로 통과해 앞 층 뉴런까지 책임을 운반하는 절차.</td><td><strong>C1-4</strong></td></tr>
+<tr><td class="lbl">거꾸로 흐른 신호 (e_h, e_z₁)</td><td>e_h = e·w₂ (h의 오차), e_z₁ = e_h·ReLU′(z₁) (z₁의 오차) — 출력 오차가 두 번 거꾸로 통과해 뉴런 1까지 도착한 값. ReLU′=1이면 두 값이 같다.</td><td><strong>C1-4</strong></td></tr>
+<tr><td class="lbl">한 사이클</td><td>예측 → 오차 → 출력 쪽 기울기 → 거꾸로 흐른 신호 → 입력 쪽 기울기 → 갱신, 학습 한 step의 전부.</td><td><strong>0-1 / C1 전체</strong></td></tr>
+<tr><td class="lbl">분포 불일치</td><td>학습 데이터의 분포와 실제 사용 환경의 분포가 어긋나는 현상. 학습 정확도와 사용 정확도의 격차의 원인.</td><td><strong>C3-6 / ★★1</strong></td></tr>
+<tr><td class="lbl">데이터 증강</td><td>한 장의 그림을 회전·이동·스케일·전단 같은 변형으로 N장 만들어 학습 분포의 폭을 넓히는 기법.</td><td><strong>C3-3 / C3-4</strong></td></tr>
+</table>
+<div class="ib tip">
+<div class="t">채점 기준</div>
+정의에 핵심 단어(역전파→"거꾸로"+"문지기", e_h/e_z₁→"e·w₂"+"ReLU′" 또는 "두 번 거꾸로", 한 사이클→"6단계", 분포 불일치→"학습≠사용", 증강→"변형/N장")가 들어갔는지.
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">서술</span>친구에게 5~7문장으로 설명하기 [예시 답안]</div>
+<div class="ib"><div class="t">예시 답안 (6문장)</div>
+딥러닝의 학습은 한 <u>한 사이클</u>의 반복이다. 한 사이클은 예측 → 오차 → 출력 쪽 기울기 → <u>거꾸로 흐른 신호</u> → 입력 쪽 기울기 → 갱신의 6단계로, 출력의 오차 e가 가중치 w₂를 거꾸로 통과해 뉴런 1까지 책임을 운반하는 절차를 <u>역전파</u>라 부른다. 손글씨(MNIST)에서도 같은 사이클이 그대로 작동해 98%까지 정확도가 오를 수 있다. 하지만 직접 마우스로 그린 숫자에서는 자주 틀리는데, 이는 학습 데이터(중앙 정렬·일정한 굵기)와 내 그림(자유 위치·자유 굵기) 사이의 <u>분포 불일치</u> 때문이다. 이 격차를 메우려면 틀린 그림을 회전·이동·스케일·전단으로 N장 변형하는 <u>데이터 증강</u>으로 학습 분포의 폭을 넓히면 된다. 사이클 식은 그대로 두고 데이터만 다양해지면, 모델은 외운 패턴이 아니라 일반화된 패턴을 배우게 된다.
+</div>
+<div class="ib tip">
+<div class="t">채점 기준</div>
+<ul>
+<li>5개 단어 모두 사용: 한 사이클 · 거꾸로 흐른 신호 · 역전파 · 분포 불일치 · 데이터 증강</li>
+<li>밑줄 표기 5개</li>
+<li>문장 수 5~7</li>
+<li>"한 사이클이 무엇인가" + "MNIST에서 왜 틀리는가" + "어떻게 더 잘 맞히게 하는가" 세 질문 모두에 답했는지</li>
+</ul>
+배점 예: 단어 5개 사용(5점) + 밑줄(2점) + 세 질문 답(각 3점, 총 9점) + 사이클 6단계 정확성(2점) = 18점 만점.
+</div>
+</div>
+
+<div class="ib tip">
+<div class="t">한 줄 마침</div>
+한 사이클이면 충분합니다. 그 사이클이 모든 층, 모든 데이터에 동시에 적용되면 — ChatGPT가 됩니다. 원리는 같고, 손으로 만들 수 있어요.
+</div>
+
+</body>
+</html>

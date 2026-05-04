@@ -214,22 +214,17 @@
 </div>
 
 <div class="qc">
-<div class="qh"><span class="num">A3-3</span>4 시나리오 — 정답</div>
-<div class="qd">조건: 정답 b=1, 시작 b=−2, w=2 고정. 모든 점의 e = b − 1 = −3 → db = 평균(e) = <strong>−3</strong>. 한 step 새 b = −2 − η·(−3) = −2 + 3η.</div>
+<div class="qh"><span class="num">A3-3</span>4 시나리오 — 정답 (관찰 활동)</div>
+<div class="qd">앱의 자동 비교 칩 4개를 차례로 누르면 손실 곡선 위에 자취가 그려짐. 학생은 자취 모양을 보고 시나리오 이름만 매칭.</div>
 <table class="tb">
-<tr><th>η</th><th>3·η</th><th>새 b</th><th>거리 |새 b − 1|</th><th>시나리오</th></tr>
-<tr><td>2.5</td><td class="fa">7.5</td><td class="fa">5.5</td><td class="fa">4.5</td><td class="fa">발산</td></tr>
-<tr><td>2.0</td><td class="fa">6</td><td class="fa">4</td><td class="fa">3</td><td class="fa">진동</td></tr>
-<tr><td>0.5</td><td class="fa">1.5</td><td class="fa">−0.5</td><td class="fa">1.5</td><td class="fa">수렴</td></tr>
-<tr><td>0.05</td><td class="fa">0.15</td><td class="fa">−1.85</td><td class="fa">2.85</td><td class="fa">느림</td></tr>
+<tr><th>η 칩</th><th>자취 모양</th><th>시나리오</th></tr>
+<tr><td>가장 큰 값</td><td>정답을 지나쳐 점점 멀리 ↗ ↗</td><td class="fa">발산</td></tr>
+<tr><td>두 번째</td><td>정답 반대편으로 같은 거리, 다음 step 또 되돌아옴</td><td class="fa">진동</td></tr>
+<tr><td>중간 값</td><td>정답 쪽으로 한 step 씩 가까워짐</td><td class="fa">수렴</td></tr>
+<tr><td>가장 작은 값</td><td>거의 안 움직임</td><td class="fa">느림</td></tr>
 </table>
-<div class="ans"><span class="lab">정답 해석</span>처음 거리 |−2−1|=3 기준. <strong>발산</strong>: η=2.5 에서 새 거리 4.5 → 처음보다 멀어짐. <strong>진동</strong>: η=2.0 에서 새 거리 3 → 정답 반대편 같은 거리, 다음 step 다시 −2 로 돌아옴. <strong>수렴</strong>: η=0.5 에서 거리 3 → 1.5 로 줄음. <strong>느림</strong>: η=0.05 에서 거리 2.85 → 거의 그대로.</div>
-<div class="pf"><span class="lab">자주 틀림</span>"3·η = ?" 를 거꾸로 적는 학생. 그리고 거리는 <strong>절댓값</strong>이라는 점 — 음수 b 에서도 거리는 양수.</div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">A3-4</span>η가 너무 크면 / 너무 작으면 — 정답 예시</div>
-<div class="ans"><span class="lab">정답 예시</span>너무 크면 → <strong>정답을 지나쳐 점점 멀어진다 (발산)</strong>. 너무 작으면 → <strong>정답에 거의 닿지 못하고 한없이 느림</strong>. 딱 좋으면 → <strong>몇 step 만에 손실이 안정적으로 0 근처로</strong>. 결국 η 는 한 step 의 <strong>보폭</strong>.</div>
+<div class="ans"><span class="lab">한 줄 정리 정답</span>η 가 크면 <strong>발산 / 진동</strong>, 작으면 <strong>너무 느림</strong>, 딱 좋을 때 <strong>안정적으로 수렴</strong>. 즉 η = 한 step 의 <strong>보폭</strong>.</div>
+<div class="tt"><span class="lab">수업 팁</span>수치 계산은 일부러 뺐다 — 자취 모양 ↔ 시나리오 이름 매칭만 손에 익게. 더 들어가고 싶다면 학생이 직접 슬라이더로 임의 η 를 시도해 발산/수렴 경계를 찾아보게 한다.</div>
 </div>
 
 <!-- ============================================================== -->
@@ -252,27 +247,28 @@
 </div>
 
 <div class="qc">
-<div class="qh"><span class="num">A4-2</span>다섯 점 직접 계산표 — 정답</div>
+<div class="qh"><span class="num">A4-2</span>다섯 점 직접 계산표 — 정답 (시작 w=0, b=0)</div>
 <table class="tb">
-<tr><th>x</th><th>y</th><th>ŷ = 1.5x</th><th>e = ŷ − y</th><th>e · x</th></tr>
-<tr><td>1</td><td>3</td><td class="fa">1.5</td><td class="fa">−1.5</td><td class="fa">−1.5</td></tr>
-<tr><td>2</td><td>5</td><td class="fa">3</td><td class="fa">−2</td><td class="fa">−4</td></tr>
-<tr><td>3</td><td>7</td><td class="fa">4.5</td><td class="fa">−2.5</td><td class="fa">−7.5</td></tr>
-<tr><td>4</td><td>9</td><td class="fa">6</td><td class="fa">−3</td><td class="fa">−12</td></tr>
-<tr><td>5</td><td>11</td><td class="fa">7.5</td><td class="fa">−3.5</td><td class="fa">−17.5</td></tr>
-<tr><td class="lbl" colspan="3" style="text-align:right">합 →</td><td class="fa">Σe = −12.5</td><td class="fa">Σ(e·x) = −42.5</td></tr>
-<tr><td class="lbl" colspan="3" style="text-align:right">÷ 5 →</td><td class="fa">db = −2.5</td><td class="fa">dw = −8.5</td></tr>
+<tr><th>x</th><th>y</th><th>ŷ = 0</th><th>e = ŷ − y</th><th>e · x</th></tr>
+<tr><td>1</td><td>3</td><td class="fa">0</td><td class="fa">−3</td><td class="fa">−3</td></tr>
+<tr><td>2</td><td>5</td><td class="fa">0</td><td class="fa">−5</td><td class="fa">−10</td></tr>
+<tr><td>3</td><td>7</td><td class="fa">0</td><td class="fa">−7</td><td class="fa">−21</td></tr>
+<tr><td>4</td><td>9</td><td class="fa">0</td><td class="fa">−9</td><td class="fa">−36</td></tr>
+<tr><td>5</td><td>11</td><td class="fa">0</td><td class="fa">−11</td><td class="fa">−55</td></tr>
+<tr><td class="lbl" colspan="3" style="text-align:right">합 →</td><td class="fa">Σe = −35</td><td class="fa">Σ(e·x) = −125</td></tr>
+<tr><td class="lbl" colspan="3" style="text-align:right">÷ 5 →</td><td class="fa">db = −7</td><td class="fa">dw = −25</td></tr>
 </table>
-<div class="ans"><span class="lab">정답</span>dw, db 둘 다 <strong>음수(−)</strong>. 그래서 갱신 식의 빼기에 의해 새 w·b 는 <strong>커진다</strong> (정답 w=2, b=1 쪽). "손실을 줄이려면 w·b 를 <strong>키워야</strong>"라는 결론.</div>
+<div class="ans"><span class="lab">정답</span>dw = −25, db = −7. 둘 다 <strong>음수(−)</strong> → 갱신 식의 빼기에 의해 새 w·b 는 <strong>커진다</strong> (정답 w=2, b=1 쪽). 이 두 숫자가 A5-2 에서 그대로 갱신 식에 들어간다.</div>
+<div class="tt"><span class="lab">수업 팁</span>이전 버전의 시작점(w=1.5)을 0 으로 바꿔 A5 와 시작점을 통일했음. A4 에서 손으로 계산한 dw·db 가 A5 의 갱신 식 입력으로 그대로 이어져 "한 사이클" 의 연속성이 보임.</div>
 </div>
 
 <div class="qc">
 <div class="qh"><span class="num">A4-3</span>다음 step 예고 — 정답</div>
 <div class="fm">
-  새 w = 1.5 − 0.05 · (−8.5) = <span class="v" style="color:#7a4f00">1.925</span><br/>
-  새 b = 0  − 0.05 · (−2.5) = <span class="v" style="color:#7a4f00">0.125</span>
+  새 w = 0 − 0.05 · (−25) = <span class="v" style="color:#7a4f00">1.25</span><br/>
+  새 b = 0 − 0.05 · (−7)&nbsp;&nbsp; = <span class="v" style="color:#7a4f00">0.35</span>
 </div>
-<div class="ans"><span class="lab">정답</span>1.5 → 1.925 (정답 2 에 가까워짐), 0 → 0.125 (정답 1 에 가까워짐). A5 에서 시작점만 바꿔 다시 한 step 굴려 봄.</div>
+<div class="ans"><span class="lab">정답</span>0 → 1.25 (정답 2 에 가까워짐), 0 → 0.35 (정답 1 에 가까워짐). A5-2 에서도 똑같이 1.25, 0.35.</div>
 </div>
 
 <!-- ============================================================== -->
@@ -290,22 +286,13 @@
 </div>
 
 <div class="qc">
-<div class="qh"><span class="num">A5-2</span>한 step 검산 — 정답</div>
-<table class="tb">
-<tr><th>x</th><th>y</th><th>ŷ = 0·x + 0</th><th>e = ŷ − y</th><th>e · x</th></tr>
-<tr><td>1</td><td>3</td><td class="fa">0</td><td class="fa">−3</td><td class="fa">−3</td></tr>
-<tr><td>2</td><td>5</td><td class="fa">0</td><td class="fa">−5</td><td class="fa">−10</td></tr>
-<tr><td>3</td><td>7</td><td class="fa">0</td><td class="fa">−7</td><td class="fa">−21</td></tr>
-<tr><td>4</td><td>9</td><td class="fa">0</td><td class="fa">−9</td><td class="fa">−36</td></tr>
-<tr><td>5</td><td>11</td><td class="fa">0</td><td class="fa">−11</td><td class="fa">−55</td></tr>
-<tr><td class="lbl" colspan="3" style="text-align:right">합 →</td><td class="fa">Σe = −35</td><td class="fa">Σ(e·x) = −125</td></tr>
-</table>
+<div class="qh"><span class="num">A5-2</span>한 step 검산 — 정답 (A4-2 결과 그대로 사용)</div>
+<div class="qd">A4-2 에서 같은 시작점(w=0, b=0)으로 dw=−25, db=−7 을 이미 구했으니 A5 는 그 두 숫자만 갱신 식에 넣는다.</div>
 <div class="fm">
-  dw = −125 ÷ 5 = <span class="v" style="color:#7a4f00">−25</span>,&nbsp; db = −35 ÷ 5 = <span class="v" style="color:#7a4f00">−7</span><br/>
   새 w = 0 − 0.05 · (−25) = <span class="v" style="color:#7a4f00">1.25</span><br/>
-  새 b = 0 − 0.05 · (−7)  = <span class="v" style="color:#7a4f00">0.35</span>
+  새 b = 0 − 0.05 · (−7)&nbsp;&nbsp; = <span class="v" style="color:#7a4f00">0.35</span>
 </div>
-<div class="ans"><span class="lab">정답</span>한 step 만에 (0, 0) → (1.25, 0.35) 로 정답 (2, 1)에 <strong>가까워졌다</strong>. ReLU(0)=0 이라 시작에서 z=0 이고, 한 step 후 z 가 양수 구간이 되어 ŷ = w·x + b 그대로 따라간다.</div>
+<div class="ans"><span class="lab">정답</span>한 step 만에 (0, 0) → (1.25, 0.35) 로 정답 (2, 1)에 <strong>가까워졌다</strong>. ReLU(0) = 0 이라 시작에서 z=0 이고, 한 step 후 z 가 양수 구간으로 진입해 ŷ = w·x + b 그대로 따라간다.</div>
 </div>
 
 <div class="qc">

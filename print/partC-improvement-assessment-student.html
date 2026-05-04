@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>Neural Explorer 평가지 C부 — 딥러닝</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt;page-break-after:avoid}
+
+  /* 헤더 */
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt;page-break-after:avoid}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .meta{font-size:9pt;color:#777;margin-top:6pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+  .name{font-size:9.5pt;color:#555;margin-top:8pt}
+  .name span{display:inline-block;border-bottom:1px solid #888;min-width:80pt;margin:0 8pt}
+
+  /* 카드 */
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0;break-inside:auto;page-break-inside:auto}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt;break-inside:avoid;page-break-inside:avoid}
+  .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+  .sh{font-size:11pt;font-weight:700;margin:14pt 0 6pt;color:#222;break-after:avoid;page-break-after:avoid}
+
+  /* 개념 박스 */
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0;break-inside:avoid;page-break-inside:avoid}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .tip{border-left-style:dashed}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px;break-inside:avoid;page-break-inside:avoid}
+
+  /* 표 */
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#1a1a1a;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb .blank{height:22pt;background:#fff}
+  .tb .blank.tall{height:30pt}
+
+  /* 빈칸 */
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .bk{display:inline-block;border-bottom:1.5px solid #333;min-width:30pt;text-align:center;padding:0 4pt;margin:0 2pt}
+  .bk.lg{min-width:60pt}
+  .bk.xl{min-width:120pt}
+  .ans-area{border:1px solid #aaa;border-radius:4px;min-height:38pt;padding:6pt;margin:6pt 0;background:#fcfcfc}
+  .ans-area.lg{min-height:60pt}
+
+  /* SVG */
+  .sf{margin:8pt auto;text-align:center;break-inside:avoid;page-break-inside:avoid}
+  .sf svg{max-width:100%!important;height:auto!important}
+  .cap{font-size:9pt;color:#666;margin-top:3pt;text-align:center}
+
+  /* 앱 안내 */
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  /* 관찰 박스 */
+  .ob{border:1.2px dashed #777;border-radius:5px;padding:8pt 10pt;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .ob .lab{font-weight:700;font-size:10pt;margin-bottom:4pt}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt}
+  ul,ol{padding-left:18pt;margin:4pt 0}
+  li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto;overflow:visible}
+    .qh,.sf,.fm,.gv,.ex,.ib,.tb,.an,.ob{break-inside:avoid;page-break-inside:avoid}
+    .sh{break-after:avoid;page-break-after:avoid}
+    .sf svg{max-width:100%!important;height:auto!important}
+    p,li{orphans:3;widows:3}
+    /* 흑백 강제 */
+    .tb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .qh .num{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<header class="lh">
+<div class="lab">NEURAL EXPLORER · ASSESSMENT C / 4</div>
+<h1>C — 딥러닝 평가</h1>
+<div class="sub">역전파 한 사이클 + 사슬규칙 식 유도 + MNIST·증강 · 활동지 후 <em>이해도 측정</em></div>
+<div class="meta">앱 페이즈 C1~C3 · 대상: 활동지를 끝낸 고등학생 · 평가 시간 35~45분</div>
+<div class="lh obj">활동지에서 손으로 따라간 한 사이클을 <em>다른 숫자</em>로 다시 풀고, 핵심 개념을 자기 말로 설명합니다. 단순 계산뿐 아니라 <em>왜</em> 그렇게 되는지를 묻습니다.</div>
+<div class="name">학번 <span></span> 이름 <span></span></div>
+</header>
+
+
+<div class="ex">
+<strong>이번 평가지의 데이터·가중치·학습률 (활동지와 다른 숫자)</strong>
+<ul>
+<li>데이터 1쌍: <strong>x = 3, y = 7</strong> (정답 직선 ŷ = 2x + 1, 그러므로 x=3의 정답은 7)</li>
+<li>초기 가중치: <strong>w₁ = 0.4, b₁ = 0.2, w₂ = 1.0, b₂ = 0.5</strong></li>
+<li>학습률 η = 0.05 (활동지와 동일)</li>
+<li>활성화: 뉴런 1 = ReLU, 뉴런 2 = 선형(그대로). 회귀이므로 출력에 활성화 없음.</li>
+</ul>
+</div>
+
+
+<!-- ============================================================== -->
+<h2>제1부. 모델 구조와 한 사이클 손계산</h2>
+
+<div class="qc">
+<div class="qh"><span class="num">문제 1</span>모델 구조 — 빈 그림에 라벨 채우기</div>
+<div class="qd">아래 빈 다이어그램은 인공 뉴런 2개가 직렬로 연결된 가장 작은 깊은 망입니다. 각 화살표 위에 들어갈 가중치·편향 라벨(w₁, b₁, w₂, b₂)과 가운데 노드 이름(z₁, h, z₂)을 직접 적으세요. 또 두 뉴런의 활성화 종류도 박스 안 또는 옆에 적습니다.</div>
+<div class="sf">
+<svg viewBox="0 0 520 170" xmlns="http://www.w3.org/2000/svg">
+<rect x="115" y="20" width="160" height="130" rx="8" fill="none" stroke="#bbb" stroke-dasharray="3 3"/>
+<text x="195" y="14" font-size="9" text-anchor="middle" fill="#888">뉴런 1 (Σ + 활성화 ?)</text>
+<rect x="305" y="20" width="160" height="130" rx="8" fill="none" stroke="#bbb" stroke-dasharray="3 3"/>
+<text x="385" y="14" font-size="9" text-anchor="middle" fill="#888">뉴런 2 (Σ + 활성화 ?)</text>
+<circle cx="50" cy="85" r="22" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<text x="50" y="89" font-size="11" text-anchor="middle" fill="#333">x</text>
+<circle cx="155" cy="85" r="20" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<text x="155" y="89" font-size="13" text-anchor="middle" fill="#333">Σ</text>
+<rect x="215" y="68" width="50" height="34" rx="5" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<text x="240" y="89" font-size="11" text-anchor="middle" fill="#999">?</text>
+<circle cx="345" cy="85" r="20" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<text x="345" y="89" font-size="13" text-anchor="middle" fill="#333">Σ</text>
+<circle cx="475" cy="85" r="22" fill="#fff" stroke="#333" stroke-width="1.5"/>
+<text x="475" y="89" font-size="11" text-anchor="middle" fill="#333">ŷ</text>
+<text x="50" y="135" font-size="9" text-anchor="middle" fill="#888">입력</text>
+<text x="155" y="135" font-size="9" text-anchor="middle" fill="#888">z₁ = ?</text>
+<text x="240" y="135" font-size="9" text-anchor="middle" fill="#888">h = ?</text>
+<text x="345" y="135" font-size="9" text-anchor="middle" fill="#888">z₂ = ?</text>
+<text x="475" y="135" font-size="9" text-anchor="middle" fill="#888">출력</text>
+</svg>
+</div>
+<div class="qd">한 줄 정리 — 이 모델의 식: <span class="mono">ŷ = <span class="bk"></span> · <span class="bk lg">(   )</span> + <span class="bk"></span></span> &nbsp; 단, 괄호 안은 활성화를 거친 값.</div>
+<div class="qd">이 모델이 "깊다"고 불리는 까닭(한 줄): <span class="bk xl"></span></div>
+</div>
+
+
+<div class="qc">
+<div class="qh"><span class="num">문제 2</span>순전파 4단계 — 표 채우기 (x = 3)</div>
+<div class="qd">x = 3을 위 모델에 통과시켜 z₁ → h → z₂ → ŷ을 한 칸씩 직접 계산합니다. 식 → 대입 → 결과 순으로.</div>
+<div class="fm">
+① z₁ = w₁·x + b₁ = <span class="bk"></span> · <span class="bk"></span> + <span class="bk"></span> = <span class="bk lg"></span><br/>
+② h = ReLU(z₁) = max(0, <span class="bk"></span>) = <span class="bk lg"></span><br/>
+③ z₂ = w₂·h + b₂ = <span class="bk"></span> · <span class="bk"></span> + <span class="bk"></span> = <span class="bk lg"></span><br/>
+④ ŷ = z₂ = <span class="bk lg"></span>
+</div>
+<div class="qd">관찰 — z₁은 (양수 / 0 / 음수) 중 <span class="bk"></span>. 따라서 ReLU′(z₁) = <span class="bk"></span>. 길이 (열려 / 막혀) 있다 → <span class="bk"></span>.</div>
+</div>
+
+
+<div class="qc">
+<div class="qh"><span class="num">문제 3</span>오차와 손실 — e와 ½·e²</div>
+<div class="qd">정답 y = 7과 위에서 구한 ŷ로 e와 손실을 구하고, 부호의 의미를 해석합니다.</div>
+<div class="fm">
+e = ŷ − y = <span class="bk lg"></span> − 7 = <span class="bk lg"></span><br/>
+손실 ½·e² = ½ · (<span class="bk"></span>)² = <span class="bk lg"></span>
+</div>
+<div class="qd">e의 부호는 (양수 / 음수) → <span class="bk"></span>. 한 줄 의미 — 모델이 정답보다 (작게 / 크게) 예측하고 있다 → <span class="bk lg"></span>.</div>
+<div class="qd">e의 부호가 곧 갱신의 (방향 / 크기 / 둘 다)를 결정한다 → <span class="bk"></span>.</div>
+</div>
+
+
+<div class="qc">
+<div class="qh"><span class="num">문제 4</span>출력 쪽 기울기 — dw₂, db₂</div>
+<div class="qd">뉴런 2의 기울기 식 <span class="mono">dw₂ = e·h, &nbsp; db₂ = e</span>를 그대로 적용해 값을 구합니다. h는 문제 2에서 구한 값.</div>
+<div class="fm">
+dw₂ = e · h = (<span class="bk"></span>) · (<span class="bk"></span>) = <span class="bk lg"></span><br/>
+db₂ = e · 1 = <span class="bk lg"></span>
+</div>
+<div class="qd">왜 dw₂ 식에 e가 그대로 들어가는가 — 자기 말로 한 줄: <span class="bk xl"></span></div>
+</div>
+
+
+<div class="qc">
+<div class="qh"><span class="num">문제 5</span>거꾸로 흐른 신호 — w₂ 거꾸로 → ReLU 거꾸로 ★ 역전파 핵심</div>
+<div class="qd">뉴런 1은 자기만의 정답이 없습니다. 출력의 오차 e가 <strong>두 번 거꾸로</strong> 흘러 뉴런 1까지 책임을 가져옵니다. ① w₂를 거꾸로 통과해 h의 오차 e_h, ② ReLU 문지기를 거꾸로 통과해 z₁의 오차 e_z₁.</div>
+
+<div class="qd"><strong>5-a. 가중치 w₂ 거꾸로 통과 — h의 오차</strong></div>
+<div class="fm">
+e_h = e · w₂ = (<span class="bk"></span>) · (<span class="bk"></span>) = <span class="bk lg"></span> &nbsp;<span style="color:#666">← h의 오차</span>
+</div>
+
+<div class="qd"><strong>5-b. ReLU 문지기 거꾸로 통과 — z₁의 오차</strong></div>
+<div class="fm">
+ReLU′(z₁) = <span class="bk"></span> &nbsp;(z₁ &gt; 0이면 1, 아니면 0)<br/>
+e_z₁ = e_h · ReLU′(z₁) = (<span class="bk"></span>) · (<span class="bk"></span>) = <span class="bk lg"></span> &nbsp;<span style="color:#666">← z₁의 오차</span>
+</div>
+
+<div class="qd">두 값 e_h와 e_z₁을 비교 — 같은가요? <span class="bk"></span>. 이번 사이클에서 그렇게 되는 까닭(ReLU′의 값과 연결): <span class="bk xl"></span></div>
+<div class="qd">ReLU′(z₁)이 의미하는 바를 한 줄로 (이 자리가 0일 때 어떤 일이 생기는지 포함): <span class="bk xl"></span></div>
+</div>
+
+
+<div class="qc">
+<div class="qh"><span class="num">문제 6</span>입력 쪽 기울기 — dw₁, db₁</div>
+<div class="qd">z₁까지 거꾸로 흘러온 오차 e_z₁을 뉴런 1의 "오차"처럼 써서 식 <span class="mono">dw₁ = e_z₁·x, &nbsp; db₁ = e_z₁</span>을 적용합니다.</div>
+<div class="fm">
+dw₁ = e_z₁ · x = (<span class="bk"></span>) · (<span class="bk"></span>) = <span class="bk lg"></span><br/>
+db₁ = e_z₁ · 1 = <span class="bk lg"></span>
+</div>
+<div class="qd">관찰 — 뉴런 2와 뉴런 1의 기울기 식이 모두 <span class="mono">d_가중치 = (그 층의 오차) · (그 층의 입력)</span> 모양이다. 이 점을 한 줄로 정리: <span class="bk xl"></span></div>
+</div>
+
+
+<div class="qc">
+<div class="qh"><span class="num">문제 7</span>갱신 표 — 4개 가중치를 한꺼번에 (η = 0.05)</div>
+<div class="qd">앞에서 구한 dw₂, db₂, dw₁, db₁ 4개 기울기를 그대로 가져와 4개 가중치를 한꺼번에 갱신합니다. 식 <span class="mono">w ← w − η·dw</span>.</div>
+<table class="tb">
+<tr><th>가중치</th><th>현재값</th><th>기울기</th><th>η · 기울기</th><th>새 값 = 현재 − η·기울기</th></tr>
+<tr><td class="lbl">w₂</td><td>1.0</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">b₂</td><td>0.5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">w₁</td><td>0.4</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">b₁</td><td>0.2</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">관찰 — 4개 dw·db가 모두 (양수 / 음수)였으므로, 빼기를 거쳐 4개 가중치는 모두 (커졌다 / 작아졌다) → <span class="bk lg"></span>.</div>
+</div>
+
+
+<div class="qc">
+<div class="qh"><span class="num">문제 8</span>갱신 검증 — 새 ŷ로 손실이 줄었는가</div>
+<div class="qd">갱신 전 손실은 문제 3에서 구한 값 <span class="bk lg"></span>. 이제 문제 7의 새 가중치로 같은 x = 3을 다시 통과시켜 새 ŷ과 새 손실을 구합니다.</div>
+<div class="fm">
+새 z₁ = (새 w₁) · 3 + (새 b₁) = <span class="bk"></span> · 3 + <span class="bk"></span> = <span class="bk lg"></span><br/>
+새 h = ReLU(새 z₁) = <span class="bk lg"></span><br/>
+새 z₂ = (새 w₂) · (새 h) + (새 b₂) = <span class="bk lg"></span><br/>
+새 ŷ = <span class="bk lg"></span>, &nbsp; 새 e = ŷ − 7 = <span class="bk lg"></span><br/>
+새 손실 ½·e² = <span class="bk lg"></span>
+</div>
+<div class="qd">새 손실은 갱신 전 손실보다 (작다 / 크다 / 같다) → <span class="bk"></span>. 한 사이클을 한 번 돌렸을 뿐인데 손실이 (줄었다 / 늘었다) → <span class="bk"></span>.</div>
+</div>
+
+
+<!-- ============================================================== -->
+<h2>제2부. 개념 — 왜 그렇게 되는가</h2>
+
+<div class="qc">
+<div class="qh"><span class="num">문제 9</span>(서술) 왜 4개 가중치를 *동시에* 갱신하는가</div>
+<div class="qd">한 사이클에서 dw₂, db₂, dw₁, db₁을 모두 구한 뒤, 한 번에 4개 가중치를 갱신합니다. "차례로 하나씩 갱신해도 되지 않을까?"라는 친구의 질문에, 4~5문장으로 답하세요. 다음 단어가 보이도록: <span class="mono">한 사이클 · 같은 e · 같은 시점의 기울기 · 동시</span>.</div>
+<div class="ans-area lg" style="min-height:80pt"></div>
+</div>
+
+
+<div class="qc">
+<div class="qh"><span class="num">문제 10</span>(서술) 왜 출력 쪽이 *먼저* 계산되는가</div>
+<div class="qd">기울기를 구할 때 dw₂·db₂를 먼저, 그 다음 e_h·e_z₁을 통해 dw₁·db₁을 구합니다. 왜 입력 쪽(뉴런 1)이 아니라 출력 쪽(뉴런 2)부터인지, 4~5문장으로 설명하세요. 다음 단어가 보이도록: <span class="mono">정답 y · 오차 e · 거꾸로 · w₂ · 문지기</span>.</div>
+<div class="ans-area lg" style="min-height:80pt"></div>
+</div>
+
+
+<div class="qc">
+<div class="qh"><span class="num">문제 11</span>(서술) MNIST 학습 정확도가 높은데 내 그림은 왜 자주 틀리는가</div>
+<div class="qd">학습 정확도 98%인 MNIST 분류기 앞에 직접 손글씨를 그렸더니 절반쯤 틀립니다. 왜 그런지, 그리고 데이터 증강이 왜 도움이 되는지 4~5문장으로 설명하세요. 다음 세 단어를 모두 사용해야 하며, 글을 다 쓴 뒤 사용한 단어에 밑줄을 그어 표시합니다: <span class="mono">학습 분포 · 사용 분포 · 증강</span>.</div>
+<div class="ans-area lg" style="min-height:90pt"></div>
+<div class="qd">밑줄 그은 단어 수: <span class="bk"></span> / 3 &nbsp;&nbsp; 문장 수: <span class="bk"></span> / 4~5</div>
+</div>
+
+
+<!-- ============================================================== -->
+<h2>제3부. 심화 — 시나리오 (선택)</h2>
+
+<div class="qc">
+<div class="qh"><span class="num">문제 12</span>Dying ReLU — z₁이 음수가 되면</div>
+<div class="qd">만약 어떤 데이터에서 z₁이 음수가 되었다고 합시다. 이때 한 사이클에서 어떤 신호가 0이 되고, 그 결과 어떤 가중치가 (어떤 기간 동안) 움직이지 않게 되는지를 정리하세요.</div>
+<div class="fm">
+ReLU(z₁) = h = <span class="bk"></span>, &nbsp; ReLU′(z₁) = <span class="bk"></span><br/>
+→ e_h = e · w₂ = <span class="bk lg"></span> &nbsp;<span style="color:#666">(살아 있나요?)</span><br/>
+→ e_z₁ = e_h · ReLU′(z₁) = e_h · (<span class="bk"></span>) = <span class="bk lg"></span> &nbsp;<span style="color:#666">(여기서 끊김!)</span><br/>
+→ dw₁ = e_z₁ · x = <span class="bk lg"></span>, &nbsp; db₁ = <span class="bk lg"></span>
+</div>
+<div class="qd">결과 — 뉴런 1의 가중치(w₁, b₁)는 (움직인다 / 움직이지 않는다) → <span class="bk"></span>. 이 현상의 이름: <span class="bk lg"></span>.</div>
+<div class="qd">왜 이 현상이 위험한가, 한 줄로: <span class="bk xl"></span></div>
+</div>
+
+
+<div class="qc">
+<div class="qh"><span class="num">문제 13</span>두 번째 사이클의 효과 — 직관 한 줄</div>
+<div class="qd">문제 8에서 한 사이클 후 손실이 줄었습니다. 같은 데이터(x=3, y=7)로 두 번째 사이클을 돌리면, 손실의 추가 감소 폭은 첫 사이클의 감소 폭보다 (크다 / 작다 / 비슷하다) 중 어느 쪽일까요? 그 까닭을 한 줄로 자기 말로 적으세요.</div>
+<div class="qd">예측: <span class="bk lg"></span></div>
+<div class="qd">까닭 (오차 크기 또는 가중치의 위치를 언급): <span class="bk xl"></span></div>
+</div>
+
+
+<div class="ib tip">
+<div class="t">평가 끝 — 한 줄 자기 점검</div>
+한 사이클의 6단계가 머리에 한 흐름으로 들어왔는가? 출력 쪽 오차 e가 두 번 거꾸로(w₂ 거꾸로 → ReLU 문지기 거꾸로) 흘러 입력 쪽 신호 e_z₁이 되는 그림이 그려지는가? 같은 사이클이 MNIST 같은 큰 모델에서도 그대로 돈다는 것을 설명할 수 있는가? — 자기 점수를 매겨보세요.
+</div>
+
+</body>
+</html>

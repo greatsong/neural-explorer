@@ -266,29 +266,16 @@
 </div>
 
 <div class="qc">
-<div class="qh"><span class="num">A3-3</span>4 시나리오 — η에 따라 한 step이 어떻게 다른가</div>
-<div class="qd">앱 A3 b 모드 그대로. 정답 b = 1, 시작 b = −2, w = 2 고정. 데이터(y = 2x + 1, 5점)에서 모든 e = b − 1 = −3. 다음 STEP A4에서 직접 유도할 식 db = 평균(e) 를 그대로 쓰면 기울기 = <span class="mono">−3</span>. 한 step: 새 b = −2 − η · (−3) = −2 + 3η. η만 바꿔 채우고 앱의 4개 칩 ( 발산 / 진동 / 수렴 / 느림 ) 중 하나를 적으세요.</div>
+<div class="qh"><span class="num">A3-3</span>4 시나리오 — η 에 따라 자취가 어떻게 다른가</div>
+<div class="qd">앱 A3 의 "자동 비교" 영역 칩 4개를 하나씩 눌러 손실 곡선 위에 그려지는 자취를 관찰하세요. 각 η 값이 어떤 시나리오 ( 발산 / 진동 / 수렴 / 느림 ) 에 해당하는지 적습니다.</div>
 <table class="tb">
-<tr><th>η</th><th>3 · η</th><th>새 b = −2 + 3η</th><th>거리 |새 b − 1|</th><th>시나리오</th></tr>
-<tr><td>2.5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>2.0</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>0.5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>0.05</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><th>η 칩</th><th>자취가 어떻게 움직였는지 한 줄로 묘사</th><th>시나리오</th></tr>
+<tr><td>가장 큰 값</td><td class="blank" style="text-align:left;padding-left:8pt"></td><td class="blank"></td></tr>
+<tr><td>두 번째로 큰 값</td><td class="blank" style="text-align:left;padding-left:8pt"></td><td class="blank"></td></tr>
+<tr><td>중간 값</td><td class="blank" style="text-align:left;padding-left:8pt"></td><td class="blank"></td></tr>
+<tr><td>가장 작은 값</td><td class="blank" style="text-align:left;padding-left:8pt"></td><td class="blank"></td></tr>
 </table>
-<div class="qd">처음 거리는 |−2 − 1| = <span class="mono">3</span>. η = 2.5 에서 새 거리는 처음보다 ( 커진다 / 같다 / 작아진다 ) → ( <span class="bk lg"></span> ).</div>
-<div class="qd">η = 2.0 에서는 새 b가 정답 반대편에서 처음과 거리가 ( 같다 / 다르다 ). 다시 시작점으로 되돌아오면 → ( <span class="bk lg"></span> ).</div>
-<div class="qd">η = 0.5 은 한 step만큼 정답 쪽으로 가까워지지만 한 번에 닿진 않는다 → ( <span class="bk lg"></span> ).</div>
-<div class="qd">η = 0.05 는 보폭이 너무 작아 거의 그대로다 → ( <span class="bk lg"></span> ).</div>
-</div>
-
-<div class="qc">
-<div class="qh"><span class="num">A3-4</span>η가 너무 크면 / 너무 작으면 — 한 줄씩 정리</div>
-<div class="fm">
-  η가 너무 크면 → ( <span class="bk xl"></span> )<br/>
-  η가 너무 작으면 → ( <span class="bk xl"></span> )<br/>
-  딱 좋으면 → ( <span class="bk xl"></span> )
-</div>
-<div class="qd">η는 결국 한 step의 ( <span class="bk lg"></span> )에 해당한다.</div>
+<div class="qd">한 줄 정리 — η 가 크면 ( <span class="bk xl"></span> ), 작으면 ( <span class="bk xl"></span> ), 딱 좋은 값일 때 ( <span class="bk xl"></span> ).</div>
 </div>
 
 <!-- ============================================================== -->
@@ -319,9 +306,9 @@
 
 <div class="qc">
 <div class="qh"><span class="num">A4-2</span>다섯 점 직접 계산표 — dw·db</div>
-<div class="qd">조건: 정답 y = 2x + 1, 현재 모델 w = 1.5, b = 0. 다섯 점에서 ŷ, e, e·x를 채우고 합·평균을 구하세요.</div>
+<div class="qd">조건: 정답 y = 2x + 1, 시작 모델 <span class="mono">w = 0, b = 0</span>(= 다음 STEP A5의 시작점). 다섯 점에서 ŷ, e, e·x 를 채우고 합·평균을 구하세요. 여기서 구한 dw·db 는 A5 에서 그대로 갱신 식에 들어갑니다.</div>
 <table class="tb">
-<tr><th>x</th><th>y</th><th>ŷ = 1.5·x + 0</th><th>e = ŷ − y</th><th>e · x</th></tr>
+<tr><th>x</th><th>y</th><th>ŷ = 0·x + 0</th><th>e = ŷ − y</th><th>e · x</th></tr>
 <tr><td>1</td><td>3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
 <tr><td>2</td><td>5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
 <tr><td>3</td><td>7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
@@ -336,9 +323,9 @@
 
 <div class="qc">
 <div class="qh"><span class="num">A4-3</span>다음 step 예고 — η를 곱해 한 step</div>
-<div class="qd">A4-2에서 구한 dw·db에 학습률 η = 0.05 를 곱하면 한 step의 보폭이 된다. 식만 적어 두자 (값은 STEP A5에서 직접 계산).</div>
+<div class="qd">A4-2 에서 구한 dw·db 에 학습률 η = 0.05 를 곱하면 한 step 의 보폭이 된다. 식만 적어 두자 (값은 STEP A5 에서 직접 계산).</div>
 <div class="fm">
-  새 w = 1.5 − <span class="bk"></span> · ( <span class="bk lg"></span> ) = ?<br/>
+  새 w = 0 − <span class="bk"></span> · ( <span class="bk lg"></span> ) = ?<br/>
   새 b = 0 − <span class="bk"></span> · ( <span class="bk lg"></span> ) = ?
 </div>
 </div>
@@ -364,21 +351,12 @@
 </div>
 
 <div class="qc">
-<div class="qh"><span class="num">A5-2</span>한 step 검산 — 다섯 점 표 + 갱신</div>
-<div class="qd">조건: 정답 y = 2x + 1, 시작 w = 0, b = 0, 학습률 η = 0.05, 활성화 = ReLU. 시작값에서 z = 0 이라 ReLU(0) = 0 이고, 한 step 후 z ≥ 0 인 구간에서는 ŷ = w·x + b 그대로다.</div>
-<table class="tb">
-<tr><th>x</th><th>y</th><th>ŷ = 0·x + 0</th><th>e = ŷ − y</th><th>e · x</th></tr>
-<tr><td>1</td><td>3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>2</td><td>5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>3</td><td>7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>4</td><td>9</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td>5</td><td>11</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
-<tr><td class="lbl" colspan="3" style="text-align:right">합 →</td><td class="blank">Σe =</td><td class="blank">Σ(e·x) =</td></tr>
-</table>
+<div class="qh"><span class="num">A5-2</span>한 step 검산 — A4-2 의 dw·db 를 그대로 갱신 식에 넣기</div>
+<div class="qd">A4-2 에서 같은 시작점(w=0, b=0)으로 이미 dw·db 를 계산했으니, A5 에서는 그 두 숫자만 가져와 학습률 η = 0.05 와 함께 갱신 식에 넣으면 된다.</div>
 <div class="fm">
-  dw = Σ(e·x) ÷ 5 = <span class="bk lg"></span> &nbsp;&nbsp; db = Σe ÷ 5 = <span class="bk lg"></span><br/>
-  새 w = 0 − 0.05 · ( <span class="bk"></span> ) = <span class="bk lg"></span><br/>
-  새 b = 0 − 0.05 · ( <span class="bk"></span> ) = <span class="bk lg"></span>
+  A4-2 에서: dw = <span class="bk lg"></span>,&nbsp; db = <span class="bk lg"></span><br/>
+  새 w = 0 − 0.05 · ( <span class="bk lg"></span> ) = <span class="bk lg"></span><br/>
+  새 b = 0 − 0.05 · ( <span class="bk lg"></span> ) = <span class="bk lg"></span>
 </div>
 <div class="qd">정답은 w = 2, b = 1. 한 step 만에 두 값이 정답에 ( 가까워졌나요 / 멀어졌나요 )? ☞ <span class="bk lg"></span></div>
 </div>
