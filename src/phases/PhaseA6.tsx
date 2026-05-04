@@ -41,6 +41,7 @@ export function PhaseA6() {
   const [auto, setAuto] = useState(false);
   const [epoch, setEpoch] = useState(0);
   const [history, setHistory] = useState<number[]>([]);
+  const [diverged, setDiverged] = useState(false);
 
   const completedRef = useRef(false);
 
@@ -65,7 +66,8 @@ export function PhaseA6() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 한 step: w·b 갱신 + 기록
+  // 한 step: w·b 갱신.
+  // MSE = (1/N)Σ(ŷ-y)² 의 미분은 (2/N)Σ(ŷ-y)·x — 상수 2 가 들어간다.
   const stepOnce = (curW: number, curB: number, curLr: number) => {
     let dw = 0, db = 0;
     for (const r of samples) {
@@ -73,11 +75,10 @@ export function PhaseA6() {
       dw += e * r.x;
       db += e;
     }
-    dw /= samples.length;
-    db /= samples.length;
+    dw = (2 * dw) / samples.length;
+    db = (2 * db) / samples.length;
     const nw = curW - curLr * dw;
     const nb = curB - curLr * db;
-    if (!isFinite(nw) || !isFinite(nb)) return { nw: curW, nb: curB };
     return { nw, nb };
   };
 
@@ -94,6 +95,17 @@ export function PhaseA6() {
         s += e * e;
       }
       const newLoss = s / samples.length;
+      // 발산 감지 — Inf/NaN 또는 손실이 절대 임계(데이터 분산 대비 ~1e6배)를
+      // 넘으면 학습 중단하고 사용자에게 알림. JS Number는 1.8e308까지 표현되므로
+      // 진짜 Inf만 기다리면 huge 숫자를 한참 보게 된다.
+      if (
+        !isFinite(r.nw) || !isFinite(r.nb) || !isFinite(newLoss) ||
+        newLoss > 1e6
+      ) {
+        setDiverged(true);
+        setAuto(false);
+        return;
+      }
       setW(r.nw);
       setB(r.nb);
       setHistory((h) => [...h.slice(-299), newLoss]);
@@ -129,6 +141,7 @@ export function PhaseA6() {
     setEpoch(0);
     setHistory([initialMse]);
     setAuto(false);
+    setDiverged(false);
     completedRef.current = false;
   };
 
@@ -198,8 +211,8 @@ export function PhaseA6() {
               value={lr}
               setValue={setLr}
               min={0.001}
-              max={0.08}
-              step={0.001}
+              max={0.15}
+              step={0.002}
               fmt={(v) => v.toFixed(3)}
             />
             <div className="grid grid-cols-3 gap-2 text-center font-mono text-xs">
@@ -213,6 +226,12 @@ export function PhaseA6() {
               </button>
               <button onClick={reset} className="btn-ghost">초기화</button>
             </div>
+            {diverged && (
+              <div className="text-[12px] leading-relaxed rounded border border-red-400 bg-red-50 text-red-700 px-2 py-1.5">
+                <strong>발산</strong> — 학습률이 너무 커서 손실이 무한대로 튀었어요.
+                학습률을 낮추고 <strong>초기화</strong> 후 다시 시도하세요.
+              </div>
+            )}
           </div>
 
           <div className="aside-note text-[12px] leading-relaxed">
