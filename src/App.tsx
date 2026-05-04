@@ -22,6 +22,7 @@ import { PhaseC2Derive } from './phases/PhaseC2Derive'; // 역전파 식 유도 
 import { PhaseC2 as PhaseMNIST } from './phases/PhaseC2'; // MNIST 컴포넌트 → 새 C2 로
 import { PhaseD2 } from './phases/PhaseD2'; // 한 뉴런→두 뉴런 스캐폴딩 (신규)
 import { PhaseMnistIntro } from './phases/PhaseMnistIntro'; // MNIST 데이터셋 소개 (새 C1)
+import { PhaseDive } from './phases/PhaseDive'; // 자기주도 심층 탐구 (E1)
 import { Phase13 } from './phases/Phase13';
 import { Phase14 } from './phases/Phase14';
 import { Phase15 } from './phases/Phase15';
@@ -145,6 +146,7 @@ function isWide(id: PhaseId) {
     'b2', 'b3', 'b4',
     'c1', 'c2',
     'd1', 'd2', 'd3',
+    'e1',
     'p13', 'p14', 'p15', 'p16', 'p17', 'p18', 'p19', 'p20', 'p21', 'p22',
   ].includes(id);
 }
@@ -166,6 +168,7 @@ function renderPhase(id: PhaseId) {
     case 'd1': return <PhaseBackpropIntuition />;
     case 'd2': return <PhaseD2 />;
     case 'd3': return <PhaseC2Derive />;
+    case 'e1': return <PhaseDive />;
     case 'p13': return <Phase13 />;
     case 'p14': return <Phase14 />;
     case 'p15': return <Phase15 />;

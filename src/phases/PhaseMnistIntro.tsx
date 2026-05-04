@@ -107,19 +107,28 @@ function PixelDigit({ pixels, label, hint }: { pixels: DigitStrokes; label?: str
   );
 }
 
-// 미국식 vs 한국식 손글씨 비교 — 텍스트 설명 + 간단 SVG 글리프
+// 손으로 그린 글리프 — SVG path 로 펜 스트로크 표현
+function StrokeGlyph({ d }: { d: string }) {
+  return (
+    <svg viewBox="0 0 32 32" width="48" height="56">
+      <path d={d} fill="none" stroke="rgb(var(--color-text))" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// 미국식 vs 한국식 손글씨 비교
 function HandwritingCompare({
   digit,
   usDescription,
   krDescription,
-  usGlyph,
-  krGlyph,
+  usPath,
+  krPath,
 }: {
   digit: string;
   usDescription: string;
   krDescription: string;
-  usGlyph: React.ReactNode;
-  krGlyph: React.ReactNode;
+  usPath: string;
+  krPath: string;
 }) {
   return (
     <div className="border border-border rounded-md p-3">
@@ -127,12 +136,12 @@ function HandwritingCompare({
       <div className="grid grid-cols-2 gap-3">
         <div className="text-center">
           <div className="text-[11px] text-muted mb-1">🇺🇸 미국식</div>
-          <div className="h-16 flex items-center justify-center bg-surface rounded">{usGlyph}</div>
+          <div className="h-16 flex items-center justify-center bg-surface rounded"><StrokeGlyph d={usPath} /></div>
           <div className="text-[11px] mt-1 text-muted">{usDescription}</div>
         </div>
         <div className="text-center">
           <div className="text-[11px] text-muted mb-1">🇰🇷 한국식</div>
-          <div className="h-16 flex items-center justify-center bg-surface rounded">{krGlyph}</div>
+          <div className="h-16 flex items-center justify-center bg-surface rounded"><StrokeGlyph d={krPath} /></div>
           <div className="text-[11px] mt-1 text-muted">{krDescription}</div>
         </div>
       </div>
@@ -263,44 +272,35 @@ export function PhaseMnistIntro() {
       <section className="card p-4 mt-4 space-y-3">
         <h2 className="text-lg font-bold">5. 미국 사람 손글씨 ≠ 한국 사람 손글씨</h2>
         <p className="text-sm leading-relaxed">
-          MNIST 는 <strong>미국 사람들이 쓴 숫자</strong> 모음입니다. 우리가 학교에서 쓰는 숫자와 모양이 꽤 달라요.
-          이 차이를 알아야 "MNIST 에서 99 % 맞히는 모델이 한국 사람 손글씨에서는 왜 90 %도 못 맞히는지" 가
-          이해됩니다 — 데이터의 <strong>문화 의존성</strong>.
+          MNIST 는 <strong>미국 사람들이 쓴 숫자</strong> 모음입니다. 사실 0~9 같은 아라비아 숫자는 전 세계가
+          공유해서 큰 틀에선 비슷해 보여요. 그래도 학교에서 가르치는 방식 때문에 <strong>지역마다 분명히
+          다른 부분</strong> 이 있습니다. 가장 두드러진 두 가지를 보면:
         </p>
         <div className="grid sm:grid-cols-2 gap-3 mt-2">
           <HandwritingCompare
             digit="1"
-            usGlyph={<span className="text-4xl font-serif italic">1</span>}
-            usDescription="짧은 세로획 하나. 윗쪽 머리·아래 받침 거의 없음."
-            krGlyph={<span className="text-4xl">/1</span>}
-            krDescription="윗 모자(/) 와 아래 받침( _ )까지 함께 그리는 경우가 많음."
+            usPath="M 16 5 L 16 27"
+            usDescription="짧은 세로획 한 번. 머리·받침 거의 없음."
+            krPath="M 9 11 L 16 5 L 16 27"
+            krDescription="위에 작은 머리(가로획·갈고리)를 먼저 그리고 세로획."
           />
           <HandwritingCompare
             digit="7"
-            usGlyph={<span className="text-4xl font-serif">7</span>}
-            usDescription="가운데 가로획 없음. 1 과 헷갈리지 않게 윗머리만 길게."
-            krGlyph={<span className="text-4xl" style={{ textDecoration: 'line-through', textDecorationStyle: 'solid' }}>7</span>}
-            krDescription="가운데에 가로선을 그어 1 과 명확히 구분 (유럽식 영향)."
-          />
-          <HandwritingCompare
-            digit="4"
-            usGlyph={<span className="text-4xl font-serif">4</span>}
-            usDescription="위가 열린 형태. 인쇄체에 가까운 모양."
-            krGlyph={<span className="text-4xl">⒋</span>}
-            krDescription="위가 삼각형으로 닫힌 형태. 한국 교과서 글자체."
-          />
-          <HandwritingCompare
-            digit="9"
-            usGlyph={<span className="text-4xl font-serif italic">9</span>}
-            usDescription="동그라미 + 직선 꼬리."
-            krGlyph={<span className="text-4xl">9</span>}
-            krDescription="동그라미 + 굽은 꼬리 (q 와 비슷한 모양도)."
+            usPath="M 7 7 L 25 7 L 13 27"
+            usDescription="윗 가로획 + 비스듬한 내림. 가운데 가로선 없음."
+            krPath="M 7 7 L 25 7 L 13 27 M 11 17 L 19 17"
+            krDescription="가운데에 가로선을 한 번 더 — 1 과 헷갈리지 않게 (유럽식 영향)."
           />
         </div>
+        <p className="text-[12px] text-muted leading-relaxed mt-2">
+          반면 <strong>4·9 같은 다른 숫자</strong>는 국가별 차이보다 <strong>사람마다 차이</strong>가 커요. 위가
+          닫힌 4 / 열린 4, 꼬리가 곧은 9 / 굽은 9 모두 한 나라 안에서도 사람마다 섞여 있어요.
+        </p>
         <div className="aside-tip text-[12px] mt-2">
-          시사점 — <strong>모델은 학습한 데이터의 문화에 종속된다.</strong> 미국 손글씨로 학습한 모델은
-          한국·유럽 사람 손글씨에서 정확도가 떨어집니다. 진짜 응용을 만들려면 그 지역 손글씨로 다시 학습해야 해요.
-          이게 다음 단원에서 만날 <strong>"데이터 편향"</strong> 의 첫 모습.
+          시사점 — 차이가 작아 보여도 <strong>모델은 학습한 데이터의 문화·지역에 종속</strong> 됩니다.
+          미국 손글씨로 학습한 모델은 7 가운데에 줄 그어진 한국·유럽 사람 글씨에서 1 로 잘못 분류하기 쉽고,
+          반대로 한국에서 모은 데이터로 학습하면 미국 사람 글씨에서 정확도가 떨어집니다. 진짜 응용을 만들려면
+          그 지역 손글씨로 다시 학습해야 해요. 이게 다음 단원에서 만날 <strong>"데이터 편향"</strong> 의 첫 모습.
         </div>
       </section>
 
