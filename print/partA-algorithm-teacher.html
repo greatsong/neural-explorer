@@ -183,7 +183,7 @@
 <li><strong>큰 오차에 더 큰 페널티</strong> — 1²=<span class="ans" style="display:inline;padding:1pt 4pt">1</span>, 10²=<span class="ans" style="display:inline;padding:1pt 4pt">100</span>. 큰 실수가 <strong>폭발적</strong>으로 커진다.</li>
 <li><strong>매끄러운 곡선</strong> — e² 은 <strong>포물선(2차 곡선)</strong> 모양이라 한 점에서 <strong>기울기</strong>를 정확히 잴 수 있음.</li>
 </ol>
-<div class="ans"><span class="lab">서술 예시</span>매끄러운 곡선이라야 "어느 방향으로 얼마나 옮길지"의 <strong>기울기 정보</strong>가 매 점에서 살아 있어, 다음 STEP 의 경사하강법이 작동한다. 절댓값 |e| 는 0 에서 꺾여 미분이 정의되지 않아 같은 일을 못 함.</div>
+<div class="ans"><span class="lab">서술 예시</span>매끄러운 곡선이라야 "어느 방향으로 얼마나 옮길지"의 <strong>기울기 정보</strong>가 매 점에서 살아 있어, 다음 STEP 의 경사하강법이 작동한다. 절댓값 |e| 는 0 에서 꺾여 그 점에서 기울기 자체가 정의되지 않아 같은 일을 못 함.</div>
 <div class="tt"><span class="lab">수업 팁</span>"꺾인 함수 vs 매끄러운 함수"를 손바닥으로 그려 보이는 시범. ‘미분’ 단어 안 써도 됨 — '한 점에서 어느 쪽이 내리막인지 잴 수 있다'로 충분.</div>
 </div>
 
@@ -230,20 +230,23 @@
 <!-- ============================================================== -->
 <h2>STEP A4. 기울기 계산하기 — dw·db 유도</h2>
 
+<div class="ans" style="margin:6pt 0"><span class="lab">STEP 도입</span><span class="mono">w ← w − η · dw</span> — 여기서 <strong>dw</strong> 는 A3 에서 봤던 그 <strong>'기울기'</strong>, 즉 <strong>w 가 조금 움직일 때 오차가 얼마나 변하는지</strong> 알려주는 숫자. 이번 STEP 에선 그 dw·db 가 어디서 오는지 한 단계씩 손으로 유도한다.</div>
+
 <div class="qc">
-<div class="qh"><span class="num">A4-1</span>사슬규칙 한 단계씩 — 정답</div>
+<div class="qh"><span class="num">A4-1</span>두 단계 기울기 곱하기 — 정답</div>
 <div class="fm">
-  ① L = ½ · (ŷ − y)² &nbsp; (½ 은 미분 시 2 와 약분되도록)<br/>
-  ② ∂L/∂ŷ = (ŷ − y) = <span class="v" style="color:#7a4f00">e</span><br/>
-  ③ ∂ŷ/∂w = ∂/∂w(w·x + b) = <span class="v" style="color:#7a4f00">x</span><br/>
-  ④ ∂ŷ/∂b = ∂/∂b(w·x + b) = <span class="v" style="color:#7a4f00">1</span><br/>
-  ⑤ ∂L/∂w = e · <span class="v" style="color:#7a4f00">x</span>,&nbsp; ∂L/∂b = e · <span class="v" style="color:#7a4f00">1</span> = e
+  ① L = ½ · (ŷ − y)² &nbsp; (½ 은 기울기 구할 때 제곱에서 떨어지는 2 와 약분되도록)<br/>
+  ② <strong>두 단계 기울기를 곱한다</strong>: ∂L/∂w = ∂L/∂ŷ · ∂ŷ/∂w &nbsp; (b 도 같은 형태)<br/>
+  ③ 외측: ∂L/∂ŷ = ½ · 2(ŷ − y) = (ŷ − y) = <span class="v" style="color:#7a4f00">e</span><br/>
+  ④ 내측 w: ∂ŷ/∂w = ∂(w·x + b)/∂w = <span class="v" style="color:#7a4f00">x</span> &nbsp; (w 가 1 변하면 wx 만 x 만큼 변함)<br/>
+  ⑤ 내측 b: ∂ŷ/∂b = ∂(w·x + b)/∂b = <span class="v" style="color:#7a4f00">1</span> &nbsp; (b 가 1 변하면 ŷ 도 그대로 1 만큼 변함)<br/>
+  ⑥ 곱하면: ∂L/∂w = e · <span class="v" style="color:#7a4f00">x</span>,&nbsp; ∂L/∂b = e · <span class="v" style="color:#7a4f00">1</span> = e
 </div>
 <div class="fm">
-  dw = (1/N) · Σ <span class="v" style="color:#7a4f00">e<sub>i</sub> · x<sub>i</sub></span><br/>
-  db = (1/N) · Σ <span class="v" style="color:#7a4f00">e<sub>i</sub></span>
+  dw = (1/N) · Σ <span class="v" style="color:#7a4f00">e<sub>i</sub> · x<sub>i</sub></span> = <strong>평균</strong>(e · x)<br/>
+  db = (1/N) · Σ <span class="v" style="color:#7a4f00">e<sub>i</sub></span> = <strong>평균</strong>(e)
 </div>
-<div class="tt"><span class="lab">수업 팁</span>"사슬규칙" 단어를 두 번 쓰면 충분 — 겉(제곱) 미분 × 속(선형) 미분 = e·x. 더 깊이 안 들어감.</div>
+<div class="tt"><span class="lab">수업 팁</span>앱은 "미분"·"사슬규칙" 단어를 의도적으로 빼고 <strong>"두 단계 기울기를 곱한다"</strong> 로 부른다. 학생이 이미 고등 수학에서 <strong>"겉미분 × 속미분"</strong> 을 알고 있다면, 외측 = 겉, 내측 = 속 으로 한 번만 짝지어 주면 충분 — 이후엔 일반형 ∂L/∂w = ∂L/∂ŷ · ∂ŷ/∂w 만 보여 줘도 됨.</div>
 </div>
 
 <div class="qc">
@@ -320,8 +323,8 @@
   ② <strong>오차</strong> — <span class="mono">ŷ</span> 과 정답 y 의 차이를 ( <span class="v" style="color:#7a4f00">오차 e</span> ) 라 하고, ( <span class="v" style="color:#7a4f00">제곱 e²</span> ) 의 평균이 MSE. 이렇게 오차를 숫자로 표현하는 함수를 ( <span class="v" style="color:#7a4f00">손실</span> ) 함수라 한다.<br/>
   ③ <strong>오차를 줄이는 방향</strong> — 손실 함수의 ( <span class="v" style="color:#7a4f00">기울기</span> ) 를 찾고, 그 ( <span class="v" style="color:#7a4f00">기울기</span> ) 의 <strong>반대</strong> 방향이 w·b 가 이동할 방향.<br/>
   ④ <strong>갱신</strong><br/>
-  &nbsp;&nbsp; 새 w = 이전 w − 학습률 × 손실함수에 대한 w의 기울기 (e·x 의 평균)<br/>
-  &nbsp;&nbsp; 새 b = 이전 b − 학습률 × 손실함수에 대한 b의 기울기 (e 의 평균)<br/>
+  &nbsp;&nbsp; 새 w = 이전 w − 학습률 × 손실함수의 w 에 대한 기울기 (e·x 의 평균)<br/>
+  &nbsp;&nbsp; 새 b = 이전 b − 학습률 × 손실함수의 b 에 대한 기울기 (e 의 평균)<br/>
   → 새 w·b 로 다시 ① 부터 반복.
 </div>
 <div class="pf"><span class="lab">자주 헷갈림</span>"기울기" 라는 단어가 두 군데 등장. ① 의 입력에 곱하는 건 <strong>가중치 w</strong>, ③ 의 손실 함수의 기울기는 <strong>미분값(dw·db)</strong>. 학생이 둘을 같은 의미로 쓰지 않게 칠판에 두 줄로 분리해 적어 둘 것.</div>
