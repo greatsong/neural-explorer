@@ -27,13 +27,12 @@ import {
 const TASK_LABELS: [ShapeLabel, ShapeLabel] = ['triangle', 'square'];
 // dirty 라벨이 *결정 경계*를 충분히 흐리도록 epoch을 길게 + LR을 키워 약간 overfit하게 만든다.
 // 30 epoch / lr 0.05 에서는 dirty가 흡수돼 cleaning 효과가 안 보였다.
-// hidden 4 + lr 0.15 + 80ep 조합이 결정론적으로 baseline 60%, cleaning(dirty 6~10장 제거) 후 +12~16%p로 안정.
+// hidden 1 + lr 0.15 + 80ep — 가장 단순한 구조 (히트맵도 1개만). cleaning 효과는 baseline 대비 정확도 차로 관찰.
 const EPOCHS = 80;
 const LR = 0.15;
 const BATCH_SIZE = 16;
-// hidden 4: dirty 라벨로 모델이 결정 경계를 잘못 그리도록 capacity를 좁혔다.
-// 8뉴런이면 dirty 영향이 흡수되고, 4뉴런이면 dirty가 직접 boundary를 흔들어 cleaning 효과가 또렷.
-const HIDDEN_SIZE = 4;
+// hidden 1: 가장 단순한 구조로 히트맵도 1개만 표시 — dirty 라벨 영향이 그대로 boundary 에 드러남.
+const HIDDEN_SIZE = 1;
 const TASK_LABEL_KO = (l: ShapeLabel) => SHAPE_LABEL_KO[l];
 const labelIdx = (l: ShapeLabel) => TASK_LABELS.indexOf(l);
 
@@ -157,7 +156,7 @@ async function runTraining(
     return { trainAcc: 0, evalAcc: 0, model: null };
   }
   // 모델 init을 seed로 고정 — baseline·current가 같은 출발점.
-  // [64, HIDDEN_SIZE, 1] + sigmoid: 입력 64픽셀 → ReLU 4뉴런 → 출력 1뉴런 (B4 와 동일 구조).
+  // [64, HIDDEN_SIZE, 1] + sigmoid: 입력 64픽셀 → ReLU 1뉴런 → 출력 1뉴런 (B4 와 동일 구조).
   // 출력 1개라 hidden→output 가중치 w2[j] 부호가 곧 클래스 방향 (양수=네모, 음수=세모) 으로
   // 해석돼 hidden 뉴런 4개 각각에 "→ 세모/네모" 라벨을 붙일 수 있다.
   const m = withSeededRandom(seed, () => createDeepMLP([64, HIDDEN_SIZE, 1], 'sigmoid'));
@@ -508,10 +507,10 @@ export function PhaseB2() {
 
                 <AccuracyCurve baseline={baseline.evalHist} current={current.evalHist} />
 
-                {/* Hidden 4뉴런 가중치 히트맵 — baseline vs current 비교 */}
+                {/* Hidden 1뉴런 가중치 히트맵 — baseline vs current 비교 */}
                 {(baseline.model || current.model) && (
                   <div className="rounded-md border border-border bg-bg/40 p-2">
-                    <div className="text-[11px] font-medium mb-1">학습된 hidden 4뉴런이 본 특징</div>
+                    <div className="text-[11px] font-medium mb-1">학습된 hidden 1뉴런이 본 특징</div>
                     <div className="text-[10px] text-muted mb-2 leading-snug">
                       각 뉴런이 입력 64픽셀 중 어느 곳에 반응하는지 보여 줘요. <span className="font-medium" style={{ color: 'rgb(59,130,246)' }}>파랑</span> 칸 = 그 자리에 점이 찍히면 뉴런 점수가 <strong>올라가요(+)</strong>, <span className="font-medium" style={{ color: 'rgb(190,18,60)' }}>빨강</span> 칸 = 점이 찍히면 점수가 <strong>내려가요(−)</strong>.
                       각 카드 아래 배지 (<span className="font-medium" style={{ color: 'rgb(59,130,246)' }}>→ 네모</span> / <span className="font-medium" style={{ color: 'rgb(190,18,60)' }}>→ 세모</span>) 는 그 뉴런이 출력으로 어느 쪽에 표를 던지는지 — hidden→output 가중치의 부호와 크기로 결정돼요.
@@ -730,7 +729,7 @@ function HiddenWeightsRow({ label, model, accent }: { label: string; model: MLP 
   const W1 = model.weights[0];
   const W2 = model.weights[model.weights.length - 1]; // hidden→output (sigmoid 1) — w2[j]
   const inDim = model.layers[0];   // 64
-  const hidDim = model.layers[1];  // 4 (HIDDEN_SIZE)
+  const hidDim = model.layers[1];  // 1 (HIDDEN_SIZE)
   // 각 hidden 뉴런 j의 64개 가중치 추출 — w1[i*hidDim + j]
   const hiddenWeights: Float32Array[] = [];
   for (let j = 0; j < hidDim; j++) {
