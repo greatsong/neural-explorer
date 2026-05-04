@@ -254,60 +254,46 @@ export function PhaseMnistIntro() {
         </div>
       </section>
 
-      {/* ───────── 문화 차이 ───────── */}
+      {/* ───────── 사람마다 차이 ───────── */}
       <section className="card p-4 mt-4 space-y-3">
-        <h2 className="text-lg font-bold">5. 손글씨 숫자도 문화마다 다르다</h2>
+        <h2 className="text-lg font-bold">5. 같은 숫자라도 사람마다 손글씨가 다르다</h2>
         <p className="text-sm leading-relaxed">
-          MNIST 는 <strong>미국 사람들이 쓴 숫자</strong> 모음입니다. 0~9 는 전 세계 공통 아라비아 숫자지만,
-          학교에서 처음 가르치는 방식이 나라마다 달라서 같은 숫자도 손버릇이 갈려요. 두 가지 대표적인 차이를 보면:
+          0~9 는 전 세계 공통이지만 같은 한 반 안에서도 옆 짝꿍과 손글씨가 갈려요. 손버릇·학교에서 배운 방식·필기 속도에
+          따라 다 달라요. 1·7·4 만 봐도 이렇게 다양해집니다:
         </p>
         <div className="space-y-3 mt-2">
           <HandwritingCompare
             digit="1"
             styles={[
-              { label: '🇺🇸 미국식', path: 'M 16 5 L 16 27', desc: '짧은 세로획 한 번. 머리 거의 없음.' },
-              { label: '🇰🇷 한국식', path: 'M 9 11 L 16 5 L 16 27', desc: '위에 작은 머리(짧은 가로획·갈고리)를 먼저 그리고 세로획.' },
+              { label: '단순', path: 'M 16 5 L 16 27', desc: '세로획 한 번. 가장 흔한 형태.' },
+              { label: '머리', path: 'M 9 11 L 16 5 L 16 27', desc: '위에 작은 갈고리·짧은 가로획.' },
+              { label: '머리 + 받침', path: 'M 9 11 L 16 5 L 16 27 M 8 27 L 24 27', desc: '받침까지 함께 — 인쇄체 1 에 가까운 형태.' },
             ]}
           />
           <HandwritingCompare
             digit="7"
             styles={[
-              { label: '🇺🇸 미국식 / 🇰🇷 한국식', path: 'M 7 7 L 25 7 L 13 27', desc: '윗 가로획 + 비스듬한 내림. 가운데 가로선 없음.' },
-              { label: '🇪🇺 유럽식 (프·독 등)', path: 'M 7 7 L 25 7 L 13 27 M 11 17 L 19 17', desc: '가운데에 가로선 추가. 머리 달린 1 과 헷갈리지 않으려고.' },
-            ]}
-          />
-        </div>
-        <p className="text-[12px] text-muted leading-relaxed mt-2">
-          반면 같은 숫자라도 <strong>사람마다 손버릇</strong> 이 갈리는 부분도 있어요. 한 사람의 1 ·
-          4 가 옆 짝꿍과 어떻게 다른지 보면:
-        </p>
-        <div className="grid sm:grid-cols-2 gap-3 mt-1">
-          <HandwritingCompare
-            digit="1 — 사람마다"
-            styles={[
-              { label: '단순', path: 'M 16 5 L 16 27', desc: '세로획 한 번.' },
-              { label: '머리', path: 'M 9 11 L 16 5 L 16 27', desc: '위에 작은 갈고리.' },
-              { label: '머리 + 받침', path: 'M 9 11 L 16 5 L 16 27 M 8 27 L 24 27', desc: '받침까지 함께.' },
+              { label: '단순', path: 'M 7 7 L 25 7 L 13 27', desc: '윗 가로획 + 비스듬한 내림.' },
+              { label: '가로선 추가', path: 'M 7 7 L 25 7 L 13 27 M 11 17 L 19 17', desc: '가운데에 짧은 가로선. 1 과 헷갈리지 않게 (유럽 일부에서 표준).' },
             ]}
           />
           <HandwritingCompare
-            digit="4 — 사람마다"
+            digit="4"
             styles={[
-              { label: '열린 위', path: 'M 8 6 L 8 17 M 8 17 L 24 17 M 20 4 L 20 28', desc: '왼쪽 짧은 세로 + 가로 + 오른쪽 긴 세로.' },
+              { label: '열린 위', path: 'M 8 6 L 8 17 M 8 17 L 24 17 M 20 4 L 20 28', desc: '왼쪽 짧은 세로 + 가로 + 오른쪽 긴 세로. 인쇄체에 가까움.' },
               { label: '닫힌 위', path: 'M 5 17 L 19 4 L 19 28 M 5 17 L 24 17', desc: '삼각형으로 닫혀 4 의 꼭대기가 뾰족.' },
               { label: '한 획 흘림', path: 'M 18 5 L 6 18 L 24 18 L 22 28', desc: '연필 안 떼고 비스듬히 한 번에 흘려 쓴 형태.' },
             ]}
           />
         </div>
-        <p className="text-[12px] text-muted leading-relaxed mt-1">
-          같은 한국 사람 한 반 안에서도 위 변종이 다 섞여 있어요. 9 의 꼬리 곧고 굽은 형태,
-          5 의 위 가로획 떨어뜨리고 붙이는 형태, 7 의 비스듬한 정도 — 모두 사람마다 차이.
+        <p className="text-[12px] text-muted leading-relaxed mt-2">
+          5 의 위 가로획 떨어뜨리고 붙이는 형태, 9 의 꼬리 곧고 굽은 형태, 6 의 위 동그라미 크기 — 거의 모든 숫자에서
+          사람마다 차이가 있어요. MNIST 가 60,000 장씩이나 모은 이유도 이 다양성 다 잡으려고.
         </p>
         <div className="aside-tip text-[12px] mt-2">
-          시사점 — <strong>모델은 학습한 데이터의 문화·손버릇에 종속</strong> 됩니다. 미국 데이터로 학습한
-          모델은 한국 사람이 머리 달아 쓴 1 을 7 로 잘못 보거나, 가운데 줄 그어진 유럽식 7 을 1 또는 다른 숫자로
-          헷갈리기 쉬워요. 진짜 응용을 만들려면 그 지역·그 모집단에서 모은 데이터로 다시 학습해야 해요. 이게
-          다음 단원에서 만날 <strong>"데이터 편향"</strong> 의 첫 모습.
+          시사점 — <strong>모델은 학습한 데이터의 손버릇 분포에 종속</strong> 됩니다. 한 가지 형태로만 학습한 모델은
+          다른 형태가 들어오면 헷갈려요. 학습용 60,000 장이 다양한 사람·다양한 손글씨 변종을 모두 담고 있어야
+          처음 보는 사람의 글씨도 잘 맞히게 됩니다 — 이게 다음 단원에서 만날 <strong>"데이터 다양성"</strong> 의 첫 모습.
         </div>
       </section>
 
