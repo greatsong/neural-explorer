@@ -236,6 +236,25 @@ export function PhaseA3() {
           <div className="card p-4">
             <label className="block">
               <div className="flex justify-between text-sm mb-1">
+                <span>현재 {conf.varLabel} <span className="text-muted text-xs">(드래그해서 직접 옮겨 보기)</span></span>
+                <span className="font-mono text-accent">{conf.varLabel} = {v.toFixed(2)}</span>
+              </div>
+              <input
+                type="range" min={conf.vMin} max={conf.vMax} step={0.05}
+                value={v}
+                onChange={(e) => {
+                  const nv = parseFloat(e.target.value);
+                  setV(nv);
+                  setHistory([{ v: nv, mse: lossAt(nv, mode) }]);
+                }}
+                className="w-full"
+              />
+              <div className="flex justify-between text-[11px] text-muted mt-0.5">
+                <span>{conf.vMin}</span><span>{conf.vMax}</span>
+              </div>
+            </label>
+            <label className="block mt-3">
+              <div className="flex justify-between text-sm mb-1">
                 <span>학습률 η <span className="text-muted text-xs">(보폭)</span></span>
                 <span className="font-mono text-accent">η = {lr.toFixed(4).replace(/\.?0+$/, '') || '0'}</span>
               </div>
