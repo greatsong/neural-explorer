@@ -216,11 +216,13 @@ export function PhaseA6() {
           </div>
 
           <div className="aside-note text-[12px] leading-relaxed">
-            <div className="text-sm font-medium">왜 연도를 그대로 안 쓰나</div>
+            <div className="text-sm font-medium">빈 원(○) 점은 뭔가요? — 보간(interpolation)</div>
             <p className="mt-1 text-muted">
-              연도를 그대로 (1908…2025) 쓰면 입력값이 너무 커서 한 step만에 w·b가 폭주해요.
-              그래서 <strong>x = (연도 − {YEAR_OFFSET}) ÷ {YEAR_SCALE}</strong>로 평행이동·축소해서 학습합니다.
-              그래프의 가로축은 사람이 읽기 좋게 다시 연도로 표시했어요.
+              한국전쟁(1950–1953) 시기에는 기온 관측이 끊겨 <strong>4 년치 데이터가 없어요</strong>.
+              이런 빈 자리를 그냥 두면 그래프가 끊기니까, <strong>앞뒤 해의 기온을 부드럽게 이어
+              "이쯤이었을 것"이라고 추정한 값</strong>으로 채웁니다 — 이걸 <strong>보간</strong>이라 해요.
+              실제 측정값은 <span style={{ color: 'rgb(var(--color-accent))' }}>꽉 찬 파란 점</span>,
+              보간 추정값은 <span style={{ color: 'rgb(var(--color-accent))' }}>빈 원(○)</span> 으로 구분돼 있어요.
             </p>
           </div>
 
