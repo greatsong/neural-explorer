@@ -269,7 +269,7 @@ export function PhaseDive() {
       </p>
 
       <div className="aside-tip mt-3 text-sm">
-        <strong>고1·2 자기주도 탐구 가이드</strong>
+        <strong>인공지능 기초 자기주도 심화 탐구 가이드</strong>
         <ul className="mt-1 list-disc pl-5 text-[13px] text-muted">
           <li><strong>1주차</strong>: 검색 키워드로 자료 3~5 개 모아 읽기 → 탐구 질문 답 정리.</li>
           <li><strong>2주차</strong>: 발표 결과물 만들기 (실험·비교 그래프·인포그래픽 등). 5분 내외 발표 준비.</li>
