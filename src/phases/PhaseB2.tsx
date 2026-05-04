@@ -741,14 +741,19 @@ function HiddenWeightsRow({ label, model, accent }: { label: string; model: MLP 
   return (
     <div className={`rounded-sm border ${accent ? 'border-accent/40 bg-accent/5' : 'border-border bg-surface/40'} p-1.5`}>
       <div className="text-[10px] font-medium text-center mb-1">{label}</div>
-      <div className="grid grid-cols-4 gap-1">
-        {hiddenWeights.map((w, j) => <MiniHeatmap key={j} w={w} idx={j} outW={W2[j]} />)}
+      <div
+        className="grid gap-1 justify-items-center"
+        style={{ gridTemplateColumns: `repeat(${Math.min(hidDim, 4)}, minmax(0, 1fr))` }}
+      >
+        {hiddenWeights.map((w, j) => (
+          <MiniHeatmap key={j} w={w} idx={j} outW={W2[j]} showIdx={hidDim > 1} />
+        ))}
       </div>
     </div>
   );
 }
 
-function MiniHeatmap({ w, idx, outW }: { w: Float32Array; idx: number; outW: number }) {
+function MiniHeatmap({ w, idx, outW, showIdx }: { w: Float32Array; idx: number; outW: number; showIdx: boolean }) {
   const SIZE = 8, cell = 8, total = SIZE * cell;
   let maxAbs = 0;
   for (let i = 0; i < w.length; i++) {
@@ -778,9 +783,9 @@ function MiniHeatmap({ w, idx, outW }: { w: Float32Array; idx: number; outW: num
           color: outW >= 0 ? 'rgb(59, 130, 246)' : 'rgb(190, 18, 60)',
           backgroundColor: outW >= 0 ? 'rgba(59,130,246,0.08)' : 'rgba(190,18,60,0.08)',
         }}
-        title={`h${idx} → output 가중치 = ${outW.toFixed(3)}`}
+        title={`${showIdx ? `h${idx} ` : ''}→ output 가중치 = ${outW.toFixed(3)}`}
       >
-        h{idx} → {outW >= 0 ? '네모' : '세모'} {outW >= 0 ? '+' : ''}{outW.toFixed(2)}
+        {showIdx ? `h${idx} ` : ''}→ {outW >= 0 ? '네모' : '세모'} {outW >= 0 ? '+' : ''}{outW.toFixed(2)}
       </div>
     </div>
   );
