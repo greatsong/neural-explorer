@@ -85,7 +85,17 @@ export function PhaseA1() {
           </div>
 
           <div>
-            <div className="text-xs text-muted mb-1">활성화 함수</div>
+            <div className="text-xs text-muted mb-1 flex items-baseline gap-2">
+              <span>활성화 함수</span>
+              <a
+                href="https://activation-lab.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] text-accent hover:underline"
+              >
+                [심화 탐구] activation-lab ↗
+              </a>
+            </div>
             <div className="flex gap-1">
               {(['relu', 'sigmoid', 'linear'] as ActFn[]).map((a) => (
                 <button
