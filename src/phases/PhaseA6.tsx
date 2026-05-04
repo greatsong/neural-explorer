@@ -43,22 +43,38 @@ export function PhaseA6() {
   const [history, setHistory] = useState<number[]>([]);
   const [diverged, setDiverged] = useState(false);
 
+  // 학습용 연도 범위 — 학생이 슬라이더로 좁혀 가며 "데이터 일부만 학습하면 어떻게 달라지나" 탐구.
+  const fullYearMin = samples[0].year;
+  const fullYearMax = samples[samples.length - 1].year;
+  const [trainStart, setTrainStart] = useState(fullYearMin);
+  const [trainEnd, setTrainEnd] = useState(fullYearMax);
+
+  // 범위 안 학습 데이터 (자동 정렬: start > end 면 swap)
+  const trainSamples = useMemo(() => {
+    const lo = Math.min(trainStart, trainEnd);
+    const hi = Math.max(trainStart, trainEnd);
+    return samples.filter((s) => s.year >= lo && s.year <= hi);
+  }, [samples, trainStart, trainEnd]);
+
   const completedRef = useRef(false);
 
   // setInterval 안에서 최신 w·b를 stale closure 없이 읽기 위한 ref
   const wRef = useRef(w);
   const bRef = useRef(b);
+  const trainRef = useRef(trainSamples);
   useEffect(() => { wRef.current = w; bRef.current = b; }, [w, b]);
+  useEffect(() => { trainRef.current = trainSamples; }, [trainSamples]);
 
-  // 손실(MSE)
+  // 손실(MSE) — 학습 범위 안 데이터로만 계산
   const mse = useMemo(() => {
+    if (trainSamples.length === 0) return 0;
     let s = 0;
-    for (const r of samples) {
+    for (const r of trainSamples) {
       const e = (w * r.x + b) - r.y;
       s += e * e;
     }
-    return s / samples.length;
-  }, [samples, w, b]);
+    return s / trainSamples.length;
+  }, [trainSamples, w, b]);
 
   // 첫 손실 기록 한 번만
   useEffect(() => {
@@ -66,17 +82,28 @@ export function PhaseA6() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 한 step: w·b 갱신.
+  // 학습 범위가 바뀌면 history 리셋 — 곡선 의미가 달라지므로
+  useEffect(() => {
+    setHistory([mse]);
+    setEpoch(0);
+    setAuto(false);
+    setDiverged(false);
+    completedRef.current = false;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trainStart, trainEnd]);
+
+  // 한 step: w·b 갱신. 학습 범위 안 점만 사용.
   // MSE = (1/N)Σ(ŷ-y)² 의 미분은 (2/N)Σ(ŷ-y)·x — 상수 2 가 들어간다.
-  const stepOnce = (curW: number, curB: number, curLr: number) => {
+  const stepOnce = (curW: number, curB: number, curLr: number, train: Sample[]) => {
+    if (train.length === 0) return { nw: curW, nb: curB };
     let dw = 0, db = 0;
-    for (const r of samples) {
+    for (const r of train) {
       const e = (curW * r.x + curB) - r.y;
       dw += e * r.x;
       db += e;
     }
-    dw = (2 * dw) / samples.length;
-    db = (2 * db) / samples.length;
+    dw = (2 * dw) / train.length;
+    db = (2 * db) / train.length;
     const nw = curW - curLr * dw;
     const nb = curB - curLr * db;
     return { nw, nb };
@@ -88,13 +115,14 @@ export function PhaseA6() {
     const id = setInterval(() => {
       const cw = wRef.current;
       const cb = bRef.current;
-      const r = stepOnce(cw, cb, lr);
+      const train = trainRef.current;
+      const r = stepOnce(cw, cb, lr, train);
       let s = 0;
-      for (const sm of samples) {
+      for (const sm of train) {
         const e = (r.nw * sm.x + r.nb) - sm.y;
         s += e * e;
       }
-      const newLoss = s / samples.length;
+      const newLoss = train.length > 0 ? s / train.length : 0;
       // 발산 감지 — Inf/NaN 또는 손실이 절대 임계(데이터 분산 대비 ~1e6배)를
       // 넘으면 학습 중단하고 사용자에게 알림. JS Number는 1.8e308까지 표현되므로
       // 진짜 Inf만 기다리면 huge 숫자를 한참 보게 된다.
@@ -130,12 +158,14 @@ export function PhaseA6() {
   const reset = () => {
     // 초기 상태(w=0, b=meanY)에서의 실제 MSE를 history 시드로 사용한다.
     // 0을 박으면 손실 useEffect가 last < 0.6을 만족해 의도치 않게 완료 처리된다.
+    // 학습 범위 안 데이터로만 손실 계산해야 곡선의 의미와 일치한다.
+    const train = trainSamples.length > 0 ? trainSamples : samples;
     let s0 = 0;
-    for (const r of samples) {
+    for (const r of train) {
       const e = (0 * r.x + meanY) - r.y;
       s0 += e * e;
     }
-    const initialMse = s0 / samples.length;
+    const initialMse = s0 / train.length;
     setW(0);
     setB(meanY);
     setEpoch(0);
@@ -173,12 +203,53 @@ export function PhaseA6() {
             yearMax={yearMax}
             lineY1={lineY1}
             lineY2={lineY2}
+            trainLo={Math.min(trainStart, trainEnd)}
+            trainHi={Math.max(trainStart, trainEnd)}
           />
           <LossCurve history={history} />
         </div>
 
         {/* 우: 슬라이더 + 학습 컨트롤 */}
         <div className="space-y-3">
+          <div className="card p-3 space-y-2">
+            <div className="text-sm font-medium">학습용 연도 범위</div>
+            <div className="text-[11px] text-muted leading-snug">
+              모델이 보고 배우는 데이터의 연도 구간이에요. 좁히면 그 구간 추세에만 맞춰지고,
+              범위 밖 연도는 <strong>예측만 해보는 시험 구간</strong>이 돼요.
+            </div>
+            <Slider
+              label="시작 연도"
+              value={trainStart}
+              setValue={(v) => setTrainStart(Math.round(v))}
+              min={fullYearMin}
+              max={fullYearMax}
+              step={1}
+              fmt={(v) => Math.round(v).toString()}
+            />
+            <Slider
+              label="끝 연도"
+              value={trainEnd}
+              setValue={(v) => setTrainEnd(Math.round(v))}
+              min={fullYearMin}
+              max={fullYearMax}
+              step={1}
+              fmt={(v) => Math.round(v).toString()}
+            />
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-muted">
+                학습 데이터: <span className="font-mono text-accent">{trainSamples.length}개</span>
+                {' / '}
+                <span className="font-mono">{samples.length}개</span>
+              </span>
+              <button
+                className="btn-ghost py-0.5 px-2 text-[11px]"
+                onClick={() => { setTrainStart(fullYearMin); setTrainEnd(fullYearMax); }}
+              >
+                전체로
+              </button>
+            </div>
+          </div>
+
           <div className="card p-3 space-y-3">
             <div className="text-sm font-medium">직접 조정</div>
             <Slider
@@ -284,11 +355,12 @@ function Slider({
 
 /* ────────── 산점도 + 회귀선 ────────── */
 function Scatter({
-  samples, yearMin, yearMax, lineY1, lineY2,
+  samples, yearMin, yearMax, lineY1, lineY2, trainLo, trainHi,
 }: {
   samples: Sample[];
   yearMin: number; yearMax: number;
   lineY1: number; lineY2: number;
+  trainLo: number; trainHi: number;
 }) {
   const W = 720, H = 280;
   const padL = 44, padR = 16, padT = 14, padB = 28;
@@ -301,9 +373,24 @@ function Scatter({
   const xTicks = [1920, 1940, 1960, 1980, 2000, 2020];
   const yTicks = [10, 12, 14, 16];
 
+  const inRange = (year: number) => year >= trainLo && year <= trainHi;
+  const isWindow = !(trainLo === yearMin && trainHi === yearMax);
+
+  // 학습 구간 음영 (전체 범위가 아닐 때만)
+  const bandX1 = sx(trainLo);
+  const bandX2 = sx(trainHi);
+
   return (
     <div className="card p-2">
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+        {/* 학습 구간 음영 */}
+        {isWindow && (
+          <rect
+            x={Math.min(bandX1, bandX2)} y={padT}
+            width={Math.abs(bandX2 - bandX1)} height={H - padT - padB}
+            fill="rgb(var(--color-accent))" opacity={0.06}
+          />
+        )}
         {/* 축 */}
         <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="rgb(var(--color-border))" />
         <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="rgb(var(--color-border))" />
@@ -319,23 +406,38 @@ function Scatter({
             <text x={padL - 6} y={sy(t) + 3} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">{t}℃</text>
           </g>
         ))}
-        {/* 데이터 점 */}
-        {samples.map((s) =>
-          s.interpolated ? (
+        {/* 데이터 점 — 범위 밖은 흐리게 */}
+        {samples.map((s) => {
+          const inR = inRange(s.year);
+          const op = inR ? 0.85 : 0.18;
+          return s.interpolated ? (
             <circle key={s.year} cx={sx(s.year)} cy={sy(s.y)} r={2.6}
-              fill="none" stroke="rgb(var(--color-muted))" strokeWidth={1} opacity={0.7}>
-              <title>{`${s.year}년 · ${s.y.toFixed(2)}℃ (보간 추정)`}</title>
+              fill="none" stroke="rgb(var(--color-muted))" strokeWidth={1} opacity={op}>
+              <title>{`${s.year}년 · ${s.y.toFixed(2)}℃ (보간 추정)${inR ? '' : ' · 학습 제외'}`}</title>
             </circle>
           ) : (
             <circle key={s.year} cx={sx(s.year)} cy={sy(s.y)} r={2.4}
-              fill="rgb(59,130,246)" opacity={0.7}>
-              <title>{`${s.year}년 · ${s.y.toFixed(2)}℃`}</title>
+              fill="rgb(59,130,246)" opacity={op}>
+              <title>{`${s.year}년 · ${s.y.toFixed(2)}℃${inR ? '' : ' · 학습 제외'}`}</title>
             </circle>
-          )
-        )}
-        {/* 회귀선 */}
+          );
+        })}
+        {/* 회귀선 — 전체 연도에 걸쳐 표시 (학습 안 한 구간으로의 외삽 효과를 보여준다) */}
         <line x1={sx(yearMin)} y1={sy(lineY1c)} x2={sx(yearMax)} y2={sy(lineY2c)}
           stroke="rgb(var(--color-accent))" strokeWidth={2.2} />
+        {/* 학습 구간 경계선 */}
+        {isWindow && (
+          <>
+            <line x1={bandX1} y1={padT} x2={bandX1} y2={H - padB}
+              stroke="rgb(var(--color-accent))" strokeWidth={1} strokeDasharray="3 3" opacity={0.6} />
+            <line x1={bandX2} y1={padT} x2={bandX2} y2={H - padB}
+              stroke="rgb(var(--color-accent))" strokeWidth={1} strokeDasharray="3 3" opacity={0.6} />
+            <text x={(bandX1 + bandX2) / 2} y={padT + 10} textAnchor="middle"
+              fontSize={10} fill="rgb(var(--color-accent))">
+              학습 구간 {trainLo}~{trainHi}
+            </text>
+          </>
+        )}
         {/* 축 라벨 */}
         <text x={W - padR} y={H - 4} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">연도</text>
         <text x={padL - 4} y={padT - 2} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">℃</text>
@@ -343,6 +445,7 @@ function Scatter({
       <div className="text-[11px] text-muted px-1 pb-1 leading-snug">
         파란 점 = 서울 연평균 기온 (1908~2025, 출처 기상청 ASOS). 빈 원 = 6.25 전쟁기 결측 4년 보간값.
         주황 직선 = 인공 뉴런 1개의 회귀선 ŷ = w · x + b.
+        {isWindow && ' 흐린 점 = 학습에 사용하지 않은 연도.'}
       </div>
     </div>
   );
