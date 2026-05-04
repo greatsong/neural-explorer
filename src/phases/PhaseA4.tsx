@@ -4,9 +4,31 @@
 //   중: 좌(샘플 표 — x, y, ŷ, e, e·x + 평균=dw, db) / 우(KaTeX 단계별 유도)
 //   하: "x가 큰 샘플일수록 그 가중치 책임이 크다" 직관 한 줄 + A5 안내
 
-import { useEffect, useState } from 'react';
-import { BlockMath, InlineMath } from 'react-katex';
+import { useEffect, useMemo, useState } from 'react';
+import katex from 'katex';
 import { PHASES } from '../phases';
+
+// 직접 katex 호출로 react-katex 의존을 우회 (Vercel 빌드에서 raw TeX 보이는 문제 회피).
+function BlockMath({ math }: { math: string }) {
+  const html = useMemo(() => {
+    try {
+      return katex.renderToString(math, { displayMode: true, throwOnError: false });
+    } catch {
+      return math;
+    }
+  }, [math]);
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+}
+function InlineMath({ math }: { math: string }) {
+  const html = useMemo(() => {
+    try {
+      return katex.renderToString(math, { displayMode: false, throwOnError: false });
+    } catch {
+      return math;
+    }
+  }, [math]);
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+}
 import { useApp } from '../store';
 
 // 샘플 5개 — 정답 직선은 ŷ = 2x + 1 근처 (현재 모델은 ŷ = w·x + b)
