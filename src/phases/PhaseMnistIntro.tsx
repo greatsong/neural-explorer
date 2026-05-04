@@ -278,8 +278,30 @@ export function PhaseMnistIntro() {
           />
         </div>
         <p className="text-[12px] text-muted leading-relaxed mt-2">
-          반면 <strong>4·9 같은 다른 숫자</strong>는 국가별 차이보다 사람마다 차이가 더 커요. 위가 닫힌 4 /
-          열린 4, 꼬리가 곧은 9 / 굽은 9 모두 한 나라 안에서도 섞여 있습니다.
+          반면 같은 숫자라도 <strong>사람마다 손버릇</strong> 이 갈리는 부분도 있어요. 한 사람의 1 ·
+          4 가 옆 짝꿍과 어떻게 다른지 보면:
+        </p>
+        <div className="grid sm:grid-cols-2 gap-3 mt-1">
+          <HandwritingCompare
+            digit="1 — 사람마다"
+            styles={[
+              { label: '단순', path: 'M 16 5 L 16 27', desc: '세로획 한 번.' },
+              { label: '머리', path: 'M 9 11 L 16 5 L 16 27', desc: '위에 작은 갈고리.' },
+              { label: '머리 + 받침', path: 'M 9 11 L 16 5 L 16 27 M 8 27 L 24 27', desc: '받침까지 함께.' },
+            ]}
+          />
+          <HandwritingCompare
+            digit="4 — 사람마다"
+            styles={[
+              { label: '열린 위', path: 'M 8 6 L 8 17 M 8 17 L 24 17 M 20 4 L 20 28', desc: '왼쪽 짧은 세로 + 가로 + 오른쪽 긴 세로.' },
+              { label: '닫힌 위', path: 'M 5 17 L 19 4 L 19 28 M 5 17 L 24 17', desc: '삼각형으로 닫혀 4 의 꼭대기가 뾰족.' },
+              { label: '한 획 흘림', path: 'M 18 5 L 6 18 L 24 18 L 22 28', desc: '연필 안 떼고 비스듬히 한 번에 흘려 쓴 형태.' },
+            ]}
+          />
+        </div>
+        <p className="text-[12px] text-muted leading-relaxed mt-1">
+          같은 한국 사람 한 반 안에서도 위 변종이 다 섞여 있어요. 9 의 꼬리 곧고 굽은 형태,
+          5 의 위 가로획 떨어뜨리고 붙이는 형태, 7 의 비스듬한 정도 — 모두 사람마다 차이.
         </p>
         <div className="aside-tip text-[12px] mt-2">
           시사점 — <strong>모델은 학습한 데이터의 문화·손버릇에 종속</strong> 됩니다. 미국 데이터로 학습한
