@@ -23,16 +23,17 @@ import {
 /* ────────── 학습 조건 ──────────
    세모 vs 네모, 출력 뉴런 1개 (sigmoid) hidden+분류기 (createDeepMLP+trainStep). B4 와 동일 구조.
    baseline(전처리 없음)은 60%대, cleaned(전처리 후)는 76%대로 +16%p 차이가 결정론적으로 나온다. */
-// 세모 vs 네모 — 선의 방향(대각 vs 수직·수평)이 hidden 뉴런 가중치 히트맵에 *모서리 방향*으로 또렷이 드러난다.
+// 세모 vs 네모 — 선의 방향(대각 vs 수직·수평)이 가중치 히트맵에 *모서리 방향*으로 또렷이 드러난다.
 const TASK_LABELS: [ShapeLabel, ShapeLabel] = ['triangle', 'square'];
 // dirty 라벨이 *결정 경계*를 충분히 흐리도록 epoch을 길게 + LR을 키워 약간 overfit하게 만든다.
 // 30 epoch / lr 0.05 에서는 dirty가 흡수돼 cleaning 효과가 안 보였다.
-// hidden 1 + lr 0.15 + 80ep — 가장 단순한 구조 (히트맵도 1개만). cleaning 효과는 baseline 대비 정확도 차로 관찰.
+// 80ep / lr 0.15 — cleaning 효과는 baseline 대비 정확도 차로 관찰.
 const EPOCHS = 80;
 const LR = 0.15;
 const BATCH_SIZE = 16;
-// hidden 1: 가장 단순한 구조로 히트맵도 1개만 표시 — dirty 라벨 영향이 그대로 boundary 에 드러남.
-const HIDDEN_SIZE = 1;
+// B4 의 hidden off 와 동일 구조 — [64, 1] sigmoid 직결. 가중치 히트맵 1장의 색이
+// 곧 클래스 방향 (파랑 = 네모 쪽, 빨강 = 세모 쪽) 으로 직결돼 학생이 별도 해석 없이
+// 그림만으로 의미를 잡을 수 있다.
 const TASK_LABEL_KO = (l: ShapeLabel) => SHAPE_LABEL_KO[l];
 const labelIdx = (l: ShapeLabel) => TASK_LABELS.indexOf(l);
 
@@ -156,10 +157,9 @@ async function runTraining(
     return { trainAcc: 0, evalAcc: 0, model: null };
   }
   // 모델 init을 seed로 고정 — baseline·current가 같은 출발점.
-  // [64, HIDDEN_SIZE, 1] + sigmoid: 입력 64픽셀 → ReLU 1뉴런 → 출력 1뉴런 (B4 와 동일 구조).
-  // 출력 1개라 hidden→output 가중치 w2[j] 부호가 곧 클래스 방향 (양수=네모, 음수=세모) 으로
-  // 해석돼 hidden 뉴런 4개 각각에 "→ 세모/네모" 라벨을 붙일 수 있다.
-  const m = withSeededRandom(seed, () => createDeepMLP([64, HIDDEN_SIZE, 1], 'sigmoid'));
+  // [64, 1] + sigmoid: 입력 64픽셀 → 출력 1뉴런 직결 (B4 의 hidden off 와 동일).
+  // 가중치 W[i] 부호가 곧 픽셀이 출력에 미치는 영향 — 양수=네모(파랑), 음수=세모(빨강).
+  const m = withSeededRandom(seed, () => createDeepMLP([64, 1], 'sigmoid'));
   let lastTrainAcc = 0;
   let lastEvalAcc = 0;
   let shuffleSeed = seed;
@@ -507,14 +507,15 @@ export function PhaseB2() {
 
                 <AccuracyCurve baseline={baseline.evalHist} current={current.evalHist} />
 
-                {/* Hidden 1뉴런 가중치 히트맵 — baseline vs current 비교 */}
+                {/* 가중치 히트맵 — baseline vs current 비교. [64,1] 직결이라 색이 곧 클래스 방향. */}
                 {(baseline.model || current.model) && (
                   <div className="rounded-md border border-border bg-bg/40 p-2">
-                    <div className="text-[11px] font-medium mb-1">학습된 hidden 1뉴런이 본 특징</div>
+                    <div className="text-[11px] font-medium mb-1">학습된 픽셀별 영향력</div>
                     <div className="text-[10px] text-muted mb-2 leading-snug">
-                      각 뉴런이 입력 64픽셀 중 어느 곳에 반응하는지 보여 줘요. <span className="font-medium" style={{ color: 'rgb(59,130,246)' }}>파랑</span> 칸 = 그 자리에 점이 찍히면 뉴런 점수가 <strong>올라가요(+)</strong>, <span className="font-medium" style={{ color: 'rgb(190,18,60)' }}>빨강</span> 칸 = 점이 찍히면 점수가 <strong>내려가요(−)</strong>.
-                      각 카드 아래 배지 (<span className="font-medium" style={{ color: 'rgb(59,130,246)' }}>→ 네모</span> / <span className="font-medium" style={{ color: 'rgb(190,18,60)' }}>→ 세모</span>) 는 그 뉴런이 출력으로 어느 쪽에 표를 던지는지 — hidden→output 가중치의 부호와 크기로 결정돼요.
-                      학습이 잘 되면 *모서리·선의 방향*이 또렷이 드러납니다. 더러운 데이터로 학습한 baseline 은 그 모양이 흐릿하거나 뒤섞이기 쉽습니다.
+                      입력 64 픽셀 각각이 출력 점수에 미치는 영향이에요.
+                      <span className="font-medium" style={{ color: 'rgb(59,130,246)' }}>파랑</span> 칸 = 그 자리에 점이 찍히면 출력이 <strong>네모(+) 쪽</strong>으로 끌려가요,
+                      <span className="font-medium" style={{ color: 'rgb(190,18,60)' }}>빨강</span> 칸 = <strong>세모(−) 쪽</strong>으로 끌려가요. 절대값(진하기) 이 영향력 크기.
+                      학습이 잘 되면 *모서리·선의 방향*이 또렷이 드러납니다. 더러운 데이터로 학습한 baseline 은 모양이 흐릿하거나 뒤섞이기 쉽습니다.
                     </div>
                     <HiddenWeightsCompare baseline={baseline.model} current={current.model} />
                   </div>
@@ -718,7 +719,7 @@ function HiddenWeightsCompare({ baseline, current }: { baseline: MLP | null; cur
 
 function HiddenWeightsRow({ label, model, accent }: { label: string; model: MLP | null; accent: boolean }) {
   // 모델이 없으면 placeholder
-  if (!model || model.layers.length < 3) {
+  if (!model) {
     return (
       <div className={`rounded-sm border ${accent ? 'border-accent/40' : 'border-border'} p-1.5`}>
         <div className="text-[10px] text-muted text-center">{label}</div>
@@ -726,34 +727,19 @@ function HiddenWeightsRow({ label, model, accent }: { label: string; model: MLP 
       </div>
     );
   }
-  const W1 = model.weights[0];
-  const W2 = model.weights[model.weights.length - 1]; // hidden→output (sigmoid 1) — w2[j]
-  const inDim = model.layers[0];   // 64
-  const hidDim = model.layers[1];  // 1 (HIDDEN_SIZE)
-  // 각 hidden 뉴런 j의 64개 가중치 추출 — w1[i*hidDim + j]
-  const hiddenWeights: Float32Array[] = [];
-  for (let j = 0; j < hidDim; j++) {
-    const w = new Float32Array(inDim);
-    for (let i = 0; i < inDim; i++) w[i] = W1[i * hidDim + j];
-    hiddenWeights.push(w);
-  }
-
+  // [64, 1] 직결 — weights[0] 가 64픽셀 × 1출력 = 64 가중치. 색이 곧 클래스 방향.
+  const W = model.weights[0];
   return (
     <div className={`rounded-sm border ${accent ? 'border-accent/40 bg-accent/5' : 'border-border bg-surface/40'} p-1.5`}>
       <div className="text-[10px] font-medium text-center mb-1">{label}</div>
-      <div
-        className="grid gap-1 justify-items-center"
-        style={{ gridTemplateColumns: `repeat(${Math.min(hidDim, 4)}, minmax(0, 1fr))` }}
-      >
-        {hiddenWeights.map((w, j) => (
-          <MiniHeatmap key={j} w={w} idx={j} outW={W2[j]} showIdx={hidDim > 1} />
-        ))}
+      <div className="flex justify-center">
+        <MiniHeatmap w={W} />
       </div>
     </div>
   );
 }
 
-function MiniHeatmap({ w, idx, outW, showIdx }: { w: Float32Array; idx: number; outW: number; showIdx: boolean }) {
+function MiniHeatmap({ w }: { w: Float32Array }) {
   const SIZE = 8, cell = 8, total = SIZE * cell;
   let maxAbs = 0;
   for (let i = 0; i < w.length; i++) {
@@ -761,33 +747,19 @@ function MiniHeatmap({ w, idx, outW, showIdx }: { w: Float32Array; idx: number; 
   }
   if (maxAbs < 1e-6) maxAbs = 1;
   return (
-    <div className="text-center">
-      <svg viewBox={`0 0 ${total} ${total}`} width={total} height={total} className="block mx-auto border border-border rounded-sm bg-bg">
-        {Array.from({ length: SIZE * SIZE }).map((_, i) => {
-          const x = (i % SIZE) * cell;
-          const y = Math.floor(i / SIZE) * cell;
-          const v = w[i] / maxAbs;
-          // 파랑(+) / 빨강(-) — 절대값에 따라 진하게
-          const intensity = Math.min(1, Math.abs(v));
-          const color = v >= 0
-            ? `rgba(59, 130, 246, ${intensity.toFixed(3)})`
-            : `rgba(190, 18, 60, ${intensity.toFixed(3)})`;
-          return <rect key={i} x={x} y={y} width={cell} height={cell} fill={color}><title>{`(${Math.floor(i/8)},${i%8}) w=${w[i].toFixed(2)}`}</title></rect>;
-        })}
-      </svg>
-      {/* hidden→output 가중치 부호로 그 뉴런이 어느 클래스에 표 던지는지 표시.
-          양수 = 네모(파랑), 음수 = 세모(빨강). 절대값 = 영향력 크기. */}
-      <div
-        className="text-[9px] font-mono mt-0.5 px-1 py-0.5 rounded-sm"
-        style={{
-          color: outW >= 0 ? 'rgb(59, 130, 246)' : 'rgb(190, 18, 60)',
-          backgroundColor: outW >= 0 ? 'rgba(59,130,246,0.08)' : 'rgba(190,18,60,0.08)',
-        }}
-        title={`${showIdx ? `h${idx} ` : ''}→ output 가중치 = ${outW.toFixed(3)}`}
-      >
-        {showIdx ? `h${idx} ` : ''}→ {outW >= 0 ? '네모' : '세모'} {outW >= 0 ? '+' : ''}{outW.toFixed(2)}
-      </div>
-    </div>
+    <svg viewBox={`0 0 ${total} ${total}`} width={total} height={total} className="block mx-auto border border-border rounded-sm bg-bg">
+      {Array.from({ length: SIZE * SIZE }).map((_, i) => {
+        const x = (i % SIZE) * cell;
+        const y = Math.floor(i / SIZE) * cell;
+        const v = w[i] / maxAbs;
+        // 파랑(+) = 네모 쪽 / 빨강(−) = 세모 쪽. 절대값에 따라 진하게.
+        const intensity = Math.min(1, Math.abs(v));
+        const color = v >= 0
+          ? `rgba(59, 130, 246, ${intensity.toFixed(3)})`
+          : `rgba(190, 18, 60, ${intensity.toFixed(3)})`;
+        return <rect key={i} x={x} y={y} width={cell} height={cell} fill={color}><title>{`(${Math.floor(i/8)},${i%8}) w=${w[i].toFixed(2)}`}</title></rect>;
+      })}
+    </svg>
   );
 }
 
