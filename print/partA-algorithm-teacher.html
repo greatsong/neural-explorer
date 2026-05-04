@@ -314,13 +314,17 @@
 <h2>STEP A6. 마무리</h2>
 
 <div class="qc">
-<div class="qh"><span class="num">정리</span>학습 흐름도 — 정답</div>
+<div class="qh"><span class="num">정리</span>학습 한 사이클 4단계 — 정답</div>
 <div class="fm" style="font-size:11pt">
-  입력 x → ( <span class="v" style="color:#7a4f00">가중</span> 합산 + b ) → ( <span class="v" style="color:#7a4f00">활성화</span> 함수 ) → 예측 ŷ<br/>
-  → 정답 y 와 비교: ( <span class="v" style="color:#7a4f00">손실(MSE)</span> ) 측정<br/>
-  → ( <span class="v" style="color:#7a4f00">기울기(미분)</span> )로 손실 줄어드는 방향 찾기<br/>
-  → w·b ( <span class="v" style="color:#7a4f00">갱신 (← − η · 기울기)</span> ) — 새 w·b 로 다시 ① 부터 반복
+  ① <strong>예측</strong> — 입력 x 에 ( <span class="v" style="color:#7a4f00">가중치 w</span> ) 를 곱하고 ( <span class="v" style="color:#7a4f00">편향 b</span> ) 을 더한 후 ( <span class="v" style="color:#7a4f00">활성화</span> ) 함수를 통과한 결과가 <span class="mono">ŷ</span>.<br/>
+  ② <strong>오차</strong> — <span class="mono">ŷ</span> 과 정답 y 의 차이를 ( <span class="v" style="color:#7a4f00">오차 e</span> ) 라 하고, ( <span class="v" style="color:#7a4f00">제곱 e²</span> ) 의 평균이 MSE. 이렇게 오차를 숫자로 표현하는 함수를 ( <span class="v" style="color:#7a4f00">손실</span> ) 함수라 한다.<br/>
+  ③ <strong>오차를 줄이는 방향</strong> — 손실 함수의 ( <span class="v" style="color:#7a4f00">기울기</span> ) 를 찾고, 그 ( <span class="v" style="color:#7a4f00">기울기</span> ) 의 <strong>반대</strong> 방향이 w·b 가 이동할 방향.<br/>
+  ④ <strong>갱신</strong><br/>
+  &nbsp;&nbsp; 새 w = 이전 w − 학습률 × 손실함수에 대한 w의 기울기 (e·x 의 평균)<br/>
+  &nbsp;&nbsp; 새 b = 이전 b − 학습률 × 손실함수에 대한 b의 기울기 (e 의 평균)<br/>
+  → 새 w·b 로 다시 ① 부터 반복.
 </div>
+<div class="pf"><span class="lab">자주 헷갈림</span>"기울기" 라는 단어가 두 군데 등장. ① 의 입력에 곱하는 건 <strong>가중치 w</strong>, ③ 의 손실 함수의 기울기는 <strong>미분값(dw·db)</strong>. 학생이 둘을 같은 의미로 쓰지 않게 칠판에 두 줄로 분리해 적어 둘 것.</div>
 </div>
 
 <div class="qc">
