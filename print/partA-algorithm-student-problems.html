@@ -243,16 +243,15 @@
 </div>
 
 <div class="qc">
-<div class="qh"><span class="num">A3-1</span>한 점 옆 살짝 — 손계산 디딤돌</div>
-<div class="qd">A2와 같은 데이터(<span class="mono">y = 2x + 1</span>, 5점), w를 정답 2로 고정. 모든 점에서 오차가 <span class="mono">e = b − 1</span> 로 같아져 손실(½ · MSE) = ½ · (b − 1)². b 를 0.5 → 1 → 1.5 로 옮기며 손실을 직접 계산하세요.</div>
-<div class="fm">
-  b = 0.5 → ½ · (0.5 − 1)² = <span class="bk lg"></span><br/>
-  b = 1 &nbsp;→ ½ · (1 − 1)² = <span class="bk lg"></span><br/>
-  b = 1.5 → ½ · (1.5 − 1)² = <span class="bk lg"></span>
-</div>
-<div class="qd">b = 0.5 에서 손실을 더 줄이려면 b를 ( 왼쪽 / 오른쪽 )으로 ☞ <span class="bk lg"></span></div>
-<div class="qd">b = 1.5 에서는 ☞ <span class="bk lg"></span></div>
-<div class="qd">b = 1 에서는 ☞ <span class="bk lg"></span> &nbsp; (= 학습 종료 신호)</div>
+<div class="qh"><span class="num">A3-1</span>기울기 부호와 이동 방향 — 슬라이더로 직관 잡기</div>
+<div class="qd">앱 A3 의 슬라이더로 변수를 두 위치에 직접 옮기면서 다음 세 가지를 관찰하세요. ① 화면이 표시하는 <strong>기울기</strong> 값의 부호 (+ 또는 −) ② 슬라이더를 조금 <strong>왼쪽</strong>으로 옮기면 손실(L)이 늘어나는지 줄어드는지 ③ 조금 <strong>오른쪽</strong>으로 옮기면 어떤지.</div>
+<table class="tb">
+<tr><th>위치</th><th>기울기 부호 (+ / −)</th><th>왼쪽으로 조금 옮기면 L 은?</th><th>오른쪽으로 조금 옮기면 L 은?</th><th>손실 줄이려면 ( ← / → )</th></tr>
+<tr><td>정답 왼쪽</td><td class="blank"></td><td class="blank">( 늘 / 줄 )</td><td class="blank">( 늘 / 줄 )</td><td class="blank"></td></tr>
+<tr><td>정답 오른쪽</td><td class="blank"></td><td class="blank">( 늘 / 줄 )</td><td class="blank">( 늘 / 줄 )</td><td class="blank"></td></tr>
+</table>
+<div class="qd">한 줄 정리 — 손실을 줄이려면 기울기 <strong>부호의 ( 같은 / 반대 )</strong> 방향으로 옮겨야 한다. ☞ <span class="bk lg"></span></div>
+<div class="qd">정답 위치에서는 기울기가 ( <span class="bk"></span> ) 이 되고, 어느 쪽으로 옮겨도 L 이 늘어난다 → <strong>학습 종료 신호</strong>.</div>
 </div>
 
 <div class="qc">

@@ -193,13 +193,15 @@
 <div class="an"><span class="lab">앱 운영</span>A3 은 ½MSE 규약으로 손실 L = ½·MSE 를 표시. A2 의 MSE 와 같은 모양 곡선이지만 세로축 값만 정확히 절반 — 그 이유는 다음 A4 의 ½ 도입과 같이 보면 한 줄로 풀린다.</div>
 
 <div class="qc">
-<div class="qh"><span class="num">A3-1</span>한 점 옆 살짝 — 정답</div>
-<div class="fm">
-  b = 0.5 → ½ · (0.5 − 1)² = <span class="v" style="color:#7a4f00">0.125</span><br/>
-  b = 1   → ½ · (1   − 1)² = <span class="v" style="color:#7a4f00">0</span><br/>
-  b = 1.5 → ½ · (1.5 − 1)² = <span class="v" style="color:#7a4f00">0.125</span>
-</div>
-<div class="ans"><span class="lab">정답</span>b=0.5 에서 손실을 줄이려면 b를 <strong>오른쪽</strong>(↑정답 1 쪽). b=1.5 에서는 <strong>왼쪽</strong>. b=1 에서는 <strong>움직이지 않는다</strong> (= 학습 종료 신호).</div>
+<div class="qh"><span class="num">A3-1</span>기울기 부호와 이동 방향 — 정답</div>
+<div class="qd">학습 목표: <strong>"오차를 줄이는 방향으로 가중치를 수정한다"</strong> 가 어떤 느낌인지 슬라이더로 체감하는 활동. 수식보다 직관 우선.</div>
+<table class="tb">
+<tr><th>위치</th><th>기울기 부호</th><th>← 옮기면 L</th><th>→ 옮기면 L</th><th>줄이려면</th></tr>
+<tr><td>정답 왼쪽 (예: b=0)</td><td class="fa">−</td><td class="fa">늘</td><td class="fa">줄</td><td class="fa">→ (오른쪽)</td></tr>
+<tr><td>정답 오른쪽 (예: b=2)</td><td class="fa">+</td><td class="fa">줄</td><td class="fa">늘</td><td class="fa">← (왼쪽)</td></tr>
+</table>
+<div class="ans"><span class="lab">정답</span>한 줄 정리: 손실을 줄이려면 기울기 <strong>부호의 반대</strong> 방향으로 옮긴다. 정답 위치에서는 기울기 = <strong>0</strong> 이 되어 학습 종료.</div>
+<div class="tt"><span class="lab">수업 팁</span>학생이 슬라이더를 직접 끌어보며 "기울기 부호 ↔ L 의 좌우 변화" 두 가지를 자기 눈으로 잇게 한다. 부호의 반대 = 빼기 = w ← w − η·dw 의 식 기원. 식보다 손짓·말로 먼저 짚어 둘 것.</div>
 </div>
 
 <div class="qc">
