@@ -1,0 +1,13 @@
+# build
+dist/
+.astro/
+
+# deps
+node_modules/
+
+# convert output (CI 가 다시 생성)
+src/content/docs/
+
+# logs
+npm-debug.log*
+.DS_Store
