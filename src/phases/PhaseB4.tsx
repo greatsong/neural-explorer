@@ -599,6 +599,8 @@ function NetworkViz({ model, useHidden, tick, pickedSample }: {
   void tick;
   // 은닉이 있을 때 어떤 은닉 뉴런의 히트맵을 볼지 선택. 'out'은 은닉 없음 + 출력 뉴런.
   const [selected, setSelected] = useState<number | 'out'>('out');
+  // 다이어그램에서 가중치 라인/입력 뉴런 호버 시, 우측 히트맵의 같은 픽셀 강조용
+  const [hoveredPixel, setHoveredPixel] = useState<number | null>(null);
 
   if (!model) {
     return (
@@ -628,6 +630,7 @@ function NetworkViz({ model, useHidden, tick, pickedSample }: {
           input={pickedSample?.pixels ?? null}
           bias={b1[0]}
           w={wOut}
+          onPixelHover={setHoveredPixel}
         />
         {/* 우: 가중치 히트맵 */}
         <HeatmapPanel
@@ -635,6 +638,7 @@ function NetworkViz({ model, useHidden, tick, pickedSample }: {
           bias={b1[0]}
           title="출력 뉴런 σ의 입력 가중치"
           subtitle="64개 픽셀을 어떻게 가중합하는지"
+          highlightIdx={hoveredPixel}
         />
         <div className="lg:col-span-2">
           <ColorLegend />
@@ -676,6 +680,7 @@ function NetworkViz({ model, useHidden, tick, pickedSample }: {
         b2={b2}
         selected={safeSelected}
         onSelect={setSelected}
+        onPixelHover={setHoveredPixel}
       />
       {/* 우: 선택된 뉴런의 가중치 패널 */}
       {safeSelected === 'out' ? (
@@ -687,6 +692,7 @@ function NetworkViz({ model, useHidden, tick, pickedSample }: {
           title={`은닉 h${safeSelected}의 입력 가중치`}
           subtitle={`64개 픽셀에 대한 가중치 패턴`}
           outWeight={W2[safeSelected]}
+          highlightIdx={hoveredPixel}
         />
       )}
       <div className="lg:col-span-2">
@@ -702,8 +708,9 @@ function NetworkViz({ model, useHidden, tick, pickedSample }: {
 /* ────────── 다이어그램 (은닉 없음) — 입력 64뉴런 컬럼 → 출력 σ ──────────
    64개 입력 뉴런을 세로 한 줄로 늘어놓고, 64개 가중치 라인이 모두 출력 1뉴런으로 모인다.
    각 라인의 색·굵기·투명도가 그 픽셀의 가중치 부호·크기를 그대로 보여준다. */
-function SimpleDiagram({ input, bias, w }: {
+function SimpleDiagram({ input, bias, w, onPixelHover }: {
   input: number[] | null; bias: number; w: Float32Array;
+  onPixelHover?: (idx: number | null) => void;
 }) {
   const W = 540, H = 400;
   const inCx = 36;
@@ -711,6 +718,10 @@ function SimpleDiagram({ input, bias, w }: {
   const outCx = 470, outCy = H / 2, outR = 26;
 
   const [hover, setHover] = useState<string | null>(null);
+  const hoverPixel = (idx: number | null, tip: string | null) => {
+    setHover(tip);
+    onPixelHover?.(idx);
+  };
 
   let maxAbs = 0;
   for (let i = 0; i < 64; i++) {
@@ -721,7 +732,7 @@ function SimpleDiagram({ input, bias, w }: {
 
   return (
     <div className="rounded-md border border-border bg-bg/50 p-2">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" onMouseLeave={() => setHover(null)}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" onMouseLeave={() => hoverPixel(null, null)}>
         <defs>
           <marker id="nv-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M0,0 L10,5 L0,10 Z" fill="rgb(var(--color-muted))" />
@@ -755,7 +766,7 @@ function SimpleDiagram({ input, bias, w }: {
                 stroke="transparent"
                 strokeWidth={6}
                 style={{ cursor: 'pointer' }}
-                onMouseEnter={() => setHover(tip)} />
+                onMouseEnter={() => hoverPixel(i, tip)} />
             </g>
           );
         })}
@@ -767,7 +778,7 @@ function SimpleDiagram({ input, bias, w }: {
           const r = Math.floor(i / 8), c = i % 8;
           const tip = `픽셀 (행 ${r}, 열 ${c}) · 값 ${active ? 1 : 0} · w[${i}] = ${w[i] >= 0 ? '+' : ''}${w[i].toFixed(3)}`;
           return (
-            <g key={i} style={{ cursor: 'pointer' }} onMouseEnter={() => setHover(tip)}>
+            <g key={i} style={{ cursor: 'pointer' }} onMouseEnter={() => hoverPixel(i, tip)}>
               <circle cx={inCx} cy={cy} r={inR}
                 fill={active ? 'rgb(var(--color-text))' : 'rgb(var(--color-bg))'}
                 stroke="rgb(var(--color-muted))"
@@ -815,7 +826,7 @@ function SimpleDiagram({ input, bias, w }: {
    입력↔은닉 라인 512개는 기본적으로 매우 옅게(mesh) 표시.
    은닉 뉴런 하나를 선택하면 그 뉴런으로 들어가는 64개 라인이 가중치 부호별로 강조됨. */
 function HiddenDiagram({
-  input, hidDim, hiddenWeights, b1, W2, maxW2, b2, selected, onSelect,
+  input, hidDim, hiddenWeights, b1, W2, maxW2, b2, selected, onSelect, onPixelHover,
 }: {
   input: number[] | null;
   hidDim: number;
@@ -826,6 +837,7 @@ function HiddenDiagram({
   b2: number;
   selected: number | 'out';
   onSelect: (s: number | 'out') => void;
+  onPixelHover?: (idx: number | null) => void;
 }) {
   const W = 540, H = 400;
   const inCx = 36;
@@ -835,6 +847,10 @@ function HiddenDiagram({
   const outCx = 470, outCy = H / 2, outR = 22;
 
   const [hover, setHover] = useState<string | null>(null);
+  const hoverPixel = (idx: number | null, tip: string | null) => {
+    setHover(tip);
+    onPixelHover?.(idx);
+  };
 
   // 선택된 은닉 뉴런의 64개 가중치에 대한 maxAbs (라인 색칠 정규화용)
   const selH = typeof selected === 'number' ? selected : -1;
@@ -875,7 +891,7 @@ function HiddenDiagram({
               stroke="transparent"
               strokeWidth={6}
               style={{ cursor: 'pointer' }}
-              onMouseEnter={() => setHover(tip)} />
+              onMouseEnter={() => hoverPixel(i, tip)} />
           </g>
         );
       } else {
@@ -894,7 +910,7 @@ function HiddenDiagram({
 
   return (
     <div className="rounded-md border border-border bg-bg/50 p-2">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" onMouseLeave={() => setHover(null)}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" onMouseLeave={() => hoverPixel(null, null)}>
         <defs>
           <marker id="nv-h-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M0,0 L10,5 L0,10 Z" fill="rgb(var(--color-muted))" />
@@ -921,7 +937,7 @@ function HiddenDiagram({
             ? `픽셀 (행 ${r}, 열 ${c}) · 값 ${active ? 1 : 0} · W₁[h${selH}][${i}] = ${hiddenWeights[selH][i] >= 0 ? '+' : ''}${hiddenWeights[selH][i].toFixed(3)}`
             : `픽셀 (행 ${r}, 열 ${c}) · 값 ${active ? 1 : 0} (은닉 뉴런을 클릭하면 그 뉴런으로 가는 가중치가 보여요)`;
           return (
-            <g key={i} style={{ cursor: 'pointer' }} onMouseEnter={() => setHover(tip)}>
+            <g key={i} style={{ cursor: 'pointer' }} onMouseEnter={() => hoverPixel(i, tip)}>
               <circle cx={inCx} cy={cy} r={inR}
                 fill={active ? 'rgb(var(--color-text))' : 'rgb(var(--color-bg))'}
                 stroke="rgb(var(--color-muted))"
@@ -1026,12 +1042,13 @@ function HiddenDiagram({
 }
 
 /* ────────── 우측 — 선택된 뉴런의 8×8 가중치 히트맵 ────────── */
-function HeatmapPanel({ w, bias, title, subtitle, outWeight }: {
+function HeatmapPanel({ w, bias, title, subtitle, outWeight, highlightIdx }: {
   w: Float32Array;
   bias: number;
   title: string;
   subtitle?: string;
   outWeight?: number;
+  highlightIdx?: number | null;
 }) {
   const SIZE = 8, cell = 18, total = SIZE * cell;
   const [hover, setHover] = useState<string | null>(null);
@@ -1070,6 +1087,19 @@ function HeatmapPanel({ w, bias, title, subtitle, outWeight }: {
             <line x1={0} y1={i * cell} x2={total} y2={i * cell} />
           </g>
         ))}
+        {/* 다이어그램에서 호버한 가중치/픽셀의 위치를 노란 테두리로 강조 */}
+        {highlightIdx != null && highlightIdx >= 0 && highlightIdx < SIZE * SIZE && (
+          <rect
+            x={(highlightIdx % SIZE) * cell}
+            y={Math.floor(highlightIdx / SIZE) * cell}
+            width={cell}
+            height={cell}
+            fill="none"
+            stroke="rgb(234, 179, 8)"
+            strokeWidth={2.5}
+            style={{ pointerEvents: 'none' }}
+          />
+        )}
       </svg>
       <div className="mt-1.5 text-[10px] font-mono min-h-[1.4em]"
         style={{ color: hover ? 'rgb(var(--color-text))' : 'rgb(var(--color-muted))' }}>
