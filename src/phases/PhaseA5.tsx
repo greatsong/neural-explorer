@@ -542,8 +542,22 @@ function NeuronView({
         <div className={`text-[10px] font-sans mb-1 ${stage === 'update' ? 'text-accent font-semibold' : 'text-muted font-normal'}`}>
           {stage === 'update' ? '★ 지금 — 갱신 식이 적용되는 단계' : '갱신 식 (일반형) — 한 step에 w·b 동시 적용'}
         </div>
-        <div>w ← w − η · dw</div>
-        <div>b ← b − η · db</div>
+        <div>
+          w ← w − η · dw
+          {stage === 'update' && (
+            <span className="ml-2 text-muted">
+              ({(w - LR * grad.dw).toFixed(3)} = {w.toFixed(3)} − {LR}·{grad.dw < 0 ? `(${grad.dw.toFixed(3)})` : grad.dw.toFixed(3)})
+            </span>
+          )}
+        </div>
+        <div>
+          b ← b − η · db
+          {stage === 'update' && (
+            <span className="ml-2 text-muted">
+              ({(b - LR * grad.db).toFixed(3)} = {b.toFixed(3)} − {LR}·{grad.db < 0 ? `(${grad.db.toFixed(3)})` : grad.db.toFixed(3)})
+            </span>
+          )}
+        </div>
       </div>
       <div className="text-[10.5px] text-muted px-1 leading-snug mt-1.5">
         대표 점 x = 3 (정답 y = 7)으로 그렸어요. 가중치 선 굵기는 |w|, 파란 화살표 굵기는 다섯 점 평균 |dw|·|db|에 비례.
