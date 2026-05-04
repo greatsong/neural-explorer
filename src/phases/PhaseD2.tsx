@@ -202,7 +202,7 @@ export function PhaseD2() {
       </p>
 
       <div className="grid lg:grid-cols-[1.3fr_1fr] gap-4 mt-4 items-start">
-        <div className="card p-3">
+        <div className="card p-3 lg:sticky lg:top-16 lg:z-10">
           <BackpropDiagram step={step} />
           <div className="text-[11px] text-muted mt-2 leading-snug text-center">
             검정 = 앞으로(forward) 흐르는 신호 ·
