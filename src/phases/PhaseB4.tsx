@@ -400,10 +400,10 @@ export function PhaseB4() {
             )}
           </div>
 
-          {/* 정확도 큰 숫자 */}
+          {/* 정확도 큰 숫자 — 좁은 컬럼에서도 안 잘리도록 세로 1열 + 가로 베이스라인 */}
           <div className="card p-3">
             <div className="text-sm font-medium">정확도</div>
-            <div className="mt-2 grid grid-cols-2 gap-2">
+            <div className="mt-2 flex flex-col gap-1.5">
               <BigStat
                 label="학습용"
                 value={trainAcc}
@@ -575,12 +575,15 @@ function BigStat({ label, value, color, hint }: {
   label: string; value: number | null; color: string; hint?: string;
 }) {
   return (
-    <div className="rounded-md border border-border bg-bg p-2 text-center">
-      <div className="text-[11px] text-muted">{label}</div>
-      <div className="text-2xl font-semibold font-mono mt-0.5" style={{ color: value === null ? 'rgb(var(--color-muted))' : color }}>
+    <div className="rounded-md border border-border bg-bg px-2 py-1.5 flex items-baseline gap-2 min-w-0">
+      <div className="text-[11px] text-muted shrink-0">{label}</div>
+      <div
+        className="text-base font-semibold font-mono tabular-nums whitespace-nowrap"
+        style={{ color: value === null ? 'rgb(var(--color-muted))' : color }}
+      >
         {value === null ? '—' : `${(value * 100).toFixed(1)}%`}
       </div>
-      {hint && <div className="text-[10px] text-muted mt-0.5">{hint}</div>}
+      {hint && <div className="ml-auto text-[10px] text-muted truncate">{hint}</div>}
     </div>
   );
 }
