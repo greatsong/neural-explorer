@@ -111,8 +111,10 @@ export function PhaseA4() {
       <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
       <h1>{meta.title}</h1>
       <p className="text-muted mt-2">
-        A3에서 본 갱신 식 <code>w ← w − η · dw</code>의 dw가 어디서 오는지,
-        한 번만 손으로 계산해 봅니다. 결론은 단순해요 —{' '}
+        A3에서 본 갱신 식 <code>w ← w − η · dw</code> — 여기서 <code>dw</code> 는{' '}
+        <strong className="text-accent">A3 에서 봤던 그 '기울기'</strong>, 즉{' '}
+        <strong className="text-accent">w 가 조금 움직일 때 오차가 얼마나 변하는지</strong> 알려주는 숫자예요.
+        그 <code>dw</code> 가 어디서 오는지 한 번만 손으로 계산해 봅니다. 결론은 단순해요 —{' '}
         <strong className="text-accent">dw = 평균(e · x)</strong>,{' '}
         <strong className="text-accent">db = 평균(e)</strong>.
       </p>
