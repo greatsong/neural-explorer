@@ -94,12 +94,12 @@ export function Intro() {
       <section className="mt-16">
         <h2 className="text-center">학습 여정</h2>
         <p className="text-center text-muted text-sm mt-2">
-          뉴런 한 개의 한 step에서 시작해 손글씨 분류까지 — 알고리즘 → 데이터·분류 → 딥러닝
+          뉴런 한 개의 한 step에서 시작해 손글씨 분류까지 — 단일 뉴런 → 분류 문제 → 딥러닝
         </p>
         <div className="grid sm:grid-cols-3 gap-4 mt-6">
-          <Step n="A" title="알고리즘의 이해" desc="예측 → 오차 → 기울기 → 갱신을 한 묶음으로. 마지막에 단일 뉴런으로 서울 기온 회귀까지." />
-          <Step n="B" title="데이터·학습·분류" desc="도트 그림 데이터 한 종류로 입력·라벨·전처리·분할·시그모이드 이진 분류까지 차례로." />
-          <Step n="C" title="딥러닝" desc="역전파가 어떻게 깊은 망의 모든 가중치를 동시에 갱신하는지. 마지막은 진짜 손글씨 MNIST로 종합." />
+          <Step n="A" title="단일 인공 뉴런의 학습" desc="예측 → 오차 → 기울기 → 갱신을 한 묶음으로. 마지막에 단일 뉴런으로 서울 기온 회귀까지." />
+          <Step n="B" title="분류 문제 해결하기" desc="도트 그림 데이터 한 종류로 입력·라벨·전처리·분할·시그모이드 이진 분류까지 차례로." />
+          <Step n="C" title="딥러닝으로 손글씨 분류하기" desc="여러 층 신경망으로 진짜 손글씨 숫자(MNIST)를 분류해 보기." />
         </div>
       </section>
 

@@ -15,9 +15,9 @@ export interface PhaseMeta {
   title: string;
   subtitle: string;
   group:
-    | 'A. 알고리즘의 이해'
-    | 'B. 데이터·학습·분류 출력'
-    | 'C. 딥러닝'
+    | 'A. 단일 인공 뉴런의 학습'
+    | 'B. 분류 문제 해결하기'
+    | 'C. 딥러닝으로 손글씨 분류하기'
     | '심화 학습 — 역전파 알고리즘 이해하기'
     | '자기주도 심층 탐구'
     | '5부 — 분류를 넘어 생성으로'
@@ -25,23 +25,23 @@ export interface PhaseMeta {
 }
 
 export const PHASES: PhaseMeta[] = [
-  // A. 알고리즘의 이해 — 예측 → 오차 → 기울기 → 갱신 → 한 바퀴 → 실생활
-  { id: 'a1', num: 'A1', title: '인공 뉴런의 예측',  subtitle: '부품 → 곱·합·활성화 → 예측값',          group: 'A. 알고리즘의 이해' },
-  { id: 'a2', num: 'A2', title: '오차와 MSE',        subtitle: '예측 − 정답, 그리고 평균 제곱',         group: 'A. 알고리즘의 이해' },
-  { id: 'a3', num: 'A3', title: '경사하강법',         subtitle: '손실이 줄어드는 방향 + 보폭 η',         group: 'A. 알고리즘의 이해' },
-  { id: 'a4', num: 'A4', title: '기울기 계산하기',    subtitle: 'e·x 모양 + 표본 평균',                  group: 'A. 알고리즘의 이해' },
-  { id: 'a5', num: 'A5', title: '전체 흐름 완성',     subtitle: '예측 → 오차 → 기울기 → 갱신 한 묶음',   group: 'A. 알고리즘의 이해' },
-  { id: 'a6', num: 'A6', title: '기온 예측 프로젝트', subtitle: '인공 뉴런 1개로 서울 기온 회귀',         group: 'A. 알고리즘의 이해' },
+  // A. 단일 인공 뉴런의 학습 — 예측 → 오차 → 기울기 → 갱신 → 한 바퀴 → 실생활
+  { id: 'a1', num: 'A1', title: '인공 뉴런의 예측',  subtitle: '부품 → 곱·합·활성화 → 예측값',          group: 'A. 단일 인공 뉴런의 학습' },
+  { id: 'a2', num: 'A2', title: '오차와 MSE',        subtitle: '예측 − 정답, 그리고 평균 제곱',         group: 'A. 단일 인공 뉴런의 학습' },
+  { id: 'a3', num: 'A3', title: '경사하강법',         subtitle: '손실이 줄어드는 방향 + 보폭 η',         group: 'A. 단일 인공 뉴런의 학습' },
+  { id: 'a4', num: 'A4', title: '기울기 계산하기',    subtitle: 'e·x 모양 + 표본 평균',                  group: 'A. 단일 인공 뉴런의 학습' },
+  { id: 'a5', num: 'A5', title: '전체 흐름 완성',     subtitle: '예측 → 오차 → 기울기 → 갱신 한 묶음',   group: 'A. 단일 인공 뉴런의 학습' },
+  { id: 'a6', num: 'A6', title: '기온 예측 프로젝트', subtitle: '인공 뉴런 1개로 서울 기온 회귀',         group: 'A. 단일 인공 뉴런의 학습' },
 
   // B. 데이터 수집·학습·분류 출력 — 도트 데이터 하나로 통일
-  { id: 'b1', num: 'B1', title: '문제 정의와 라벨',         subtitle: '세모 vs 네모, 입력·특징·정답',         group: 'B. 데이터·학습·분류 출력' },
-  { id: 'b2', num: 'B2', title: '데이터셋과 전처리',        subtitle: '기본 데이터 + 정제할 샘플 찾기',       group: 'B. 데이터·학습·분류 출력' },
-  { id: 'b3', num: 'B3', title: '학습 / 평가 데이터 나누기', subtitle: '왜 나눠야 하는가',                     group: 'B. 데이터·학습·분류 출력' },
-  { id: 'b4', num: 'B4', title: '이진 분류 모델 학습',      subtitle: '세모 vs 네모, 시그모이드 출력 1개',     group: 'B. 데이터·학습·분류 출력' },
+  { id: 'b1', num: 'B1', title: '문제 정의와 라벨',         subtitle: '세모 vs 네모, 입력·특징·정답',         group: 'B. 분류 문제 해결하기' },
+  { id: 'b2', num: 'B2', title: '데이터셋과 전처리',        subtitle: '기본 데이터 + 정제할 샘플 찾기',       group: 'B. 분류 문제 해결하기' },
+  { id: 'b3', num: 'B3', title: '학습 / 평가 데이터 나누기', subtitle: '왜 나눠야 하는가',                     group: 'B. 분류 문제 해결하기' },
+  { id: 'b4', num: 'B4', title: '이진 분류 모델 학습',      subtitle: '세모 vs 네모, 시그모이드 출력 1개',     group: 'B. 분류 문제 해결하기' },
 
-  // C. 딥러닝 — MNIST 데이터셋·문제 의미 소개(C1) → 실제 모델로 도전(C2)
-  { id: 'c1', num: 'C1', title: 'MNIST 데이터셋 소개', subtitle: '왜 손글씨 숫자 분류가 의미 있는가',     group: 'C. 딥러닝' },
-  { id: 'c2', num: 'C2', title: '미니 MNIST 도전',     subtitle: '실제 데이터 일부(300장)로 작은 모델을 직접 학습',     group: 'C. 딥러닝' },
+  // C. 딥러닝으로 손글씨 분류하기 — MNIST 데이터셋·문제 의미 소개(C1) → 실제 모델로 도전(C2)
+  { id: 'c1', num: 'C1', title: 'MNIST 데이터셋 소개', subtitle: '왜 손글씨 숫자 분류가 의미 있는가',     group: 'C. 딥러닝으로 손글씨 분류하기' },
+  { id: 'c2', num: 'C2', title: '미니 MNIST 도전',     subtitle: '실제 데이터 일부(300장)로 작은 모델을 직접 학습',     group: 'C. 딥러닝으로 손글씨 분류하기' },
 
   // 심화 학습 — 역전파를 직관 → 스캐폴딩 → 식 유도 순서로 깊게.
   { id: 'd1', num: 'D1', title: '역전파 직관',                  subtitle: '한 사이클의 6단계 — 거꾸로 흐르는 신호', group: '심화 학습 — 역전파 알고리즘 이해하기' },
