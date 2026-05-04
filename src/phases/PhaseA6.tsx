@@ -218,7 +218,7 @@ export function PhaseA6() {
           <div className="aside-note text-[12px] leading-relaxed">
             <div className="text-sm font-medium">빈 원(○) 점은 뭔가요? — 보간(interpolation)</div>
             <p className="mt-1 text-muted">
-              한국전쟁(1950–1953) 시기에는 기온 관측이 끊겨 <strong>4 년치 데이터가 없어요</strong>.
+              6.25 전쟁(1950–1953) 시기에는 기온 관측이 끊겨 <strong>4 년치 데이터가 없어요</strong>.
               이런 빈 자리를 그냥 두면 그래프가 끊기니까, <strong>앞뒤 해의 기온을 부드럽게 이어
               "이쯤이었을 것"이라고 추정한 값</strong>으로 채웁니다 — 이걸 <strong>보간</strong>이라 해요.
               실제 측정값은 <span style={{ color: 'rgb(var(--color-accent))' }}>꽉 찬 파란 점</span>,
@@ -322,7 +322,7 @@ function Scatter({
         <text x={padL - 4} y={padT - 2} textAnchor="end" fontSize={10} fill="rgb(var(--color-muted))">℃</text>
       </svg>
       <div className="text-[11px] text-muted px-1 pb-1 leading-snug">
-        파란 점 = 서울 연평균 기온 (1908~2025, 출처 기상청 ASOS). 빈 원 = 한국전쟁기 결측 4년 보간값.
+        파란 점 = 서울 연평균 기온 (1908~2025, 출처 기상청 ASOS). 빈 원 = 6.25 전쟁기 결측 4년 보간값.
         주황 직선 = 인공 뉴런 1개의 회귀선 ŷ = w · x + b.
       </div>
     </div>
