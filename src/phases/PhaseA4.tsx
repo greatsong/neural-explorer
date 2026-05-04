@@ -76,7 +76,8 @@ export function PhaseA4() {
   const markCompleted = useApp((s) => s.markCompleted);
 
   // 학생이 손으로 따라가도록 w, b 슬라이더로 ŷ가 변하게 함 (정답 w=2, b=1).
-  const [w, setW] = useState(1.5);
+  // A5 와 시작점 통일 — 학생이 A4 에서 손계산한 dw·db 가 A5 의 갱신 식에 그대로 들어가도록.
+  const [w, setW] = useState(0);
   const [b, setB] = useState(0);
 
   // 유도는 단계별로 펼치기. 마지막까지 보면 완료 처리.
