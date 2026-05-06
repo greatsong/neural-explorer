@@ -24,3 +24,9 @@ dist-ssr
 *.sw?
 .vercel
 .env*.local
+
+# 평가지 — GitHub 노출 절대 금지
+private/
+**/assessment/
+*-assessment*.html
+*-assessment*.pdf
