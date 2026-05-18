@@ -17,12 +17,11 @@ import { PhaseB1 } from './phases/PhaseB1';
 import { PhaseB2 } from './phases/PhaseB2';
 import { PhaseB3 } from './phases/PhaseB3';
 import { PhaseB4 } from './phases/PhaseB4';
-import { PhaseC1 as PhaseBackpropIntuition } from './phases/PhaseC1'; // 역전파 직관 → D1 으로 이동
-import { PhaseC2Derive } from './phases/PhaseC2Derive'; // 역전파 식 유도 → D3 으로 이동
 import { PhaseC2 as PhaseMNIST } from './phases/PhaseC2'; // MNIST 컴포넌트 → 새 C2 로
-import { PhaseD2 } from './phases/PhaseD2'; // 한 뉴런→두 뉴런 스캐폴딩 (신규)
+import { PhaseD1 } from './phases/PhaseD1'; // 회귀 평가 (신규)
+import { PhaseD2 } from './phases/PhaseD2'; // 분류 평가 — 시나리오+임계값 (신규)
 import { PhaseMnistIntro } from './phases/PhaseMnistIntro'; // MNIST 데이터셋 소개 (새 C1)
-import { PhaseDive } from './phases/PhaseDive'; // 자기주도 심층 탐구 (E1)
+import { PhaseDive } from './phases/PhaseDive'; // 자기주도 심층 탐구
 import { Phase13 } from './phases/Phase13';
 import { Phase14 } from './phases/Phase14';
 import { Phase15 } from './phases/Phase15';
@@ -140,12 +139,12 @@ function readHash(): View {
 }
 
 function isWide(id: PhaseId) {
-  // A6(기온 회귀), B/C 영역(분류·MNIST·은닉층 시각화), 5·6부 모두 와이드 레이아웃
+  // A6(기온 회귀), B/C/D 영역(분류·MNIST·평가), E·5·6부 모두 와이드 레이아웃
   return [
     'a3', 'a5', 'a6',
     'b2', 'b3', 'b4',
     'c1', 'c2',
-    'd1', 'd2', 'd3',
+    'd1', 'd2',
     'e1',
     'p13', 'p14', 'p15', 'p16', 'p17', 'p18', 'p19', 'p20', 'p21', 'p22',
   ].includes(id);
@@ -165,9 +164,8 @@ function renderPhase(id: PhaseId) {
     case 'b4': return <PhaseB4 />;
     case 'c1': return <PhaseMnistIntro />;
     case 'c2': return <PhaseMNIST />;
-    case 'd1': return <PhaseBackpropIntuition />;
+    case 'd1': return <PhaseD1 />;
     case 'd2': return <PhaseD2 />;
-    case 'd3': return <PhaseC2Derive />;
     case 'e1': return <PhaseDive />;
     case 'p13': return <Phase13 />;
     case 'p14': return <Phase14 />;

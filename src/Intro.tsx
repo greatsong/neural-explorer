@@ -27,7 +27,7 @@ export function Intro() {
         <div className="text-sm text-muted mt-2">아티피셜 뉴럴넷 익스플로러</div>
         <p className="text-lg sm:text-xl text-muted mt-4 max-w-2xl mx-auto leading-relaxed">
           코드 한 줄도 쓰지 않고, 슬라이더와 그림판으로<br className="hidden sm:inline" />
-          신경망의 원리를 손끝으로 배우는 15단계 인터랙티브 학습 앱
+          신경망부터 LLM의 첫걸음까지 — 16단계 인터랙티브 학습 앱
         </p>
         <div className="flex flex-wrap justify-center gap-3 mt-8">
           <button onClick={() => go('a1')} className="btn-primary px-6 py-3 text-base">
@@ -49,7 +49,7 @@ export function Intro() {
           <span>👨‍🎓 대상: 고등학생</span>
           <span>⏱ 4차시 (50분 ×4)</span>
           <span>🌐 코드 작성 없음</span>
-          <span>📦 15 페이즈 (A·B·C)</span>
+          <span>📦 16 페이즈 (A·B·C·D·E)</span>
         </div>
       </section>
 
@@ -59,9 +59,9 @@ export function Intro() {
           // 5·6부는 메뉴에서 항상 숨김 (인지 과부하 방지)
           if (isBonusGroup(group)) return null;
           if (isBonus2Group(group)) return null;
-          // group은 "A. 알고리즘의 이해" 등이라 첫 글자(A/B/C)를 PART 라벨로 사용
+          // group은 "A. 알고리즘의 이해" 등이라 첫 글자(A/B/C/D/E)를 PART 라벨로 사용
           const partLetter = group.charAt(0);
-          const partTitle = group.replace(/^[ABC]\.\s*/, '');
+          const partTitle = group.replace(/^[A-E]\.\s*/, '');
           return (
             <div key={group} className="card p-5 hover:border-accent/50 transition">
               <div className="text-xs font-mono text-accent mb-2">PART {partLetter}</div>
@@ -94,12 +94,14 @@ export function Intro() {
       <section className="mt-16">
         <h2 className="text-center">학습 여정</h2>
         <p className="text-center text-muted text-sm mt-2">
-          뉴런 한 개의 한 step에서 시작해 손글씨 분류까지 — 단일 뉴런 → 분류 문제 → 딥러닝
+          뉴런 한 개에서 시작해, 분류·딥러닝·평가를 거쳐 언어 모델까지 — 한 흐름으로
         </p>
-        <div className="grid sm:grid-cols-3 gap-4 mt-6">
-          <Step n="A" title="단일 인공 뉴런의 학습" desc="예측 → 오차 → 기울기 → 갱신을 한 묶음으로. 마지막에 단일 뉴런으로 서울 기온 회귀까지." />
-          <Step n="B" title="분류 문제 해결하기" desc="도트 그림 데이터 한 종류로 입력·라벨·전처리·분할·시그모이드 이진 분류까지 차례로." />
-          <Step n="C" title="딥러닝으로 손글씨 분류하기" desc="여러 층 신경망으로 진짜 손글씨 숫자(MNIST)를 분류해 보기." />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mt-6">
+          <Step n="A" title="단일 인공 뉴런의 학습" desc="예측 → 오차 → 기울기 → 갱신. 단일 뉴런으로 서울 기온 회귀까지." />
+          <Step n="B" title="분류 문제 해결하기" desc="도트 그림 데이터로 입력·라벨·전처리·분할·시그모이드 이진 분류." />
+          <Step n="C" title="딥러닝으로 손글씨 분류" desc="여러 층 신경망으로 진짜 손글씨 숫자(MNIST)를 분류." />
+          <Step n="D" title="모델을 어떻게 평가할까" desc="회귀는 잔차로, 분류는 정확도·정밀도·재현율·F1·임계값으로." />
+          <Step n="E" title="언어를 다루는 신경망" desc="글자를 수자로, 단어를 좌표로, 그리고 다음 단어 맞히기 = LLM." />
         </div>
       </section>
 

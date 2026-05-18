@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>Neural Explorer 활동지 D부 — 모델을 어떻게 평가할까</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt;page-break-after:avoid}
+
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt;page-break-after:avoid}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .meta{font-size:9pt;color:#777;margin-top:6pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+  .name{font-size:9.5pt;color:#555;margin-top:8pt}
+  .name span{display:inline-block;border-bottom:1px solid #888;min-width:80pt;margin:0 8pt}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0;break-inside:auto;page-break-inside:auto}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt;break-inside:avoid;page-break-inside:avoid}
+  .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+  .sh{font-size:11pt;font-weight:700;margin:14pt 0 6pt;color:#222;break-after:avoid;page-break-after:avoid}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0;break-inside:avoid;page-break-inside:avoid}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .tip{border-left-style:dashed}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px;break-inside:avoid;page-break-inside:avoid}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#1a1a1a;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb .blank{height:22pt;background:#fff}
+  .tb .blank.tall{height:30pt}
+  .tb td.left{text-align:left;padding-left:9pt}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .bk{display:inline-block;border-bottom:1.5px solid #333;min-width:30pt;text-align:center;padding:0 4pt;margin:0 2pt}
+  .bk.lg{min-width:60pt}
+  .bk.xl{min-width:120pt}
+  .ans-area{border:1px solid #aaa;border-radius:4px;min-height:38pt;padding:6pt;margin:6pt 0;background:#fcfcfc}
+  .ans-area.lg{min-height:60pt}
+
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  .ob{border:1.2px dashed #777;border-radius:5px;padding:8pt 10pt;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .ob .lab{font-weight:700;font-size:10pt;margin-bottom:4pt}
+
+  .choice{margin:3pt 0}
+  .choice label{margin-right:14pt}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt}
+  ul,ol{padding-left:18pt;margin:4pt 0}
+  li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto;overflow:visible}
+    .qh,.fm,.ex,.ib,.tb,.an,.ob{break-inside:avoid;page-break-inside:avoid}
+    .sh{break-after:avoid;page-break-after:avoid}
+    p,li{orphans:3;widows:3}
+    .tb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .qh .num{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header class="lh">
+  <div class="lab">NEURAL EXPLORER · ACTIVITY D / 5</div>
+  <h1>D — 모델을 어떻게 평가할까</h1>
+  <div class="sub">회귀 평가(잔차·MAE·RMSE·R²) + 분류 평가(정확도·정밀도·재현율·F1·임계값)를 작은 표로 직접 계산합니다</div>
+  <div class="meta">앱 페이즈 D1·D2 · 대상: C까지 학습한 고등학생 · 활동 시간 60~80분</div>
+  <div class="lh obj">한 모델이 "잘 맞췄는지"를 한 숫자로 말하기 위해 회귀에서는 네 지표, 분류에서는 다섯 숫자(혼동행렬 + 네 지표)와 임계값을 사용합니다. 이 활동지에서는 모든 지표를 <em>작은 표</em>로 직접 계산하고, 시나리오에 따라 좋은 모델이 어떻게 달라지는지 직접 골라 봅니다.</div>
+  <div class="name">학번 <span></span> 이름 <span></span> 모둠 <span></span></div>
+</header>
+
+<div class="ex">
+  <strong>이번 활동지에서 다루는 것</strong>
+  <ol style="margin-top:4pt">
+    <li>회귀 모델 — 잔차 → MAE → MSE/RMSE → R² 직접 계산</li>
+    <li>분류 모델 — 혼동 행렬 채우기 → 정확도·정밀도·재현율·F1 직접 계산</li>
+    <li>시나리오 — 어떤 실수가 더 아픈지에 따라 좋은 모델 고르기</li>
+    <li>임계값 — 같은 모델 점수에 임계값을 옮겨 매트릭스가 어떻게 바뀌는지 직접 채우기</li>
+  </ol>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<h2>섹션 1. 회귀 평가 — 잔차에서 R²까지</h2>
+
+<div class="ib">
+  <div class="t">기억 — A6의 한 줄</div>
+  단일 인공 뉴런이 만든 예측은 <span class="mono">ŷ = w · x + b</span>. 한 점에서의 오차(잔차)는 <span class="mono">ŷ − y</span>.
+  이 잔차를 모아 한 숫자로 만드는 네 가지 방법을 보게 됩니다.
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-A</span> 잔차 계산 — 작은 표</div>
+  <div class="qd">서울 어느 5년치 평균 기온(<span class="mono">y</span>)과 어떤 모델의 예측값(<span class="mono">ŷ</span>)이 다음과 같다고 합시다. 각 행의 잔차 <span class="mono">ŷ − y</span>와 그 절대값·제곱을 빈 칸에 채워 보세요.</div>
+  <table class="tb">
+    <thead>
+      <tr>
+        <th style="width:14%">연도</th>
+        <th style="width:18%">실제 y (°C)</th>
+        <th style="width:18%">예측 ŷ (°C)</th>
+        <th style="width:18%">잔차 ŷ − y</th>
+        <th style="width:16%">|잔차|</th>
+        <th style="width:16%">잔차²</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>2018</td><td>13.0</td><td>13.4</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>2019</td><td>13.4</td><td>13.6</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>2020</td><td>13.6</td><td>13.8</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>2021</td><td>13.9</td><td>14.0</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>2022</td><td>14.2</td><td>14.2</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="lbl">합계</td><td colspan="3"></td><td class="blank"></td><td class="blank"></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-B</span> MAE 계산</div>
+  <div class="qd">|잔차|의 합을 <strong>표본 수 N</strong>으로 나누면 평균 절대 오차(MAE)입니다.</div>
+  <div class="fm">
+    MAE = ( |잔차₁| + |잔차₂| + … + |잔차ₙ| ) / N <br>
+    MAE = <span class="bk lg"></span> / 5 = <span class="bk lg"></span> °C
+  </div>
+  <div class="ib tip">
+    <div class="t">읽는 법</div>
+    "평균적으로 <span class="bk"></span> °C 정도 빗나간다"고 말할 수 있어요. 단위가 원본과 같은 °C라는 것이 장점.
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-C</span> MSE · RMSE 계산</div>
+  <div class="qd">잔차의 제곱 합을 N으로 나누면 MSE, 거기에 루트를 씌우면 단위가 다시 °C로 돌아오는 RMSE입니다.</div>
+  <div class="fm">
+    MSE  = ( 잔차₁² + 잔차₂² + … + 잔차ₙ² ) / N = <span class="bk lg"></span> / 5 = <span class="bk lg"></span> °C² <br>
+    RMSE = √MSE = √<span class="bk"></span> = <span class="bk lg"></span> °C
+  </div>
+  <div class="ib">
+    <div class="t">생각해 보기</div>
+    이 표에서 RMSE는 MAE보다 큰가요, 작은가요? 답: <span class="bk"></span> · 그렇게 된 이유를 한 문장으로 적어 보세요.
+    <div class="ans-area"></div>
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-D</span> R² 계산 — 기준선 대비 설명력</div>
+  <div class="qd">R²는 "이 모델이 <em>평균만 답하는 모델</em>보다 잔차를 얼마나 줄였나"를 나타내는 비율 지표예요.</div>
+  <div class="ib">
+    <div class="t">먼저 — 실제 y의 평균 계산</div>
+    <span class="mono">ȳ</span> = (13.0 + 13.4 + 13.6 + 13.9 + 14.2) / 5 = <span class="bk"></span> °C
+  </div>
+  <table class="tb">
+    <thead>
+      <tr>
+        <th style="width:14%">연도</th>
+        <th style="width:22%">실제 y</th>
+        <th style="width:32%">y − ȳ</th>
+        <th style="width:32%">(y − ȳ)²</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>2018</td><td>13.0</td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>2019</td><td>13.4</td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>2020</td><td>13.6</td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>2021</td><td>13.9</td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>2022</td><td>14.2</td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="lbl" colspan="3">합계 (기준선 제곱합)</td><td class="blank"></td></tr>
+    </tbody>
+  </table>
+  <div class="fm">
+    R² = 1 − (잔차 제곱합) / (기준선 제곱합) <br>
+    R² = 1 − <span class="bk"></span> / <span class="bk"></span> = 1 − <span class="bk"></span> = <span class="bk lg"></span>
+  </div>
+  <div class="ib tip">
+    <div class="t">읽는 법</div>
+    R²가 1에 가까우면 모델이 잘 따라간 것, 0이면 평균만 답하는 것과 다를 바 없음, 음수면 평균보다 못함.
+    이 모델의 R²는 어디쯤인가요? <span class="bk"></span>
+  </div>
+</div>
+
+<div class="an">
+  <div><span class="lab">앱 D1</span> 직접 확인하기</div>
+  <div style="margin-top:4pt">
+    앱에서 D1을 열고, "최적 직선으로 점프" 버튼을 눌러 RMSE가 가장 작아지는 (w, b)를 찾아 보세요. 그때의 네 지표를 적어 보고, 활동지의 5년치 표보다 RMSE가 큰지 작은지 비교해 봅니다.
+    <div class="fm" style="margin-top:6pt">
+      앱에서 — MAE = <span class="bk lg"></span> · RMSE = <span class="bk lg"></span> · R² = <span class="bk lg"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<h2>섹션 2. 분류 평가 — 혼동 행렬에서 F1까지</h2>
+
+<div class="ib">
+  <div class="t">기억 — B4의 한 줄</div>
+  이진 분류 모델은 점수 <span class="mono">σ(z)</span>를 0~1 사이로 짜내고 <strong>임계값</strong>(보통 0.5) 이상이면 양성으로 판정합니다.
+  이 판정 결과를 정답과 함께 정리한 2×2 표가 <strong>혼동 행렬</strong>이에요.
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-A</span> 혼동 행렬 채우기 — 환자 10명</div>
+  <div class="qd">어느 검진 모델이 환자 10명에 대해 다음과 같이 답했다고 합시다. 각 환자가 <strong>TP / FP / FN / TN</strong> 중 어디에 들어가는지 칸에 적어 보세요.</div>
+  <table class="tb">
+    <thead>
+      <tr>
+        <th style="width:12%">환자</th>
+        <th style="width:22%">실제 (정답)</th>
+        <th style="width:22%">예측 (모델 답)</th>
+        <th style="width:44%">어디에 들어가는가? (TP/FP/FN/TN)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>A</td><td>양성</td><td>양성</td><td class="blank"></td></tr>
+      <tr><td>B</td><td>양성</td><td>양성</td><td class="blank"></td></tr>
+      <tr><td>C</td><td>양성</td><td>양성</td><td class="blank"></td></tr>
+      <tr><td>D</td><td>양성</td><td>음성</td><td class="blank"></td></tr>
+      <tr><td>E</td><td>양성</td><td>음성</td><td class="blank"></td></tr>
+      <tr><td>F</td><td>음성</td><td>양성</td><td class="blank"></td></tr>
+      <tr><td>G</td><td>음성</td><td>음성</td><td class="blank"></td></tr>
+      <tr><td>H</td><td>음성</td><td>음성</td><td class="blank"></td></tr>
+      <tr><td>I</td><td>음성</td><td>음성</td><td class="blank"></td></tr>
+      <tr><td>J</td><td>음성</td><td>음성</td><td class="blank"></td></tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top:6pt">위 결과를 모아 혼동 행렬을 채워 보세요.</div>
+  <table class="tb" style="max-width:380pt">
+    <tbody>
+      <tr><td class="lbl"></td><td class="lbl">예측 양성</td><td class="lbl">예측 음성</td></tr>
+      <tr><td class="lbl">실제 양성</td><td>TP = <span class="bk"></span></td><td>FN = <span class="bk"></span></td></tr>
+      <tr><td class="lbl">실제 음성</td><td>FP = <span class="bk"></span></td><td>TN = <span class="bk"></span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-B</span> 네 지표 손계산</div>
+  <div class="qd">2-A 에서 채운 TP/FP/FN/TN을 그대로 식에 넣어 네 지표를 계산합니다.</div>
+  <div class="fm">
+    정확도 = (TP + TN) / 전체 = (<span class="bk"></span> + <span class="bk"></span>) / 10 = <span class="bk lg"></span> <br>
+    정밀도 = TP / (TP + FP) = <span class="bk"></span> / <span class="bk"></span> = <span class="bk lg"></span> <br>
+    재현율 = TP / (TP + FN) = <span class="bk"></span> / <span class="bk"></span> = <span class="bk lg"></span> <br>
+    F1     = 2 · 정밀도 · 재현율 / (정밀도 + 재현율) = <span class="bk lg"></span>
+  </div>
+  <div class="ib tip">
+    <div class="t">생각해 보기</div>
+    이 모델은 어느 쪽 실수를 더 많이 하나요? FP(오경보)인가요 FN(놓침)인가요? <span class="bk"></span> ·
+    그 결과 네 지표 중 어느 것이 가장 낮나요? <span class="bk lg"></span>
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-C</span> 시나리오 — 어떤 실수가 더 아픈가</div>
+  <div class="qd">다음 두 시나리오를 읽고, 모델 A와 B 중 어느 쪽이 그 상황에 더 적합한지 고르고 이유를 1~2문장으로 적으세요.</div>
+
+  <h3>시나리오 ㉠ — 코로나 PCR 검사</h3>
+  <div class="ex">
+    동네 보건소에서 신속하게 양성을 골라내는 1차 검사. 양성으로 뜨면 정밀 검사로 다시 확인합니다.
+    <ul>
+      <li>FN(실제 양성을 음성으로) — 감염자가 격리 안 되고 돌아다님. 지역 사회 위험.</li>
+      <li>FP(실제 음성을 양성으로) — 추가 검사로 음성 확인됨. 시간·비용 손실은 있지만 안전.</li>
+    </ul>
+  </div>
+  <table class="tb" style="max-width:520pt">
+    <thead><tr><th></th><th>TP</th><th>FP</th><th>FN</th><th>TN</th><th>정밀도</th><th>재현율</th></tr></thead>
+    <tbody>
+      <tr><td class="lbl">모델 A</td><td>96</td><td>120</td><td>4</td><td>780</td><td>0.444</td><td>0.96</td></tr>
+      <tr><td class="lbl">모델 B</td><td>85</td><td>15</td><td>15</td><td>885</td><td>0.85</td><td>0.85</td></tr>
+    </tbody>
+  </table>
+  <div class="choice">내 선택: <label><input type="checkbox"> 모델 A</label> <label><input type="checkbox"> 모델 B</label></div>
+  <div class="ib">
+    <div class="t">이유 (1~2문장)</div>
+    <div class="ans-area"></div>
+  </div>
+
+  <h3>시나리오 ㉡ — 공장 품질 검사</h3>
+  <div class="ex">
+    완제품 라인에서 불량품을 자동으로 골라 폐기합니다. 한 번 출하되면 회수가 어렵습니다.
+    <ul>
+      <li>FN(불량을 정상으로) — 불량품이 출하되어 고객 피해 + 브랜드 손상.</li>
+      <li>FP(정상을 불량으로) — 멀쩡한 제품을 폐기. 생산 원가 손실.</li>
+    </ul>
+  </div>
+  <table class="tb" style="max-width:520pt">
+    <thead><tr><th></th><th>TP</th><th>FP</th><th>FN</th><th>TN</th><th>정밀도</th><th>재현율</th></tr></thead>
+    <tbody>
+      <tr><td class="lbl">모델 A</td><td>50</td><td>5</td><td>10</td><td>935</td><td>0.909</td><td>0.833</td></tr>
+      <tr><td class="lbl">모델 B</td><td>59</td><td>40</td><td>1</td><td>900</td><td>0.596</td><td>0.983</td></tr>
+    </tbody>
+  </table>
+  <div class="choice">내 선택: <label><input type="checkbox"> 모델 A</label> <label><input type="checkbox"> 모델 B</label></div>
+  <div class="ib">
+    <div class="t">이유 (FN 비용과 FP 비용을 비교해 적어 보세요)</div>
+    <div class="ans-area"></div>
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-D</span> 임계값을 옮기면 — 같은 모델, 다른 매트릭스</div>
+  <div class="qd">어느 검진 모델이 환자 8명에 대해 다음 점수를 내놓았어요. 점수가 임계값 이상이면 양성으로 판정합니다.</div>
+  <table class="tb" style="max-width:520pt">
+    <thead><tr><th>환자</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th><th>P7</th><th>P8</th></tr></thead>
+    <tbody>
+      <tr><td class="lbl">점수</td><td>0.92</td><td>0.81</td><td>0.65</td><td>0.58</td><td>0.45</td><td>0.39</td><td>0.22</td><td>0.10</td></tr>
+      <tr><td class="lbl">실제 정답</td><td>양</td><td>양</td><td>양</td><td>음</td><td>양</td><td>음</td><td>음</td><td>음</td></tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top:8pt">아래 세 임계값에 대해 혼동 행렬을 채우고 네 지표를 계산하세요.</p>
+
+  <h3>임계값 = 0.50 (기본)</h3>
+  <table class="tb" style="max-width:380pt">
+    <tbody>
+      <tr><td class="lbl"></td><td class="lbl">예측 양</td><td class="lbl">예측 음</td></tr>
+      <tr><td class="lbl">실제 양</td><td>TP=<span class="bk"></span></td><td>FN=<span class="bk"></span></td></tr>
+      <tr><td class="lbl">실제 음</td><td>FP=<span class="bk"></span></td><td>TN=<span class="bk"></span></td></tr>
+    </tbody>
+  </table>
+  <div class="fm">
+    정확도 <span class="bk"></span> · 정밀도 <span class="bk"></span> · 재현율 <span class="bk"></span> · F1 <span class="bk"></span>
+  </div>
+
+  <h3>임계값 = 0.30 (느슨하게)</h3>
+  <table class="tb" style="max-width:380pt">
+    <tbody>
+      <tr><td class="lbl"></td><td class="lbl">예측 양</td><td class="lbl">예측 음</td></tr>
+      <tr><td class="lbl">실제 양</td><td>TP=<span class="bk"></span></td><td>FN=<span class="bk"></span></td></tr>
+      <tr><td class="lbl">실제 음</td><td>FP=<span class="bk"></span></td><td>TN=<span class="bk"></span></td></tr>
+    </tbody>
+  </table>
+  <div class="fm">
+    정확도 <span class="bk"></span> · 정밀도 <span class="bk"></span> · 재현율 <span class="bk"></span> · F1 <span class="bk"></span>
+  </div>
+
+  <h3>임계값 = 0.70 (엄격하게)</h3>
+  <table class="tb" style="max-width:380pt">
+    <tbody>
+      <tr><td class="lbl"></td><td class="lbl">예측 양</td><td class="lbl">예측 음</td></tr>
+      <tr><td class="lbl">실제 양</td><td>TP=<span class="bk"></span></td><td>FN=<span class="bk"></span></td></tr>
+      <tr><td class="lbl">실제 음</td><td>FP=<span class="bk"></span></td><td>TN=<span class="bk"></span></td></tr>
+    </tbody>
+  </table>
+  <div class="fm">
+    정확도 <span class="bk"></span> · 정밀도 <span class="bk"></span> · 재현율 <span class="bk"></span> · F1 <span class="bk"></span>
+  </div>
+
+  <div class="ob">
+    <div class="lab">관찰</div>
+    임계값을 낮추면 ( 재현율 / 정밀도 )이 올라가고 ( 재현율 / 정밀도 )이 내려갑니다. (둘 중 맞는 것에 동그라미)
+    <br>임계값을 높이면 그 반대 — ( 재현율 / 정밀도 )이 올라가고 ( 재현율 / 정밀도 )이 내려갑니다.
+    <br>F1이 가장 큰 임계값은 위 세 가지 중 <span class="bk"></span> 입니다.
+  </div>
+</div>
+
+<div class="an">
+  <div><span class="lab">앱 D2</span> 임계값 슬라이더로 확인하기</div>
+  <div style="margin-top:4pt">
+    앱에서 D2 → "5. 임계값 슬라이더" 단계로 가서 슬라이더를 천천히 0.1 ~ 0.9 범위로 옮겨 보세요.
+    F1이 가장 높은 지점에서 임계값은 대략 얼마인가요? <span class="bk"></span> · 그때 정확도·정밀도·재현율·F1은? <span class="bk lg"></span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<h2>섹션 3. 종합 — 적용·서술</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-A</span> 서술 — 정확도만으로 판단할 수 없는 이유</div>
+  <div class="qd">"우리 모델은 정확도가 99%야"라는 말만 듣고는 모델이 좋은지 알기 어려운 이유를 두 가지 적어 보세요.</div>
+  <div class="ans-area lg"></div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-B</span> 서술 — 내가 만든 시나리오</div>
+  <div class="qd">앞 시나리오들과 다른 새 분류 문제를 한 가지 떠올려 보세요. 그 문제에서는 FN과 FP 중 어느 쪽 실수가 더 아픈가요? 그래서 어느 지표를 우선해야 하나요?</div>
+  <div class="ib">
+    <div class="t">내가 떠올린 문제 (한 줄)</div>
+    <div class="ans-area"></div>
+  </div>
+  <div class="ib">
+    <div class="t">FN과 FP 비교 + 우선해야 할 지표 (2~3문장)</div>
+    <div class="ans-area lg"></div>
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-C</span> 자기 체크</div>
+  <ul>
+    <li>회귀의 네 지표(MAE·MSE·RMSE·R²) 이름을 보지 않고 말할 수 있나요? <label><input type="checkbox"> 예</label> <label><input type="checkbox"> 다시 1-A로</label></li>
+    <li>혼동 행렬 네 칸(TP·FP·FN·TN)을 말로 풀어 설명할 수 있나요? <label><input type="checkbox"> 예</label> <label><input type="checkbox"> 다시 2-A로</label></li>
+    <li>임계값을 낮추면 무엇이 올라가고 무엇이 내려가는지 말할 수 있나요? <label><input type="checkbox"> 예</label> <label><input type="checkbox"> 다시 2-D로</label></li>
+  </ul>
+</div>
+
+</body>
+</html>

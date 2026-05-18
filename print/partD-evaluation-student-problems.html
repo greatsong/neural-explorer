@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>Neural Explorer 평가지 D부 — 모델 평가</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt;page-break-after:avoid}
+
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt;page-break-after:avoid}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .meta{font-size:9pt;color:#777;margin-top:6pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+  .name{font-size:9.5pt;color:#555;margin-top:8pt}
+  .name span{display:inline-block;border-bottom:1px solid #888;min-width:80pt;margin:0 8pt}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0;break-inside:auto;page-break-inside:auto}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt;break-inside:avoid;page-break-inside:avoid}
+  .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qh .pt{float:right;font-size:9pt;color:#666;font-weight:400}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px;break-inside:avoid;page-break-inside:avoid}
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0;break-inside:avoid;page-break-inside:avoid}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#1a1a1a;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb .blank{height:24pt;background:#fff}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .bk{display:inline-block;border-bottom:1.5px solid #333;min-width:30pt;text-align:center;padding:0 4pt;margin:0 2pt}
+  .bk.lg{min-width:60pt}
+  .ans-area{border:1px solid #aaa;border-radius:4px;min-height:38pt;padding:6pt;margin:6pt 0;background:#fcfcfc}
+  .ans-area.lg{min-height:60pt}
+
+  .choice{margin:3pt 0}
+  .choice label{margin-right:14pt}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt}
+  ul,ol{padding-left:18pt;margin:4pt 0}
+  li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto;overflow:visible}
+    .qh,.fm,.ex,.ib,.tb{break-inside:avoid;page-break-inside:avoid}
+    .tb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .qh .num{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header class="lh">
+  <div class="lab">NEURAL EXPLORER · ASSESSMENT D / 5</div>
+  <h1>D — 모델 평가</h1>
+  <div class="sub">활동지(partD)와 동일한 개념을 다른 숫자로 한 번 더 — 손계산 정확성과 시나리오 판단을 함께 묻습니다</div>
+  <div class="meta">앱 페이즈 D1~D2 · 대상: 활동지를 끝낸 고등학생 · 평가 시간 35~45분</div>
+  <div class="lh obj">활동지의 숫자를 외워 답하지 말 것. 모든 문제의 데이터·표가 활동지와 다릅니다. <em>식·정의</em>를 정확히 적용했는지를 봅니다.</div>
+  <div class="name">학번 <span></span> 이름 <span></span></div>
+</header>
+
+<div class="ex">
+  <strong>이번 평가지의 데이터 — 활동지와 다른 숫자</strong>
+  <ul style="margin-top:4pt">
+    <li>회귀: 새 5년치 표본 (잔차가 양수·음수 섞임)</li>
+    <li>분류: 환자 12명 (양성·음성 비율이 한쪽으로 치우침)</li>
+    <li>시나리오: 신용카드 사기 탐지, 자율주행 보행자 감지</li>
+    <li>임계값: 새 6명 점수표</li>
+  </ul>
+</div>
+
+<!-- 섹션 1 -->
+<h2>섹션 1. 회귀 평가 (40점)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">1</span> 잔차·MAE·RMSE 계산 <span class="pt">[15점]</span></div>
+  <div class="qd">다음 표의 잔차·|잔차|·잔차²를 채우고 합계를 구해 MAE와 RMSE를 계산하세요.</div>
+  <table class="tb">
+    <thead>
+      <tr><th>표본</th><th>실제 y</th><th>예측 ŷ</th><th>잔차 ŷ−y</th><th>|잔차|</th><th>잔차²</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>①</td><td>10</td><td>11</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>②</td><td>12</td><td>11</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>③</td><td>13</td><td>13</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>④</td><td>15</td><td>14</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>⑤</td><td>14</td><td>15</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="lbl">합계</td><td colspan="3"></td><td class="blank"></td><td class="blank"></td></tr>
+    </tbody>
+  </table>
+  <div class="fm">
+    MAE  = <span class="bk lg"></span> / 5 = <span class="bk lg"></span> <br>
+    MSE  = <span class="bk lg"></span> / 5 = <span class="bk lg"></span> <br>
+    RMSE = √<span class="bk"></span> = <span class="bk lg"></span>
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2</span> R² 계산 <span class="pt">[15점]</span></div>
+  <div class="qd">위 데이터에 대해 평균 ȳ를 먼저 구하고, 기준선 제곱합을 계산하여 R²를 구하세요.</div>
+  <div class="ib">평균 ȳ = (10 + 12 + 13 + 15 + 14) / 5 = <span class="bk"></span></div>
+  <table class="tb">
+    <thead><tr><th>표본</th><th>y</th><th>y − ȳ</th><th>(y − ȳ)²</th></tr></thead>
+    <tbody>
+      <tr><td>①</td><td>10</td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>②</td><td>12</td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>③</td><td>13</td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>④</td><td>15</td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>⑤</td><td>14</td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="lbl" colspan="3">합계</td><td class="blank"></td></tr>
+    </tbody>
+  </table>
+  <div class="fm">
+    R² = 1 − (잔차 제곱합) / (기준선 제곱합) = 1 − <span class="bk"></span> / <span class="bk"></span> = <span class="bk lg"></span>
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3</span> 서술 — 지표 비교 <span class="pt">[10점]</span></div>
+  <div class="qd">이 표에서 MAE와 RMSE가 거의 같은 값으로 나오나요? 만약 어떤 한 표본의 잔차가 +5처럼 매우 크게 바뀐다면 MAE와 RMSE 중 어느 쪽이 더 크게 늘어나나요? 이유와 함께 적어 보세요.</div>
+  <div class="ans-area lg"></div>
+</div>
+
+<!-- 섹션 2 -->
+<h2>섹션 2. 분류 평가 (45점)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">4</span> 혼동 행렬·네 지표 <span class="pt">[20점]</span></div>
+  <div class="qd">환자 12명에 대한 검진 결과입니다. 혼동 행렬을 채우고 네 지표를 계산하세요.</div>
+  <table class="tb">
+    <thead><tr><th>환자</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th></tr></thead>
+    <tbody>
+      <tr><td class="lbl">실제</td><td>양</td><td>양</td><td>양</td><td>양</td><td>양</td><td>양</td><td>양</td><td>양</td><td>음</td><td>음</td><td>음</td><td>음</td></tr>
+      <tr><td class="lbl">예측</td><td>양</td><td>양</td><td>양</td><td>양</td><td>양</td><td>양</td><td>음</td><td>음</td><td>음</td><td>음</td><td>음</td><td>양</td></tr>
+    </tbody>
+  </table>
+
+  <table class="tb" style="max-width:380pt;margin-top:8pt">
+    <tbody>
+      <tr><td class="lbl"></td><td class="lbl">예측 양성</td><td class="lbl">예측 음성</td></tr>
+      <tr><td class="lbl">실제 양성</td><td>TP = <span class="bk"></span></td><td>FN = <span class="bk"></span></td></tr>
+      <tr><td class="lbl">실제 음성</td><td>FP = <span class="bk"></span></td><td>TN = <span class="bk"></span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="fm">
+    정확도 = (<span class="bk"></span> + <span class="bk"></span>) / 12 = <span class="bk lg"></span> <br>
+    정밀도 = <span class="bk"></span> / <span class="bk"></span> = <span class="bk lg"></span> <br>
+    재현율 = <span class="bk"></span> / <span class="bk"></span> = <span class="bk lg"></span> <br>
+    F1     = <span class="bk lg"></span>
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">5</span> 시나리오 — 신용카드 사기 탐지 <span class="pt">[10점]</span></div>
+  <div class="ex">
+    카드사가 결제 한 건마다 실시간으로 사기인지 판단해 차단할지를 결정. 차단되면 결제 실패 알림과 본인 확인 절차.
+    <ul>
+      <li>FN(사기를 정상으로) — 카드사가 손실 보상, 고객은 사후 신고.</li>
+      <li>FP(정상을 사기로) — 결제 차단 → 고객 불편, 본인 확인 거치면 통과.</li>
+    </ul>
+    <table class="tb" style="margin-top:4pt;max-width:520pt">
+      <thead><tr><th></th><th>TP</th><th>FP</th><th>FN</th><th>TN</th><th>정밀도</th><th>재현율</th></tr></thead>
+      <tbody>
+        <tr><td class="lbl">모델 X</td><td>98</td><td>900</td><td>2</td><td>99000</td><td>0.098</td><td>0.98</td></tr>
+        <tr><td class="lbl">모델 Y</td><td>85</td><td>50</td><td>15</td><td>99850</td><td>0.630</td><td>0.85</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="choice">내 선택: <label><input type="checkbox"> 모델 X</label> <label><input type="checkbox"> 모델 Y</label></div>
+  <div class="ib">
+    <div style="font-weight:700;margin-bottom:3pt">이유 (FN·FP 비용 비교 + 우선 지표를 명시할 것)</div>
+    <div class="ans-area"></div>
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">6</span> 시나리오 — 자율주행 보행자 감지 <span class="pt">[15점]</span></div>
+  <div class="ex">
+    자율주행 차량의 카메라·라이다가 전방에 보행자가 있는지 판단해 자동으로 정지·회피.
+    <ul>
+      <li>FN(보행자를 못 봄) — 사람 인명 피해, 회복 불가.</li>
+      <li>FP(없는 보행자를 봄) — 급정거. 뒷차 추돌 가능, 승객 불편.</li>
+    </ul>
+    <table class="tb" style="margin-top:4pt;max-width:520pt">
+      <thead><tr><th></th><th>TP</th><th>FP</th><th>FN</th><th>TN</th><th>정밀도</th><th>재현율</th></tr></thead>
+      <tbody>
+        <tr><td class="lbl">모델 P</td><td>1000</td><td>50</td><td>0</td><td>9000</td><td>0.952</td><td>1.000</td></tr>
+        <tr><td class="lbl">모델 Q</td><td>990</td><td>5</td><td>10</td><td>9095</td><td>0.995</td><td>0.990</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="choice">내 선택: <label><input type="checkbox"> 모델 P</label> <label><input type="checkbox"> 모델 Q</label></div>
+  <div class="ib">
+    <div style="font-weight:700;margin-bottom:3pt">이유</div>
+    <div class="ans-area"></div>
+  </div>
+  <div class="ib">
+    <div style="font-weight:700;margin-bottom:3pt">모델 P를 골랐다고 가정 — FP가 50건이라는 사실은 어떤 사회적 비용을 만들까요? 1~2문장으로 적어 보세요.</div>
+    <div class="ans-area"></div>
+  </div>
+</div>
+
+<!-- 섹션 3 -->
+<h2>섹션 3. 임계값 (15점)</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">7</span> 임계값을 옮기며 매트릭스 채우기 <span class="pt">[15점]</span></div>
+  <div class="qd">어느 검진 모델이 환자 6명에 대해 다음 점수를 냈습니다. 두 임계값(0.5와 0.3)에서의 혼동 행렬과 네 지표를 계산하고, 어느 임계값이 F1을 최대화하는지 답하세요.</div>
+  <table class="tb" style="max-width:480pt">
+    <thead><tr><th>환자</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th></tr></thead>
+    <tbody>
+      <tr><td class="lbl">점수</td><td>0.95</td><td>0.78</td><td>0.62</td><td>0.50</td><td>0.31</td><td>0.15</td></tr>
+      <tr><td class="lbl">실제 정답</td><td>양</td><td>양</td><td>음</td><td>양</td><td>양</td><td>음</td></tr>
+    </tbody>
+  </table>
+
+  <h3>임계값 = 0.50</h3>
+  <table class="tb" style="max-width:380pt">
+    <tbody>
+      <tr><td class="lbl"></td><td class="lbl">예측 양</td><td class="lbl">예측 음</td></tr>
+      <tr><td class="lbl">실제 양</td><td>TP=<span class="bk"></span></td><td>FN=<span class="bk"></span></td></tr>
+      <tr><td class="lbl">실제 음</td><td>FP=<span class="bk"></span></td><td>TN=<span class="bk"></span></td></tr>
+    </tbody>
+  </table>
+  <div class="fm">
+    정확도 <span class="bk"></span> · 정밀도 <span class="bk"></span> · 재현율 <span class="bk"></span> · F1 <span class="bk lg"></span>
+  </div>
+
+  <h3>임계값 = 0.30</h3>
+  <table class="tb" style="max-width:380pt">
+    <tbody>
+      <tr><td class="lbl"></td><td class="lbl">예측 양</td><td class="lbl">예측 음</td></tr>
+      <tr><td class="lbl">실제 양</td><td>TP=<span class="bk"></span></td><td>FN=<span class="bk"></span></td></tr>
+      <tr><td class="lbl">실제 음</td><td>FP=<span class="bk"></span></td><td>TN=<span class="bk"></span></td></tr>
+    </tbody>
+  </table>
+  <div class="fm">
+    정확도 <span class="bk"></span> · 정밀도 <span class="bk"></span> · 재현율 <span class="bk"></span> · F1 <span class="bk lg"></span>
+  </div>
+
+  <div class="ib">
+    <div style="font-weight:700">F1을 최대화하는 임계값은 <span class="bk"></span>이며, 그때 정밀도와 재현율 중 어느 쪽이 더 큰가요? <span class="bk"></span></div>
+  </div>
+</div>
+
+</body>
+</html>

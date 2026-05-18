@@ -1,13 +1,15 @@
-// visible 커리큘럼 — A(알고리즘) / B(데이터·학습·분류) / C(딥러닝) / D(심화: 역전파)
-// 히든 스테이지 — 5부(p13, p14) / 6부(p15~p22) 는 그대로 유지한다.
+// visible 커리큘럼 — A(회귀) / B(분류) / C(MNIST) / D(평가) / E(언어 신경망)
+// E1~E4 의 ID는 기존 6부 컴포넌트(Phase15/17/18/22)를 재사용하기 위해 그대로 'p15/p17/p18/p22' 를 쓴다.
+// 히든 스테이지 — 5부(p13, p14) / 6부 잔여(p16, p19, p20, p21) 는 그대로 유지한다.
 export type PhaseId =
   | 'a1' | 'a2' | 'a3' | 'a4' | 'a5' | 'a6'
   | 'b1' | 'b2' | 'b3' | 'b4'
   | 'c1' | 'c2'
-  | 'd1' | 'd2' | 'd3'
-  | 'e1'
-  | 'p13' | 'p14'
-  | 'p15' | 'p16' | 'p17' | 'p18' | 'p19' | 'p20' | 'p21' | 'p22';
+  | 'd1' | 'd2'
+  | 'p15' | 'p17' | 'p18' | 'p22'   // E1~E4 로 노출 (ID는 기존 컴포넌트 호환을 위해 유지)
+  | 'e1'                              // 자기주도 심층 탐구 (사이드바 숨김, 인트로 카드)
+  | 'p13' | 'p14'                     // 5부 — 생성 (히든)
+  | 'p16' | 'p19' | 'p20' | 'p21';   // 6부 잔여 — 시퀀스·어텐션·트랜스포머 (히든)
 
 export interface PhaseMeta {
   id: PhaseId;
@@ -18,7 +20,8 @@ export interface PhaseMeta {
     | 'A. 단일 인공 뉴런의 학습'
     | 'B. 분류 문제 해결하기'
     | 'C. 딥러닝으로 손글씨 분류하기'
-    | '심화 학습 — 역전파 알고리즘 이해하기'
+    | 'D. 모델을 어떻게 평가할까'
+    | 'E. 언어를 다루는 신경망'
     | '자기주도 심층 탐구'
     | '5부 — 분류를 넘어 생성으로'
     | '6부 — 언어를 다루는 신경망';
@@ -43,13 +46,18 @@ export const PHASES: PhaseMeta[] = [
   { id: 'c1', num: 'C1', title: 'MNIST 데이터셋 소개', subtitle: '왜 손글씨 숫자 분류가 의미 있는가',     group: 'C. 딥러닝으로 손글씨 분류하기' },
   { id: 'c2', num: 'C2', title: '미니 MNIST 도전',     subtitle: '실제 데이터 일부(300장)로 작은 모델을 직접 학습',     group: 'C. 딥러닝으로 손글씨 분류하기' },
 
-  // 심화 학습 — 역전파를 직관 → 스캐폴딩 → 식 유도 순서로 깊게.
-  { id: 'd1', num: 'D1', title: '역전파 직관',                  subtitle: '한 사이클의 6단계 — 거꾸로 흐르는 신호', group: '심화 학습 — 역전파 알고리즘 이해하기' },
-  { id: 'd2', num: 'D2', title: '한 뉴런에서 두 뉴런으로',     subtitle: '숫자와 그림으로 한 단계씩 따라가기',     group: '심화 학습 — 역전파 알고리즘 이해하기' },
-  { id: 'd3', num: 'D3', title: '역전파 식 유도',                subtitle: '사슬규칙으로 그 식이 나오는 이유',         group: '심화 학습 — 역전파 알고리즘 이해하기' },
+  // D. 모델을 어떻게 평가할까 — 회귀/분류 평가 지표와 임계값
+  { id: 'd1', num: 'D1', title: '회귀 평가',  subtitle: '잔차로 모델 실력 재기 — MAE·RMSE·R²',                       group: 'D. 모델을 어떻게 평가할까' },
+  { id: 'd2', num: 'D2', title: '분류 평가',  subtitle: '시나리오마다 좋은 모델은 다르다 — 정확도·정밀도·재현율·F1·임계값', group: 'D. 모델을 어떻게 평가할까' },
+
+  // E. 언어를 다루는 신경망 — 글자→숫자→좌표→다음 단어. 기존 Phase15/17/18/22 컴포넌트를 재사용.
+  { id: 'p15', num: 'E1', title: '글자가 숫자가 되기까지', subtitle: '텍스트는 컴퓨터 안에서 정수의 묶음',                       group: 'E. 언어를 다루는 신경망' },
+  { id: 'p17', num: 'E2', title: '단어를 좌표로',           subtitle: '원-핫에서 임베딩 — 좌표가 가까우면 의미가 가깝다',         group: 'E. 언어를 다루는 신경망' },
+  { id: 'p18', num: 'E3', title: '의미가 가까운 단어 찾기',  subtitle: '브라우저에서 직접 학습하는 Word2Vec 미니',                 group: 'E. 언어를 다루는 신경망' },
+  { id: 'p22', num: 'E4', title: '다음 단어 맞히기',         subtitle: 'LLM의 핵심 — 어휘 전체에 점수를 매기는 다중분류',          group: 'E. 언어를 다루는 신경망' },
 
   // 자기주도 심층 탐구 — 13 개 주제 카드. 학생이 골라 1~2주 탐구 후 발표.
-  { id: 'e1', num: 'E1', title: '주제 골라 탐구하기', subtitle: '13개 카드에서 한 가지 골라 깊이 파고들기', group: '자기주도 심층 탐구' },
+  { id: 'e1', num: '★',  title: '주제 골라 탐구하기', subtitle: '13개 카드에서 한 가지 골라 깊이 파고들기', group: '자기주도 심층 탐구' },
 
   // 히든 스테이지 — 5부 (포털 진입 필요)
   { id: 'p13', num: '13', title: '평균과 분포', subtitle: '가장 단순한 생성 모델',     group: '5부 — 분류를 넘어 생성으로' },
@@ -86,23 +94,22 @@ export function isBonusPhase(id: PhaseId) {
   return BONUS_PHASE_IDS.includes(id);
 }
 
-// visible 커리큘럼(C 영역의 MNIST 도전과 D 영역의 역전파 식 유도) 완료 시 5부 포털 게이트가 열린다
+// visible 커리큘럼(C 영역의 MNIST 도전, D 영역의 분류 평가, E 영역의 다음 단어 맞히기)을 모두 끝내면 5부 포털 게이트가 열린다
 export function isVisibleCurriculumDone(completed: Record<PhaseId, boolean>) {
-  return Boolean(completed.c2 && completed.d3);
+  return Boolean(completed.c2 && completed.d2 && completed.p22);
 }
 
-// 6부(언어)는 5부(p13+p14)를 모두 끝낸 사람만 두 번째 포털로 들어올 수 있는 히든 스테이지
+// 6부(시퀀스·어텐션·트랜스포머 — E 에서 노출 안 한 잔여)는 5부(p13+p14)를 모두 끝낸 사람만 두 번째 포털로 들어올 수 있는 히든 스테이지
 export const BONUS2_GROUP: PhaseMeta['group'] = '6부 — 언어를 다루는 신경망';
-export const BONUS2_PHASE_IDS: PhaseId[] = ['p15', 'p16', 'p17', 'p18', 'p19', 'p20', 'p21', 'p22'];
+export const BONUS2_PHASE_IDS: PhaseId[] = ['p16', 'p19', 'p20', 'p21'];
 
 export function isBonus2Group(group: PhaseMeta['group']) {
   return group === BONUS2_GROUP;
 }
 
 // 사이드바에서만 숨기고 메인 페이지(Intro)에는 카드로 노출하는 그룹.
-// 라우팅(#/d1, #/e1 등)은 그대로 살아 있어 메인 카드에서 진입 가능.
+// 라우팅(#/e1 등)은 그대로 살아 있어 메인 카드에서 진입 가능.
 const SIDEBAR_HIDDEN_GROUPS: PhaseMeta['group'][] = [
-  '심화 학습 — 역전파 알고리즘 이해하기',
   '자기주도 심층 탐구',
 ];
 export function isSidebarHiddenGroup(group: PhaseMeta['group']) {
@@ -122,6 +129,7 @@ export const VISIBLE_PHASE_IDS: PhaseId[] = [
   'a1', 'a2', 'a3', 'a4', 'a5', 'a6',
   'b1', 'b2', 'b3', 'b4',
   'c1', 'c2',
-  'd1', 'd2', 'd3',
-  'e1',
+  'd1', 'd2',
+  'p15', 'p17', 'p18', 'p22',  // E1~E4
+  'e1',                         // 자기주도 탐구
 ];

@@ -1,398 +1,711 @@
-// PhaseD2 — 한 뉴런에서 두 뉴런으로 (역전파 스캐폴딩)
-// A4 의 한 줄 식 dw = e·x 를 두 자리 패턴 (끝점 오차 × 직전 입력값) 으로 일반화한 뒤,
-// 2층 네트워크에 같은 식을 두 번 적용하는 흐름을 11 단계로 점진 공개.
-// 다이어그램 한 장이 매 단계마다 새 요소를 켜며 학생이 시선을 잃지 않게 한다.
+// PhaseD2 — 분류 평가
+// 두 갈래로 가르치는 챕터:
+//   1) 시나리오 4 개 (암 검진 / 스팸 필터 / 가짜 댓글 / 공항 보안) — 어떤 실수가 더 아픈지에 따라
+//      좋은 모델이 달라진다는 직관. 학생이 모델 A/B 중 하나를 고르고 즉시 해설.
+//   2) 임계값 슬라이더 — 한 모델의 100개 점수·정답을 두고 임계값을 0~1 사이에서 옮기면
+//      혼동 행렬과 정확도·정밀도·재현율·F1 이 실시간으로 변한다.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../store';
 import { PHASES } from '../phases';
 
-// 예시 셋업 — 활성화·편향 없이 단순 곱으로 흐름만 본다.
-const X = 2;
-const W1 = 0.5;
-const W2 = 0.8;
-const Y_TARGET = 1.0;
+const STEP_LABELS = [
+  '1. 도입',
+  '2. 혼동 행렬',
+  '3. 네 지표',
+  '4. 시나리오 비교',
+  '5. 임계값 슬라이더',
+  '6. 종합',
+];
 
-const H = W1 * X;          // 1.0
-const Y_HAT = W2 * H;      // 0.8
-const E = Y_HAT - Y_TARGET; // -0.2
-const W2_GRAD = E * H;      // -0.2
-const H_ERROR = E * W2;     // -0.16
-const W1_GRAD = H_ERROR * X; // -0.32
+interface Matrix { tp: number; fp: number; fn: number; tn: number }
 
-interface Step {
-  title: string;
-  body: React.ReactNode;
-  formula?: React.ReactNode;
-  highlight?: boolean;
+interface Scenario {
+  id: string;
+  name: string;
+  blurb: string;
+  fnCost: string;
+  fpCost: string;
+  bestModel: 'A' | 'B';
+  bestReason: string;
+  whichMetric: string;
+  A: Matrix;
+  B: Matrix;
 }
 
-const STEPS: Step[] = [
+const SCENARIOS: Scenario[] = [
   {
-    title: '① 셋업 — 두 단계짜리 작은 신경망',
-    body: (
-      <>
-        입력 <code>x = 2</code> 가 첫 가중치 <code>w₁ = 0.5</code> 를 거쳐 <strong>중간 뉴런(은닉층/중간층)</strong> 으로,
-        다시 마지막 가중치 <code>w₂ = 0.8</code> 을 거쳐 출력 뉴런으로 흐릅니다. 정답은 <code>y = 1.0</code>.
-        활성화·편향 없이 곱셈만으로 흐름을 보겠습니다.
-      </>
-    ),
+    id: 'cancer',
+    name: '암 검진',
+    blurb: '진료실에서 사용하는 1차 선별 검사. 양성으로 뜨면 정밀 검사로 다시 확인합니다.',
+    fnCost: '실제 암인데 "음성"이라고 답하면 환자가 치료 시기를 놓침 — 치명적.',
+    fpCost: '실제 암이 아닌데 "양성"이라고 답하면 추가 검사로 확인 — 시간·비용 손실은 있지만 회복 가능.',
+    bestModel: 'A',
+    bestReason: 'FN(놓침)이 환자 생명을 위협하므로 재현율(놓치지 않기) 우선. 모델 A는 거의 모든 환자를 잡아냄.',
+    whichMetric: '재현율',
+    A: { tp: 95, fn: 5,  fp: 200, tn: 700 }, // 재현율 95%, 정밀도 32%
+    B: { tp: 80, fn: 20, fp: 20,  tn: 880 }, // 재현율 80%, 정밀도 80%
   },
   {
-    title: '② 앞으로 첫 곱 — 가중치 = 비율',
-    body: (
-      <>
-        가중치는 <strong>입력 신호를 다음 뉴런으로 얼마나 보낼지 정하는 비율</strong> 이에요. <code>w₁ = 0.5</code> 면
-        입력의 절반만큼 다음으로 보낸다는 뜻. 그래서 중간 뉴런 출력 <code>h = w₁ · x = 0.5 × 2 = 1.0</code>.
-      </>
-    ),
-    formula: <>h = w₁ · x = 0.5 × 2 = <strong>1.0</strong></>,
+    id: 'spam',
+    name: '스팸 필터',
+    blurb: '받은 메일함에서 스팸을 자동으로 휴지통에 보내는 필터.',
+    fnCost: '스팸을 못 막아 메일함에 들어옴 — 짜증나지만 사용자가 직접 지우면 그만.',
+    fpCost: '정상 메일을 스팸으로 보내 사용자가 영영 못 봄 — 합격 통지·예약 확인 등을 놓침. 큰 피해.',
+    bestModel: 'A',
+    bestReason: 'FP(정상 메일 삭제)가 사용자에게 더 큰 피해. 정밀도(양성 판정이 맞을 확률) 우선. 모델 A는 정밀도가 거의 100%.',
+    whichMetric: '정밀도',
+    A: { tp: 380, fn: 20, fp: 15,  tn: 585 }, // 재현율 95%, 정밀도 96%
+    B: { tp: 400, fn: 0,  fp: 100, tn: 500 }, // 재현율 100%, 정밀도 80%
   },
   {
-    title: '③ 앞으로 두 번째 곱 — 같은 패턴 반복',
-    body: (
-      <>
-        출력 뉴런도 똑같은 곱셈. 중간이 보낸 <code>h = 1.0</code> 에 마지막 가중치 <code>w₂ = 0.8</code> 을 곱해
-        <code> ŷ = w₂ · h = 0.8 × 1.0 = 0.8</code>. 두 단계 모두 "곱하고 보내기" 한 번.
-      </>
-    ),
-    formula: <>ŷ = w₂ · h = 0.8 × 1.0 = <strong>0.8</strong></>,
+    id: 'fake-comment',
+    name: '가짜 댓글 삭제',
+    blurb: '광고·여론 조작용 가짜 댓글을 자동으로 가리는 모더레이션 모델.',
+    fnCost: '가짜를 못 잡으면 게시판이 광고·조작으로 오염 — 서비스 신뢰도 하락.',
+    fpCost: '정상 댓글을 가짜로 삭제하면 검열 시비 — 사용자 이탈.',
+    bestModel: 'B',
+    bestReason: '둘 다 무겁고 어느 한쪽으로 기울 수 없음 → F1(둘의 균형)이 더 높은 쪽이 적합. 모델 B의 F1이 약간 더 높음.',
+    whichMetric: 'F1',
+    A: { tp: 70, fn: 30, fp: 10, tn: 890 }, // 재현율 70%, 정밀도 88%, F1 78%
+    B: { tp: 85, fn: 15, fp: 30, tn: 870 }, // 재현율 85%, 정밀도 74%, F1 79%
   },
   {
-    title: '④ 정답과 비교 → 출력의 오차',
-    body: (
-      <>
-        예측 <code>ŷ = 0.8</code>, 정답 <code>y = 1.0</code>. 오차 <code>e = ŷ − y = −0.2</code>.
-        예측이 0.2 만큼 모자랍니다. 이 빨간 값이 우리 출발점.
-      </>
-    ),
-    formula: <>e = ŷ − y = 0.8 − 1.0 = <strong style={{ color: 'rgb(190,18,60)' }}>−0.2</strong></>,
-  },
-  {
-    title: '⑤ A4 식 다시 — 모든 가중치에 쓰는 두 자리 패턴',
-    body: (
-      <>
-        A4 에서 한 뉴런의 가중치 갱신 = <code>e · x</code> 였어요. 사실 이건 모든 가중치에 통하는
-        <strong> 두 자리 패턴</strong>:
-        <div className="my-2 px-3 py-2 bg-accent-bg/40 rounded font-mono text-sm">
-          가중치 책임 = (그 가중치 <strong>끝점</strong>에서 본 오차) × (그 가중치 <strong>직전</strong> 입력값)
-        </div>
-        한 뉴런일 땐 끝점이 곧 출력 ŷ 이라 끝점 오차 = e, 직전 입력 = x. 그래서 <code>e · x</code>. 이제 두 자리만 채우면 어떤 가중치든 책임을 구할 수 있어요.
-      </>
-    ),
-    highlight: true,
-  },
-  {
-    title: '⑥ 마지막 가중치(w₂) — A4 식 그대로 채우기',
-    body: (
-      <>
-        <code>w₂</code> 의 끝점은 출력 뉴런. 출력은 손실에 직접 닿아 있으니 <strong>끝점 오차 = e = −0.2</strong>.
-        <code>w₂</code> 의 직전 입력 = 중간 뉴런이 보낸 <code>h = 1.0</code>. 두 자리 채우면 끝.
-      </>
-    ),
-    formula: (
-      <>
-        w₂ 책임 = e · h = (−0.2) × 1.0 = <strong style={{ color: 'rgb(190,18,60)' }}>−0.2</strong>
-      </>
-    ),
-  },
-  {
-    title: '⑦ 첫 가중치(w₁) — 끝점 오차가 뭐지?',
-    body: (
-      <>
-        같은 식을 <code>w₁</code> 에 쓰려는데 <code>w₁</code> 의 끝점은 <strong>중간 뉴런</strong>.
-        중간 뉴런은 손실에 직접 닿지 않아요 — 한 단계 거쳐서야 영향을 준다. 그러니 "끝점 오차" 자리에
-        뭘 넣어야 할지 모름. ❓
-      </>
-    ),
-  },
-  {
-    title: '⑧ 가중치의 진짜 의미 — "변화 비율"',
-    body: (
-      <>
-        <code>w₂ = 0.8</code> 을 다시 봅시다. 중간 뉴런 출력 <code>h</code> 가 1 만큼 늘면, 출력 ŷ 은 얼마나 늘까?
-        <code> ŷ = w₂ · h</code> 이니까 <code>w₂ × 1 = 0.8</code> 만큼 늘어요. 즉
-        <strong> 가중치 = 한쪽이 1 변할 때 다음 쪽이 변하는 비율</strong>.
-        <table className="my-2 text-xs font-mono w-full">
-          <thead>
-            <tr className="text-muted">
-              <th className="text-left pr-3">h</th>
-              <th className="text-left pr-3">ŷ = 0.8 · h</th>
-              <th className="text-left">변화량</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>1.0</td><td>0.8</td><td>—</td></tr>
-            <tr><td>2.0</td><td>1.6</td><td>Δh = 1, Δŷ = 0.8</td></tr>
-            <tr><td>3.0</td><td>2.4</td><td>Δh = 1, Δŷ = 0.8</td></tr>
-          </tbody>
-        </table>
-        한쪽이 1 변할 때 늘 0.8 만큼 변한다 — 이 비율의 정체가 곧 <code>w₂</code>.
-      </>
-    ),
-  },
-  {
-    title: '⑨ 두 비율을 곱하면 = 중간 자리 오차',
-    body: (
-      <>
-        이미 두 비율을 알고 있어요.
-        <ul className="my-1 list-disc pl-5 text-sm">
-          <li>중간 1 변화 → 출력 변화 비율 = <strong>w₂ = 0.8</strong> (⑧ 에서)</li>
-          <li>출력 1 변화 → 손실 변화 비율 = <strong>e = −0.2</strong> (A4 사슬규칙 ②번)</li>
-        </ul>
-        두 단계 거치면 비율도 곱. 중간 1 변화 → 손실 변화 비율 = <code>w₂ × e = 0.8 × (−0.2) = −0.16</code>.
-        이게 바로 <strong>중간 뉴런 자리에서 본 오차</strong>. 출력에서 가중치 한 번 곱해 거꾸로 가져온 값.
-      </>
-    ),
-    formula: (
-      <>
-        중간 자리 오차 = e · w₂ = (−0.2) × 0.8 = <strong style={{ color: 'rgb(190,18,60)' }}>−0.16</strong>
-      </>
-    ),
-    highlight: true,
-  },
-  {
-    title: '⑩ 첫 가중치(w₁) 책임 — A4 식 한 번 더',
-    body: (
-      <>
-        ⑨ 에서 <code>w₁</code> 의 끝점 오차를 −0.16 으로 구했고, <code>w₁</code> 의 직전 입력 = <code>x = 2</code>.
-        ⑤ 의 두 자리 패턴 그대로:
-      </>
-    ),
-    formula: (
-      <>
-        w₁ 책임 = (중간 자리 오차) · x = (−0.16) × 2 = <strong style={{ color: 'rgb(190,18,60)' }}>−0.32</strong>
-      </>
-    ),
-  },
-  {
-    title: '⑪ 한 컷으로 비교 — 깊어져도 같은 패턴',
-    body: (
-      <>
-        두 가중치 책임을 나란히 보면:
-        <ul className="my-2 list-disc pl-5 text-sm font-mono">
-          <li>w₂ 책임 = e · h = <strong>−0.2</strong> &nbsp;&nbsp;(A4 식 그대로 한 번)</li>
-          <li>w₁ 책임 = (e · w₂) · x = <strong>−0.32</strong> &nbsp;&nbsp;(A4 식 + 가중치 한 번 더 곱)</li>
-        </ul>
-        깊은 망이 되어도 식 모양은 같아요. <strong>한 단계 거슬러 갈 때마다 그 단계 가중치 한 번 곱이 추가될 뿐.</strong>
-        다음 카드(D3 — 역전파 식 유도)에서 이 한 줄을 ∂ 기호로 깔끔하게 옮겨 적습니다.
-      </>
-    ),
-    highlight: true,
+    id: 'airport',
+    name: '공항 보안 검색',
+    blurb: '수하물 X-ray에서 위협 물품(폭발물·무기)을 자동 탐지.',
+    fnCost: '실제 위협을 못 잡으면 — 끔찍한 결과. 절대 놓치면 안 됨.',
+    fpCost: '위협이 아닌 가방을 위협으로 잘못 표시 — 인력이 추가 검사. 시간 손실은 있지만 안전.',
+    bestModel: 'A',
+    bestReason: '암 검진과 같은 논리, 더 극단적. 재현율을 최우선으로 — 99% 잡는 A가 90%인 B보다 훨씬 안전.',
+    whichMetric: '재현율',
+    A: { tp: 99, fn: 1,  fp: 400, tn: 9500 }, // 재현율 99%, 정밀도 ~20%
+    B: { tp: 90, fn: 10, fp: 50,  tn: 9850 }, // 재현율 90%, 정밀도 64%
   },
 ];
+
+// 임계값 슬라이더용 가짜 데이터 — 100개 (score, label) 쌍.
+// 양성 50, 음성 50. 양성은 점수 분포가 우편향, 음성은 좌편향. 중간에서 약간 겹치게.
+function generateScoredSamples(): { score: number; label: 0 | 1 }[] {
+  // 결정론적 — 같은 시드. seededRandom 으로 안정 (간단 LCG)
+  let seed = 42;
+  const rand = () => {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  };
+  const samples: { score: number; label: 0 | 1 }[] = [];
+  for (let i = 0; i < 50; i++) {
+    // 양성: 평균 0.7, 좌우 0.2 정도 흩어짐, 0~1 클램프
+    const s = clamp01(0.7 + (rand() - 0.5) * 0.55);
+    samples.push({ score: s, label: 1 });
+  }
+  for (let i = 0; i < 50; i++) {
+    // 음성: 평균 0.3, 흩어짐
+    const s = clamp01(0.3 + (rand() - 0.5) * 0.55);
+    samples.push({ score: s, label: 0 });
+  }
+  samples.sort((a, b) => a.score - b.score);
+  return samples;
+}
+function clamp01(v: number) { return Math.max(0, Math.min(1, v)); }
+
+const SAMPLES = generateScoredSamples();
+
+function computeMetrics(m: Matrix) {
+  const total = m.tp + m.fp + m.fn + m.tn;
+  const accuracy = total === 0 ? 0 : (m.tp + m.tn) / total;
+  const predPos = m.tp + m.fp;
+  const actualPos = m.tp + m.fn;
+  const precision = predPos === 0 ? 0 : m.tp / predPos;
+  const recall = actualPos === 0 ? 0 : m.tp / actualPos;
+  const f1 = (precision + recall) === 0 ? 0 : 2 * precision * recall / (precision + recall);
+  return { accuracy, precision, recall, f1 };
+}
+
+function matrixFromThreshold(threshold: number): Matrix {
+  let tp = 0, fp = 0, fn = 0, tn = 0;
+  for (const s of SAMPLES) {
+    const pred = s.score >= threshold ? 1 : 0;
+    if (s.label === 1 && pred === 1) tp++;
+    else if (s.label === 0 && pred === 1) fp++;
+    else if (s.label === 1 && pred === 0) fn++;
+    else tn++;
+  }
+  return { tp, fp, fn, tn };
+}
 
 export function PhaseD2() {
   const meta = PHASES.find((p) => p.id === 'd2')!;
   const markCompleted = useApp((s) => s.markCompleted);
-  const [step, setStep] = useState(1);
 
+  const [step, setStep] = useState(0);
+
+  // 시나리오 선택 상태
+  const [picks, setPicks] = useState<Record<string, 'A' | 'B' | undefined>>({});
+  const allScenariosAnswered = SCENARIOS.every((s) => picks[s.id]);
+
+  // 임계값
+  const [threshold, setThreshold] = useState(0.5);
+  const [thresholdMoved, setThresholdMoved] = useState(false);
+  const m = useMemo(() => matrixFromThreshold(threshold), [threshold]);
+  const metrics = useMemo(() => computeMetrics(m), [m]);
+
+  // 완료 조건: 모든 시나리오 답함 + 임계값 한 번 이상 움직임 + 종합 단계 도달
+  const completedRef = useRef(false);
   useEffect(() => {
-    if (step >= STEPS.length) markCompleted('d2');
-  }, [step, markCompleted]);
+    if (completedRef.current) return;
+    if (step >= 5 && allScenariosAnswered && thresholdMoved) {
+      completedRef.current = true;
+      markCompleted('d2');
+    }
+  }, [step, allScenariosAnswered, thresholdMoved, markCompleted]);
 
   return (
-    <article>
-      <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
-      <h1>{meta.title}</h1>
-      <p className="text-muted mt-2">
-        D1 에서 본 "거꾸로 흐르는 신호" 의 직관을 <strong>숫자와 그림</strong>으로 한 단계씩 따라가 봅니다.
-        A4 에서 배운 한 뉴런의 가중치 갱신 식이 두 뉴런 짜리 망에서도 그대로 통한다는 게 핵심.
-        각 단계마다 다이어그램이 한 부분씩 켜집니다.
-      </p>
-
-      <div className="grid lg:grid-cols-[1.3fr_1fr] gap-4 mt-4 items-start">
-        <div className="card p-3 lg:sticky lg:top-16 lg:z-10">
-          <BackpropDiagram step={step} />
-          <div className="text-[11px] text-muted mt-2 leading-snug text-center">
-            검정 = 앞으로(forward) 흐르는 신호 ·
-            <span style={{ color: 'rgb(190,18,60)' }}> 빨강 = 거꾸로(backward) 흐르는 책임</span>
-          </div>
-        </div>
-
-        <div className="space-y-2.5">
-          {STEPS.slice(0, step).map((s, i) => (
-            <div
-              key={i}
-              className={`rounded-md border p-3 ${
-                s.highlight ? 'border-accent bg-accent-bg/40' : 'border-border bg-surface/40'
-              }`}
-            >
-              <div className="text-sm font-semibold mb-1">{s.title}</div>
-              <div className="text-[13px] text-muted leading-relaxed">{s.body}</div>
-              {s.formula && (
-                <div className="mt-2 px-3 py-2 bg-bg border border-border rounded font-mono text-sm">
-                  {s.formula}
-                </div>
-              )}
-            </div>
-          ))}
-          <div className="flex gap-2 pt-1">
-            {step < STEPS.length ? (
-              <button
-                onClick={() => setStep((s) => Math.min(s + 1, STEPS.length))}
-                className="btn-primary text-sm flex-1"
-              >
-                다음 단계 펼치기 →
-              </button>
-            ) : (
-              <div className="aside-tip text-[12px] flex-1 my-0 py-2">
-                ✓ 모든 단계 완료. 다음 D3 에서 같은 흐름을 ∂ 기호로 옮겨 적습니다.
-              </div>
-            )}
-            {step > 1 && (
-              <button onClick={() => setStep((s) => Math.max(s - 1, 1))} className="btn-ghost text-sm">
-                ← 접기
-              </button>
-            )}
-          </div>
-        </div>
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* 헤더 */}
+      <div>
+        <div className="text-xs font-mono text-accent mb-1">{meta.num}</div>
+        <h1 className="!mb-1">{meta.title}</h1>
+        <p className="text-muted">{meta.subtitle}</p>
       </div>
-    </article>
+
+      {/* 단계 탭 */}
+      <div className="flex flex-wrap gap-2">
+        {STEP_LABELS.map((label, i) => (
+          <button
+            key={label}
+            onClick={() => setStep(i)}
+            className={
+              'px-3 py-1.5 text-sm rounded-md border transition ' +
+              (step === i
+                ? 'bg-accent text-white border-accent'
+                : 'border-border text-muted hover:text-fg hover:border-accent/50')
+            }
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* 본문 */}
+      {step === 0 && <Intro0 />}
+      {step === 1 && <Confusion1 />}
+      {step === 2 && <FourMetrics2 />}
+      {step === 3 && (
+        <ScenarioCompare
+          picks={picks}
+          setPick={(id, v) => setPicks((p) => ({ ...p, [id]: v }))}
+          allAnswered={allScenariosAnswered}
+        />
+      )}
+      {step === 4 && (
+        <ThresholdLab
+          threshold={threshold}
+          setThreshold={(v) => { setThreshold(v); setThresholdMoved(true); }}
+          matrix={m}
+          metrics={metrics}
+        />
+      )}
+      {step === 5 && (
+        <Summary
+          allAnswered={allScenariosAnswered}
+          thresholdMoved={thresholdMoved}
+          picks={picks}
+        />
+      )}
+
+      {/* 단계 이동 */}
+      <div className="flex justify-between">
+        <button
+          onClick={() => setStep(Math.max(0, step - 1))}
+          disabled={step === 0}
+          className="btn-ghost px-4 py-2 text-sm disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          ← 이전
+        </button>
+        <button
+          onClick={() => setStep(Math.min(5, step + 1))}
+          disabled={step === 5}
+          className="btn-primary px-4 py-2 text-sm disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          다음 →
+        </button>
+      </div>
+    </div>
   );
 }
 
-/* ───────── 다이어그램 ─────────
-   step 1~11 에 따라 어떤 요소가 켜질지 결정.
-   forward 값: step ≥ 표시 단계.
-   backward(빨강) 값: 해당 단계 이상에서만.
-*/
-function BackpropDiagram({ step }: { step: number }) {
-  // 노드 좌표
-  const xCol = 80;
-  const hCol = 280;
-  const yCol = 480;
-  const nodeY = 130;
-  const accent = 'rgb(var(--color-accent))';
-  const muted = 'rgb(var(--color-muted))';
-  const text = 'rgb(var(--color-text))';
-  const bg = 'rgb(var(--color-bg))';
-  const red = 'rgb(190,18,60)';
-
-  const showH = step >= 2;
-  const showYHat = step >= 3;
-  const showE = step >= 4;
-  const showW2Grad = step >= 6;
-  const showQ = step >= 7 && step < 9; // ⑦ 만 ❓
-  const showRate = step >= 8; // ⑧ 미니 라벨
-  const showHError = step >= 9;
-  const showBackArrow = step >= 9;
-  const showW1Grad = step >= 10;
-
+/* ─────────────────────────── 단계 0: 도입 ─────────────────────────── */
+function Intro0() {
   return (
-    <svg viewBox="0 0 560 240" className="w-full" style={{ maxHeight: 280 }}>
-      <defs>
-        <marker id="d2-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-          <path d="M0,0 L6,3 L0,6 z" fill={muted} />
-        </marker>
-        <marker id="d2-arrow-red" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-          <path d="M0,0 L6,3 L0,6 z" fill={red} />
-        </marker>
-      </defs>
+    <div className="card p-5 space-y-3 text-sm leading-relaxed">
+      <div className="font-medium text-base">정확도 한 숫자로는 부족할 때</div>
+      <p>
+        B4에서 우리는 이진 분류 모델의 정확도(맞춘 비율)를 봤어요. 정확도 92% 라면 꽤 잘하는 모델 같죠.
+        그런데 이 한 숫자로는 다음 두 모델의 차이를 설명할 수 없어요.
+      </p>
+      <div className="grid sm:grid-cols-2 gap-3 text-xs">
+        <div className="rounded bg-surface/60 p-3">
+          <div className="font-medium mb-1">모델 X</div>
+          <div>정확도 92% — 실제 양성 100개 중 95개를 잡아냄</div>
+        </div>
+        <div className="rounded bg-surface/60 p-3">
+          <div className="font-medium mb-1">모델 Y</div>
+          <div>정확도 92% — 실제 양성 100개 중 80개만 잡아냄</div>
+        </div>
+      </div>
+      <p>
+        같은 92%지만 한 쪽은 양성을 더 잘 잡고, 한 쪽은 음성을 더 잘 가립니다.
+        <strong> 어떤 실수가 더 아픈가</strong>에 따라 좋은 모델은 달라져요. 이 챕터에서는 그 차이를
+        다섯 숫자로 정리합니다 — 혼동 행렬, 정확도, 정밀도, 재현율, F1, 그리고 임계값.
+      </p>
+    </div>
+  );
+}
 
-      {/* forward 화살표: x → h */}
-      <line x1={xCol + 28} y1={nodeY} x2={hCol - 32} y2={nodeY} stroke={muted} strokeWidth={2} markerEnd="url(#d2-arrow)" />
-      {/* w₁ 라벨 박스 */}
-      <g>
-        <rect x={(xCol + hCol) / 2 - 36} y={nodeY - 38} width={72} height={20} rx={4} fill={bg} stroke={muted} />
-        <text x={(xCol + hCol) / 2} y={nodeY - 24} textAnchor="middle" fontSize={12} fontFamily="JetBrains Mono">w₁ = 0.5</text>
-      </g>
+/* ─────────────────────────── 단계 1: 혼동 행렬 ─────────────────────────── */
+function Confusion1() {
+  return (
+    <div className="space-y-4">
+      <div className="card p-5 text-sm leading-relaxed space-y-3">
+        <div className="font-medium text-base">혼동 행렬 — 정답×예측 표 한 장</div>
+        <p>
+          어떤 모델이 100개 표본에 대해 답한 결과를 정리하려면 정답과 예측을 함께 봐야 해요.
+          이걸 2×2 표로 그리면 <strong>혼동 행렬</strong>이에요. 칸이 네 개라 영문 약자가 흔히 쓰입니다.
+        </p>
+      </div>
 
-      {/* forward 화살표: h → ŷ */}
-      <line x1={hCol + 28} y1={nodeY} x2={yCol - 32} y2={nodeY} stroke={muted} strokeWidth={2} markerEnd="url(#d2-arrow)" />
-      <g>
-        <rect x={(hCol + yCol) / 2 - 36} y={nodeY - 38} width={72} height={20} rx={4} fill={bg} stroke={muted} />
-        <text x={(hCol + yCol) / 2} y={nodeY - 24} textAnchor="middle" fontSize={12} fontFamily="JetBrains Mono">w₂ = 0.8</text>
-      </g>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <ConfusionMatrixCard
+          tp={42} fp={8} fn={3} tn={47}
+          highlight={null}
+        />
+        <div className="card p-4 text-sm space-y-3 leading-relaxed">
+          <div className="font-medium">네 칸 읽는 법</div>
+          <ul className="space-y-2 text-xs">
+            <li><strong>TP</strong> (참 양성) — 실제 양성을 양성으로 맞힘 ✓</li>
+            <li><strong>FP</strong> (거짓 양성) — 실제 음성을 양성으로 잘못 — <em>오경보</em></li>
+            <li><strong>FN</strong> (거짓 음성) — 실제 양성을 음성으로 잘못 — <em>놓침</em></li>
+            <li><strong>TN</strong> (참 음성) — 실제 음성을 음성으로 맞힘 ✓</li>
+          </ul>
+          <p className="text-muted">
+            대각선(TP, TN)이 맞춘 자리, 반대 대각선(FP, FN)이 틀린 자리예요.
+            앞으로 나올 모든 지표는 이 네 숫자의 조합일 뿐입니다.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-      {/* 노드: 입력 x */}
-      <g>
-        <circle cx={xCol} cy={nodeY} r={26} fill="rgb(var(--color-surface))" stroke={muted} />
-        <text x={xCol} y={nodeY + 5} textAnchor="middle" fontSize={14} fontFamily="JetBrains Mono" fill={text}>x = {X}</text>
-      </g>
+/* ─────────────────────────── 단계 2: 네 지표 ─────────────────────────── */
+function FourMetrics2() {
+  // 예시 행렬 — 직관적 숫자
+  const m: Matrix = { tp: 42, fp: 8, fn: 3, tn: 47 };
+  const k = computeMetrics(m);
+  return (
+    <div className="space-y-4">
+      <div className="card p-5 text-sm leading-relaxed space-y-2">
+        <div className="font-medium text-base">네 가지 지표 — 같은 표에서 다른 질문</div>
+        <p>
+          아래 예시 행렬을 그대로 두고, 네 지표를 차례로 계산해 봐요.
+          모두 TP/FP/FN/TN의 조합일 뿐입니다.
+        </p>
+      </div>
+      <div className="grid lg:grid-cols-[320px_1fr] gap-4">
+        <ConfusionMatrixCard {...m} highlight={null} />
+        <div className="card p-4 space-y-3 text-sm">
+          <MetricRow
+            name="정확도 (Accuracy)"
+            formula="(TP + TN) / 전체"
+            calc={`(${m.tp} + ${m.tn}) / ${m.tp + m.fp + m.fn + m.tn} = ${k.accuracy.toFixed(3)}`}
+            mean="전체 답 중 맞춘 비율. 가장 직관적이지만, 양성·음성 비율이 한쪽으로 치우치면 속기 쉬움."
+          />
+          <MetricRow
+            name="정밀도 (Precision)"
+            formula="TP / (TP + FP) = TP / 예측 양성"
+            calc={`${m.tp} / (${m.tp} + ${m.fp}) = ${m.tp} / ${m.tp + m.fp} = ${k.precision.toFixed(3)}`}
+            mean="내가 양성이라고 한 것 중 진짜 양성의 비율. 1에 가까울수록 '내 양성 판정은 거짓말 안 함'."
+          />
+          <MetricRow
+            name="재현율 (Recall)"
+            formula="TP / (TP + FN) = TP / 실제 양성"
+            calc={`${m.tp} / (${m.tp} + ${m.fn}) = ${m.tp} / ${m.tp + m.fn} = ${k.recall.toFixed(3)}`}
+            mean="실제 양성을 얼마나 놓치지 않았나. 1에 가까울수록 '진짜 양성을 거의 다 잡음'."
+          />
+          <MetricRow
+            name="F1 (조화평균)"
+            formula="2 · 정밀도 · 재현율 / (정밀도 + 재현율)"
+            calc={`정밀도 ${k.precision.toFixed(2)} & 재현율 ${k.recall.toFixed(2)} → F1 = ${k.f1.toFixed(3)}`}
+            mean="정밀도와 재현율 둘 다 챙기고 싶을 때. 한쪽이 0이면 F1도 0이 되는 '둘 다' 지표."
+          />
+          <div className="rounded bg-surface/60 p-3 text-xs leading-relaxed">
+            <strong>왜 산술평균이 아니라 조화평균?</strong> 산술평균은 정밀도 1.0 + 재현율 0.0 = 0.5로 적당해 보여요.
+            그런데 재현율 0은 실제 양성을 하나도 못 잡았다는 뜻 — 적당하지 않죠. 조화평균은 한쪽이 0이면 결과도 0이라
+            "둘 다 챙겨야" 높아지는 성질이 있어요. 그래서 둘의 균형을 보고 싶을 때 F1을 씁니다.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-      {/* 노드: 중간 h */}
-      <g>
-        <circle cx={hCol} cy={nodeY} r={28} fill="rgb(var(--color-accent-bg))" stroke={accent} />
-        <text x={hCol} y={nodeY - 2} textAnchor="middle" fontSize={11} fill={accent}>중간</text>
-        {showH && (
-          <text x={hCol} y={nodeY + 12} textAnchor="middle" fontSize={13} fontFamily="JetBrains Mono" fill={text}>h = {H.toFixed(1)}</text>
-        )}
-      </g>
+function MetricRow({ name, formula, calc, mean }: { name: string; formula: string; calc: string; mean: string }) {
+  return (
+    <div className="border-b border-border pb-3 last:border-b-0 last:pb-0">
+      <div className="font-medium text-sm">{name}</div>
+      <div className="font-mono text-xs text-muted mt-1">{formula}</div>
+      <div className="font-mono text-xs mt-1">{calc}</div>
+      <div className="text-xs text-muted mt-1">{mean}</div>
+    </div>
+  );
+}
 
-      {/* 노드: 출력 ŷ */}
-      <g>
-        <circle cx={yCol} cy={nodeY} r={28} fill={accent} stroke={accent} />
-        <text x={yCol} y={nodeY - 2} textAnchor="middle" fontSize={11} fill="white">출력</text>
-        {showYHat && (
-          <text x={yCol} y={nodeY + 12} textAnchor="middle" fontSize={13} fontFamily="JetBrains Mono" fill="white">ŷ = {Y_HAT.toFixed(1)}</text>
-        )}
-      </g>
+/* ─────────────────────────── 단계 3: 시나리오 비교 ─────────────────────────── */
+function ScenarioCompare({
+  picks, setPick, allAnswered,
+}: {
+  picks: Record<string, 'A' | 'B' | undefined>;
+  setPick: (id: string, v: 'A' | 'B') => void;
+  allAnswered: boolean;
+}) {
+  return (
+    <div className="space-y-5">
+      <div className="card p-5 text-sm leading-relaxed space-y-2">
+        <div className="font-medium text-base">시나리오마다 좋은 모델은 다르다</div>
+        <p>
+          네 가지 상황을 보고 모델 A와 B 중 어느 쪽이 그 상황에 더 적합한지 골라 보세요.
+          정답이 정해진 게 아니라 <strong>어떤 실수가 더 아픈가</strong>에 따라 답이 달라집니다.
+          각 시나리오의 비용 비대칭과 두 모델의 혼동 행렬을 비교해 가며 골라 보세요.
+        </p>
+      </div>
 
-      {/* 정답 y */}
-      <g>
-        <text x={yCol} y={nodeY - 50} textAnchor="middle" fontSize={11} fill={muted}>정답 y = {Y_TARGET.toFixed(1)}</text>
-        <line x1={yCol} y1={nodeY - 42} x2={yCol} y2={nodeY - 30} stroke={muted} strokeWidth={1} strokeDasharray="2 2" />
-      </g>
+      {SCENARIOS.map((sc) => (
+        <ScenarioCard
+          key={sc.id}
+          sc={sc}
+          pick={picks[sc.id]}
+          onPick={(v) => setPick(sc.id, v)}
+        />
+      ))}
 
-      {/* ④ 출력 오차 (빨강) */}
-      {showE && (
-        <g>
-          <rect x={yCol - 38} y={nodeY + 38} width={76} height={22} rx={4} fill={bg} stroke={red} strokeWidth={1.5} />
-          <text x={yCol} y={nodeY + 53} textAnchor="middle" fontSize={12} fontFamily="JetBrains Mono" fill={red} fontWeight={600}>e = {E.toFixed(1)}</text>
+      {allAnswered && (
+        <div className="aside-tip">
+          <div className="font-medium">네 시나리오 모두 답했어요.</div>
+          <p className="text-sm mt-2">
+            정답을 외우는 게 목표가 아니에요. <strong>어떤 실수가 더 아픈지 먼저 묻는 습관</strong>이 핵심이에요.
+            다음 단계에서는 한 모델의 임계값을 직접 움직여서, 같은 모델도 어떻게 정밀도·재현율을 바꿔
+            가며 시나리오에 맞출 수 있는지 봅니다.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ScenarioCard({ sc, pick, onPick }: { sc: Scenario; pick?: 'A' | 'B'; onPick: (v: 'A' | 'B') => void }) {
+  const mA = computeMetrics(sc.A);
+  const mB = computeMetrics(sc.B);
+  return (
+    <div className="card p-5 space-y-4">
+      <div>
+        <div className="text-xs font-mono text-accent">시나리오 — {sc.name}</div>
+        <p className="text-sm mt-1">{sc.blurb}</p>
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-3 text-xs">
+        <div className="rounded bg-rose-50 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-900/50 p-3">
+          <div className="font-medium text-rose-700 dark:text-rose-300 mb-1">FN — 놓침의 비용</div>
+          <div>{sc.fnCost}</div>
+        </div>
+        <div className="rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/50 p-3">
+          <div className="font-medium text-amber-700 dark:text-amber-300 mb-1">FP — 오경보의 비용</div>
+          <div>{sc.fpCost}</div>
+        </div>
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-3">
+        <ModelMiniCard letter="A" m={sc.A} k={mA} picked={pick === 'A'} onClick={() => onPick('A')} />
+        <ModelMiniCard letter="B" m={sc.B} k={mB} picked={pick === 'B'} onClick={() => onPick('B')} />
+      </div>
+
+      {pick && (
+        <div className={
+          'rounded p-3 text-xs leading-relaxed ' +
+          (pick === sc.bestModel
+            ? 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-900/50'
+            : 'bg-slate-50 dark:bg-slate-900/40 border border-border')
+        }>
+          <div className="font-medium text-sm mb-1">
+            {pick === sc.bestModel ? '✓ 일반적으로 이 답이 적합합니다' : '한 번 더 생각해 볼 자리예요'} —
+            추천 답: 모델 {sc.bestModel} ({sc.whichMetric} 우선)
+          </div>
+          <p>{sc.bestReason}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ModelMiniCard({ letter, m, k, picked, onClick }: {
+  letter: 'A' | 'B'; m: Matrix; k: ReturnType<typeof computeMetrics>; picked: boolean; onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={
+        'text-left rounded-md p-3 border-2 transition ' +
+        (picked ? 'border-accent bg-accent/5' : 'border-border hover:border-accent/40 bg-surface/40')
+      }
+    >
+      <div className="flex items-baseline justify-between mb-2">
+        <div className="font-medium">모델 {letter}</div>
+        <div className="text-[10px] font-mono text-muted">전체 {m.tp + m.fp + m.fn + m.tn}건</div>
+      </div>
+      <div className="grid grid-cols-2 gap-1 text-[11px] font-mono mb-2">
+        <div className="rounded bg-emerald-100 dark:bg-emerald-950/40 px-2 py-1">TP {m.tp}</div>
+        <div className="rounded bg-amber-100 dark:bg-amber-950/40 px-2 py-1">FP {m.fp}</div>
+        <div className="rounded bg-rose-100 dark:bg-rose-950/40 px-2 py-1">FN {m.fn}</div>
+        <div className="rounded bg-slate-100 dark:bg-slate-900/40 px-2 py-1">TN {m.tn}</div>
+      </div>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px]">
+        <div>정확도 <span className="font-mono">{(k.accuracy * 100).toFixed(1)}%</span></div>
+        <div>F1 <span className="font-mono">{(k.f1 * 100).toFixed(1)}%</span></div>
+        <div>정밀도 <span className="font-mono">{(k.precision * 100).toFixed(1)}%</span></div>
+        <div>재현율 <span className="font-mono">{(k.recall * 100).toFixed(1)}%</span></div>
+      </div>
+    </button>
+  );
+}
+
+/* ─────────────────────────── 단계 4: 임계값 슬라이더 ─────────────────────────── */
+function ThresholdLab({
+  threshold, setThreshold, matrix, metrics,
+}: {
+  threshold: number;
+  setThreshold: (v: number) => void;
+  matrix: Matrix;
+  metrics: ReturnType<typeof computeMetrics>;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="card p-5 text-sm leading-relaxed space-y-2">
+        <div className="font-medium text-base">임계값 — 같은 모델, 다른 판정</div>
+        <p>
+          B4에서 "<code>σ(z) ≥ 0.5</code>이면 양성"이라고 약속했죠. 사실 그 <strong>0.5는 우리가 골라 쓰는 값</strong>이에요.
+          모델이 만든 점수는 그대로지만, <strong>임계값</strong>을 어디로 두느냐에 따라 양성 판정의 개수가 바뀌고
+          정확도·정밀도·재현율·F1이 함께 바뀝니다.
+        </p>
+        <p>
+          아래 100명의 환자가 있다고 해 봐요. 각 환자마다 모델이 0~1 사이 점수를 매겼고, 진짜 양성/음성도 알고 있어요.
+          슬라이더로 임계값을 옮기면 그 점수 이상인 사람은 양성으로 판정합니다.
+        </p>
+      </div>
+
+      <div className="grid lg:grid-cols-[1fr_320px] gap-4">
+        <div className="space-y-4">
+          {/* 점수 분포 시각화 */}
+          <div className="card p-4">
+            <ScoreDistribution threshold={threshold} />
+            <div className="text-xs text-muted mt-2">
+              가로축 = 모델이 매긴 점수 (0~1). 빨강 = 실제 양성, 회색 = 실제 음성. 노란 세로선 = 임계값.
+              임계값 오른쪽은 모두 양성 판정, 왼쪽은 음성 판정.
+            </div>
+          </div>
+
+          {/* 슬라이더 */}
+          <div className="card p-4 space-y-2">
+            <div className="flex items-baseline justify-between text-sm">
+              <span className="font-medium">임계값</span>
+              <span className="font-mono">{threshold.toFixed(2)}</span>
+            </div>
+            <input
+              type="range"
+              min={0} max={1} step={0.01}
+              value={threshold}
+              onChange={(e) => setThreshold(parseFloat(e.target.value))}
+              className="w-full"
+            />
+            <div className="flex justify-between text-[10px] text-muted font-mono">
+              <span>0.00 (다 양성)</span>
+              <span>0.50 (기본)</span>
+              <span>1.00 (다 음성)</span>
+            </div>
+            <div className="flex gap-2 pt-2">
+              {[0.2, 0.5, 0.8].map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setThreshold(v)}
+                  className="btn-ghost text-xs px-2 py-1"
+                >
+                  {v.toFixed(2)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 관찰 가이드 */}
+          <div className="card p-4 text-sm space-y-2 leading-relaxed">
+            <div className="font-medium">관찰 — 슬라이더를 움직이며 확인</div>
+            <ul className="list-disc list-inside text-xs space-y-1">
+              <li>임계값을 <strong>낮추면</strong> 양성 판정이 늘어 — 재현율↑(놓치지 않음), 정밀도↓(오경보 늘어남)</li>
+              <li>임계값을 <strong>높이면</strong> 양성 판정이 줄어 — 정밀도↑(확실한 것만), 재현율↓(놓침 늘어남)</li>
+              <li>F1은 정밀도와 재현율의 균형이 가장 잘 맞는 곳에서 최대 — 보통 0.5 근처</li>
+              <li>한쪽 끝(0.0 또는 1.0)으로 보내면 F1이 0에 가까워짐 — 한 종류만 답하는 모델은 쓸모가 적음</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* 우측 — 혼동 행렬 + 지표 카드 */}
+        <aside className="space-y-4">
+          <ConfusionMatrixCard {...matrix} highlight={null} />
+          <div className="card p-4 space-y-2">
+            <div className="font-medium text-sm">실시간 지표</div>
+            <MetricLine name="정확도" value={metrics.accuracy} />
+            <MetricLine name="정밀도" value={metrics.precision} />
+            <MetricLine name="재현율" value={metrics.recall} />
+            <MetricLine name="F1"      value={metrics.f1} bold />
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function MetricLine({ name, value, bold }: { name: string; value: number; bold?: boolean }) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className={bold ? 'font-medium' : ''}>{name}</span>
+      <div className="flex items-center gap-2 w-44">
+        <div className="flex-1 h-2 rounded bg-surface/60 overflow-hidden">
+          <div className="h-full bg-accent" style={{ width: `${(value * 100).toFixed(1)}%` }} />
+        </div>
+        <span className={'font-mono text-xs w-12 text-right ' + (bold ? 'font-bold' : '')}>
+          {(value * 100).toFixed(1)}%
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function ScoreDistribution({ threshold }: { threshold: number }) {
+  const W = 600;
+  const H = 140;
+  const padL = 16, padR = 16, padT = 12, padB = 24;
+  const xPx = (s: number) => padL + s * (W - padL - padR);
+  // 점들을 양성/음성 두 줄로 흩뿌리되 score 위치를 가로축으로
+  const posSamples = SAMPLES.filter((s) => s.label === 1);
+  const negSamples = SAMPLES.filter((s) => s.label === 0);
+  const posY = padT + 28;
+  const negY = padT + 78;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+      {/* 축선 */}
+      <line x1={padL} x2={W - padR} y1={H - padB} y2={H - padB} stroke="currentColor" opacity={0.2} />
+      {[0, 0.25, 0.5, 0.75, 1].map((t) => (
+        <g key={t}>
+          <line x1={xPx(t)} x2={xPx(t)} y1={H - padB} y2={H - padB + 4} stroke="currentColor" opacity={0.3} />
+          <text x={xPx(t)} y={H - 6} fontSize="10" textAnchor="middle" fill="currentColor" opacity={0.55}>{t}</text>
         </g>
-      )}
+      ))}
 
-      {/* ⑥ w₂ 책임 (빨강 라벨) */}
-      {showW2Grad && (
-        <g>
-          <rect x={(hCol + yCol) / 2 - 40} y={nodeY + 14} width={80} height={20} rx={4} fill={bg} stroke={red} strokeWidth={1.5} />
-          <text x={(hCol + yCol) / 2} y={nodeY + 28} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono" fill={red} fontWeight={600}>책임 {W2_GRAD.toFixed(2)}</text>
-        </g>
-      )}
+      {/* 라벨 */}
+      <text x={padL} y={posY - 16} fontSize="10" fill="currentColor" opacity={0.6}>실제 양성</text>
+      <text x={padL} y={negY - 16} fontSize="10" fill="currentColor" opacity={0.6}>실제 음성</text>
 
-      {/* ⑦ 중간에 ❓ */}
-      {showQ && (
-        <text x={hCol} y={nodeY + 56} textAnchor="middle" fontSize={20} fill={red} fontWeight={700}>?</text>
-      )}
+      {/* 점들 */}
+      {posSamples.map((s, i) => {
+        const past = s.score >= threshold;
+        return (
+          <circle
+            key={`p${i}`} cx={xPx(s.score)} cy={posY + (i % 5 - 2) * 3}
+            r={4} fill="rgb(220,38,38)" opacity={past ? 0.95 : 0.35} stroke={past ? '#fff' : 'none'} strokeWidth={1}
+          />
+        );
+      })}
+      {negSamples.map((s, i) => {
+        const past = s.score >= threshold;
+        return (
+          <circle
+            key={`n${i}`} cx={xPx(s.score)} cy={negY + (i % 5 - 2) * 3}
+            r={4} fill="rgb(100,116,139)" opacity={past ? 0.95 : 0.35} stroke={past ? '#fff' : 'none'} strokeWidth={1}
+          />
+        );
+      })}
 
-      {/* ⑧ 변화 비율 라벨 */}
-      {showRate && (
-        <g>
-          <rect x={(hCol + yCol) / 2 - 50} y={nodeY + 70} width={100} height={20} rx={4} fill={bg} stroke={accent} strokeWidth={1} />
-          <text x={(hCol + yCol) / 2} y={nodeY + 84} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono" fill={accent}>Δh=1 → Δŷ=0.8</text>
-        </g>
-      )}
-
-      {/* ⑨ 빨간 역방향 화살표 (h ← ŷ) */}
-      {showBackArrow && (
-        <g>
-          <line x1={yCol - 32} y1={nodeY + 8} x2={hCol + 30} y2={nodeY + 8} stroke={red} strokeWidth={2} strokeDasharray="4 3" markerEnd="url(#d2-arrow-red)" />
-        </g>
-      )}
-
-      {/* ⑨ 중간 자리 오차 라벨 */}
-      {showHError && (
-        <g>
-          <rect x={hCol - 45} y={nodeY + 38} width={90} height={22} rx={4} fill={bg} stroke={red} strokeWidth={1.5} />
-          <text x={hCol} y={nodeY + 53} textAnchor="middle" fontSize={12} fontFamily="JetBrains Mono" fill={red} fontWeight={600}>{H_ERROR.toFixed(2)}</text>
-        </g>
-      )}
-
-      {/* ⑩ w₁ 책임 라벨 */}
-      {showW1Grad && (
-        <g>
-          <rect x={(xCol + hCol) / 2 - 40} y={nodeY + 14} width={80} height={20} rx={4} fill={bg} stroke={red} strokeWidth={1.5} />
-          <text x={(xCol + hCol) / 2} y={nodeY + 28} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono" fill={red} fontWeight={600}>책임 {W1_GRAD.toFixed(2)}</text>
-        </g>
-      )}
-
-      {/* 빨간 역방향 화살표 (x ← h) */}
-      {showW1Grad && (
-        <g>
-          <line x1={hCol - 30} y1={nodeY + 8} x2={xCol + 28} y2={nodeY + 8} stroke={red} strokeWidth={2} strokeDasharray="4 3" markerEnd="url(#d2-arrow-red)" />
-        </g>
-      )}
+      {/* 임계값 라인 */}
+      <line
+        x1={xPx(threshold)} x2={xPx(threshold)}
+        y1={padT - 2} y2={H - padB + 2}
+        stroke="rgb(234,179,8)" strokeWidth={2}
+      />
+      <text x={xPx(threshold)} y={padT + 4} fontSize="10" textAnchor="middle" fill="rgb(234,179,8)" fontWeight={600}>
+        임계값
+      </text>
     </svg>
+  );
+}
+
+/* ─────────────────────────── 단계 5: 종합 ─────────────────────────── */
+function Summary({ allAnswered, thresholdMoved, picks }: {
+  allAnswered: boolean; thresholdMoved: boolean;
+  picks: Record<string, 'A' | 'B' | undefined>;
+}) {
+  return (
+    <div className="card p-5 space-y-4 text-sm leading-relaxed">
+      <div className="font-medium text-base">종합 — 분류 모델 평가 한 줄 정리</div>
+      <ul className="list-disc list-inside space-y-1">
+        <li>정확도는 직관적이지만, 양성·음성 비율이 치우치면 속는다.</li>
+        <li>정밀도는 "양성 판정이 거짓말 안 함", 재현율은 "양성을 놓치지 않음".</li>
+        <li>둘은 보통 <strong>트레이드오프</strong>: 임계값으로 한쪽을 올리면 다른 쪽이 내려간다.</li>
+        <li>F1은 둘의 균형. 한쪽이 0이면 F1도 0이라 "둘 다 챙겨야" 높아진다.</li>
+        <li>좋은 모델은 <strong>상황에 따라</strong> 다르다. 어떤 실수가 더 아픈지 먼저 묻자.</li>
+      </ul>
+
+      <div className="rounded bg-surface/60 p-3 text-xs">
+        <div className="font-medium mb-1">진행 상태</div>
+        <div>· 시나리오 4개 답하기 — {allAnswered ? '✓ 완료' : `진행 중 (${Object.keys(picks).length}/4)`}</div>
+        <div>· 임계값 슬라이더 움직이기 — {thresholdMoved ? '✓ 완료' : '미진행'}</div>
+        <div className="mt-1 text-muted">
+          둘 다 ✓ 가 되면 이 페이즈가 완료 처리됩니다. 활동지(partD)의 2~4번 문제로 같은 시나리오·매트릭스를 손으로 한 번 더 풀어볼 수 있어요.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────── 공통 — 혼동 행렬 카드 ─────────────────────────── */
+function ConfusionMatrixCard({ tp, fp, fn, tn, highlight }: Matrix & { highlight: 'tp' | 'fp' | 'fn' | 'tn' | null }) {
+  const cellClass = (k: 'tp' | 'fp' | 'fn' | 'tn', base: string) =>
+    'rounded p-3 ' + base + (highlight === k ? ' ring-2 ring-accent' : '');
+  return (
+    <div className="card p-4">
+      <div className="text-xs text-muted mb-2 font-mono">혼동 행렬 (정답 × 예측)</div>
+      <div className="grid grid-cols-[60px_1fr_1fr] gap-1 text-xs">
+        <div></div>
+        <div className="text-center font-medium pb-1">예측 양성</div>
+        <div className="text-center font-medium pb-1">예측 음성</div>
+
+        <div className="flex items-center justify-end pr-2 font-medium">실제 양성</div>
+        <div className={cellClass('tp', 'bg-emerald-100 dark:bg-emerald-950/40')}>
+          <div className="text-[10px] opacity-70">TP</div>
+          <div className="font-mono text-base">{tp}</div>
+        </div>
+        <div className={cellClass('fn', 'bg-rose-100 dark:bg-rose-950/40')}>
+          <div className="text-[10px] opacity-70">FN — 놓침</div>
+          <div className="font-mono text-base">{fn}</div>
+        </div>
+
+        <div className="flex items-center justify-end pr-2 font-medium">실제 음성</div>
+        <div className={cellClass('fp', 'bg-amber-100 dark:bg-amber-950/40')}>
+          <div className="text-[10px] opacity-70">FP — 오경보</div>
+          <div className="font-mono text-base">{fp}</div>
+        </div>
+        <div className={cellClass('tn', 'bg-slate-100 dark:bg-slate-900/40')}>
+          <div className="text-[10px] opacity-70">TN</div>
+          <div className="font-mono text-base">{tn}</div>
+        </div>
+      </div>
+    </div>
   );
 }

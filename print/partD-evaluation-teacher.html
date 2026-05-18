@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>Neural Explorer 활동지 D부 — 모델을 어떻게 평가할까 [정답·해설]</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt;page-break-after:avoid}
+
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt;page-break-after:avoid}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .meta{font-size:9pt;color:#777;margin-top:6pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0;break-inside:auto;page-break-inside:auto}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt;break-inside:avoid;page-break-inside:avoid}
+  .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+  .sh{font-size:11pt;font-weight:700;margin:14pt 0 6pt;color:#222;break-after:avoid;page-break-after:avoid}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0;break-inside:avoid;page-break-inside:avoid}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px;break-inside:avoid;page-break-inside:avoid}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#1a1a1a;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb td.ans{background:#fff4e6;color:#a04500;font-weight:600;font-family:'JetBrains Mono',monospace}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  /* 정답 인라인 — 빈칸 위치에 들어가는 색 박스 */
+  .ans{display:inline-block;background:#fff4e6;color:#a04500;font-weight:700;border:1px solid #f0c080;border-radius:3px;padding:1pt 6pt;margin:0 2pt;font-family:'JetBrains Mono',monospace;font-size:10pt}
+
+  /* 해설 박스 */
+  .sol{background:#fffbf0;border-left:3px solid #e09030;padding:7pt 10pt;margin:6pt 0;border-radius:0 4px 4px 0;break-inside:avoid;page-break-inside:avoid;font-size:9.8pt}
+  .sol .t{font-weight:700;color:#8a5000;margin-bottom:3pt}
+
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt}
+  ul,ol{padding-left:18pt;margin:4pt 0}
+  li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto;overflow:visible}
+    .qh,.fm,.ex,.ib,.tb,.an,.sol{break-inside:avoid;page-break-inside:avoid}
+    .sh{break-after:avoid;page-break-after:avoid}
+    .tb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .qh .num{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .ans, .tb td.ans, .sol{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header class="lh">
+  <div class="lab">NEURAL EXPLORER · ACTIVITY D / 5 · [정답·해설]</div>
+  <h1>D — 모델을 어떻게 평가할까 [정답·해설]</h1>
+  <div class="sub">교사용 — 학생용과 동일한 구성에 정답을 인라인으로 표기. 채점·해설용.</div>
+  <div class="meta">앱 페이즈 D1·D2 · 평가 기준: 손계산 정확성 + 시나리오 판단 일관성 (개방형)</div>
+  <div class="lh obj">2-C 시나리오 ㉡(공장 품질)은 정답 하나로 강요하지 말 것. FN·FP 비용 비교 논리가 일관되면 A·B 어느 쪽도 인정.</div>
+</header>
+
+<!-- 섹션 1 -->
+<h2>섹션 1. 회귀 평가 — 잔차에서 R²까지</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-A</span> 잔차 계산</div>
+  <table class="tb">
+    <thead>
+      <tr><th>연도</th><th>y</th><th>ŷ</th><th>잔차 ŷ−y</th><th>|잔차|</th><th>잔차²</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>2018</td><td>13.0</td><td>13.4</td><td class="ans">+0.4</td><td class="ans">0.4</td><td class="ans">0.16</td></tr>
+      <tr><td>2019</td><td>13.4</td><td>13.6</td><td class="ans">+0.2</td><td class="ans">0.2</td><td class="ans">0.04</td></tr>
+      <tr><td>2020</td><td>13.6</td><td>13.8</td><td class="ans">+0.2</td><td class="ans">0.2</td><td class="ans">0.04</td></tr>
+      <tr><td>2021</td><td>13.9</td><td>14.0</td><td class="ans">+0.1</td><td class="ans">0.1</td><td class="ans">0.01</td></tr>
+      <tr><td>2022</td><td>14.2</td><td>14.2</td><td class="ans">0.00</td><td class="ans">0.00</td><td class="ans">0.00</td></tr>
+      <tr><td class="lbl">합계</td><td colspan="3"></td><td class="ans">0.9</td><td class="ans">0.25</td></tr>
+    </tbody>
+  </table>
+  <div class="sol">
+    <div class="t">해설</div>
+    잔차 = (예측 − 실제). 모두 ŷ ≥ y라서 잔차가 모두 양수 또는 0. 학생이 부호를 빠뜨리지 않도록 점검할 것.
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-B</span> MAE</div>
+  <div class="fm">
+    MAE = ( |잔차₁| + … + |잔차₅| ) / N <br>
+    MAE = <span class="ans">0.9</span> / 5 = <span class="ans">0.18</span> °C
+  </div>
+  <div class="sol"><div class="t">해설</div>이 표는 단순해서 |잔차| 합 = 잔차 합. 학생들이 "잔차 부호가 다르면 절대값이 필요한 이유"를 직관으로 잡을 수 있도록 안내.</div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-C</span> MSE · RMSE</div>
+  <div class="fm">
+    MSE  = <span class="ans">0.25</span> / 5 = <span class="ans">0.05</span> °C² <br>
+    RMSE = √<span class="ans">0.05</span> = <span class="ans">0.2236</span> °C (≈ 0.22)
+  </div>
+  <div class="ib">
+    <div class="t">RMSE는 MAE보다 큰가요, 작은가요?</div>
+    답: <span class="ans">크다</span> (0.22 > 0.18). 이유: 0.4라는 비교적 큰 잔차 하나가 제곱돼서 RMSE에 영향이 커짐 — RMSE가 MAE보다 크면 일부 점에 큰 오차가 몰려 있다는 신호.
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">1-D</span> R²</div>
+  <div class="ib">평균 ȳ = 68.1 / 5 = <span class="ans">13.62</span> °C</div>
+  <table class="tb">
+    <thead><tr><th>연도</th><th>y</th><th>y−ȳ</th><th>(y−ȳ)²</th></tr></thead>
+    <tbody>
+      <tr><td>2018</td><td>13.0</td><td class="ans">−0.62</td><td class="ans">0.3844</td></tr>
+      <tr><td>2019</td><td>13.4</td><td class="ans">−0.22</td><td class="ans">0.0484</td></tr>
+      <tr><td>2020</td><td>13.6</td><td class="ans">−0.02</td><td class="ans">0.0004</td></tr>
+      <tr><td>2021</td><td>13.9</td><td class="ans">+0.28</td><td class="ans">0.0784</td></tr>
+      <tr><td>2022</td><td>14.2</td><td class="ans">+0.58</td><td class="ans">0.3364</td></tr>
+      <tr><td class="lbl" colspan="3">합계 (기준선 제곱합)</td><td class="ans">0.848</td></tr>
+    </tbody>
+  </table>
+  <div class="fm">
+    R² = 1 − <span class="ans">0.25</span> / <span class="ans">0.848</span> = 1 − <span class="ans">0.295</span> = <span class="ans">0.705</span>
+  </div>
+  <div class="sol">
+    <div class="t">해설</div>
+    R² ≈ 0.71. 이 모델은 평균만 답하는 모델보다 잔차 제곱합을 70% 가량 줄였다는 의미. "1에 가까울수록 좋다"의 직관을 학생에게 강조.
+  </div>
+</div>
+
+<div class="an">
+  <div><span class="lab">앱 D1 — 채점 기준</span></div>
+  앱에서 "최적 직선으로 점프" 누르면 w≈0.260, b≈11.63 부근에서 MAE ≈ 0.30, RMSE ≈ 0.40, R² ≈ 0.85 (전체 데이터 기준, 활동지 5년치보다 RMSE가 큰 게 정상 — 표본이 100배 많으므로). 학생이 활동지 5년치와 앱 전체의 차이를 인식하면 가산점.
+</div>
+
+<!-- 섹션 2 -->
+<h2>섹션 2. 분류 평가 — 혼동 행렬에서 F1까지</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-A</span> 혼동 행렬 채우기</div>
+  <table class="tb">
+    <thead><tr><th>환자</th><th>실제</th><th>예측</th><th>분류</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>양</td><td>양</td><td class="ans">TP</td></tr>
+      <tr><td>B</td><td>양</td><td>양</td><td class="ans">TP</td></tr>
+      <tr><td>C</td><td>양</td><td>양</td><td class="ans">TP</td></tr>
+      <tr><td>D</td><td>양</td><td>음</td><td class="ans">FN</td></tr>
+      <tr><td>E</td><td>양</td><td>음</td><td class="ans">FN</td></tr>
+      <tr><td>F</td><td>음</td><td>양</td><td class="ans">FP</td></tr>
+      <tr><td>G</td><td>음</td><td>음</td><td class="ans">TN</td></tr>
+      <tr><td>H</td><td>음</td><td>음</td><td class="ans">TN</td></tr>
+      <tr><td>I</td><td>음</td><td>음</td><td class="ans">TN</td></tr>
+      <tr><td>J</td><td>음</td><td>음</td><td class="ans">TN</td></tr>
+    </tbody>
+  </table>
+  <table class="tb" style="max-width:380pt">
+    <tbody>
+      <tr><td class="lbl"></td><td class="lbl">예측 양성</td><td class="lbl">예측 음성</td></tr>
+      <tr><td class="lbl">실제 양성</td><td class="ans">TP = 3</td><td class="ans">FN = 2</td></tr>
+      <tr><td class="lbl">실제 음성</td><td class="ans">FP = 1</td><td class="ans">TN = 4</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-B</span> 네 지표</div>
+  <div class="fm">
+    정확도 = (3 + 4) / 10 = <span class="ans">0.70</span> <br>
+    정밀도 = 3 / (3 + 1) = 3 / 4 = <span class="ans">0.75</span> <br>
+    재현율 = 3 / (3 + 2) = 3 / 5 = <span class="ans">0.60</span> <br>
+    F1     = 2 · 0.75 · 0.60 / (0.75 + 0.60) = 0.9 / 1.35 = <span class="ans">0.667</span>
+  </div>
+  <div class="ib">
+    어느 쪽 실수가 더 많은가? — <span class="ans">FN (놓침)</span>. 가장 낮은 지표 — <span class="ans">재현율 (0.60)</span>
+  </div>
+  <div class="sol">
+    <div class="t">해설</div>
+    이 모델은 실제 양성 5명 중 2명을 놓침 — 재현율이 약함. 시나리오에 따라 이 모델은 암 검진에는 부적합하고, 스팸 필터에는 적합할 수 있음.
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-C</span> 시나리오</div>
+
+  <h3>㉠ 코로나 PCR — 권장 답: <span class="ans">모델 A</span></h3>
+  <div class="sol">
+    <div class="t">근거</div>
+    FN(감염자 놓침)이 지역 사회 위험으로 직결. 재현율 우선. 모델 A 재현율 0.96 vs B 0.85. FP는 추가 검사로 안전망 있음 — A의 낮은 정밀도(0.444)는 감수 가능.
+  </div>
+
+  <h3>㉡ 공장 품질 — 권장 답: <span class="ans">상황에 따라 A 또는 B</span> (둘 다 합리적)</h3>
+  <div class="sol">
+    <div class="t">근거 — A를 고르면</div>
+    F1이 더 높고(0.87), 폐기되는 정품 수가 적어 원가 효율적. 일반 제품에 적합.
+    <div class="t" style="margin-top:4pt">근거 — B를 고르면</div>
+    FN(불량 출하)이 치명적인 제품군(의료기기, 안전 부품 등)이라면 정밀도를 희생하고 재현율(0.983)을 최대화. 정상품 폐기 손실은 회수 불가 사고보다 작음.
+    <div class="t" style="margin-top:4pt">채점 기준</div>
+    A·B 어느 쪽을 골라도 <strong>FN과 FP 비용을 명시적으로 비교</strong>하고 그에 따라 지표 선택을 정당화하면 정답.
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">2-D</span> 임계값을 옮기면</div>
+
+  <h3>임계값 = 0.50</h3>
+  <div class="sol" style="margin-top:0">
+    양성 판정: P1(0.92), P2(0.81), P3(0.65), P4(0.58) — 4명<br>
+    P1·P2·P3 = TP, P4 = FP, P5 = FN, P6·P7·P8 = TN
+  </div>
+  <table class="tb" style="max-width:380pt">
+    <tbody>
+      <tr><td class="lbl"></td><td class="lbl">예측 양</td><td class="lbl">예측 음</td></tr>
+      <tr><td class="lbl">실제 양</td><td class="ans">TP=3</td><td class="ans">FN=1</td></tr>
+      <tr><td class="lbl">실제 음</td><td class="ans">FP=1</td><td class="ans">TN=3</td></tr>
+    </tbody>
+  </table>
+  <div class="fm">
+    정확도 <span class="ans">0.75</span> · 정밀도 <span class="ans">0.75</span> · 재현율 <span class="ans">0.75</span> · F1 <span class="ans">0.750</span>
+  </div>
+
+  <h3>임계값 = 0.30</h3>
+  <div class="sol" style="margin-top:0">
+    양성 판정: P1, P2, P3, P4, P5, P6 — 6명. 양성 정답이 P5 추가로 잡힘(TP+1), 음성 정답 P6도 양성 판정됨(FP+1).
+  </div>
+  <table class="tb" style="max-width:380pt">
+    <tbody>
+      <tr><td class="lbl"></td><td class="lbl">예측 양</td><td class="lbl">예측 음</td></tr>
+      <tr><td class="lbl">실제 양</td><td class="ans">TP=4</td><td class="ans">FN=0</td></tr>
+      <tr><td class="lbl">실제 음</td><td class="ans">FP=2</td><td class="ans">TN=2</td></tr>
+    </tbody>
+  </table>
+  <div class="fm">
+    정확도 <span class="ans">0.75</span> · 정밀도 <span class="ans">0.667</span> · 재현율 <span class="ans">1.00</span> · F1 <span class="ans">0.800</span>
+  </div>
+
+  <h3>임계값 = 0.70</h3>
+  <div class="sol" style="margin-top:0">
+    양성 판정: P1, P2 — 2명. P3·P5(실제 양) 모두 음성으로 가서 FN.
+  </div>
+  <table class="tb" style="max-width:380pt">
+    <tbody>
+      <tr><td class="lbl"></td><td class="lbl">예측 양</td><td class="lbl">예측 음</td></tr>
+      <tr><td class="lbl">실제 양</td><td class="ans">TP=2</td><td class="ans">FN=2</td></tr>
+      <tr><td class="lbl">실제 음</td><td class="ans">FP=0</td><td class="ans">TN=4</td></tr>
+    </tbody>
+  </table>
+  <div class="fm">
+    정확도 <span class="ans">0.75</span> · 정밀도 <span class="ans">1.00</span> · 재현율 <span class="ans">0.50</span> · F1 <span class="ans">0.667</span>
+  </div>
+
+  <div class="ib">
+    <div class="t">관찰 — 정답</div>
+    임계값을 낮추면 <span class="ans">재현율</span>이 올라가고 <span class="ans">정밀도</span>가 내려간다.<br>
+    임계값을 높이면 <span class="ans">정밀도</span>가 올라가고 <span class="ans">재현율</span>이 내려간다.<br>
+    F1이 가장 큰 임계값은 위 세 가지 중 <span class="ans">0.30</span>.
+  </div>
+  <div class="sol">
+    <div class="t">교사 메모</div>
+    정확도는 세 임계값 모두 0.75로 같다는 점이 흥미로움. 학생들이 "정확도가 같으면 같은 모델 같다"고 오해할 수 있으니, 정밀도·재현율·F1을 함께 봐야 한다는 점을 강조.
+  </div>
+</div>
+
+<!-- 섹션 3 -->
+<h2>섹션 3. 종합 — 적용·서술</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-A</span> 정확도만으로 판단할 수 없는 이유</div>
+  <div class="sol">
+    <div class="t">기대 답 (예시)</div>
+    ① 양성·음성 비율이 한쪽으로 치우치면 정확도가 높아도 양성을 거의 못 잡을 수 있다 (예: 양성 1% 데이터에서 "모두 음성" 답하면 정확도 99%).<br>
+    ② 어떤 실수가 더 아픈지에 따라 좋은 모델이 다르기 때문에, 한 숫자만으로는 "이 모델이 우리 상황에 맞는가"를 판단할 수 없다.
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">3-B</span> 학생 시나리오 (개방형)</div>
+  <div class="sol">
+    <div class="t">채점 기준</div>
+    학생이 새 문제를 떠올렸다는 점, FN·FP 비용을 명시적으로 비교했다는 점, 그에 맞는 지표(재현율/정밀도/F1)를 골랐다는 점 — 세 가지가 모두 보이면 만점.
+    학생 예시: "지진 조기 경보 — FN(놓침)이 생명 손실, 재현율 우선" / "유튜브 추천 — FP(흥미 없는 영상 추천)와 FN(좋아할 영상 못 만남) 둘 다 무거움, F1 균형" 등.
+  </div>
+</div>
+
+</body>
+</html>
