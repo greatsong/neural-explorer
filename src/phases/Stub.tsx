@@ -18,7 +18,7 @@ const PREVIEWS: Partial<Record<PhaseId, string[]>> = {
     '세모 vs 네모 — 출력 뉴런 1개 + 시그모이드',
     'epoch 한 줄 직관',
   ],
-  c1: ['역전파 — 깊은 망의 가중치는 거꾸로 흘러 갱신된다'],
+  c1: ['MNIST 데이터셋 소개 — 손글씨 숫자 분류가 왜 의미 있는가'],
   c2: ['MNIST — 입력 28×28, 출력 10뉴런 + softmax'],
 };
 

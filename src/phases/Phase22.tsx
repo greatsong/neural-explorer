@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../store';
+import { PHASES } from '../phases';
 
 type Tab = 'logits' | 'sampling' | 'generate';
 
@@ -26,6 +27,7 @@ function hash(s: string): number {
 }
 
 export function Phase22() {
+  const meta = PHASES.find((p) => p.id === 'p22')!;
   const [tab, setTab] = useState<Tab>('logits');
   const markCompleted = useApp((s) => s.markCompleted);
 
@@ -35,8 +37,8 @@ export function Phase22() {
 
   return (
     <article>
-      <div className="text-xs font-mono text-muted">PHASE 22</div>
-      <h1>GPT의 다음 토큰 — 샘플링이 곧 창의성</h1>
+      <div className="text-xs font-mono text-accent">{meta.num}</div>
+      <h1>{meta.title} — LLM의 핵심, 어휘 전체에 점수 매기기</h1>
       <p className="text-muted mt-2">
         GPT가 답하는 방식은 한 번에 한 토큰씩 — 매번 어휘 전체에 대해 <strong>확률 분포</strong>를 만들고,
         그 분포에서 한 토큰을 <strong>샘플링</strong>합니다. 어떻게 뽑느냐(temperature, top-k, top-p)에 따라

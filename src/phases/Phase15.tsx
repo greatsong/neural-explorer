@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../store';
+import { PHASES } from '../phases';
 
 type Tab = 'idea' | 'play' | 'compare';
 
 export function Phase15() {
+  const meta = PHASES.find((p) => p.id === 'p15')!;
   const [tab, setTab] = useState<Tab>('idea');
   const markCompleted = useApp((s) => s.markCompleted);
 
@@ -14,8 +16,8 @@ export function Phase15() {
 
   return (
     <article>
-      <div className="text-xs font-mono text-muted">PHASE 15</div>
-      <h1>텍스트가 숫자가 되기까지</h1>
+      <div className="text-xs font-mono text-accent">{meta.num}</div>
+      <h1>{meta.title}</h1>
       <p className="text-muted mt-2">
         신경망은 글자 자체를 알아보지 못해요. <strong>모든 글자는 결국 숫자</strong>로 바뀐 다음에야 모델로 흘러 들어갑니다.
         "안녕하세요" 다섯 글자가 컴퓨터 안에서 어떻게 0과 1이 되는지 직접 따라가 봅시다.

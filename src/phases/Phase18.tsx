@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../store';
+import { PHASES } from '../phases';
 import { Scatter3D, type Point3D } from '../components/Scatter3D';
 import {
   initModel,
@@ -11,14 +12,24 @@ import {
   type W2VModel,
 } from '../lib/w2v';
 import { EN_CORPUS, KO_CORPUS } from '../data/w2vCorpus';
+import { EN_PRETRAINED, KO_PRETRAINED, type PretrainedW2V } from '../data/w2vPretrained';
 
 type Tab = 'train' | 'space' | 'arith';
 type Lang = 'en' | 'ko';
 
-const EN_STOP = new Set(['a', 'an', 'the', 'is', 'are', 'and', 'of', 'in', 'to', 'we', 'eat', 'rule', 'rules', 'together']);
-const KO_STOP = new Set(['은', '는', '이', '가', '을', '를', '의', '과', '와', '이다', '어린', '새끼', '우리', '함께', '먹는다', '다스린다']);
+// 사전 학습된 임베딩 → W2VModel 로 복원 (Map 재구축).
+function fromPretrained(p: PretrainedW2V): W2VModel {
+  const index = new Map<string, number>();
+  p.vocab.forEach((w, i) => index.set(w, i));
+  return { vocab: p.vocab, index, W: p.W, C: p.C, dim: p.dim };
+}
 
-const PRESETS: Record<Lang, { word: string; group: 'royal' | 'family' | 'animal' | 'fruit' | 'food' | 'gender' }[]> = {
+// nearest 결과 필터링용 — 입력 단어(a,b,c)는 자동 제외되므로 'man'/'woman'을 stop에 넣어도 산수 입력에는 영향 없음.
+// 'man'/'woman'(남자/여자)이 평균 방향에 자리잡아 임의 쿼리 결과의 1위로 자주 끼어드는 잡음을 제거.
+const EN_STOP = new Set(['a', 'an', 'the', 'is', 'are', 'and', 'of', 'in', 'to', 'we', 'eat', 'rule', 'rules', 'together', 'capital', 'city', 'cities', 'country', 'countries', 'asia', 'man', 'woman', 'young', 'baby']);
+const KO_STOP = new Set(['은', '는', '이', '가', '을', '를', '의', '과', '와', '에', '이다', '있다', '어린', '새끼', '우리', '함께', '먹는다', '다스린다', '수도', '도시', '나라', '아시아', '남자', '여자']);
+
+const PRESETS: Record<Lang, { word: string; group: 'royal' | 'family' | 'animal' | 'fruit' | 'food' | 'gender' | 'country' | 'capital' }[]> = {
   en: [
     { word: 'king', group: 'royal' }, { word: 'queen', group: 'royal' },
     { word: 'prince', group: 'royal' }, { word: 'princess', group: 'royal' },
@@ -29,6 +40,10 @@ const PRESETS: Record<Lang, { word: string; group: 'royal' | 'family' | 'animal'
     { word: 'kitten', group: 'animal' }, { word: 'puppy', group: 'animal' },
     { word: 'apple', group: 'fruit' }, { word: 'banana', group: 'fruit' },
     { word: 'bread', group: 'food' }, { word: 'rice', group: 'food' },
+    { word: 'japan', group: 'country' }, { word: 'korea', group: 'country' },
+    { word: 'france', group: 'country' }, { word: 'china', group: 'country' },
+    { word: 'tokyo', group: 'capital' }, { word: 'seoul', group: 'capital' },
+    { word: 'paris', group: 'capital' }, { word: 'beijing', group: 'capital' },
   ],
   ko: [
     { word: '왕', group: 'royal' }, { word: '여왕', group: 'royal' },
@@ -39,6 +54,10 @@ const PRESETS: Record<Lang, { word: string; group: 'royal' | 'family' | 'animal'
     { word: '고양이', group: 'animal' }, { word: '강아지', group: 'animal' },
     { word: '사과', group: 'fruit' }, { word: '바나나', group: 'fruit' },
     { word: '빵', group: 'food' }, { word: '밥', group: 'food' },
+    { word: '일본', group: 'country' }, { word: '한국', group: 'country' },
+    { word: '프랑스', group: 'country' }, { word: '중국', group: 'country' },
+    { word: '도쿄', group: 'capital' }, { word: '서울', group: 'capital' },
+    { word: '파리', group: 'capital' }, { word: '베이징', group: 'capital' },
   ],
 };
 
@@ -49,39 +68,56 @@ const GROUP_COLORS: Record<string, string> = {
   animal: '#16a34a',
   fruit: '#f59e0b',
   food: '#a16207',
+  country: '#0d9488',
+  capital: '#db2777',
 };
 
-const PROVEN: Record<Lang, { a: string; b: string; c: string; expect: string }[]> = {
+// 사전 학습 모델에서 답이 top-3 안에 안정적으로 잡히는 페어(★)와 시드/스텝 실험이 필요한 도전 페어(◇).
+// 학생이 사전 모델로 ★를 먼저 확인하고, ◇는 "다시 학습" + 시드 변경으로 직접 탐험.
+const PROVEN: Record<Lang, { a: string; b: string; c: string; expect: string; stable?: boolean }[]> = {
   en: [
-    { a: 'king', b: 'man', c: 'woman', expect: 'queen' },
+    { a: 'tokyo', b: 'japan', c: 'korea', expect: 'seoul', stable: true },
+    { a: 'beijing', b: 'china', c: 'france', expect: 'paris', stable: true },
+    { a: 'king', b: 'man', c: 'woman', expect: 'queen', stable: true },
     { a: 'boy', b: 'man', c: 'woman', expect: 'girl' },
+    { a: 'paris', b: 'france', c: 'japan', expect: 'tokyo' },
     { a: 'prince', b: 'man', c: 'woman', expect: 'princess' },
     { a: 'father', b: 'man', c: 'woman', expect: 'mother' },
   ],
   ko: [
-    { a: '왕', b: '남자', c: '여자', expect: '여왕' },
-    { a: '아빠', b: '남자', c: '여자', expect: '엄마' },
+    { a: '왕', b: '남자', c: '여자', expect: '여왕', stable: true },
+    { a: '도쿄', b: '일본', c: '한국', expect: '서울', stable: true },
+    { a: '베이징', b: '중국', c: '프랑스', expect: '파리', stable: true },
+    { a: '파리', b: '프랑스', c: '일본', expect: '도쿄', stable: true },
+    { a: '아빠', b: '남자', c: '여자', expect: '엄마', stable: true },
     { a: '왕자', b: '남자', c: '여자', expect: '공주' },
     { a: '소년', b: '남자', c: '여자', expect: '소녀' },
   ],
 };
 
-const DEFAULT_SEED: Record<Lang, number> = { en: 7, ko: 100 };
+// 사전 학습된 임베딩과 동일한 파라미터를 기본값으로 — 학생이 "다시 학습" 누르면 비슷한 결과 재현.
+const DEFAULT_SEED: Record<Lang, number> = { en: 7, ko: 11 };
+const DEFAULT_WINDOW: Record<Lang, number> = { en: 2, ko: 4 };
+const PRETRAINED: Record<Lang, PretrainedW2V> = { en: EN_PRETRAINED, ko: KO_PRETRAINED };
 
 export function Phase18() {
+  const meta = PHASES.find((p) => p.id === 'p18')!;
   const [tab, setTab] = useState<Tab>('train');
   const [lang, setLang] = useState<Lang>('en');
   const [seed, setSeed] = useState<number>(DEFAULT_SEED.en);
-  const [steps, setSteps] = useState(1500);
-  const [model, setModel] = useState<W2VModel | null>(null);
+  const [steps, setSteps] = useState(6000);
+  // 사전 학습된 모델을 기본 로드 — 학생이 학습 안 해도 ②③ 탭이 바로 동작.
+  const [model, setModel] = useState<W2VModel | null>(() => fromPretrained(EN_PRETRAINED));
   const [losses, setLosses] = useState<number[]>([]);
+  const [usedPretrained, setUsedPretrained] = useState(true);
   const markCompleted = useApp((s) => s.markCompleted);
 
   const corpus = lang === 'en' ? EN_CORPUS : KO_CORPUS;
 
   useEffect(() => {
     setSeed(DEFAULT_SEED[lang]);
-    setModel(null);
+    setModel(fromPretrained(PRETRAINED[lang]));
+    setUsedPretrained(true);
     setLosses([]);
   }, [lang]);
 
@@ -90,22 +126,23 @@ export function Phase18() {
   }, [tab, model, markCompleted]);
 
   const train = () => {
-    const m = initModel(corpus, 16, seed);
+    const m = initModel(corpus, 32, seed);
     const { lossHistory } = trainSkipGram(m, corpus, {
       steps,
       lr: 0.05,
-      windowSize: 2,
-      negatives: 5,
+      windowSize: DEFAULT_WINDOW[lang],
+      negatives: 3,
       seed,
     });
     setModel(m);
+    setUsedPretrained(false);
     setLosses(lossHistory);
   };
 
   return (
     <article>
-      <div className="text-xs font-mono text-muted">PHASE 18</div>
-      <h1>Word2Vec 미니 — 브라우저에서 직접 학습</h1>
+      <div className="text-xs font-mono text-accent">{meta.num}</div>
+      <h1>{meta.title} — 브라우저에서 직접 학습하는 Word2Vec 미니</h1>
       <p className="text-muted mt-2">
         앞 페이지에서는 임베딩 값을 우리가 손으로 옮겨봤어요. 지금부터는 그 값이
         <strong> 학습으로 자동으로 자리 잡는 과정</strong>을 직접 돌려봅니다.
@@ -159,7 +196,7 @@ export function Phase18() {
         </button>
       </div>
 
-      {tab === 'train' && <TrainTab corpus={corpus} model={model} losses={losses} />}
+      {tab === 'train' && <TrainTab corpus={corpus} model={model} losses={losses} usedPretrained={usedPretrained} />}
       {tab === 'space' && <SpaceTab model={model} lang={lang} />}
       {tab === 'arith' && <ArithTab model={model} lang={lang} />}
     </article>
@@ -179,7 +216,7 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
 }
 
 // ──────── 탭 1 ────────
-function TrainTab({ corpus, model, losses }: { corpus: string[]; model: W2VModel | null; losses: number[] }) {
+function TrainTab({ corpus, model, losses, usedPretrained }: { corpus: string[]; model: W2VModel | null; losses: number[]; usedPretrained: boolean }) {
   return (
     <div className="mt-6 space-y-5">
       <div className="aside-tip">
@@ -190,6 +227,17 @@ function TrainTab({ corpus, model, losses }: { corpus: string[]; model: W2VModel
           그 외 무작위로 뽑은 단어와는 멀게 끌어당깁니다. 이걸 수백 번 반복하면 의미가 위치에 새겨져요.
         </p>
       </div>
+
+      {usedPretrained && (
+        <div className="aside-note">
+          <div className="font-medium">📦 사전 학습된 임베딩이 로드되어 있어요</div>
+          <p className="text-sm mt-1 text-muted">
+            ② 임베딩 공간과 ③ 벡터 산수 탭은 지금 바로 결과를 볼 수 있습니다.
+            <strong> "다시 학습"</strong> 버튼을 누르면 시드·스텝 값으로 학생이 직접 학습한 결과로 교체돼,
+            토이 모델의 결과가 시드마다 어떻게 흔들리는지 비교해 볼 수 있어요.
+          </p>
+        </div>
+      )}
 
       <h2>코퍼스 ({corpus.length}문장)</h2>
       <div className="card p-3 max-h-60 overflow-y-auto text-sm font-mono space-y-0.5">
@@ -292,7 +340,7 @@ function Legend() {
 }
 
 function groupLabel(g: string): string {
-  return ({ royal: '왕족', family: '가족', gender: '성별', animal: '동물', fruit: '과일', food: '음식' } as const)[g as 'royal'] ?? g;
+  return ({ royal: '왕족', family: '가족', gender: '성별', animal: '동물', fruit: '과일', food: '음식', country: '나라', capital: '수도' } as const)[g as 'royal'] ?? g;
 }
 
 // ──────── 탭 3 ────────
@@ -317,18 +365,27 @@ function ArithTab({ model, lang }: { model: W2VModel | null; lang: Lang }) {
         <div className="font-medium">🎯 벡터 산수</div>
         <p className="text-sm mt-1">
           학습된 임베딩 공간에서는 <strong>"의미의 차이"가 방향</strong>으로 새겨집니다.
-          그래서 <strong>왕 - 남자 + 여자</strong>를 계산해 가장 가까운 단어를 찾으면 <strong>여왕</strong>이 나오는 식이에요.
+          그래서 <strong>왕 - 남자 + 여자</strong>를 계산해 가장 가까운 단어를 찾으면 <strong>여왕</strong>이 나오고,
+          같은 원리로 <strong>도쿄 - 일본 + 한국</strong>을 계산하면 <strong>서울</strong>이 나옵니다.
+          페이지 진입 시에는 <strong>사전 학습된 임베딩</strong>이 자동으로 로드되어 결과를 바로 볼 수 있어요.
+          ① 학습 탭에서 "다시 학습"을 누르면 학생이 직접 학습한 결과로 비교해 볼 수도 있습니다.
         </p>
       </div>
 
-      <h2>이 데모에서 잘 작동하는 페어</h2>
+      <h2>페어 카드</h2>
+      <p className="text-xs text-muted mb-2">
+        <strong>★</strong> = 사전 학습 모델에서 정답이 <strong>top-3 안에</strong> 안정적으로 나오는 페어 ·
+        <strong className="ml-2">◇</strong> = 시드/스텝에 따라 흔들리는 도전 페어 (직접 학습 실험에 적합)
+      </p>
       <div className="flex flex-wrap gap-2">
         {proven.map((p, i) => (
           <button
             key={i}
             onClick={() => { setA(p.a); setB(p.b); setC(p.c); }}
-            className="btn-ghost text-sm"
+            className={'btn-ghost text-sm ' + (p.stable ? 'ring-1 ring-emerald-500/40' : '')}
+            title={p.stable ? '안정 페어 — 사전 학습 모델에서 top-3' : '도전 페어 — 시드/스텝을 바꿔가며 실험'}
           >
+            <span className="mr-1">{p.stable ? '★' : '◇'}</span>
             {p.a} - {p.b} + {p.c} ≈ <strong className="ml-1">{p.expect}</strong>?
           </button>
         ))}

@@ -67,7 +67,7 @@ export const GROUPS: GroupGuide[] = [
   {
     num: 'C',
     name: '딥러닝',
-    blurb: '심층 신경망이 문제를 어떻게 해결하는지 — 역전파와 MNIST. (작성 중)',
+    blurb: '심층 신경망이 진짜 데이터를 어떻게 풀어내는지 — MNIST 손글씨 분류. (작성 중)',
     phases: [],
   },
 ];

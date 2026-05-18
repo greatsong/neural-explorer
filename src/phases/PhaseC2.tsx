@@ -171,7 +171,7 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
       {/* B4 → C2 다리. "같은 구조" 표현 금지. */}
       <p className="mt-2 text-sm leading-relaxed">
         B4에서는 출력 뉴런 1개로 세모·네모를 시그모이드로 갈랐죠. MNIST는 입력이 28×28로 훨씬 크고, 출력 뉴런을 10개로 늘려 0~9 숫자를 가립니다.
-        시그모이드 대신 <strong>softmax</strong>로 여러 클래스의 확률을 동시에 만들고, <strong>C1에서 본 역전파</strong>가 모든 층에 동시 적용되어 은닉층을 더 키워도 학습이 가능합니다.
+        시그모이드 대신 <strong>softmax</strong>로 여러 클래스의 확률을 동시에 만들고, A5에서 본 한 step 흐름(예측 → 오차 → 기울기 → 갱신)이 모든 층에 동시 적용되어 은닉층을 더 키워도 학습이 가능합니다.
       </p>
       <p className="mt-2 text-sm leading-relaxed text-muted">
         진짜 MNIST 는 7만 장이 넘지만, 브라우저에서 다 돌리면 메모리·시간 부담이 커요. 그래서 여기선 <strong>실제 MNIST 에서 300장만 골라</strong> 작은 모델로 학습 사이클 전체를 직접 굴려 봅니다 — 한 마디로 <strong>"미니 MNIST 도전"</strong>. 데이터·모델 크기는 작아도 예측 → 오차 → 기울기 → 갱신의 흐름은 풀 데이터와 동일해요.
@@ -181,7 +181,7 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
         <div className="font-medium">엔진은 A5의 갱신식 그대로</div>
         <p className="mt-1 text-muted">
           은닉층 = <strong>ReLU</strong>, 출력층 = <strong>softmax</strong>로 10개 숫자에 대한 확률을 만들어요.
-          매 step마다 A5에서 본 <code>w ← w − η · dw</code> 식이 모든 층에 동시 적용됩니다 (역전파로 자동 계산).
+          매 step마다 A5에서 본 <code>w ← w − η · dw</code> 식이 모든 층의 가중치에 자동으로 적용됩니다.
           한 점이 64픽셀 → 28×28=784픽셀로 커졌고 출력 클래스가 2개 → 10개로 늘었을 뿐, 학습의 핵심 식은 그대로예요.
         </p>
       </div>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>Neural Explorer 활동지 E부 — 언어를 다루는 신경망 (LLM 첫걸음)</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:16pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:12pt;font-weight:700;margin-top:12pt;margin-bottom:6pt;page-break-after:avoid}
+
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt;page-break-after:avoid}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .meta{font-size:9pt;color:#777;margin-top:6pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+  .name{font-size:9.5pt;color:#555;margin-top:8pt}
+  .name span{display:inline-block;border-bottom:1px solid #888;min-width:80pt;margin:0 8pt}
+
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0;break-inside:auto;page-break-inside:auto}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt;break-inside:avoid;page-break-inside:avoid}
+  .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0;break-inside:avoid;page-break-inside:avoid}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .ex{background:#fafafa;border:1px solid #ddd;padding:8pt 10pt;margin:6pt 0;border-radius:4px;break-inside:avoid;page-break-inside:avoid}
+
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#1a1a1a;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb .blank{height:24pt;background:#fff}
+
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .bk{display:inline-block;border-bottom:1.5px solid #333;min-width:30pt;text-align:center;padding:0 4pt;margin:0 2pt}
+  .bk.lg{min-width:60pt}
+
+  .ans-area{border:1px solid #aaa;border-radius:4px;min-height:38pt;padding:6pt;margin:6pt 0;background:#fcfcfc}
+  .ans-area.lg{min-height:60pt}
+  .ans-area.xl{min-height:110pt}
+
+  /* 인사이트 칸 — 색감으로 구별 */
+  .insight{background:#fdf8ec;border:1.2px solid #d8b87a;border-radius:6px;padding:8pt 10pt;margin:8pt 0;break-inside:avoid;page-break-inside:avoid}
+  .insight .lab{display:inline-block;background:#8a6020;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .insight .ans-area{background:#fffef5;border:1px dashed #b8985a}
+
+  .an{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .an .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+
+  p,li{orphans:3;widows:3}
+  p{margin-bottom:5pt}
+  ul,ol{padding-left:18pt;margin:4pt 0}
+  li{margin-bottom:2pt}
+
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0}
+    .qc{break-inside:auto;page-break-inside:auto;overflow:visible}
+    .qh,.fm,.ex,.ib,.tb,.an,.insight{break-inside:avoid;page-break-inside:avoid}
+    .tb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .qh .num{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .insight{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header class="lh">
+  <div class="lab">NEURAL EXPLORER · ACTIVITY E / 5</div>
+  <h1>E — 언어를 다루는 신경망 (LLM 첫걸음)</h1>
+  <div class="sub">글자가 숫자로, 단어가 좌표로, 그리고 "다음 단어 맞히기"가 LLM이 되기까지 — 직접 계산해 보고 인사이트로 마무리</div>
+  <div class="meta">앱 페이즈 E1~E4 · 대상: D까지 학습한 고등학생 · 활동 시간 60~90분</div>
+  <div class="lh obj">이 활동지는 <strong>인사이트 글쓰기</strong>가 최종 산출물입니다. 각 챕터 끝의 <em>이제 설명할 수 있다 / 아직 헷갈린다 / 가장 흥미로웠던 점</em> 세 칸을 자기 말로 채우는 게 목표예요. 손계산은 인사이트를 단단하게 잡기 위한 받침대입니다.</div>
+  <div class="name">학번 <span></span> 이름 <span></span></div>
+</header>
+
+<div class="ex">
+  <strong>이번 활동지의 흐름 (앱 E1~E4와 짝)</strong>
+  <ol style="margin-top:4pt">
+    <li>E1 글자가 숫자가 되기까지 — 원-핫 인코딩 손계산</li>
+    <li>E2 단어를 좌표로 — 2차원 임베딩에서 단어 사이 거리 계산</li>
+    <li>E3 의미가 가까운 단어 찾기 — 학습으로 좌표가 자리 잡는 과정 관찰</li>
+    <li>E4 다음 단어 맞히기 — 어휘에 점수를 매겨 가장 큰 답 고르기 (소프트맥스 미니)</li>
+    <li>종합 — 다섯 줄 인사이트, "내가 친구에게 LLM을 한 문장으로 설명한다면"</li>
+  </ol>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<h2>섹션 E1. 글자가 숫자가 되기까지</h2>
+
+<div class="ib">
+  <div class="t">기억할 것</div>
+  신경망은 글자 자체를 모릅니다. 모든 글자는 결국 숫자 묶음으로 바뀌어 모델에 들어가요.
+  앱 E1에서 본 것처럼 글자 → 코드포인트(고유 번호) → 0과 1의 묶음으로 펼쳐집니다.
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">E1-1</span> 원-핫 인코딩 직접 그리기</div>
+  <div class="qd">어휘가 다섯 단어 [고양이, 강아지, 사과, 컴퓨터, 학교] 라고 합시다. 각 단어를 5칸짜리 0/1 묶음(원-핫)으로 표현해 보세요.</div>
+  <table class="tb" style="max-width:520pt">
+    <thead><tr><th>단어</th><th>칸 1<br>(고양이)</th><th>칸 2<br>(강아지)</th><th>칸 3<br>(사과)</th><th>칸 4<br>(컴퓨터)</th><th>칸 5<br>(학교)</th></tr></thead>
+    <tbody>
+      <tr><td class="lbl">고양이</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="lbl">사과</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="lbl">학교</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    </tbody>
+  </table>
+  <div class="ib tip">
+    <div class="t">생각해 보기</div>
+    "고양이"와 "강아지"는 의미가 가까운 단어죠. 그런데 원-핫 표현에서 두 단어를 보면 닮은 점이 있나요? <span class="bk"></span> · 그래서 원-핫이 가진 한계는 무엇일까요?
+    <div class="ans-area"></div>
+  </div>
+</div>
+
+<div class="an">
+  <div><span class="lab">앱 E1</span> 앱에서 "안녕하세요" 다섯 글자를 코드포인트로 보면 한글 1글자 = 3바이트. 영문 "hello"는 1글자 = 1바이트. 같은 5글자여도 비용이 다른 이유를 한 문장으로 적어 보세요.</div>
+  <div class="ans-area"></div>
+</div>
+
+<div class="insight">
+  <div><span class="lab">E1 인사이트</span> 이제 설명할 수 있는 것 / 아직 헷갈리는 것 / 가장 흥미로웠던 점 — 한 문장씩</div>
+  <div class="ans-area lg"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<h2>섹션 E2. 단어를 좌표로 — 임베딩</h2>
+
+<div class="ib">
+  <div class="t">기억할 것</div>
+  원-핫은 단어 간 의미 관계를 전혀 담지 못합니다. 그래서 모델은 단어를 <strong>좌표(벡터)</strong>로 표현합니다 — 좌표가 가까우면 의미가 가깝다는 약속.
+  앱 E2에서는 단어가 3차원 좌표로 흩어진 모습을 봤어요. 활동지에서는 더 단순하게 2차원으로 손계산해 봅니다.
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">E2-1</span> 2차원 임베딩 — 단어 사이 거리</div>
+  <div class="qd">어느 작은 모델이 학습 후 다섯 단어에 다음 좌표를 부여했다고 합시다.</div>
+  <table class="tb" style="max-width:380pt">
+    <thead><tr><th>단어</th><th>x</th><th>y</th></tr></thead>
+    <tbody>
+      <tr><td class="lbl">고양이</td><td>1.0</td><td>2.0</td></tr>
+      <tr><td class="lbl">강아지</td><td>1.5</td><td>2.2</td></tr>
+      <tr><td class="lbl">호랑이</td><td>0.5</td><td>2.5</td></tr>
+      <tr><td class="lbl">사과</td><td>4.0</td><td>0.5</td></tr>
+      <tr><td class="lbl">컴퓨터</td><td>3.5</td><td>4.0</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:6pt">두 단어 사이의 거리는 피타고라스로 계산할 수 있어요.</p>
+  <div class="fm">거리 = √( (x₁ − x₂)² + (y₁ − y₂)² )</div>
+
+  <p>다음 거리들을 계산해 빈 칸을 채우세요. (소수 둘째 자리까지)</p>
+  <div class="fm">
+    거리(고양이, 강아지) = √( (1.0 − 1.5)² + (2.0 − 2.2)² ) = √(<span class="bk"></span> + <span class="bk"></span>) = √<span class="bk"></span> = <span class="bk lg"></span> <br>
+    거리(고양이, 호랑이) = √( <span class="bk"></span> + <span class="bk"></span> ) = <span class="bk lg"></span> <br>
+    거리(고양이, 사과)   = √( <span class="bk"></span> + <span class="bk"></span> ) = <span class="bk lg"></span> <br>
+    거리(고양이, 컴퓨터) = √( <span class="bk"></span> + <span class="bk"></span> ) = <span class="bk lg"></span>
+  </div>
+
+  <div class="ib">
+    <div class="t">관찰</div>
+    "고양이"와 가장 가까운 단어는? <span class="bk"></span> · 가장 먼 단어는? <span class="bk"></span> · 모델이 단어들의 의미 관계를 어떻게 좌표에 담았는지 한 문장으로 적어 보세요.
+    <div class="ans-area"></div>
+  </div>
+</div>
+
+<div class="an">
+  <div><span class="lab">앱 E2</span> 앱 E2에서 ③ 직접 만져보기 탭으로 가서, 단어 한 개의 좌표를 마우스로 옮겨 보세요. 좌표를 옮기면 다른 단어와의 "유사도(가까운 정도)"가 어떻게 변하나요? 한 문장으로.</div>
+  <div class="ans-area"></div>
+</div>
+
+<div class="insight">
+  <div><span class="lab">E2 인사이트</span></div>
+  <div class="ans-area lg"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<h2>섹션 E3. 의미가 가까운 단어 찾기 — Word2Vec 미니</h2>
+
+<div class="ib">
+  <div class="t">기억할 것</div>
+  E2의 좌표는 사람이 적어 준 것이 아닙니다. <strong>학습</strong>으로 모델이 스스로 자리 잡은 거예요.
+  방법은 단순해요 — "비슷한 자리에 자주 등장하는 단어끼리 좌표가 가깝게" 만들도록 가중치를 갱신.
+  앱 E3에서는 영어/한국어 미니 코퍼스로 직접 학습이 돌아가는 모습을 봤어요.
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">E3-1</span> 학습 곡선 읽기</div>
+  <div class="qd">앱 E3에서 학습 버튼을 한 번 누르고, 손실 곡선이 시간에 따라 어떻게 변하는지 봅니다. 다음 빈 칸을 채워 보세요.</div>
+  <div class="fm">
+    학습 step = 1500 (기본) 으로 돌렸을 때, 첫 손실 ≈ <span class="bk"></span> · 마지막 손실 ≈ <span class="bk"></span> <br>
+    손실이 가장 많이 떨어지는 구간은 학습 ( 초반 / 중반 / 후반 ) 중 어느 시기인가요? <span class="bk lg"></span>
+  </div>
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">E3-2</span> 비슷한 단어 찾기</div>
+  <div class="qd">앱 E3에서 학습이 끝난 후, 임의 단어 하나에 대해 가장 비슷한 단어 3개를 찾아 적어 보세요. 모델이 잡아낸 의미 관계가 그럴듯한가요?</div>
+  <div class="fm">
+    내가 고른 단어: <span class="bk xl"></span> <br>
+    가장 비슷한 단어 1: <span class="bk lg"></span> · 2: <span class="bk lg"></span> · 3: <span class="bk lg"></span>
+  </div>
+  <div class="ib">
+    <div class="t">그럴듯한가? 그렇다면 왜 / 아니라면 왜</div>
+    <div class="ans-area"></div>
+  </div>
+</div>
+
+<div class="insight">
+  <div><span class="lab">E3 인사이트</span></div>
+  <div class="ans-area lg"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<h2>섹션 E4. 다음 단어 맞히기 — LLM의 핵심</h2>
+
+<div class="ib">
+  <div class="t">기억할 것</div>
+  LLM 한 줄 설명: <strong>문맥을 받아 어휘 전체에 점수를 매기고, 가장 점수 높은 단어(또는 확률에 비례해 뽑은 단어)를 다음 단어로 내놓는 모델.</strong>
+  C2에서 본 다중분류 모델(10개 숫자 중 하나 고르기)과 같은 구조 — 다만 분류 대상이 픽셀 28×28 그림이 아니라 단어들, 클래스 수가 10에서 어휘 전체(수만 개)로 늘었을 뿐.
+</div>
+
+<div class="qc">
+  <div class="qh"><span class="num">E4-1</span> 다음 단어 점수 — 어휘 4개</div>
+  <div class="qd">어휘가 [먹다, 자다, 공부하다, 달리다] 4개뿐인 작은 모델이 있다고 합시다. 문맥 "나는 사과를"이 들어왔을 때 모델이 각 단어에 다음 점수(z)를 매겼다고 합시다.</div>
+  <table class="tb" style="max-width:380pt">
+    <thead><tr><th>단어</th><th>먹다</th><th>자다</th><th>공부하다</th><th>달리다</th></tr></thead>
+    <tbody>
+      <tr><td class="lbl">점수 z</td><td>3.0</td><td>0.0</td><td>1.0</td><td>−1.0</td></tr>
+    </tbody>
+  </table>
+
+  <div class="ib">
+    <div class="t">가장 단순한 답</div>
+    가장 큰 z를 가진 단어를 다음 단어로 골랐다고 하면 답은? <span class="bk lg"></span>
+  </div>
+
+  <p style="margin-top:6pt">하지만 이렇게 하면 <em>매번 같은 답</em>만 나옵니다. LLM이 다양한 답을 내려면 점수를 <strong>확률</strong>로 바꿔야 해요. 그 변환을 <strong>소프트맥스</strong>라고 합니다.</p>
+  <div class="fm">
+    소프트맥스 — 각 단어의 확률 = e^z / (모든 단어의 e^z 합) <br>
+    e^z 값: e^3.0 ≈ <span class="bk">20.09</span> · e^0.0 = <span class="bk">1.00</span> · e^1.0 ≈ <span class="bk">2.72</span> · e^(−1.0) ≈ <span class="bk">0.37</span> <br>
+    합 = <span class="bk lg"></span>
+  </div>
+  <p>각 단어의 확률을 계산해 보세요. (소수 셋째 자리까지)</p>
+  <div class="fm">
+    먹다 확률    = 20.09 / <span class="bk"></span> = <span class="bk lg"></span> <br>
+    자다 확률    = 1.00  / <span class="bk"></span> = <span class="bk lg"></span> <br>
+    공부하다 확률 = 2.72  / <span class="bk"></span> = <span class="bk lg"></span> <br>
+    달리다 확률   = 0.37  / <span class="bk"></span> = <span class="bk lg"></span> <br>
+    네 확률을 모두 더하면? <span class="bk lg"></span>
+  </div>
+
+  <div class="ib tip">
+    <div class="t">관찰 — D2의 임계값과 닮은 점</div>
+    LLM에는 <strong>온도(temperature)</strong>라는 값이 있어요. 점수 z를 온도로 나눈 뒤 소프트맥스를 적용합니다.<br>
+    온도가 ( 낮으면 / 높으면 ) 단호한 답(가장 큰 z의 확률이 거의 1), ( 낮으면 / 높으면 ) 헷갈리는 답(여러 단어 확률이 비슷). (둘 중 맞는 것에 동그라미)
+    <p style="margin-top:4pt">D2에서 본 임계값과 비슷한 직관 — <strong>모델은 그대로지만 답을 내놓는 방식이 달라진다.</strong></p>
+  </div>
+</div>
+
+<div class="an">
+  <div><span class="lab">앱 E4</span> 앱 E4에서 ② 온도 탭 (또는 슬라이더)로 온도를 0.2 / 1.0 / 2.0 세 가지로 옮기고 같은 문맥에서 나오는 답을 비교해 보세요. 온도 0.2 일 때 답: <span class="bk lg"></span> · 온도 2.0 일 때 답: <span class="bk lg"></span></div>
+  <div class="ans-area"></div>
+</div>
+
+<div class="insight">
+  <div><span class="lab">E4 인사이트</span></div>
+  <div class="ans-area lg"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<h2>섹션 종합 — 다섯 줄 인사이트</h2>
+
+<div class="qc">
+  <div class="qh"><span class="num">종합-1</span> 친구에게 LLM 한 문장으로 설명하기</div>
+  <div class="qd">A~D까지의 신경망 공부를 마치고 E를 끝낸 지금, 친구가 "LLM이 도대체 어떻게 글을 만들어내?"라고 물었다고 합시다. <strong>한 문장</strong>으로 답해 보세요. (앞 챕터의 말을 써도 좋습니다 — "다중분류", "확률", "임베딩", "다음 단어" 등)</div>
+  <div class="ans-area lg"></div>
+</div>
+
+<div class="insight">
+  <div><span class="lab">종합 인사이트</span></div>
+  <p style="font-size:9.5pt;margin-bottom:6pt">아래 다섯 가지에 대해 한 줄씩 자기 말로 적어 보세요.</p>
+  <p style="margin:6pt 0">① <strong>가장 놀라웠던 것</strong> — E1~E4를 거치면서 "어, 이게 이런 거였구나" 싶었던 한 가지</p>
+  <div class="ans-area"></div>
+  <p style="margin:6pt 0">② <strong>A~D와 어떻게 이어지나</strong> — E의 어떤 개념이 앞 챕터(예: 다중분류, 가중치, 임계값)와 연결되는가</p>
+  <div class="ans-area"></div>
+  <p style="margin:6pt 0">③ <strong>아직 흐릿한 것</strong> — 한 번 더 보고 싶거나 누가 설명해 주면 좋겠는 부분</p>
+  <div class="ans-area"></div>
+  <p style="margin:6pt 0">④ <strong>실생활 적용</strong> — 내가 LLM을 사용할 때(예: ChatGPT) 이번 학습이 어떻게 도움이 될까</p>
+  <div class="ans-area"></div>
+  <p style="margin:6pt 0">⑤ <strong>다음에 더 알아보고 싶은 것</strong> — 이 책을 넘어 혼자 찾아보고 싶은 주제 한 가지</p>
+  <div class="ans-area"></div>
+</div>
+
+<div class="ex" style="margin-top:14pt">
+  <strong>마치며</strong> — 이 활동지의 손계산은 LLM의 모든 것이 아니에요. 진짜 LLM은 어휘 수만 개, 차원 수천,
+  층 수십 개에 더해 <em>어텐션</em>이라는 장치를 통해 문장의 어떤 단어를 더 볼지 스스로 정합니다.
+  그러나 핵심은 같아요 — <strong>다음 단어에 점수를 매기는 다중분류 모델</strong>.
+  그 점수가 어떻게 만들어지고 어떻게 확률이 되며 어떻게 단어로 나오는지의 흐름은 이미 여러분이 손으로 따라간 거예요.
+</div>
+
+</body>
+</html>

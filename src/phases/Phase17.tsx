@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../store';
+import { PHASES } from '../phases';
 import { Scatter3D, type Point3D } from '../components/Scatter3D';
 
 const WORDS = ['고양이', '강아지', '호랑이', '사과', '바나나', '컴퓨터'];
@@ -8,6 +9,7 @@ const DIM = 3;
 type Tab = 'onehot' | 'embed' | 'play';
 
 export function Phase17() {
+  const meta = PHASES.find((p) => p.id === 'p17')!;
   const [tab, setTab] = useState<Tab>('onehot');
   const markCompleted = useApp((s) => s.markCompleted);
 
@@ -17,8 +19,8 @@ export function Phase17() {
 
   return (
     <article>
-      <div className="text-xs font-mono text-muted">PHASE 17</div>
-      <h1>원-핫 → 임베딩, 단어가 벡터가 되는 이유</h1>
+      <div className="text-xs font-mono text-accent">{meta.num}</div>
+      <h1>{meta.title} — 원-핫에서 임베딩으로</h1>
       <p className="text-muted mt-2">
         단어를 신경망에 넣으려면 결국 <strong>벡터</strong>가 되어야 해요. 가장 단순한 방법은 원-핫(one-hot)이지만,
         몇 가지 결정적 한계 때문에 신경망은 <strong>학습되는 임베딩 벡터</strong>로 옮겨갑니다. 그 차이를 직접 만져 봅시다.
