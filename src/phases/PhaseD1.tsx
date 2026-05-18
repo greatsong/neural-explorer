@@ -401,25 +401,63 @@ function StepText({
   if (step === 3) {
     const totalSS = samples.reduce((s, r) => s + (r.y - meanY) ** 2, 0);
     const resSS = samples.reduce((s, r) => s + ((w * r.x + b) - r.y) ** 2, 0);
+    const ratio = totalSS === 0 ? 0 : resSS / totalSS;     // 못 줄인 비율
+    const explained = Math.max(0, Math.min(1, 1 - ratio)); // 설명한 비율 (0~1로 클램프, 음수 R²는 직관 표시)
     return (
-      <div className="card p-4 text-sm space-y-2 leading-relaxed">
+      <div className="card p-4 text-sm space-y-3 leading-relaxed">
         <div className="font-medium">4. R² — 기준선 대비 얼마나 나아졌나</div>
+
         <p>
           MAE·RMSE는 절대 숫자라서 "이 모델이 좋은 모델인지" 판단하기 어려울 때가 있어요.
-          기준이 필요한데, 가장 자연스러운 기준은 <strong>평균만 답하는 모델</strong>이에요 — 모든 해를 그냥 평균 {meanY.toFixed(2)}°C로 예측하는 모델.
+          기준이 필요한데, 가장 자연스러운 기준은 <strong>평균만 답하는 모델</strong>이에요 — 모든 해를 그냥 평균 {meanY.toFixed(2)}°C로 예측하는,
+          가장 단순한 가짜 모델. 우리 직선이 적어도 이 평균선보다는 잘해야 의미가 있겠죠.
         </p>
+
         <p>
-          <strong>R²</strong>(결정계수)는 이렇게 읽어요. <em>"우리 모델이 평균만 답하는 것보다 잔차를 얼마나 줄였나"</em>.
+          <strong>R²</strong>(결정계수)는 이렇게 읽어요: <em>"우리 모델이 평균만 답하는 것보다 잔차를 얼마나 줄였나"</em>.
           1이면 완벽, 0이면 평균만큼만, 음수면 평균보다 못함.
         </p>
-        <div className="rounded bg-surface/60 p-3 font-mono text-xs space-y-1">
-          <div>R² = 1 − (잔차 제곱합) / (기준선 제곱합)</div>
-          <div>잔차 제곱합 = {resSS.toFixed(2)}</div>
-          <div>기준선 제곱합 = {totalSS.toFixed(2)} (각 점이 평균 {meanY.toFixed(2)}에서 떨어진 거리의 제곱 합)</div>
-          <div>R² = <strong className="text-fg">{r2.toFixed(3)}</strong></div>
+
+        <div className="rounded bg-surface/60 p-3 space-y-2 text-xs">
+          <div className="font-medium text-sm">식 안의 두 항 — 분자와 분모의 뜻</div>
+          <div className="font-mono">R² = 1 − ( 잔차 제곱합 ) / ( 기준선 제곱합 )</div>
+          <ul className="space-y-0.5 list-disc list-inside leading-relaxed">
+            <li><strong>분모(기준선 제곱합)</strong> — 평균만 답할 때 생기는 오차의 크기. "기준선이 가진 오차"</li>
+            <li><strong>분자(잔차 제곱합)</strong> — 우리 모델이 만든 오차. "우리 모델이 <em>못 줄인</em> 오차"</li>
+            <li>분자/분모 → 못 줄인 비율 · <strong>1 − (그 비율) → 줄인 비율 = R²</strong></li>
+          </ul>
         </div>
+
+        <div className="rounded bg-surface/60 p-3 font-mono text-xs space-y-1">
+          <div>잔차 제곱합 = <strong className="text-fg">{resSS.toFixed(2)}</strong></div>
+          <div>기준선 제곱합 = <strong className="text-fg">{totalSS.toFixed(2)}</strong> (각 점이 평균 {meanY.toFixed(2)}에서 떨어진 거리의 제곱 합)</div>
+          <div>못 줄인 비율 = {resSS.toFixed(2)} / {totalSS.toFixed(2)} = {ratio.toFixed(3)}</div>
+          <div>R² = 1 − {ratio.toFixed(3)} = <strong className="text-fg">{r2.toFixed(3)}</strong></div>
+        </div>
+
         <p>
-          차트에 회색 점선으로 평균선이 추가됐어요. 우리 직선이 이 평균선보다 점들을 얼마나 잘 따라가는지가 R²의 뜻이에요.
+          퍼센트로 읽으면 직관이 더 또렷해요. 지금 R²가 <strong>{r2.toFixed(2)}</strong>니까,
+          {r2 >= 0
+            ? <> "평균선이 가지고 있던 오차의 약 <strong>{(explained * 100).toFixed(0)}%</strong>를 우리 모델이 없앴다"고 읽을 수 있어요. 신문 기사에서 자주 보이는 표현으로는 <em>"데이터의 분산 중 {(explained * 100).toFixed(0)}%를 모델이 설명했다"</em>와 같은 뜻이에요. </>
+            : <> 분자가 분모보다 커서 R²가 음수예요. <em>"평균만 답하는 것보다 우리 모델이 더 빗나갔다"</em>는 뜻 — 이 직선은 기준선보다도 못한 셈이에요. </>}
+        </p>
+
+        <div className="rounded bg-surface/60 p-3 text-xs space-y-1">
+          <div className="font-medium text-sm">세 가지 사례를 그림으로</div>
+          <div><strong>R² = 1</strong> — 모든 점이 직선 위에 정확히 올라타 잔차 제곱합이 0. 분수 0, 1 − 0 = 1.</div>
+          <div><strong>R² = 0</strong> — 우리 직선이 결국 평균선과 같은 정도의 오차. 분수 1, 1 − 1 = 0.</div>
+          <div><strong>R² &lt; 0</strong> — 직선이 추세 반대 방향으로 가는 등, 평균선보다 점에서 더 멀어짐. 분자가 분모보다 큼.</div>
+        </div>
+
+        <p>
+          MAE·RMSE는 단위가 °C라서 다른 데이터(예: 매출 ₩, 키 cm)와는 직접 비교 불가였죠.
+          R²는 단위가 없는 비율이라 <strong>어떤 데이터셋이든 모델끼리 같은 자로 비교</strong>할 수 있어요.
+          이 점이 R²의 가장 큰 장점이에요.
+        </p>
+
+        <p className="text-muted text-xs">
+          차트에 회색 점선으로 평균선이 추가됐어요. 슬라이더로 직선을 평균선 가까이 옮기면 R²가 0 근처로,
+          평균선과 정반대 기울기로 보내면 R²가 음수로 떨어지는 모습을 확인해 보세요.
         </p>
       </div>
     );
