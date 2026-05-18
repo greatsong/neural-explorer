@@ -12,10 +12,10 @@ import { PHASES } from '../phases';
 const STEP_LABELS = [
   '1. 도입',
   '2. 혼동 행렬',
-  '3. 네 지표',
+  '3. 정밀도 · 재현율',
   '4. 시나리오 비교',
   '5. 임계값 슬라이더',
-  '6. 종합',
+  '6. F1 — 절충안',
 ];
 
 interface Matrix { tp: number; fp: number; fn: number; tn: number }
@@ -211,6 +211,9 @@ export function PhaseD2() {
           allAnswered={allScenariosAnswered}
           thresholdMoved={thresholdMoved}
           picks={picks}
+          liveMatrix={m}
+          liveMetrics={metrics}
+          threshold={threshold}
         />
       )}
 
@@ -298,7 +301,7 @@ function Confusion1() {
   );
 }
 
-/* ─────────────────────────── 단계 2: 네 지표 ─────────────────────────── */
+/* ─────────────────────────── 단계 2: 정밀도 · 재현율 두 갈래 ─────────────────────────── */
 function FourMetrics2() {
   // 예시 행렬 — 직관적 숫자
   const m: Matrix = { tp: 42, fp: 8, fn: 3, tn: 47 };
@@ -306,45 +309,59 @@ function FourMetrics2() {
   return (
     <div className="space-y-4">
       <div className="card p-5 text-sm leading-relaxed space-y-2">
-        <div className="font-medium text-base">네 가지 지표 — 같은 표에서 다른 질문</div>
+        <div className="font-medium text-base">정밀도와 재현율 — 분류 모델을 가르는 두 갈래</div>
         <p>
-          아래 예시 행렬을 그대로 두고, 네 지표를 차례로 계산해 봐요.
-          모두 TP/FP/FN/TN의 조합일 뿐입니다.
+          도입에서 봤듯이 정확도 한 숫자는 양성·음성 비율이 치우치면 속기 쉬워요. 그래서 분류 모델을 본격적으로
+          비교할 때는 거의 항상 <strong>정밀도</strong>와 <strong>재현율</strong> 두 숫자를 함께 봅니다.
+          이 둘이 분류 모델을 가르는 핵심 두 갈래예요.
         </p>
       </div>
+
       <div className="grid lg:grid-cols-[320px_1fr] gap-4">
         <ConfusionMatrixCard {...m} highlight={null} />
         <div className="card p-4 space-y-3 text-sm">
           <MetricRow
-            name="정확도 (Accuracy)"
-            formula="(TP + TN) / 전체"
-            calc={`(${m.tp} + ${m.tn}) / ${m.tp + m.fp + m.fn + m.tn} = ${k.accuracy.toFixed(3)}`}
-            mean="전체 답 중 맞춘 비율. 가장 직관적이지만, 양성·음성 비율이 한쪽으로 치우치면 속기 쉬움."
-          />
-          <MetricRow
             name="정밀도 (Precision)"
             formula="TP / (TP + FP) = TP / 예측 양성"
             calc={`${m.tp} / (${m.tp} + ${m.fp}) = ${m.tp} / ${m.tp + m.fp} = ${k.precision.toFixed(3)}`}
-            mean="내가 양성이라고 한 것 중 진짜 양성의 비율. 1에 가까울수록 '내 양성 판정은 거짓말 안 함'."
+            mean="내가 양성이라고 한 것 중 진짜 양성의 비율. 1에 가까울수록 '내 양성 판정은 거짓말 안 함'. → 오경보(FP)가 무서운 상황에 우선."
           />
           <MetricRow
             name="재현율 (Recall)"
             formula="TP / (TP + FN) = TP / 실제 양성"
             calc={`${m.tp} / (${m.tp} + ${m.fn}) = ${m.tp} / ${m.tp + m.fn} = ${k.recall.toFixed(3)}`}
-            mean="실제 양성을 얼마나 놓치지 않았나. 1에 가까울수록 '진짜 양성을 거의 다 잡음'."
+            mean="실제 양성을 얼마나 놓치지 않았나. 1에 가까울수록 '진짜 양성을 거의 다 잡음'. → 놓침(FN)이 치명적인 상황에 우선."
           />
-          <MetricRow
-            name="F1 (조화평균)"
-            formula="2 · 정밀도 · 재현율 / (정밀도 + 재현율)"
-            calc={`정밀도 ${k.precision.toFixed(2)} & 재현율 ${k.recall.toFixed(2)} → F1 = ${k.f1.toFixed(3)}`}
-            mean="정밀도와 재현율 둘 다 챙기고 싶을 때. 한쪽이 0이면 F1도 0이 되는 '둘 다' 지표."
-          />
-          <div className="rounded bg-surface/60 p-3 text-xs leading-relaxed">
-            <strong>왜 산술평균이 아니라 조화평균?</strong> 산술평균은 정밀도 1.0 + 재현율 0.0 = 0.5로 적당해 보여요.
-            그런데 재현율 0은 실제 양성을 하나도 못 잡았다는 뜻 — 적당하지 않죠. 조화평균은 한쪽이 0이면 결과도 0이라
-            "둘 다 챙겨야" 높아지는 성질이 있어요. 그래서 둘의 균형을 보고 싶을 때 F1을 씁니다.
-          </div>
         </div>
+      </div>
+
+      <div className="card p-4 text-sm leading-relaxed space-y-2">
+        <div className="font-medium">두 갈래의 트레이드오프 — 보통 한쪽이 올라가면 다른 쪽이 내려간다</div>
+        <p>
+          정밀도와 재현율은 동시에 1.0이 되기 어려워요. 다음 두 극단을 떠올려 보세요.
+        </p>
+        <ul className="list-disc list-inside text-xs space-y-1">
+          <li><strong>완전 정밀도 우선 모델</strong> — "정말 확실한 것만 양성으로 답하자" → 양성 판정 개수가 적음 → FP는 거의 0이지만 FN은 늘어남. <em>정밀도↑ · 재현율↓</em></li>
+          <li><strong>완전 재현율 우선 모델</strong> — "조금이라도 의심되면 다 양성" → 양성 판정이 많음 → FN은 거의 0이지만 FP가 폭증. <em>재현율↑ · 정밀도↓</em></li>
+        </ul>
+        <p>
+          그래서 같은 데이터에 같은 모델이라도 <strong>임계값을 어디 두느냐</strong>에 따라 정밀도·재현율 비중이 바뀝니다.
+          이 부분은 ⑤ 임계값 슬라이더에서 직접 만져 봅니다.
+        </p>
+        <div className="rounded bg-surface/60 p-3 text-xs">
+          <div className="font-medium mb-1">현재 예시 행렬에서 — 정확도는 참고용</div>
+          <span className="font-mono">정확도 = (TP+TN)/전체 = ({m.tp}+{m.tn})/{m.tp + m.fp + m.fn + m.tn} = {k.accuracy.toFixed(3)}</span>
+          <p className="mt-1 text-muted">정확도는 도입에서 다뤘듯이 양·음 비율이 치우치면 속기 쉬워요. 본격 비교는 정밀도와 재현율 두 갈래로 합니다.</p>
+        </div>
+      </div>
+
+      <div className="aside-tip text-sm">
+        <div className="font-medium">📌 F1은 마지막 단계에서</div>
+        <p className="mt-1">
+          정밀도·재현율이 둘 다 중요한 상황에서는 두 갈래를 하나의 점수로 합쳐 보는 절충안이 필요해요.
+          그 절충안이 <strong>F1</strong>인데, 어떻게 계산하고 왜 단순 평균이 아니라 조화평균인지는
+          ⑥ 단계에서 본격적으로 다룹니다.
+        </p>
       </div>
     </div>
   );
@@ -550,21 +567,25 @@ function ThresholdLab({
             <ul className="list-disc list-inside text-xs space-y-1">
               <li>임계값을 <strong>낮추면</strong> 양성 판정이 늘어 — 재현율↑(놓치지 않음), 정밀도↓(오경보 늘어남)</li>
               <li>임계값을 <strong>높이면</strong> 양성 판정이 줄어 — 정밀도↑(확실한 것만), 재현율↓(놓침 늘어남)</li>
-              <li>F1은 정밀도와 재현율의 균형이 가장 잘 맞는 곳에서 최대 — 보통 0.5 근처</li>
-              <li>한쪽 끝(0.0 또는 1.0)으로 보내면 F1이 0에 가까워짐 — 한 종류만 답하는 모델은 쓸모가 적음</li>
+              <li>같은 모델이라도 임계값으로 정밀도 우선 ↔ 재현율 우선을 직접 옮길 수 있다 — 이게 핵심 트레이드오프</li>
+              <li>두 갈래의 균형을 한 숫자로 보고 싶다면 다음 ⑥ 단계의 <strong>F1 절충안</strong></li>
             </ul>
           </div>
         </div>
 
-        {/* 우측 — 혼동 행렬 + 지표 카드 */}
+        {/* 우측 — 혼동 행렬 + 지표 카드 (이 단계에서는 정밀도·재현율 두 갈래만 표시. F1은 ⑥ 단계에서) */}
         <aside className="space-y-4">
           <ConfusionMatrixCard {...matrix} highlight={null} />
           <div className="card p-4 space-y-2">
-            <div className="font-medium text-sm">실시간 지표</div>
-            <MetricLine name="정확도" value={metrics.accuracy} />
-            <MetricLine name="정밀도" value={metrics.precision} />
-            <MetricLine name="재현율" value={metrics.recall} />
-            <MetricLine name="F1"      value={metrics.f1} bold />
+            <div className="font-medium text-sm">실시간 지표 — 두 갈래</div>
+            <MetricLine name="정밀도" value={metrics.precision} bold />
+            <MetricLine name="재현율" value={metrics.recall}  bold />
+            <div className="border-t border-border pt-2 mt-1">
+              <MetricLine name="정확도 (참고)" value={metrics.accuracy} />
+            </div>
+            <div className="text-[11px] text-muted pt-1 border-t border-border">
+              F1은 다음 ⑥ 단계에서 — 정밀도·재현율 두 숫자를 어떻게 한 점수로 합치는지 (조화평균 식·계산법).
+            </div>
           </div>
         </aside>
       </div>
@@ -646,21 +667,109 @@ function ScoreDistribution({ threshold }: { threshold: number }) {
   );
 }
 
-/* ─────────────────────────── 단계 5: 종합 ─────────────────────────── */
-function Summary({ allAnswered, thresholdMoved, picks }: {
+/* ─────────────────────────── 단계 5: F1 절충안 ─────────────────────────── */
+function Summary({ allAnswered, thresholdMoved, picks, liveMatrix, liveMetrics, threshold }: {
   allAnswered: boolean; thresholdMoved: boolean;
   picks: Record<string, 'A' | 'B' | undefined>;
+  liveMatrix: Matrix;
+  liveMetrics: ReturnType<typeof computeMetrics>;
+  threshold: number;
 }) {
+  // 손계산 예시 — 도전적인 비대칭 사례
+  const exP = 0.80, exR = 0.50;
+  const arith = (exP + exR) / 2;
+  const harmonic = 2 * exP * exR / (exP + exR);
   return (
-    <div className="card p-5 space-y-4 text-sm leading-relaxed">
-      <div className="font-medium text-base">종합 — 분류 모델 평가 한 줄 정리</div>
-      <ul className="list-disc list-inside space-y-1">
-        <li>정확도는 직관적이지만, 양성·음성 비율이 치우치면 속는다.</li>
-        <li>정밀도는 "양성 판정이 거짓말 안 함", 재현율은 "양성을 놓치지 않음".</li>
-        <li>둘은 보통 <strong>트레이드오프</strong>: 임계값으로 한쪽을 올리면 다른 쪽이 내려간다.</li>
-        <li>F1은 둘의 균형. 한쪽이 0이면 F1도 0이라 "둘 다 챙겨야" 높아진다.</li>
-        <li>좋은 모델은 <strong>상황에 따라</strong> 다르다. 어떤 실수가 더 아픈지 먼저 묻자.</li>
-      </ul>
+    <div className="space-y-4">
+      <div className="card p-5 text-sm leading-relaxed space-y-3">
+        <div className="font-medium text-base">F1 — 정밀도와 재현율의 절충안</div>
+        <p>
+          ③ 단계에서 본 것처럼 분류 모델은 보통 <strong>정밀도</strong>(오경보 줄이기)와
+          <strong> 재현율</strong>(놓침 줄이기) 두 갈래로 갈립니다. 그런데 두 비용이
+          비슷하게 무거운 상황(예: 가짜 댓글 삭제)이면 한 갈래만 보고 모델을 고를 수 없어요.
+          이럴 때 두 숫자를 <strong>한 점수로 합치는 절충안</strong>이 <strong>F1</strong>입니다.
+        </p>
+      </div>
+
+      <div className="card p-5 text-sm leading-relaxed space-y-3">
+        <div className="font-medium">왜 단순 평균이 아닐까 — 산술평균의 함정</div>
+        <p>
+          가장 먼저 떠오르는 방법은 두 숫자의 <strong>산술평균</strong>이에요.
+        </p>
+        <div className="rounded bg-surface/60 p-3 font-mono text-xs">
+          산술평균 = ( 정밀도 + 재현율 ) / 2
+        </div>
+        <p>
+          그런데 산술평균은 한 가지 큰 문제가 있어요. 정밀도 1.0인데 재현율 0.0인 모델
+          (= 양성을 단 한 번만 답하고 그 한 번이 정답인 극단적 모델)도 산술평균은 0.5예요.
+          이 모델은 실제 양성을 거의 다 놓치는 <em>쓸모없는 모델</em>인데 점수는 평범하게 나옵니다.
+        </p>
+        <p>
+          그래서 두 숫자를 평균낼 때 <strong>"한쪽이 너무 작으면 결과도 같이 작아지는"</strong>
+          평균이 필요해요. 그게 <strong>조화평균</strong>이고, 분류에서 부르는 이름이 <strong>F1</strong>입니다.
+        </p>
+      </div>
+
+      <div className="card p-5 text-sm leading-relaxed space-y-3">
+        <div className="font-medium">F1 계산법 — 조화평균</div>
+        <div className="rounded bg-surface/60 p-3 font-mono text-xs space-y-1">
+          <div>F1 = 2 · 정밀도 · 재현율 / ( 정밀도 + 재현율 )</div>
+          <div className="text-muted">(= 두 숫자의 조화평균)</div>
+        </div>
+        <p>식이 외워지지 않으면 다음 두 줄로 기억하세요.</p>
+        <ul className="list-disc list-inside text-xs space-y-1">
+          <li><strong>분자</strong> = 2 × (정밀도) × (재현율) — 두 숫자의 곱에 2를 곱한 값</li>
+          <li><strong>분모</strong> = 정밀도 + 재현율 — 두 숫자의 합</li>
+          <li>결과는 항상 작은 쪽에 가까워짐. 한쪽이 0이면 분자가 0 → F1 = 0</li>
+        </ul>
+
+        <div className="rounded bg-surface/60 p-3 text-xs leading-relaxed">
+          <div className="font-medium text-sm mb-1">손계산 예시 — 정밀도 0.80, 재현율 0.50</div>
+          <div className="font-mono space-y-0.5 mt-1">
+            <div>산술평균 = (0.80 + 0.50) / 2 = {arith.toFixed(3)}  ← 너무 후함</div>
+            <div>F1 (조화평균) = 2 × 0.80 × 0.50 / (0.80 + 0.50)</div>
+            <div className="pl-12">= 0.80 / 1.30 = {harmonic.toFixed(3)}  ← 작은 쪽(0.50)에 더 가까움</div>
+          </div>
+          <p className="mt-2 text-muted">
+            "재현율이 0.50으로 약한 쪽"의 영향이 F1에 그대로 반영돼서 0.65보다 아래로 떨어집니다.
+            이게 "두 갈래 모두 좋아야 점수가 좋다"는 F1의 성질이에요.
+          </p>
+        </div>
+
+        <div className="rounded bg-surface/60 p-3 text-xs leading-relaxed">
+          <div className="font-medium text-sm mb-1">F1 = 0 이 되는 경우</div>
+          <div className="font-mono">정밀도 1.0 + 재현율 0.0 → F1 = 2 × 1.0 × 0.0 / (1.0 + 0.0) = 0 / 1 = 0.000</div>
+          <p className="mt-1 text-muted">
+            산술평균은 0.5로 후하지만 F1은 0이에요. "한쪽이 0이면 F1도 0" — 절충안다운 성질.
+          </p>
+        </div>
+      </div>
+
+      <div className="card p-5 text-sm leading-relaxed space-y-3">
+        <div className="font-medium">⑤ 임계값 슬라이더 값으로 F1 계산해 보기</div>
+        <p>지금 ⑤에서 설정한 임계값({threshold.toFixed(2)}) 기준으로 100명 검진 모델의 라이브 지표:</p>
+        <div className="rounded bg-surface/60 p-3 font-mono text-xs space-y-1">
+          <div>정밀도 = TP / (TP + FP) = {liveMatrix.tp} / ({liveMatrix.tp} + {liveMatrix.fp}) = {liveMetrics.precision.toFixed(3)}</div>
+          <div>재현율 = TP / (TP + FN) = {liveMatrix.tp} / ({liveMatrix.tp} + {liveMatrix.fn}) = {liveMetrics.recall.toFixed(3)}</div>
+          <div>F1 = 2 × {liveMetrics.precision.toFixed(3)} × {liveMetrics.recall.toFixed(3)} / ({liveMetrics.precision.toFixed(3)} + {liveMetrics.recall.toFixed(3)})</div>
+          <div className="pl-7">= <strong className="text-fg">{liveMetrics.f1.toFixed(3)}</strong></div>
+        </div>
+        <p className="text-muted text-xs">
+          ⑤로 돌아가 슬라이더를 천천히 움직여 보면, F1이 가장 커지는 임계값이 정밀도와 재현율이
+          가장 균형 잡힌 자리(보통 0.5 근처)예요. 한쪽 끝(0.0이나 1.0)으로 갈수록 한쪽이 0에 수렴하면서 F1도 0에 가까워집니다.
+        </p>
+      </div>
+
+      <div className="card p-5 text-sm leading-relaxed space-y-2">
+        <div className="font-medium text-base">분류 모델 평가 — 한 줄 정리</div>
+        <ul className="list-disc list-inside space-y-1">
+          <li>정확도는 직관적이지만 양·음 비율이 치우치면 속는다 (도입).</li>
+          <li>본격 비교는 두 갈래로 — <strong>정밀도</strong>(오경보 줄이기) vs <strong>재현율</strong>(놓침 줄이기).</li>
+          <li>같은 모델도 <strong>임계값</strong>으로 두 갈래 사이를 이동할 수 있다.</li>
+          <li>두 갈래가 모두 중요한 상황에는 <strong>F1(조화평균)</strong> 절충안 — 한쪽이 약하면 F1도 약해진다.</li>
+          <li>최종 결정은 <strong>"어떤 실수가 더 아픈가"</strong> — 시나리오에 따라 정밀도 우선·재현율 우선·F1 균형 중 선택.</li>
+        </ul>
+      </div>
 
       <div className="rounded bg-surface/60 p-3 text-xs">
         <div className="font-medium mb-1">진행 상태</div>
