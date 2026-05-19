@@ -1,67 +1,49 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../store';
 import { PHASES } from '../phases';
+import { STORY_CORPUS } from '../data/storyCorpus';
+import {
+  buildNGram,
+  logitsFor,
+  softmax,
+  applyTopK,
+  sampleFromDist,
+  mulberry32,
+  START, END,
+} from '../lib/ngram';
 
-type Tab = 'logits' | 'sampling' | 'generate';
+const MODEL = buildNGram(STORY_CORPUS);
 
-// 손글씨 시뮬레이션: 짧은 문맥 → 다음 토큰 분포
-// "고양이는" 다음에 올 만한 토큰을 점수(logit)로 직접 부여한 미니 어휘.
-// VOCAB 인덱스 0:귀엽다 1:잔다 2:쥐를 3:동물 4:간식 5:집사 6:울음 7:뛴다 8:그림 9:먹는다
-//             10:낮잠 11:소리 12:강아지 13:주인 14:안녕 15:밥 16:문 17:? 18:. 19:!
-const VOCAB = ['귀엽다', '잔다', '쥐를', '동물', '간식', '집사', '울음', '뛴다', '그림', '먹는다', '낮잠', '소리', '강아지', '주인', '안녕', '밥', '문', '?', '.', '!'];
-// 프롬프트마다 1위 토큰이 다르도록 의도적으로 분포를 다르게 짠다 — "고양이는→귀엽다" 한 가지만 보고 끝나지 않도록.
-const BASE_LOGITS_BY_CONTEXT: Record<string, number[]> = {
-  '고양이는':         [4.2, 3.6, 2.4, 2.1, 1.7, 2.0, 1.5, 1.8, 0.6, 1.4, 1.6, 0.9, 0.5, 1.2, 0.3, 1.0, 0.6, 0.4, 0.8, 0.4],
-  '고양이가 갑자기':   [2.0, 0.8, 1.5, 0.7, 0.6, 0.5, 4.0, 2.8, 0.6, 0.6, 0.4, 2.5, 0.5, 0.6, 0.3, 0.4, 0.6, 0.5, 0.8, 1.4],
-  '강아지는':         [2.6, 2.2, 0.5, 2.4, 1.3, 0.4, 0.6, 4.2, 0.5, 1.0, 1.5, 0.7, 0.5, 2.1, 0.4, 1.2, 0.6, 0.4, 0.8, 0.4],
-  '집사가':           [0.4, 0.6, 0.3, 0.4, 4.4, 0.4, 0.3, 0.4, 0.5, 1.6, 0.7, 0.4, 1.0, 1.4, 0.4, 2.4, 1.6, 0.6, 0.9, 0.5],
-  '밥을':             [0.4, 1.0, 0.4, 0.4, 1.2, 0.5, 0.4, 0.5, 0.4, 4.6, 0.6, 0.4, 0.5, 0.6, 0.4, 0.5, 0.5, 0.5, 0.9, 0.5],
-  '낮잠을':           [0.6, 4.3, 0.4, 0.5, 0.7, 0.5, 0.4, 0.5, 0.4, 0.7, 2.0, 0.4, 0.5, 0.5, 0.3, 0.5, 0.5, 0.5, 0.9, 0.5],
-  '오늘 날씨가':       [0.3, 0.2, 0.4, 0.4, 0.2, 0.1, 0.2, 0.3, 0.5, 0.1, 0.5, 0.3, 0.1, 0.2, 0.5, 0.1, 0.1, 0.6, 1.4, 1.0],
-  '나는 인공지능을':   [0.4, 0.2, 0.3, 0.6, 0.2, 0.2, 0.2, 0.3, 0.7, 1.4, 0.4, 0.2, 0.5, 0.3, 0.2, 0.2, 0.1, 0.5, 1.6, 0.5],
-};
-
-// 더 자연스러운 결과를 위해 컨텍스트별 자유 텍스트도 허용 — 매핑이 없으면 무작위 베이스
-function logitsForContext(ctx: string): number[] {
-  if (BASE_LOGITS_BY_CONTEXT[ctx]) return BASE_LOGITS_BY_CONTEXT[ctx];
-  // 알지 못하는 문맥 → 거의 균등 + 약간의 변동
-  return VOCAB.map((_, i) => 0.5 + (Math.sin(i * 1.3 + hash(ctx)) + 1) * 0.6);
-}
-
-function hash(s: string): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return (h % 1000) / 100;
-}
+type Tab = 'dist' | 'sample' | 'gen';
 
 export function Phase22() {
   const meta = PHASES.find((p) => p.id === 'p22')!;
-  const [tab, setTab] = useState<Tab>('logits');
+  const [tab, setTab] = useState<Tab>('dist');
   const markCompleted = useApp((s) => s.markCompleted);
 
   useEffect(() => {
-    if (tab === 'generate') markCompleted('p22');
+    if (tab === 'gen') markCompleted('p22');
   }, [tab, markCompleted]);
 
   return (
     <article>
       <div className="text-xs font-mono text-accent">{meta.num}</div>
-      <h1>{meta.title} — LLM의 핵심, 어휘 전체에 점수 매기기</h1>
+      <h1>{meta.title}</h1>
       <p className="text-muted mt-2">
-        GPT가 답하는 방식은 한 번에 한 토큰씩 — 매번 어휘 전체에 대해 <strong>확률 분포</strong>를 만들고,
-        그 분포에서 한 토큰을 <strong>샘플링</strong>합니다. 어떻게 뽑느냐(temperature, top-k, top-p)에 따라
-        같은 모델이 진지한 답을 줄 수도, 엉뚱한 답을 줄 수도 있어요.
+        C2에서 손글씨 0~9를 가른 다중 분류 신경망 기억나죠. 출력 뉴런 10개 중 가장 큰 값이 답.
+        언어 모델은 같은 구조에 단 한 가지만 다릅니다 — <strong>출력 뉴런이 어휘 크기만큼</strong>이라는 것.
+        그리고 한 번 답을 고르면 그걸 다시 입력에 붙여 또 다음 토큰을 골라요. 이게 GPT가 글을 만드는 방식입니다.
       </p>
 
       <div className="flex gap-1 mt-6 border-b border-border">
-        <TabBtn active={tab === 'logits'} onClick={() => setTab('logits')}>① 어휘 분포</TabBtn>
-        <TabBtn active={tab === 'sampling'} onClick={() => setTab('sampling')}>② 샘플링 슬라이더</TabBtn>
-        <TabBtn active={tab === 'generate'} onClick={() => setTab('generate')}>③ 자기회귀 생성</TabBtn>
+        <TabBtn active={tab === 'dist'}   onClick={() => setTab('dist')}>① 어휘에 점수 매기기</TabBtn>
+        <TabBtn active={tab === 'sample'} onClick={() => setTab('sample')}>② 샘플링</TabBtn>
+        <TabBtn active={tab === 'gen'}    onClick={() => setTab('gen')}>③ 이야기 만들기</TabBtn>
       </div>
 
-      {tab === 'logits' && <LogitsTab />}
-      {tab === 'sampling' && <SamplingTab />}
-      {tab === 'generate' && <GenerateTab />}
+      {tab === 'dist'   && <DistTab />}
+      {tab === 'sample' && <SampleTab />}
+      {tab === 'gen'    && <GenTab />}
     </article>
   );
 }
@@ -78,99 +60,128 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
   );
 }
 
-// ──────── 탭 1 ────────
-function LogitsTab() {
-  const [ctx, setCtx] = useState<string>('고양이는');
-  const logits = logitsForContext(ctx);
-  const probs = softmax(logits, 1.0);
-  const order = probs.map((_, i) => i).sort((a, b) => probs[b] - probs[a]);
+// ──────── 탭 1 — 분포 보기 ────────
+const PROMPT_OPTIONS: { ctx: string[]; label: string }[] = [
+  { ctx: ['옛날', '옛적에'], label: '"옛날 옛적에" 다음에' },
+  { ctx: ['어느', '날'],     label: '"어느 날" 다음에' },
+  { ctx: ['토끼', '가'],     label: '"토끼 가" 다음에' },
+  { ctx: ['여우', '가'],     label: '"여우 가" 다음에' },
+  { ctx: ['바람', '이'],     label: '"바람 이" 다음에' },
+  { ctx: ['해', '가'],       label: '"해 가" 다음에' },
+  { ctx: ['그래서'],         label: '"그래서" 다음에' },
+  { ctx: ['깊은', '숲'],     label: '"깊은 숲" 다음에' },
+];
+
+function DistTab() {
+  const [pick, setPick] = useState(0);
+  const ctx = PROMPT_OPTIONS[pick].ctx;
+  const { logits, probs, order } = useMemo(() => {
+    const i1 = ctx.length >= 1 ? (MODEL.index.get(ctx[ctx.length - 1]) ?? null) : null;
+    const i2 = ctx.length >= 2 ? (MODEL.index.get(ctx[ctx.length - 2]) ?? null) : null;
+    const logits = logitsFor(MODEL, i2, i1);
+    const probs = softmax(logits, 1.0);
+    const order = probs.map((_, i) => i).sort((a, b) => probs[b] - probs[a]);
+    return { logits, probs, order };
+  }, [ctx]);
 
   return (
     <div className="mt-6 space-y-5">
       <div className="aside-tip">
         <div className="font-medium">🎯 마지막 층의 출력 = 어휘에 대한 점수</div>
         <p className="text-sm mt-1">
-          트랜스포머의 마지막 출력은 어휘 크기만큼의 숫자 벡터예요. 이걸 <strong>logit</strong>이라 부르고,
-          softmax를 거치면 <strong>확률 분포</strong>가 됩니다.
+          C2에서 10개 출력 점수에 softmax를 씌워 확률 분포로 만들었던 거 기억나죠.
+          언어 모델도 똑같아요 — 다만 출력이 어휘 크기만큼이라 분포의 차원이 훨씬 큽니다.
+          (이 데모의 어휘는 {MODEL.vocab.length - 1}개. 진짜 GPT는 약 10만 개.)
         </p>
       </div>
 
+      <h2>프롬프트를 골라 보세요</h2>
       <div className="flex flex-wrap gap-2">
-        {Object.keys(BASE_LOGITS_BY_CONTEXT).map((c) => (
-          <button key={c} onClick={() => setCtx(c)} className={`btn-ghost text-sm ${ctx === c ? 'border-accent text-accent' : ''}`}>
-            "{c}"
+        {PROMPT_OPTIONS.map((p, i) => (
+          <button key={i} onClick={() => setPick(i)}
+            className={`btn-ghost text-sm ${i === pick ? 'border-accent text-accent' : ''}`}>
+            {p.label}
           </button>
         ))}
       </div>
 
-      <h2>top-10 단어 (T=1.0)</h2>
+      <h2>다음 토큰 top-10 (T = 1.0)</h2>
       <div className="card p-4 space-y-1.5">
-        {order.slice(0, 10).map((i, rank) => (
-          <div key={i} className="flex items-center gap-3 text-sm">
-            <code className="w-6 text-right text-muted">{rank + 1}</code>
-            <code className={`font-mono w-20 ${rank === 0 ? 'text-accent font-semibold' : ''}`}>{VOCAB[i]}</code>
-            <div className="flex-1 h-3 bg-surface rounded overflow-hidden">
-              <div className="h-full rounded bg-accent" style={{ width: `${probs[i] * 100}%` }} />
+        {order.slice(0, 10).map((i, rank) => {
+          const tok = MODEL.vocab[i];
+          if (tok === START) return null;
+          return (
+            <div key={i} className="flex items-center gap-3 text-sm">
+              <code className="w-6 text-right text-muted">{rank + 1}</code>
+              <code className={`font-mono w-24 ${rank === 0 ? 'text-accent font-semibold' : ''}`}>{tok}</code>
+              <div className="flex-1 h-3 bg-surface rounded overflow-hidden">
+                <div className="h-full rounded bg-accent" style={{ width: `${probs[i] * 100}%` }} />
+              </div>
+              <code className="font-mono w-14 text-right">{(probs[i] * 100).toFixed(1)}%</code>
+              <code className="font-mono w-12 text-right text-muted text-xs">z={logits[i].toFixed(1)}</code>
             </div>
-            <code className="font-mono w-14 text-right">{(probs[i] * 100).toFixed(1)}%</code>
-          </div>
-        ))}
+          );
+        })}
       </div>
+      <p className="text-xs text-muted">
+        같은 토큰("가")이 와도 그 앞 단어가 무엇이냐에 따라 다음 분포가 달라요 — 이게 문맥의 힘이에요.
+        "토끼 가" 다음과 "여우 가" 다음이 같은지 비교해 보세요.
+      </p>
     </div>
   );
 }
 
-// ──────── 탭 2 ────────
-function SamplingTab() {
+// ──────── 탭 2 — 샘플링 ────────
+function SampleTab() {
   const [temp, setTemp] = useState(1.0);
-  const [topK, setTopK] = useState(0); // 0 = 끔
-  const [topP, setTopP] = useState(1.0);
-  const ctx = '고양이는';
-  const logits = logitsForContext(ctx);
-
-  const distRaw = useMemo(() => softmax(logits, Math.max(0.05, temp)), [logits, temp]);
-  const dist = useMemo(() => applyTopKP(distRaw, topK, topP), [distRaw, topK, topP]);
+  const [topK, setTopK] = useState(0);
+  const ctx = ['어느', '날'];
+  const dist = useMemo(() => {
+    const i1 = MODEL.index.get(ctx[1])!;
+    const i2 = MODEL.index.get(ctx[0])!;
+    const logits = logitsFor(MODEL, i2, i1);
+    const raw = softmax(logits, Math.max(0.05, temp));
+    return applyTopK(raw, topK);
+  }, [temp, topK]);
   const order = dist.map((_, i) => i).sort((a, b) => dist[b] - dist[a]);
 
   return (
     <div className="mt-6 space-y-5">
       <div className="aside-tip">
-        <div className="font-medium">🎯 샘플링이 곧 창의성</div>
+        <div className="font-medium">🎯 어떻게 뽑느냐에 따라 다양성이 달라진다</div>
         <p className="text-sm mt-1">
-          temperature로 분포의 뾰족함을 조절하고, top-k / top-p로 후보를 잘라내요.
-          진지한 답이 필요하면 낮게, 다양한 표현이 필요하면 높게.
-        </p>
-        <p className="text-sm mt-2 text-muted">
-          <strong>처음 만질 땐 한 번에 하나씩.</strong> 다른 두 슬라이더는 <em>꺼진 상태(top-k=0, top-p=1.0)</em>로 두고
-          temperature만 먼저 움직여 분포가 뾰족↔평평하게 변하는 모양을 보세요. 그 다음 temperature를 1로 고정하고
-          top-k 또는 top-p 하나만 움직여 보면 각각의 효과가 분리되어 보입니다.
+          <strong>temperature</strong>로 분포를 뾰족↔평평하게 조절하고, <strong>top-k</strong>로 상위 k개만 후보로 남깁니다.
+          진지한 답이 필요하면 낮게(0.3~0.7), 다양한 표현이 필요하면 높게(1.2~1.8).
         </p>
       </div>
 
-      <div className="card p-4 grid sm:grid-cols-3 gap-4">
-        <Slider label="temperature" min={0.0} max={2.0} step={0.05} value={temp} onChange={setTemp} hint={tempHint(temp)} />
-        <Slider label="top-k (0=꺼짐)" min={0} max={20} step={1} value={topK} onChange={setTopK} hint={topK === 0 ? '제한 없음' : `상위 ${topK}개만`} />
-        <Slider label="top-p (nucleus)" min={0.1} max={1.0} step={0.05} value={topP} onChange={setTopP} hint={topP >= 0.99 ? '제한 없음' : `누적 확률 ${(topP * 100).toFixed(0)}%까지`} />
+      <div className="card p-4 grid sm:grid-cols-2 gap-4">
+        <Slider label="temperature" min={0} max={2} step={0.05} value={temp} onChange={setTemp} hint={tempHint(temp)} />
+        <Slider label="top-k (0 = 제한 없음)" min={0} max={15} step={1} value={topK} onChange={setTopK}
+          hint={topK === 0 ? '제한 없음' : `상위 ${topK}개만 후보`} />
       </div>
 
-      <h2>"{ctx}" 다음 — 조절된 분포</h2>
+      <h2>"어느 날" 다음 — 조절된 분포</h2>
       <div className="card p-4 space-y-1.5">
-        {order.slice(0, 12).map((i, rank) => (
-          <div key={i} className="flex items-center gap-3 text-sm">
-            <code className="w-6 text-right text-muted">{rank + 1}</code>
-            <code className={`font-mono w-20 ${rank === 0 ? 'text-accent font-semibold' : ''}`}>{VOCAB[i]}</code>
-            <div className="flex-1 h-3 bg-surface rounded overflow-hidden">
-              <div className="h-full rounded" style={{ width: `${dist[i] * 100}%`, background: dist[i] > 0 ? '#a855f7' : 'transparent' }} />
+        {order.slice(0, 12).map((i, rank) => {
+          if (MODEL.vocab[i] === START) return null;
+          return (
+            <div key={i} className="flex items-center gap-3 text-sm">
+              <code className="w-6 text-right text-muted">{rank + 1}</code>
+              <code className={`font-mono w-24 ${rank === 0 ? 'text-accent font-semibold' : ''}`}>{MODEL.vocab[i]}</code>
+              <div className="flex-1 h-3 bg-surface rounded overflow-hidden">
+                <div className="h-full rounded" style={{ width: `${dist[i] * 100}%`, background: dist[i] > 0 ? '#a855f7' : 'transparent' }} />
+              </div>
+              <code className="font-mono w-14 text-right">{(dist[i] * 100).toFixed(1)}%</code>
             </div>
-            <code className="font-mono w-14 text-right">{(dist[i] * 100).toFixed(1)}%</code>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="grid sm:grid-cols-3 gap-3 text-sm">
-        <Recipe title="T=0 — 결정적" desc="언제나 같은 답. 사실 확인·요약에 어울려요." />
-        <Recipe title="T=1 — 균형" desc="기본값. 자연스럽고 다양한 답." />
-        <Recipe title="T=2 — 엉뚱" desc="확률이 평탄해져 사실상 무작위에 가깝습니다." />
+        <Recipe title="T = 0.3 — 보수적" desc="확률 1위가 거의 항상 뽑힘. 사실 확인·요약에 어울림." />
+        <Recipe title="T = 1.0 — 균형" desc="기본값. 자연스럽고 다양한 답." />
+        <Recipe title="T = 1.7 — 자유" desc="잘 안 쓰이는 단어도 자주 등장. 창작에 어울림." />
       </div>
     </div>
   );
@@ -183,8 +194,11 @@ function Slider({ label, min, max, step, value, onChange, hint }: {
     <div>
       <div className="text-xs text-muted">{label}</div>
       <div className="flex items-center gap-2 mt-1">
-        <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(parseFloat(e.target.value))} className="flex-1" />
-        <code className="font-mono w-12 text-right text-sm">{typeof value === 'number' && !Number.isInteger(step) ? value.toFixed(2) : value}</code>
+        <input type="range" min={min} max={max} step={step} value={value}
+          onChange={(e) => onChange(parseFloat(e.target.value))} className="flex-1" />
+        <code className="font-mono w-12 text-right text-sm">
+          {Number.isInteger(step) ? value : value.toFixed(2)}
+        </code>
       </div>
       {hint && <div className="text-xs text-muted mt-0.5">{hint}</div>}
     </div>
@@ -201,124 +215,110 @@ function Recipe({ title, desc }: { title: string; desc: string }) {
 }
 
 function tempHint(t: number): string {
-  if (t <= 0.1) return '사실상 결정적 (top-1만)';
-  if (t < 0.7) return '안정적, 보수적인 답';
+  if (t < 0.1) return '결정적 (top-1만)';
+  if (t < 0.6) return '보수적';
   if (t <= 1.2) return '자연스러운 다양성';
-  if (t <= 1.6) return '꽤 자유로운 답';
-  return '거의 무작위에 가까움';
+  if (t <= 1.6) return '꽤 자유로움';
+  return '거의 무작위';
 }
 
-// ──────── 탭 3 ────────
-function GenerateTab() {
-  const [prompt, setPrompt] = useState('고양이는');
-  const [temp, setTemp] = useState(1.0);
-  const [topK, setTopK] = useState(8);
-  const [seq, setSeq] = useState<string[]>([]);
+// ──────── 탭 3 — 이야기 만들기 ────────
+const START_PROMPTS = ['옛날 옛적에', '어느 날', '깊은 숲 에서', '한 마을 에서'];
+const MAX_LEN = 30;
+
+function GenTab() {
+  const [prompt, setPrompt] = useState(START_PROMPTS[0]);
   const [seed, setSeed] = useState(7);
+  const [temp, setTemp] = useState(1.0);
+  const [topK, setTopK] = useState(6);
+  const [length, setLength] = useState(14);
 
-  const reset = () => { setSeq([]); };
-
-  const step = () => {
-    const ctx = prompt + (seq.length ? ' ' + seq.join(' ') : '');
-    const logits = logitsForContext(seq.length === 0 ? prompt : ctx);
-    const distRaw = softmax(logits, Math.max(0.05, temp));
-    const dist = applyTopKP(distRaw, topK, 1.0);
-    const r = mulberry32(seed + seq.length * 31)();
-    let acc = 0;
-    let chosen = 0;
-    for (let i = 0; i < dist.length; i++) {
-      acc += dist[i];
-      if (r <= acc) { chosen = i; break; }
-    }
-    setSeq([...seq, VOCAB[chosen]]);
-  };
+  const story = useMemo(() => generate(prompt, seed, temp, topK, length), [prompt, seed, temp, topK, length]);
 
   return (
     <div className="mt-6 space-y-5">
       <div className="aside-tip">
-        <div className="font-medium">🎯 자기회귀 생성</div>
+        <div className="font-medium">🎯 자기회귀 — 한 토큰을 뽑으면 입력에 붙여 다음을 또 뽑는다</div>
         <p className="text-sm mt-1">
-          한 토큰을 뽑으면, 그걸 다시 입력에 붙여서 다음 토큰을 또 뽑아요. 이게 GPT가 문장을 만드는 방식입니다.
-          한 번에 한 토큰씩 — 그래서 답이 길수록 시간이 걸려요.
+          한 번 답을 고를 때마다 그걸 다시 입력에 붙입니다. 30개 토큰을 뽑으려면 신경망이 30번 돕니다.
+          시드를 바꾸면 같은 시작이라도 다른 이야기가 나와요.
         </p>
       </div>
 
       <div className="card p-4 space-y-3">
-        <label className="block text-sm">
-          프롬프트
-          <input value={prompt} onChange={(e) => { setPrompt(e.target.value); setSeq([]); }}
-            className="mt-1 w-full px-3 py-2 rounded border border-border bg-surface font-mono" />
-          <div className="text-xs text-muted mt-1">예시: "고양이는", "오늘 날씨가", "나는 인공지능을"</div>
-        </label>
-        <div className="grid sm:grid-cols-3 gap-3">
-          <Slider label="temperature" min={0.0} max={2.0} step={0.05} value={temp} onChange={setTemp} />
-          <Slider label="top-k" min={1} max={20} step={1} value={topK} onChange={setTopK} />
+        <div>
+          <div className="text-xs text-muted mb-1">시작 프롬프트</div>
+          <div className="flex flex-wrap gap-2">
+            {START_PROMPTS.map((p) => (
+              <button key={p} onClick={() => setPrompt(p)}
+                className={`btn-ghost text-sm ${prompt === p ? 'border-accent text-accent' : ''}`}>
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
             <div className="text-xs text-muted">시드</div>
             <div className="flex items-center gap-2 mt-1">
               <input type="number" value={seed} onChange={(e) => setSeed(parseInt(e.target.value || '0'))}
-                className="w-24 px-2 py-1 rounded border border-border bg-surface font-mono text-sm" />
-              <button onClick={() => { setSeed(seed + 1); setSeq([]); }} className="btn-ghost text-xs">새 시드</button>
+                className="w-20 px-2 py-1 rounded border border-border bg-surface font-mono text-sm" />
+              <button onClick={() => setSeed(seed + 1)} className="btn-ghost text-xs">다른 시드</button>
             </div>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={step} className="btn-primary text-sm">한 토큰 더 →</button>
-          <button onClick={reset} className="btn-ghost text-sm">초기화</button>
+          <Slider label="temperature" min={0.1} max={1.8} step={0.05} value={temp} onChange={setTemp} hint={tempHint(temp)} />
+          <Slider label="top-k" min={1} max={15} step={1} value={topK} onChange={setTopK} />
+          <Slider label={`길이 (${length} 토큰)`} min={5} max={MAX_LEN} step={1} value={length} onChange={setLength} />
         </div>
       </div>
 
-      <div className="card p-4 min-h-[100px]">
-        <div className="text-xs text-muted">생성된 시퀀스</div>
-        <div className="mt-2 text-lg font-mono leading-relaxed flex flex-wrap gap-1">
-          <span>{prompt}</span>
-          {seq.map((tok, i) => (
-            <span key={i} className="px-2 rounded" style={{ background: 'rgba(168, 85, 247, 0.18)', color: '#a855f7' }}>{tok}</span>
+      <h2>생성된 이야기</h2>
+      <div className="card p-5 min-h-[120px]">
+        <div className="text-base leading-relaxed">
+          <span className="text-muted">{prompt}</span>
+          {story.map((tok, i) => (
+            <span key={i}
+              className="ml-1 px-1.5 py-0.5 rounded transition"
+              style={{ background: 'rgba(168, 85, 247, 0.12)', color: '#7c3aed' }}
+            >
+              {tok}
+            </span>
           ))}
         </div>
       </div>
 
-      <div className="aside-note">
-        💡 진짜 GPT는 어휘가 50,000개가 넘고, 한 번 뽑을 때마다 트랜스포머 전체가 한 번 돌아갑니다.
-        지금까지의 모든 단계 — 토큰화, 임베딩, 어텐션, 멀티헤드, 깊은 블록, 다음 토큰 분포 — 가 한 줄에 모두 들어 있어요.
+      <p className="text-xs text-muted">
+        시드만 +1 해도 다른 이야기, temperature를 높이면 더 엉뚱한 이야기, top-k를 줄이면 더 안전한 이야기.
+        같은 알고리즘으로도 손잡이 세 개만 돌려 결과가 크게 달라지는 점이 LLM의 사용법 그대로예요.
+      </p>
+
+      <div className="aside-note text-sm">
+        💡 이 데모는 trigram/bigram 통계로 그럴듯한 다음 토큰을 뽑는 미니 LM이에요. 진짜 GPT는 트랜스포머 신경망이
+        같은 일을 하지만 — 멀리 떨어진 단어 사이의 관계도 본다는 점, 어휘가 비교할 수 없을 만큼 크다는 점이 다릅니다.
+        핵심 알고리즘 — <strong>다음 토큰 분포 만들기 → 샘플링 → 자기회귀</strong> — 는 똑같아요.
       </div>
     </div>
   );
 }
 
-// ──────── 헬퍼 ────────
-function softmax(arr: number[], temperature: number): number[] {
-  const t = Math.max(0.05, temperature);
-  const scaled = arr.map((x) => x / t);
-  const m = Math.max(...scaled);
-  const e = scaled.map((x) => Math.exp(x - m));
-  const s = e.reduce((a, b) => a + b, 0);
-  return e.map((x) => x / s);
-}
-
-function applyTopKP(probs: number[], k: number, p: number): number[] {
-  const idx = probs.map((_, i) => i).sort((a, b) => probs[b] - probs[a]);
-  const out = new Array(probs.length).fill(0);
-  let cum = 0;
-  for (let r = 0; r < idx.length; r++) {
-    if (k > 0 && r >= k) break;
-    out[idx[r]] = probs[idx[r]];
-    cum += probs[idx[r]];
-    if (p < 1.0 && cum >= p) break;
+function generate(promptStr: string, seed: number, temp: number, topK: number, length: number): string[] {
+  const tokens = promptStr.split(/\s+/).filter(Boolean);
+  const out: string[] = [];
+  const rng = mulberry32(seed);
+  const ctx = [...tokens];
+  for (let step = 0; step < length; step++) {
+    const i1 = MODEL.index.get(ctx[ctx.length - 1]);
+    const i2 = ctx.length >= 2 ? MODEL.index.get(ctx[ctx.length - 2]) : undefined;
+    const logits = logitsFor(MODEL, i2 ?? null, i1 ?? null);
+    const raw = softmax(logits, Math.max(0.05, temp));
+    const dist = applyTopK(raw, topK);
+    const chosen = sampleFromDist(dist, rng);
+    const tok = MODEL.vocab[chosen];
+    if (tok === START) continue;
+    out.push(tok);
+    ctx.push(tok);
+    if (tok === END) break;
   }
-  // 재정규화
-  const s = out.reduce((a, b) => a + b, 0);
-  if (s < 1e-9) return probs.slice();
-  return out.map((v) => v / s);
-}
-
-function mulberry32(seed: number) {
-  let a = seed >>> 0;
-  return function () {
-    a = (a + 0x6D2B79F5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
+  return out;
 }
