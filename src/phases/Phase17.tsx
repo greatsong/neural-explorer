@@ -1,39 +1,73 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useApp } from '../store';
 import { PHASES } from '../phases';
 import { Scatter3D, type Point3D } from '../components/Scatter3D';
+import { KO_PRETRAINED } from '../data/w2vPretrained';
 
-const WORDS = ['고양이', '강아지', '호랑이', '사과', '바나나', '컴퓨터'];
-const DIM = 3;
+// E3에서 학습된 한국어 Word2Vec의 가중치를 가져와, 6개 의미 묶음에서 두 단어씩 뽑아 본다.
+// (E3 PRESETS와 같은 단어 풀로 통일 — 학생이 두 페이지를 자연스럽게 연결해 읽도록.)
+const PICK: { word: string; group: GroupKey }[] = [
+  { word: '왕',     group: 'royal' },
+  { word: '여왕',   group: 'royal' },
+  { word: '아빠',   group: 'family' },
+  { word: '엄마',   group: 'family' },
+  { word: '고양이', group: 'animal' },
+  { word: '강아지', group: 'animal' },
+  { word: '사과',   group: 'fruit' },
+  { word: '바나나', group: 'fruit' },
+  { word: '한국',   group: 'country' },
+  { word: '일본',   group: 'country' },
+  { word: '서울',   group: 'capital' },
+  { word: '도쿄',   group: 'capital' },
+];
 
-type Tab = 'onehot' | 'embed' | 'play';
+type GroupKey = 'royal' | 'family' | 'animal' | 'fruit' | 'country' | 'capital';
+const GROUP_COLORS: Record<GroupKey, string> = {
+  royal:   '#a855f7',
+  family:  '#ef4444',
+  animal:  '#16a34a',
+  fruit:   '#f59e0b',
+  country: '#0d9488',
+  capital: '#db2777',
+};
+const GROUP_LABELS: Record<GroupKey, string> = {
+  royal: '왕족', family: '가족', animal: '동물', fruit: '과일', country: '나라', capital: '수도',
+};
+
+// 사전 학습 가중치에서 우리가 고른 단어의 벡터만 꺼내 둔다.
+const ROWS: { word: string; group: GroupKey; vec: number[] }[] = PICK
+  .map((p) => {
+    const i = KO_PRETRAINED.vocab.indexOf(p.word);
+    return i >= 0 ? { word: p.word, group: p.group, vec: KO_PRETRAINED.W[i] } : null;
+  })
+  .filter((x): x is { word: string; group: GroupKey; vec: number[] } => x !== null);
+
+const FULL_DIM = KO_PRETRAINED.dim;     // 32
+const PREVIEW_DIM = 6;                  // 가중치 표에 앞 6개만 보여주고 "…" 표시
+
+type Tab = 'real' | 'play';
 
 export function Phase17() {
   const meta = PHASES.find((p) => p.id === 'p17')!;
-  const [tab, setTab] = useState<Tab>('onehot');
+  const [tab, setTab] = useState<Tab>('real');
   const markCompleted = useApp((s) => s.markCompleted);
-
-  useEffect(() => {
-    if (tab === 'play') markCompleted('p17');
-  }, [tab, markCompleted]);
 
   return (
     <article>
       <div className="text-xs font-mono text-accent">{meta.num}</div>
-      <h1>{meta.title} — 원-핫에서 임베딩으로</h1>
+      <h1>{meta.title} — 학습된 가중치가 곧 좌표</h1>
       <p className="text-muted mt-2">
-        단어를 신경망에 넣으려면 결국 <strong>벡터</strong>가 되어야 해요. 가장 단순한 방법은 원-핫(one-hot)이지만,
-        몇 가지 결정적 한계 때문에 신경망은 <strong>학습되는 임베딩 벡터</strong>로 옮겨갑니다. 그 차이를 직접 만져 봅시다.
+        단어를 신경망에 넣으려면 <strong>벡터(숫자 묶음)</strong>가 되어야 해요. 그 벡터는 사람이 정해 주는 게 아니라
+        <strong> 학습으로 자리 잡습니다</strong>. 다음 페이지(E3)에서 직접 학습할 그 가중치를, 여기서는
+        이미 학습된 상태로 들여다보고 만져 봅니다.
       </p>
 
       <div className="flex gap-1 mt-6 border-b border-border">
-        <TabBtn active={tab === 'onehot'} onClick={() => setTab('onehot')}>① 원-핫의 한계</TabBtn>
-        <TabBtn active={tab === 'embed'} onClick={() => setTab('embed')}>② 임베딩 행렬 W</TabBtn>
-        <TabBtn active={tab === 'play'} onClick={() => setTab('play')}>③ 직접 만져보기</TabBtn>
+        <TabBtn active={tab === 'real'} onClick={() => setTab('real')}>① 학습된 가중치 들여다보기</TabBtn>
+        <TabBtn active={tab === 'play'} onClick={() => { setTab('play'); markCompleted('p17'); }}>② 직접 만져 보기</TabBtn>
       </div>
 
-      {tab === 'onehot' && <OneHotTab />}
-      {tab === 'embed' && <EmbedTab />}
+      {tab === 'real' && <RealTab />}
       {tab === 'play' && <PlayTab />}
     </article>
   );
@@ -51,143 +85,140 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
   );
 }
 
-// ──────── 탭 1 ────────
-function OneHotTab() {
+// ──────── 탭 1 ─ 실제 학습된 가중치 ────────
+function RealTab() {
   return (
     <div className="mt-6 space-y-5">
       <div className="aside-tip">
-        <div className="font-medium">🎯 핵심 아이디어</div>
+        <div className="font-medium">🎯 이 숫자들은 진짜 학습된 가중치</div>
         <p className="text-sm mt-1">
-          원-핫은 어휘 크기 V만큼의 차원에 단 하나만 1, 나머지는 0인 벡터예요. 단어가 V개라면 차원도 V.
-          이 방식의 두 가지 큰 문제: <strong>(1) 차원이 너무 큼</strong>, <strong>(2) 모든 단어 쌍의 cos 유사도가 0</strong>.
+          다음 페이지(E3)에서 작은 신경망에 한국어 문장 30~40개를 학습시켰어요. 학습이 끝나면 단어마다
+          <strong> {FULL_DIM}개의 숫자</strong>가 자리 잡습니다. 그 숫자들이 바로 그 단어의 <strong>좌표(임베딩)</strong>.
+          여기서는 12개 단어를 골라 그 가중치를 그대로 가져왔어요.
         </p>
       </div>
 
-      <h2>예시 — 어휘 6개</h2>
+      <h2>가중치 표 — 단어 × 차원</h2>
       <div className="card p-0 overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-surface text-muted">
             <tr>
               <th className="text-left px-3 py-2">단어</th>
-              {WORDS.map((_, i) => (
-                <th key={i} className="text-center px-3 py-2 font-mono">e{i + 1}</th>
+              <th className="text-left px-2 py-2 text-xs">묶음</th>
+              {Array.from({ length: PREVIEW_DIM }).map((_, i) => (
+                <th key={i} className="text-center px-2 py-2 font-mono text-xs">d{i + 1}</th>
               ))}
+              <th className="text-center px-2 py-2 font-mono text-xs text-muted">…</th>
             </tr>
           </thead>
           <tbody>
-            {WORDS.map((w, i) => (
-              <tr key={i} className="border-t border-border">
-                <td className="px-3 py-2 font-medium">{w}</td>
-                {WORDS.map((_, j) => (
-                  <td key={j} className="text-center px-3 py-2 font-mono">
-                    <span className={i === j ? 'text-accent font-semibold' : 'text-muted'}>{i === j ? 1 : 0}</span>
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <p className="text-sm text-muted">
-        고양이와 강아지는 분명 비슷한 단어인데 — cos 유사도를 계산하면 <strong>0</strong>이 나와요.
-        고양이와 컴퓨터의 유사도도 <strong>0</strong>. 모델 입장에서 어떤 단어가 어떤 단어와 가까운지 알 길이 없습니다.
-      </p>
-
-      <div className="card p-4 text-sm font-mono">
-        cos(고양이, 강아지) = (1·0 + 0·1 + 0·0 + ...) / (1·1) = <strong className="text-accent">0</strong>
-      </div>
-    </div>
-  );
-}
-
-// ──────── 탭 2 ────────
-function EmbedTab() {
-  // 의미적 거리감을 잘 보여주는 고정 임베딩
-  const W = useMemo<number[][]>(() => [
-    [0.8, 0.6, 0.1],   // 고양이
-    [0.7, 0.6, 0.2],   // 강아지
-    [0.7, 0.7, 0.3],   // 호랑이
-    [0.1, 0.7, 0.5],   // 사과
-    [0.2, 0.6, 0.5],   // 바나나
-    [0.0, 0.1, 0.9],   // 컴퓨터
-  ], []);
-
-  return (
-    <div className="mt-6 space-y-5">
-      <div className="aside-tip">
-        <div className="font-medium">🎯 임베딩의 발상</div>
-        <p className="text-sm mt-1">
-          단어마다 <strong>작은 차원의 실수 벡터</strong>를 하나씩 줘봐요. 이 벡터를 학습 중에 조금씩 조정해서,
-          <strong> 비슷한 단어는 가까운 위치</strong>로 모이도록 만드는 거예요. 차원도 줄고, 의미도 위치에 담깁니다.
-        </p>
-      </div>
-
-      <h2>임베딩 행렬 W ({WORDS.length} × {DIM})</h2>
-      <div className="card p-0 overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-surface text-muted">
-            <tr>
-              <th className="text-left px-3 py-2">단어</th>
-              {Array.from({ length: DIM }).map((_, i) => (
-                <th key={i} className="text-center px-3 py-2 font-mono">d{i + 1}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {WORDS.map((w, i) => (
-              <tr key={i} className="border-t border-border">
-                <td className="px-3 py-2 font-medium">{w}</td>
-                {W[i].map((v, j) => (
-                  <td key={j} className="text-center px-3 py-2 font-mono">
+            {ROWS.map((r) => (
+              <tr key={r.word} className="border-t border-border">
+                <td className="px-3 py-1.5 font-medium">{r.word}</td>
+                <td className="px-2 py-1.5 text-xs" style={{ color: GROUP_COLORS[r.group] }}>{GROUP_LABELS[r.group]}</td>
+                {r.vec.slice(0, PREVIEW_DIM).map((v, j) => (
+                  <td key={j} className="text-center px-2 py-1.5 font-mono text-xs">
                     <span style={{ color: hueFor(v) }}>{v.toFixed(2)}</span>
                   </td>
                 ))}
+                <td className="text-center px-2 py-1.5 font-mono text-xs text-muted">d{PREVIEW_DIM + 1}~d{FULL_DIM}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      <p className="text-xs text-muted">
+        차원이 {FULL_DIM}개라 표는 앞 {PREVIEW_DIM}개만 보여줘요. 나머지 {FULL_DIM - PREVIEW_DIM}개의 숫자도 똑같이 "학습으로 정해진" 값이에요.
+      </p>
 
-      <h2>3D 임베딩 공간</h2>
+      <h2>의미가 비슷하면 좌표도 가까운가</h2>
+      <p className="text-sm text-muted">
+        두 벡터가 같은 방향을 가리킬수록 cos 유사도가 1에 가깝습니다. <strong>같은 묶음</strong> 단어끼리 색이 진하게 나오는지,
+        <strong> 다른 묶음</strong> 단어끼리 옅게 나오는지 살펴보세요. (전체 {FULL_DIM}차원으로 계산)
+      </p>
+      <SimMatrix />
+
+      <h2>좌표로 보기 — 학습 가중치 d1·d2·d3</h2>
       <div className="card p-3">
         <Scatter3D
-          points={W.map((v, i) => ({
-            x: v[0], y: v[1], z: v[2],
-            label: WORDS[i],
-            color: groupColor(i),
-            size: 8,
+          points={ROWS.map((r): Point3D => ({
+            x: r.vec[0], y: r.vec[1], z: r.vec[2],
+            label: r.word,
+            color: GROUP_COLORS[r.group],
+            size: 7,
           }))}
           axisLabels={['d1', 'd2', 'd3']}
         />
+        <Legend />
         <p className="text-xs text-muted mt-2">
-          🟢 동물(고양이·강아지·호랑이), 🟠 과일(사과·바나나), 🔵 컴퓨터 — 의미가 비슷한 단어가 같은 구역에 모여 있어요.
+          {FULL_DIM}개 차원 중 처음 3개(d1·d2·d3)를 그대로 좌표로 썼어요. 의미 묶음이 어느 정도 모이긴 하지만 또렷하진 않을 거예요 —
+          진짜 의미는 나머지 {FULL_DIM - 3}개 차원에도 흩어져 있거든요. 모든 차원을 한꺼번에 본 결과는 위의 cos 유사도 표가 더 정확합니다.
         </p>
       </div>
-
-      <h2>cos 유사도 표</h2>
-      <SimMatrix W={W} />
-
-      <p className="text-sm text-muted">
-        고양이↔강아지, 사과↔바나나는 <strong>높은 유사도</strong>로, 컴퓨터는 <strong>혼자 떨어진 위치</strong>로 자리 잡았어요.
-        다음 탭에서는 임베딩 값을 직접 만져 유사도가 어떻게 흔들리는지 봅시다.
-      </p>
     </div>
   );
 }
 
-// ──────── 탭 3 ────────
+function SimMatrix() {
+  return (
+    <div className="card p-0 overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead className="bg-surface text-muted">
+          <tr>
+            <th className="px-2 py-2"></th>
+            {ROWS.map((r) => (<th key={r.word} className="px-2 py-2 text-xs">{r.word}</th>))}
+          </tr>
+        </thead>
+        <tbody>
+          {ROWS.map((r) => (
+            <tr key={r.word} className="border-t border-border">
+              <td className="px-2 py-1.5 font-medium text-xs">{r.word}</td>
+              {ROWS.map((c) => {
+                const s = cosine(r.vec, c.vec);
+                return (
+                  <td key={c.word} className="text-center px-2 py-1.5 font-mono text-xs" style={{ background: simBg(s) }}>
+                    {s.toFixed(2)}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function Legend() {
+  return (
+    <div className="flex flex-wrap gap-3 text-xs mt-2">
+      {(Object.keys(GROUP_COLORS) as GroupKey[]).map((g) => (
+        <div key={g} className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full inline-block" style={{ background: GROUP_COLORS[g] }} />
+          <span className="text-muted">{GROUP_LABELS[g]}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ──────── 탭 2 ─ 직접 만져 보기 (3D 장난감) ────────
+// ①에서 본 가중치는 32차원이라 손으로 옮기기엔 너무 많아요. 여기서는 같은 단어 6개를 3차원 장난감 좌표로 두고
+// 슬라이더로 직접 움직여 보며 cos 유사도가 어떻게 변하는지 만져 봅니다.
+const PLAY_WORDS = ['왕', '여왕', '고양이', '강아지', '사과', '바나나'];
+const PLAY_GROUPS: GroupKey[] = ['royal', 'royal', 'animal', 'animal', 'fruit', 'fruit'];
+
 function PlayTab() {
   const [vecs, setVecs] = useState<number[][]>(() => [
-    [0.8, 0.6, 0.1],
-    [0.7, 0.6, 0.2],
-    [0.7, 0.7, 0.3],
-    [0.1, 0.7, 0.5],
-    [0.2, 0.6, 0.5],
-    [0.0, 0.1, 0.9],
+    [ 0.9,  0.6,  0.1], // 왕
+    [ 0.8,  0.7,  0.2], // 여왕
+    [-0.3,  0.8,  0.4], // 고양이
+    [-0.2,  0.7,  0.5], // 강아지
+    [ 0.2, -0.5,  0.8], // 사과
+    [ 0.3, -0.4,  0.7], // 바나나
   ]);
-  const [a, setA] = useState(0); // 고양이
-  const [b, setB] = useState(1); // 강아지
+  const [a, setA] = useState(0); // 왕
+  const [b, setB] = useState(1); // 여왕
 
   const setVec = (i: number, j: number, v: number) => {
     setVecs((cur) => {
@@ -201,9 +232,17 @@ function PlayTab() {
 
   return (
     <div className="mt-6 space-y-5">
+      <div className="aside-note">
+        <div className="font-medium">🧪 작은 3차원 장난감</div>
+        <p className="text-sm mt-1 text-muted">
+          ①에서 본 진짜 가중치는 차원이 {FULL_DIM}개라 직접 움직이긴 너무 많아요. 여기서는 같은 단어 6개를 <strong>3차원</strong>으로 줄인
+          장난감 모델에서 좌표를 직접 옮겨 봅니다. 학습이 "비슷한 단어를 가까이 모으는 일"이라는 점만 확인하면 충분해요.
+        </p>
+      </div>
+
       <p className="text-sm text-muted">
-        선택한 두 단어의 임베딩을 <strong>슬라이더</strong>로 직접 옮겨보세요. cos 유사도가 어떻게 변하는지 즉시 보입니다.
-        벡터가 같은 방향을 가리키면 1에 가까워지고, 반대 방향이면 -1까지 떨어져요.
+        두 단어를 고르고 슬라이더로 좌표를 옮기면 <strong>cos 유사도</strong>가 즉시 바뀝니다.
+        같은 방향이면 1에, 반대 방향이면 -1까지 떨어져요.
       </p>
 
       <div className="grid sm:grid-cols-2 gap-3">
@@ -213,15 +252,15 @@ function PlayTab() {
 
       <div className="card p-4">
         <div className="text-sm">
-          <strong>{WORDS[a]}</strong> ↔ <strong>{WORDS[b]}</strong> 의 cos 유사도:{' '}
+          <strong>{PLAY_WORDS[a]}</strong> ↔ <strong>{PLAY_WORDS[b]}</strong> 의 cos 유사도:{' '}
           <span className="font-mono text-lg" style={{ color: simHue(sim) }}>{sim.toFixed(3)}</span>
         </div>
         <SimBar sim={sim} />
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        <VecEditor label={WORDS[a]} vec={vecs[a]} onChange={(j, v) => setVec(a, j, v)} />
-        <VecEditor label={WORDS[b]} vec={vecs[b]} onChange={(j, v) => setVec(b, j, v)} />
+        <VecEditor label={PLAY_WORDS[a]} vec={vecs[a]} onChange={(j, v) => setVec(a, j, v)} />
+        <VecEditor label={PLAY_WORDS[b]} vec={vecs[b]} onChange={(j, v) => setVec(b, j, v)} />
       </div>
 
       <h2>3D로 보기 — 두 점이 어떻게 움직이는지</h2>
@@ -229,8 +268,8 @@ function PlayTab() {
         <Scatter3D
           points={vecs.map((v, i): Point3D => ({
             x: v[0], y: v[1], z: v[2],
-            label: WORDS[i],
-            color: i === a || i === b ? '#a855f7' : groupColor(i),
+            label: PLAY_WORDS[i],
+            color: i === a || i === b ? '#a855f7' : GROUP_COLORS[PLAY_GROUPS[i]],
             size: i === a || i === b ? 10 : 6,
             highlight: i === a || i === b,
           }))}
@@ -239,9 +278,9 @@ function PlayTab() {
         />
       </div>
 
-      <h2>전체 단어와 A 사이의 유사도</h2>
+      <h2>A와 다른 단어 사이의 유사도</h2>
       <div className="card p-4 space-y-1.5">
-        {WORDS.map((w, i) => {
+        {PLAY_WORDS.map((w, i) => {
           const s = cosine(vecs[a], vecs[i]);
           return (
             <div key={i} className="flex items-center gap-3 text-sm">
@@ -262,8 +301,8 @@ function PlayTab() {
       </div>
 
       <div className="aside-note">
-        💡 임베딩 차원이 3이라 매우 거칠지만, 실제 GPT는 768 ~ 12,288 차원의 임베딩을 씁니다.
-        그 큰 공간 안에서 의미가 비슷한 단어가 정말로 가까이 모여 있어요.
+        💡 실제 GPT는 768 ~ 12,288 차원의 임베딩을 씁니다. 차원이 클수록 의미를 더 세밀하게 담을 수 있어요.
+        그래도 원리는 똑같아요 — 비슷한 단어는 가까운 좌표.
       </div>
     </div>
   );
@@ -275,7 +314,7 @@ function PickWord({ label, idx, setIdx }: { label: string; idx: number; setIdx: 
     <div>
       <div className="text-xs text-muted">{label}</div>
       <div className="flex flex-wrap gap-1 mt-1">
-        {WORDS.map((w, i) => (
+        {PLAY_WORDS.map((w, i) => (
           <button
             key={i}
             onClick={() => setIdx(i)}
@@ -312,36 +351,6 @@ function VecEditor({ label, vec, onChange }: { label: string; vec: number[]; onC
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-function SimMatrix({ W }: { W: number[][] }) {
-  return (
-    <div className="card p-0 overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="bg-surface text-muted">
-          <tr>
-            <th className="px-3 py-2"></th>
-            {WORDS.map((w, i) => (<th key={i} className="px-3 py-2">{w}</th>))}
-          </tr>
-        </thead>
-        <tbody>
-          {WORDS.map((w, i) => (
-            <tr key={i} className="border-t border-border">
-              <td className="px-3 py-2 font-medium">{w}</td>
-              {WORDS.map((_, j) => {
-                const s = cosine(W[i], W[j]);
-                return (
-                  <td key={j} className="text-center px-3 py-2 font-mono" style={{ background: simBg(s) }}>
-                    {s.toFixed(2)}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }
@@ -383,16 +392,10 @@ function simHue(s: number): string {
   return '#dc2626';
 }
 
-function groupColor(i: number): string {
-  // 0,1,2 동물 / 3,4 과일 / 5 컴퓨터
-  if (i <= 2) return '#16a34a';
-  if (i <= 4) return '#f59e0b';
-  return '#3b82f6';
-}
-
 function simBg(s: number): string {
   const t = (s + 1) / 2;
   const g = Math.round(120 + t * 100);
   const r = Math.round(220 - t * 100);
   return `rgba(${r}, ${g}, 130, 0.18)`;
 }
+
