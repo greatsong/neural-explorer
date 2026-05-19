@@ -52,7 +52,7 @@ export const PHASES: PhaseMeta[] = [
 
   // E. 언어를 다루는 신경망 — 글자→숫자→좌표→다음 단어. 기존 Phase15/17/18/22 컴포넌트를 재사용.
   { id: 'p15', num: 'E1', title: '글자가 숫자가 되기까지', subtitle: '텍스트는 컴퓨터 안에서 정수의 묶음',                       group: 'E. 언어를 다루는 신경망' },
-  { id: 'p17', num: 'E2', title: '단어를 좌표로',           subtitle: '원-핫에서 임베딩 — 좌표가 가까우면 의미가 가깝다',         group: 'E. 언어를 다루는 신경망' },
+  { id: 'p17', num: 'E2', title: '단어를 좌표로',           subtitle: '학습된 가중치가 곧 좌표 — 의미가 가까우면 좌표도 가깝다',  group: 'E. 언어를 다루는 신경망' },
   { id: 'p18', num: 'E3', title: '의미가 가까운 단어 찾기',  subtitle: '브라우저에서 직접 학습하는 Word2Vec 미니',                 group: 'E. 언어를 다루는 신경망' },
   { id: 'p22', num: 'E4', title: '다음 단어 맞히기',         subtitle: 'LLM의 핵심 — 어휘 전체에 점수를 매기는 다중분류',          group: 'E. 언어를 다루는 신경망' },
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApp } from '../store';
 import { PHASES } from '../phases';
 import { Scatter3D, type Point3D } from '../components/Scatter3D';
@@ -294,33 +294,42 @@ function LossChart({ losses }: { losses: number[] }) {
 
 // ──────── 탭 2 ────────
 function SpaceTab({ model, lang }: { model: W2VModel | null; lang: Lang }) {
-  // Hooks는 항상 같은 순서로 호출되어야 하므로 early return을 useMemo 이후로 옮긴다.
   const presets = PRESETS[lang];
-  const proj = useMemo(
-    () => (model ? projectTo3D(model, presets.map((p) => p.word)) : []),
-    [model, presets],
-  );
   if (!model) return <NeedTrain />;
-  const points: Point3D[] = presets.map((p, i) => ({
-    x: proj[i][0], y: proj[i][1], z: proj[i][2],
-    label: p.word,
-    color: GROUP_COLORS[p.group],
-    size: 7,
-  })).filter((_, i) => proj[i] !== null);
+  const dim = model.dim;
+  // 학습된 가중치 그대로 — 32개 차원 중 처음 3개를 좌표축으로 쓴다. 따로 줄이는 처리는 안 한다.
+  const points: Point3D[] = presets
+    .map((p) => {
+      const i = model.index.get(p.word);
+      if (i === undefined) return null;
+      const v = model.W[i];
+      return {
+        x: v[0], y: v[1], z: v[2],
+        label: p.word,
+        color: GROUP_COLORS[p.group],
+        size: 7,
+      } as Point3D;
+    })
+    .filter((p): p is Point3D => p !== null);
 
   return (
     <div className="mt-6 space-y-5">
       <div className="aside-tip">
-        <div className="font-medium">🎯 학습된 임베딩 공간 (PCA → 3D)</div>
+        <div className="font-medium">🎯 학습된 임베딩 공간</div>
         <p className="text-sm mt-1">
-          16차원 벡터를 PCA로 압축해 3D로 표시. 가까이 모인 점은 비슷한 문맥에서 등장한다는 뜻이에요.
-          왕족 / 가족 / 동물 / 과일 클러스터가 보이는지 살펴보세요.
+          학습이 끝난 단어 벡터를 그대로 좌표로 찍었어요. 한 단어가 {dim}개의 숫자(=가중치)를 갖는데,
+          여기서는 그 중 <strong>처음 3개(d1·d2·d3)</strong>를 x·y·z축에 그대로 가져다 썼습니다.
+          같은 묶음 단어가 어느 정도 비슷한 자리에 모이는지 살펴보세요.
         </p>
       </div>
 
       <div className="card p-3">
-        <Scatter3D points={points} axisLabels={['PC1', 'PC2', 'PC3']} />
+        <Scatter3D points={points} axisLabels={['d1', 'd2', 'd3']} />
         <Legend />
+        <p className="text-xs text-muted mt-2">
+          참고: {dim}개 차원 중 3개만 본 거라 클러스터가 또렷하지 않을 수도 있어요. 모든 차원을 한꺼번에 본 결과는
+          ③ 탭의 벡터 산수(왕 − 남자 + 여자 ≈ 여왕)에서 더 또렷하게 드러납니다.
+        </p>
       </div>
     </div>
   );
@@ -447,66 +456,5 @@ function WordPick({ model, value, onChange }: { model: W2VModel; value: string; 
 
 function NeedTrain() {
   return <div className="aside-warn mt-6">먼저 ① 학습 탭에서 모델을 학습시켜 주세요.</div>;
-}
-
-// ──────── PCA 3D 투영 ────────
-function projectTo3D(model: W2VModel, words: string[]): number[][] {
-  const idxs = words.map((w) => model.index.get(w)).filter((x): x is number => x !== undefined);
-  if (idxs.length === 0) return words.map(() => [0, 0, 0]);
-  const X = idxs.map((i) => model.W[i]);
-  const dim = X[0].length;
-  // mean centering
-  const mean = new Array(dim).fill(0);
-  for (const row of X) for (let i = 0; i < dim; i++) mean[i] += row[i];
-  for (let i = 0; i < dim; i++) mean[i] /= X.length;
-  const Xc = X.map((row) => row.map((v, i) => v - mean[i]));
-
-  // 3 power-iteration components
-  const comps: number[][] = [];
-  // 변형 가능한 데이터 복사
-  const data = Xc.map((r) => r.slice());
-
-  for (let c = 0; c < 3; c++) {
-    // initial vector
-    let v = new Array(dim).fill(0).map(() => Math.random() - 0.5);
-    v = normalize(v);
-    for (let it = 0; it < 30; it++) {
-      // y = X^T X v
-      // 1) Xv (length n)
-      const Xv = data.map((row) => dot(row, v));
-      // 2) X^T (Xv) (length dim)
-      const next = new Array(dim).fill(0);
-      for (let r = 0; r < data.length; r++) {
-        for (let i = 0; i < dim; i++) next[i] += data[r][i] * Xv[r];
-      }
-      v = normalize(next);
-    }
-    comps.push(v);
-    // deflate: X = X - X v v^T
-    for (let r = 0; r < data.length; r++) {
-      const proj = dot(data[r], v);
-      for (let i = 0; i < dim; i++) data[r][i] -= proj * v[i];
-    }
-  }
-
-  // 단어 → 3D 좌표
-  return words.map((w) => {
-    const i = model.index.get(w);
-    if (i === undefined) return [0, 0, 0];
-    const xc = model.W[i].map((vv, k) => vv - mean[k]);
-    return [dot(xc, comps[0]), dot(xc, comps[1]), dot(xc, comps[2])];
-  });
-}
-
-function dot(a: number[], b: number[]): number {
-  let s = 0;
-  for (let i = 0; i < a.length; i++) s += a[i] * b[i];
-  return s;
-}
-
-function normalize(v: number[]): number[] {
-  const n = Math.sqrt(v.reduce((s, x) => s + x * x, 0));
-  if (n < 1e-9) return v;
-  return v.map((x) => x / n);
 }
 

@@ -241,27 +241,69 @@ export function PhaseD2() {
 /* ─────────────────────────── 단계 0: 도입 ─────────────────────────── */
 function Intro0() {
   return (
-    <div className="card p-5 space-y-3 text-sm leading-relaxed">
-      <div className="font-medium text-base">정확도 한 숫자로는 부족할 때</div>
-      <p>
-        B4에서 우리는 이진 분류 모델의 정확도(맞춘 비율)를 봤어요. 정확도 92% 라면 꽤 잘하는 모델 같죠.
-        그런데 이 한 숫자로는 다음 두 모델의 차이를 설명할 수 없어요.
-      </p>
-      <div className="grid sm:grid-cols-2 gap-3 text-xs">
-        <div className="rounded bg-surface/60 p-3">
-          <div className="font-medium mb-1">모델 X</div>
-          <div>정확도 92% — 실제 양성 100개 중 95개를 잡아냄</div>
-        </div>
-        <div className="rounded bg-surface/60 p-3">
-          <div className="font-medium mb-1">모델 Y</div>
-          <div>정확도 92% — 실제 양성 100개 중 80개만 잡아냄</div>
-        </div>
+    <div className="space-y-4">
+      <div className="card p-5 space-y-3 text-sm leading-relaxed">
+        <div className="font-medium text-base">"99.9% 정확도" 인공지능, 믿어도 될까요?</div>
+        <p>
+          한 의료 스타트업이 새로 만든 진단 AI를 발표했어요. 광고 문구는 이렇습니다 —
+          <strong> "99.9% 정확도를 자랑하는 인공지능 모델"</strong>. 숫자만 보면 거의 완벽해 보이죠.
+          정말 그럴까요?
+        </p>
+        <p>
+          한 가지 정보가 더 필요해요. 이 모델이 진단하는 질병은
+          <strong> 1000명 중 환자가 1명 발생하는 희귀병</strong>입니다.
+          이 조건에서 99.9%라는 숫자가 어떻게 만들어지는지 같이 따라가 봅니다.
+        </p>
       </div>
-      <p>
-        같은 92%지만 한 쪽은 양성을 더 잘 잡고, 한 쪽은 음성을 더 잘 가립니다.
-        <strong> 어떤 실수가 더 아픈가</strong>에 따라 좋은 모델은 달라져요. 이 챕터에서는 그 차이를
-        다섯 숫자로 정리합니다 — 혼동 행렬, 정확도, 정밀도, 재현율, F1, 그리고 임계값.
-      </p>
+
+      <div className="card p-5 space-y-3 text-sm leading-relaxed">
+        <div className="font-medium">속임수 모델 — "그냥 다 정상이라고 답하기"</div>
+        <p>
+          멍청한 모델을 하나 상상해 봐요. 환자 데이터를 보지도 않고
+          <strong> 무조건 "정상"</strong>이라고만 답하는 모델입니다.
+          1000명을 검사하면 성적표가 이렇게 나와요.
+        </p>
+        <div className="grid sm:grid-cols-3 gap-3 text-xs">
+          <div className="rounded bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-900/50 p-3">
+            <div className="font-medium text-emerald-700 dark:text-emerald-300 mb-1">정상인 999명</div>
+            <div>"정상" 이라고 답함 → <strong>맞음</strong> ✓ <span className="font-mono">(999건)</span></div>
+          </div>
+          <div className="rounded bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/50 p-3">
+            <div className="font-medium text-rose-700 dark:text-rose-300 mb-1">환자 1명</div>
+            <div>"정상" 이라고 답함 → <strong>틀림</strong> ✗ — 그 한 명을 <em>놓침</em></div>
+          </div>
+          <div className="rounded bg-surface/60 border border-border p-3">
+            <div className="font-medium mb-1">정확도</div>
+            <div className="font-mono">999 / 1000 = <strong>99.9%</strong></div>
+          </div>
+        </div>
+        <p>
+          숫자상 정확도는 분명히 99.9%. 그런데 이 모델은
+          <strong> 단 한 명의 환자도 찾아내지 못합니다</strong>.
+          진단 도구로서는 완전히 쓸모없는데, 정확도라는 한 숫자는 그 사실을 가리고 있어요.
+        </p>
+      </div>
+
+      <div className="card p-5 space-y-3 text-sm leading-relaxed">
+        <div className="font-medium">정확도가 속이는 이유 — 양·음 비율의 불균형</div>
+        <p>
+          이런 함정은 <strong>양성과 음성의 비율이 극단적으로 치우쳐 있을 때</strong> 생깁니다.
+          음성이 99.9%인 데이터에서는 "다 음성"이라고만 답해도 정확도가 거의 만점이 돼요.
+          희귀병·사기 탐지·불량품 검출처럼 한쪽으로 쏠린 문제는 <em>거의 다 이 함정을 피할 수 없습니다</em>.
+        </p>
+        <p>
+          그래서 분류 모델을 제대로 보려면 "전체 중 맞춘 비율" 한 숫자가 아니라
+          <strong> 네 칸짜리 표</strong>가 필요해요.
+          <strong>"환자 중 몇 명을 잡았나"</strong>와
+          <strong> "양성이라 답한 것 중 몇 명이 진짜였나"</strong>를 따로 봐야 속지 않습니다.
+        </p>
+        <p>
+          이 챕터에서는 그 네 칸을 정리하는 <strong>혼동 행렬</strong>, 거기서 나오는 두 갈래
+          (<strong>정밀도</strong>·<strong>재현율</strong>), 같은 모델이라도 두 갈래 사이를 움직이는
+          <strong> 임계값</strong>, 그리고 두 갈래의 절충안 <strong>F1</strong> — 이 다섯 가지를 한 줄로
+          꿰어 봅니다.
+        </p>
+      </div>
     </div>
   );
 }
