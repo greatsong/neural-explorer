@@ -522,6 +522,10 @@ function NeuronView({
             <g className="bp-step" style={{ animationDelay: '0.25s' }}>
               <line x1={reluCx + 22} y1={fwdY + 22} x2={sumCx + 30} y2={fwdY + 22}
                 stroke={red} strokeWidth={1.8} strokeDasharray="5 3" markerEnd="url(#a5-back)" />
+              {/* 거꾸로 전달되는 값 — ReLU′ = 1이라 e가 그대로 Σ까지 온다 (데이터 1개일 때만, 5개는 점마다 e가 달라 생략) */}
+              {one && (
+                <text x={(reluCx - 28 + sumCx + 24) / 2} y={fwdY + 42} textAnchor="middle" fill={red} fontSize={12} fontWeight={600} fontFamily="JetBrains Mono">e = {fmt(e)}</text>
+              )}
             </g>
             <g className="bp-step" style={{ animationDelay: '0.5s' }}>
               <line x1={sumCx - 16} y1={fwdY + 22} x2={wEdgeCx + badgeWidth(`dw = ${grad.dw.toFixed(2)}`) / 2 + 6} y2={fwdY + 22}
@@ -530,8 +534,9 @@ function NeuronView({
                 fill="none" stroke={red} strokeWidth={1.8} strokeDasharray="5 3" markerEnd="url(#a5-back)" />
             </g>
             <g className="bp-step" style={{ animationDelay: '0.7s' }}>
-              <text x={wEdgeCx} y={fwdY + 48} textAnchor="middle" fill={red} fontSize={11} fontFamily="JetBrains Mono">{one ? '= e·x' : '= 평균(e·x)'}</text>
-              <text x={dbCx + badgeWidth(dbLabel) / 2 + 6} y={bCy + 4} textAnchor="start" fill={red} fontSize={11} fontFamily="JetBrains Mono">{one ? '= e' : '= 평균(e)'}</text>
+              {/* dw 배지 왼쪽 끝에 맞춰 오른쪽으로 펼친다 — 값이 길어져도(둘째 step의 -3.5 등) 왼쪽 x 배지와 겹치지 않게 */}
+              <text x={wEdgeCx - badgeWidth(`dw = ${grad.dw.toFixed(2)}`) / 2} y={fwdY + 48} textAnchor="start" fill={red} fontSize={11} fontFamily="JetBrains Mono">{one ? `= e × x = (${fmt(e)}) × ${fmt(x)}` : '= 평균(e·x)'}</text>
+              <text x={dbCx + badgeWidth(dbLabel) / 2 + 6} y={bCy + 4} textAnchor="start" fill={red} fontSize={11} fontFamily="JetBrains Mono">{one ? `= e = ${fmt(e)}` : '= 평균(e)'}</text>
             </g>
           </g>
         )}
