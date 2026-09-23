@@ -6,7 +6,6 @@
 // 다이어그램은 단계마다 *그 단계에서 새로 등장하는 라벨만* 보여 글자 겹침을 제거.
 
 import { useEffect, useRef, useState } from 'react';
-import { PHASES } from '../phases';
 import { useApp } from '../store';
 
 /* ──────── 모델·데이터 ──────── */
@@ -14,6 +13,18 @@ interface Weights { w1: number; b1: number; w2: number; b2: number }
 const INIT: Weights = { w1: 0.5, b1: 0.1, w2: 1.5, b2: 0.0 };
 const SAMPLE = { x: 2, y: 5 };  // 정답 직선 ŷ = 2x + 1
 const LR = 0.05;
+
+// 표시용 숫자 — 소수 다섯째 자리까지, 끝의 0은 생략 (1.1, -5.025, -10.05, 1.0025).
+// 둘째 자리로 자르면 e_z₁ = -5.025가 -5.02로 보여 "-5.02·2 = -10.05"처럼 손계산과 어긋난다.
+// 첫 step의 업데이트 결과(1.68425, 0.1675, 1.0025, 0.35125)까지 정확히 보이려면 다섯째 자리가 필요하다.
+function fmt(n: number) {
+  return String(Number(n.toFixed(5)));
+}
+// 그림 라벨용 — 셋째 자리까지. 라벨 자리가 좁아 다섯째 자리까지 쓰면 둘째 step부터 원·박스와 겹친다.
+// 첫 step의 라벨 값(-3.35, -3.685, -5.025, -10.05)은 셋째 자리 안에서 정확하다.
+function fmtLabel(n: number) {
+  return String(Number(n.toFixed(3)));
+}
 
 const relu = (z: number) => (z > 0 ? z : 0);
 const reluD = (z: number) => (z > 0 ? 1 : 0);
@@ -61,15 +72,15 @@ const STAGES: { id: StageId; num: number; label: string; sub: string }[] = [
   { id: 'outputGrad',   num: 3, label: '출력층 기울기', sub: 'dw₂ = e·h,  db₂ = e' },
   { id: 'hiddenSignal', num: 4, label: '거꾸로 흐른 신호',   sub: 'e_h = e·w₂  →  e_z₁ = e_h·ReLU′(z₁)  ← 역전파 핵심' },
   { id: 'hiddenGrad',   num: 5, label: '뉴런 1 기울기', sub: 'dw₁ = e_z₁·x,  db₁ = e_z₁' },
-  { id: 'update',       num: 6, label: '갱신',          sub: 'w ← w − η·dw' },
+  { id: 'update',       num: 6, label: '업데이트',      sub: 'w ← w − η·dw' },
 ];
 
 /* ════════════════════════════════════════════════════════════
    PhaseC1
 ══════════════════════════════════════════════════════════════ */
+// 특강용 숨은 주소(#/backprop) 화면. 메뉴·교과 순서에 없으므로 페이즈 번호와 완료 표시를 쓰지 않는다.
 export function PhaseC1() {
-  const meta = PHASES.find((p) => p.id === 'c1')!;
-  const markCompleted = useApp((s) => s.markCompleted);
+  const present = useApp((s) => s.present);
 
   const [W, setW] = useState<Weights>(INIT);
   const [stageIdx, setStageIdx] = useState(0);   // 0~5
@@ -114,98 +125,108 @@ export function PhaseC1() {
     return () => clearInterval(id);
   }, [auto]);
 
-  const completedRef = useRef(false);
-  useEffect(() => {
-    if (completedRef.current) return;
-    if (stepCount >= 1 && t.loss < 0.05) {
-      completedRef.current = true;
-      markCompleted('c1');
-    } else if (stepCount >= 30) {
-      completedRef.current = true;
-      markCompleted('c1');
-    }
-  }, [stepCount, t.loss, markCompleted]);
-
   const reset = () => {
     setW(INIT);
     setStageIdx(0);
     setStepCount(0);
     setHistory([trace(INIT).loss]);
     setAuto(false);
-    completedRef.current = false;
   };
 
   const currentStage = STAGES[stageIdx];
 
+  // 칸마다 한 번만 정의해 두고, 보통 화면과 발표 모드 화면에서 배치만 달리한다.
+  const modeToggle = (
+    <div className="flex flex-wrap items-center gap-3">
+      <span className="text-sm text-muted">표시:</span>
+      <div className="inline-flex rounded-md border border-border overflow-hidden">
+        <button
+          onClick={() => setShowFormula(false)}
+          className={`px-3 py-1.5 text-sm transition ${!showFormula ? 'bg-accent text-white' : 'bg-bg text-muted hover:bg-surface'}`}
+        >직관</button>
+        <button
+          onClick={() => setShowFormula(true)}
+          className={`px-3 py-1.5 text-sm transition ${showFormula ? 'bg-accent text-white' : 'bg-bg text-muted hover:bg-surface'}`}
+        >식·풀이</button>
+      </div>
+      <span className="text-xs text-muted">η = {LR}</span>
+    </div>
+  );
+  const controlsCard = (
+    // 발표 모드에서는 가로 막대로 펼치고 표시 토글도 함께 담아, 그림과 버튼이 1280×720 한 화면에 보이게 한다
+    <div className={present ? 'card p-3 flex flex-wrap items-center gap-x-6 gap-y-2' : 'card p-3 space-y-2'}>
+      {present && modeToggle}
+      <div className="grid grid-cols-3 gap-2 text-center font-mono text-xs">
+        <Stat label="step" value={stepCount.toString()} />
+        <Stat label="손실" value={t.loss.toFixed(3)} highlight={t.loss < 0.05} />
+        <Stat label="다음" value={`${currentStage.num}/6`} accent />
+      </div>
+      <div className="text-[11px] text-muted">
+        다음 단계: <strong className="text-accent">{currentStage.num}. {currentStage.label}</strong>
+        <span className="ml-1 text-muted">— {currentStage.sub}</span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button onClick={advance} disabled={auto} className="btn-primary">
+          다음 단계 →
+        </button>
+        <button onClick={() => setAuto((v) => !v)} className="btn-ghost">
+          {auto ? '⏸ 자동 멈춤' : '▶ 자동 학습'}
+        </button>
+        <button onClick={reset} className="btn-ghost">초기화</button>
+      </div>
+      <div className="text-[10px] text-muted leading-snug" data-present="hide">
+        ※ 1~6단계는 지금 W로 계산된 값만 보여 줘요. 6단계(업데이트)에서 다음 단계 →를 한 번 더 누르면 실제로 가중치가 움직여 다음 사이클의 1단계로 넘어갑니다.
+      </div>
+    </div>
+  );
+  const diagram = <Diagram W={W} t={t} stage={currentStage.id} showFormula={showFormula} />;
+  const sideCard = showFormula
+    ? <FormulaCard W={W} t={t} stage={currentStage.id} />
+    : <IntuitionCard stage={currentStage.id} />;
+
   return (
     <article>
-      <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
-      <h1>{meta.title}</h1>
-      <p className="text-muted mt-2 text-sm leading-relaxed">
-        A1에서 본 *인공 뉴런이 2개 직렬*(입력 → 뉴런 1 → 뉴런 2 → 출력)로 연결된 가장 작은 망에 *데이터 1쌍*(x = {SAMPLE.x}, y = {SAMPLE.y})만 두고
+      <h1>역전파 직관</h1>
+      <p className="text-muted mt-2 text-sm leading-relaxed" data-present="hide">
+        A1에서 본 인공 뉴런이 2개 직렬(입력 → 뉴런 1 → 뉴런 2 → 출력)로 연결된 가장 작은 망에 데이터 1쌍(x = {SAMPLE.x}, y = {SAMPLE.y})만 두고
         한 step의 6단계를 따라가요. <strong>다음 단계 →</strong>를 한 번씩 누르며
-        예측 → 오차 → 뉴런 2 기울기 → 거꾸로 흐른 신호 → 뉴런 1 기울기 → 갱신이 어떤 숫자로 이어지는지 직접 보세요.
-        <strong> 거꾸로 흐른 신호</strong> 단계가 역전파의 핵심 — 출력 오차가 *w₂를 거꾸로 통과*해 h의 오차가 되고, 다시 *ReLU 문지기*를 거꾸로 통과해 z₁의 오차가 됩니다.
+        예측 → 오차 → 뉴런 2 기울기 → 거꾸로 흐른 신호 → 뉴런 1 기울기 → 업데이트가 어떤 숫자로 이어지는지 직접 보세요.
+        <strong> 거꾸로 흐른 신호</strong> 단계가 역전파의 핵심 — 출력 오차가 w₂를 거꾸로 통과해 h의 오차가 되고, 다시 ReLU 문지기를 거꾸로 통과해 z₁의 오차가 됩니다.
       </p>
 
-      {/* 모드 토글 */}
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <span className="text-sm text-muted">표시:</span>
-        <div className="inline-flex rounded-md border border-border overflow-hidden">
-          <button
-            onClick={() => setShowFormula(false)}
-            className={`px-3 py-1.5 text-sm transition ${!showFormula ? 'bg-accent text-white' : 'bg-bg text-muted hover:bg-surface'}`}
-          >직관</button>
-          <button
-            onClick={() => setShowFormula(true)}
-            className={`px-3 py-1.5 text-sm transition ${showFormula ? 'bg-accent text-white' : 'bg-bg text-muted hover:bg-surface'}`}
-          >식·풀이</button>
+      {present ? (
+        /* 발표 모드 — 조작 막대(위) → 전체 폭 그림(라벨이 커진다) → 단계 풀이·손실 곡선(아래) */
+        <div className="mt-3 space-y-3">
+          {controlsCard}
+          {diagram}
+          <div className="grid lg:grid-cols-2 gap-3 items-start">
+            {sideCard}
+            <LossCurve history={history} />
+          </div>
         </div>
-        <span className="text-xs text-muted">η = {LR}</span>
-      </div>
+      ) : (
+        <>
+          {/* 모드 토글 */}
+          <div className="mt-4">{modeToggle}</div>
 
-      {/* 메인 — 좌: 다이어그램(SVG + 활성 단계 수식) + 손실곡선 / 우: 컨트롤 + 단계 진행표 */}
-      <div className="mt-4 grid lg:grid-cols-[1.4fr_1fr] gap-4 items-start">
-        <div className="space-y-3">
-          <Diagram W={W} t={t} stage={currentStage.id} showFormula={showFormula} />
-          <LossCurve history={history} />
-        </div>
+          {/* 메인 — 좌: 다이어그램(SVG + 활성 단계 수식) + 손실곡선 / 우: 컨트롤 + 단계 진행표 */}
+          <div className="mt-4 grid lg:grid-cols-[1.4fr_1fr] gap-4 items-start">
+            <div className="space-y-3">
+              {diagram}
+              <LossCurve history={history} />
+            </div>
 
-        <div className="space-y-3">
-          <div className="card p-3 space-y-2">
-            <div className="grid grid-cols-3 gap-2 text-center font-mono text-xs">
-              <Stat label="step" value={stepCount.toString()} />
-              <Stat label="손실" value={t.loss.toFixed(3)} highlight={t.loss < 0.05} />
-              <Stat label="다음" value={`${currentStage.num}/6`} accent />
-            </div>
-            <div className="text-[11px] text-muted">
-              다음 단계: <strong className="text-accent">{currentStage.num}. {currentStage.label}</strong>
-              <span className="ml-1 text-muted">— {currentStage.sub}</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button onClick={advance} disabled={auto} className="btn-primary">
-                다음 단계 →
-              </button>
-              <button onClick={() => setAuto((v) => !v)} className="btn-ghost">
-                {auto ? '⏸ 자동 멈춤' : '▶ 자동 학습'}
-              </button>
-              <button onClick={reset} className="btn-ghost">초기화</button>
-            </div>
-            <div className="text-[10px] text-muted leading-snug">
-              ※ 1~6단계는 *지금 W로 계산된 값*만 보여 줘요. 6단계(갱신)에서 다음 단계 →를 한 번 더 누르면 실제로 가중치가 움직여 다음 사이클의 1단계로 넘어갑니다.
+            <div className="space-y-3">
+              {controlsCard}
+              {sideCard}
             </div>
           </div>
-
-          {showFormula ? (
-            <FormulaCard W={W} t={t} stage={currentStage.id} />
-          ) : (
-            <IntuitionCard stage={currentStage.id} />
-          )}
-        </div>
-      </div>
+        </>
+      )}
 
       {/* 하단 — 역전파 박스 */}
       <div
+        data-present="hide"
         className="mt-4 rounded-md border px-4 py-3 text-sm leading-relaxed"
         style={{
           borderColor: 'rgb(190,18,60)',
@@ -216,7 +237,7 @@ export function PhaseC1() {
           역전파 (backpropagation)
         </div>
         <p className="mb-2">
-          뉴런이 *직렬로 여러 개* 있으면 가중치가 층마다 흩어져 있어, 어느 가중치를 얼마나 고쳐야 할지 한눈에 알기 어려워요.
+          뉴런이 직렬로 여러 개 있으면 가중치가 층마다 흩어져 있어, 어느 가중치를 얼마나 고쳐야 할지 한눈에 알기 어려워요.
         </p>
         <p className="mb-2">
           출력 쪽 오차는 <strong>A4에서 본 그대로</strong> (예측 − 정답)예요. 안쪽 뉴런(여기선 뉴런 1)은 자기 정답이 없지만,
@@ -224,11 +245,8 @@ export function PhaseC1() {
           이 거꾸로 흐름이 <strong>역전파(backpropagation)</strong>예요.
         </p>
         <p>
-          각 가중치는 A4에서 본 <code>dw = e · x</code> 모양의 식을 자기 층 입력 x로 똑같이 써서 갱신돼요.
-          {' '}<strong>A5에서 본 한 step의 갱신식이 모든 층에 동시에 적용</strong>된다고 보면 됩니다.
-        </p>
-        <p className="mt-2 text-[12.5px]">
-          이 식들이 <strong>왜 그 모양인지</strong>(예: <code>e_h = e·w₂</code>가 어디서 나오는지) 궁금하다면 — 다음 C2에서 사슬규칙으로 한 줄씩 유도합니다.
+          각 가중치는 A4에서 본 <code>dw = e · x</code> 모양의 식을 자기 층 입력 x로 똑같이 써서 업데이트돼요.
+          {' '}<strong>A5에서 본 한 step의 업데이트 식이 모든 층에 동시에 적용</strong>된다고 보면 됩니다.
         </p>
       </div>
     </article>
@@ -242,6 +260,8 @@ export function PhaseC1() {
 ══════════════════════════════════════════════════════════════ */
 function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: StageId; showFormula: boolean }) {
   const W_SVG = 720, H_SVG = 280;
+  // 발표 모드에서는 빈 여백을 잘라(그림 범위 x 38~673, y 42~232) 같은 폭에서 라벨이 더 크게 보이게 한다
+  const present = useApp((s) => s.present);
   const cy = 130;
   // x → Σ₁ → ReLU 박스 → Σ₂ → ŷ (선형은 Σ₂→ŷ 화살표 위 라벨로 표기)
   const xCx = 60, sum1Cx = 210, reluCx = 340, sum2Cx = 470, yhCx = 640;
@@ -274,7 +294,7 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
           <span className="ml-3" style={{ color: BACK }}>● 역전파</span>
         </div>
       </div>
-      <svg viewBox={`0 0 ${W_SVG} ${H_SVG}`} className="w-full">
+      <svg viewBox={present ? '22 34 676 204' : `0 0 ${W_SVG} ${H_SVG}`} className="w-full">
         <defs>
           <marker id="c1-arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
             <path d="M0,0 L6,3 L0,6 z" fill={FWD} />
@@ -304,24 +324,24 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
         {/* × w₁ (x → Σ₁) */}
         <text x={(xCx + sum1Cx) / 2} y={cy - 8} textAnchor="middle"
               fontSize={11} fontFamily="JetBrains Mono" fill={FWD} opacity={opFwd}>
-          × w₁ = {W.w1.toFixed(2)}
+          × w₁ = {fmtLabel(W.w1)}
         </text>
         {/* + b₁ (Σ₁ 위에서 내려옴) */}
         <text x={sum1Cx} y={cy - 60} textAnchor="middle"
               fontSize={10} fontFamily="JetBrains Mono" fill={FWD} opacity={opFwd}>
-          + b₁ = {W.b1.toFixed(2)}
+          + b₁ = {fmtLabel(W.b1)}
         </text>
         <line x1={sum1Cx} y1={cy - 50} x2={sum1Cx} y2={cy - 30}
               stroke={FWD} strokeWidth={1.4} strokeOpacity={opFwd} />
         {/* × w₂ (ReLU → Σ₂)  — h 값을 함께 표시 */}
         <text x={(reluCx + sum2Cx) / 2} y={cy - 8} textAnchor="middle"
               fontSize={11} fontFamily="JetBrains Mono" fill={FWD} opacity={opFwd}>
-          × w₂ = {W.w2.toFixed(2)}
+          × w₂ = {fmtLabel(W.w2)}
         </text>
         {/* + b₂ */}
         <text x={sum2Cx} y={cy - 60} textAnchor="middle"
               fontSize={10} fontFamily="JetBrains Mono" fill={FWD} opacity={opFwd}>
-          + b₂ = {W.b2.toFixed(2)}
+          + b₂ = {fmtLabel(W.b2)}
         </text>
         <line x1={sum2Cx} y1={cy - 50} x2={sum2Cx} y2={cy - 30}
               stroke={FWD} strokeWidth={1.4} strokeOpacity={opFwd} />
@@ -343,7 +363,7 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
         <text x={sum1Cx} y={cy + 7} textAnchor="middle" fontSize={20} fontWeight={700}
               fill={FWD} opacity={opFwd}>Σ</text>
         <text x={sum1Cx} y={cy + 48} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono"
-              fill={FWD} opacity={opFwd}>z₁ = {t.z1.toFixed(2)}</text>
+              fill={FWD} opacity={opFwd}>z₁ = {fmtLabel(t.z1)}</text>
         {/* ReLU 박스 — A5 스타일 활성화 박스 */}
         <rect x={reluCx - 32} y={cy - 18} width={64} height={36} rx={6}
               fill="rgb(var(--color-accent-bg))" stroke={FWD} strokeWidth={1.5}
@@ -351,19 +371,19 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
         <text x={reluCx} y={cy + 5} textAnchor="middle" fontSize={13} fontWeight={700}
               fill={FWD} opacity={opFwd}>ReLU</text>
         <text x={reluCx} y={cy + 42} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono"
-              fill={FWD} opacity={opFwd}>h = {t.h.toFixed(2)}</text>
+              fill={FWD} opacity={opFwd}>h = {fmtLabel(t.h)}</text>
         {/* Σ₂ */}
         <circle cx={sum2Cx} cy={cy} r={26} fill="rgb(var(--color-accent-bg))" stroke={FWD} strokeWidth={2} opacity={opFwd} />
         <text x={sum2Cx} y={cy + 7} textAnchor="middle" fontSize={20} fontWeight={700}
               fill={FWD} opacity={opFwd}>Σ</text>
         <text x={sum2Cx} y={cy + 48} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono"
-              fill={FWD} opacity={opFwd}>z₂ = {t.z2.toFixed(2)}</text>
+              fill={FWD} opacity={opFwd}>z₂ = {fmtLabel(t.z2)}</text>
         {/* ŷ */}
         <circle cx={yhCx} cy={cy} r={24} fill="rgb(var(--color-accent-bg))" stroke={FWD} strokeWidth={2.5} opacity={opFwd} />
         <text x={yhCx} y={cy + 5} textAnchor="middle" fontSize={13} fontFamily="JetBrains Mono"
               fill={FWD} fontWeight={700} opacity={opFwd}>ŷ</text>
         <text x={yhCx} y={cy + 48} textAnchor="middle" fontSize={11} fontFamily="JetBrains Mono"
-              fill={FWD} opacity={opFwd}>= {t.yhat.toFixed(2)}</text>
+              fill={FWD} opacity={opFwd}>= {fmtLabel(t.yhat)}</text>
 
         {/* ── 역전파 라벨 (아래쪽) — 단계별로 활성 라벨만 ── */}
         {/* 오차 e — ŷ 아래 */}
@@ -371,7 +391,7 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
           <g>
             <text x={yhCx} y={cy + 80} textAnchor="middle"
                   fontSize={12} fontFamily="JetBrains Mono" fill={BACK} fontWeight={600}>
-              e = {t.e.toFixed(2)}
+              e = {fmtLabel(t.e)}
             </text>
             <text x={yhCx} y={cy + 96} textAnchor="middle"
                   fontSize={10} fontFamily="JetBrains Mono" fill={BACK}>
@@ -387,11 +407,11 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
                   markerEnd="url(#c1-back)" />
             <text x={(reluCx + sum2Cx) / 2} y={cy + 80} textAnchor="middle"
                   fontSize={12} fontFamily="JetBrains Mono" fill={BACK} fontWeight={600}>
-              dw₂ = {t.dw2.toFixed(2)}
+              dw₂ = {fmtLabel(t.dw2)}
             </text>
             <text x={(reluCx + sum2Cx) / 2} y={cy + 96} textAnchor="middle"
                   fontSize={10} fontFamily="JetBrains Mono" fill={BACK}>
-              db₂ = {t.db2.toFixed(2)}
+              db₂ = {fmtLabel(t.db2)}
             </text>
           </g>
         )}
@@ -400,7 +420,7 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
           <g>
             <text x={reluCx} y={cy - 32} textAnchor="middle"
                   fontSize={11} fontFamily="JetBrains Mono" fill={BACK} fontWeight={600}>
-              e_h = {t.eh.toFixed(2)} <tspan fontSize={9} fontWeight={400}>(= e·w₂)</tspan>
+              e_h = {fmtLabel(t.eh)} <tspan fontSize={9} fontWeight={400}>(= e·w₂)</tspan>
             </text>
           </g>
         )}
@@ -409,7 +429,7 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
           <g>
             <text x={(sum1Cx + reluCx) / 2} y={cy + 80} textAnchor="middle"
                   fontSize={12} fontFamily="JetBrains Mono" fill={BACK} fontWeight={600}>
-              e_z₁ = {t.ez1.toFixed(2)}
+              e_z₁ = {fmtLabel(t.ez1)}
             </text>
             <text x={(sum1Cx + reluCx) / 2} y={cy + 96} textAnchor="middle"
                   fontSize={9} fontFamily="JetBrains Mono" fill={BACK}>
@@ -425,11 +445,11 @@ function Diagram({ W, t, stage, showFormula }: { W: Weights; t: Trace; stage: St
                   markerEnd="url(#c1-back)" />
             <text x={(xCx + sum1Cx) / 2} y={cy + 80} textAnchor="middle"
                   fontSize={12} fontFamily="JetBrains Mono" fill={BACK} fontWeight={600}>
-              dw₁ = {t.dw1.toFixed(2)}
+              dw₁ = {fmtLabel(t.dw1)}
             </text>
             <text x={(xCx + sum1Cx) / 2} y={cy + 96} textAnchor="middle"
                   fontSize={10} fontFamily="JetBrains Mono" fill={BACK}>
-              db₁ = {t.db1.toFixed(2)}
+              db₁ = {fmtLabel(t.db1)}
             </text>
           </g>
         )}
@@ -482,44 +502,44 @@ function ActiveFormulaStrip({ W, t, stage }: { W: Weights; t: Trace; stage: Stag
       <div className="font-mono text-[12px] leading-relaxed space-y-0.5">
         {stage === 'predict' && (
           <>
-            <div>z₁ = w₁·x + b₁ = <Sub>{W.w1.toFixed(2)}·{SAMPLE.x} + {W.b1.toFixed(2)}</Sub> = <Acc>{t.z1.toFixed(2)}</Acc></div>
-            <div>h = ReLU(z₁) = <Sub>max(0, {t.z1.toFixed(2)})</Sub> = <Acc>{t.h.toFixed(2)}</Acc>
+            <div>z₁ = w₁·x + b₁ = <Sub>{fmt(W.w1)}·{SAMPLE.x} + {fmt(W.b1)}</Sub> = <Acc>{fmt(t.z1)}</Acc></div>
+            <div>h = ReLU(z₁) = <Sub>max(0, {fmt(t.z1)})</Sub> = <Acc>{fmt(t.h)}</Acc>
               {' '}<Note>{t.reluP === 1 ? '(z₁ > 0 → 그대로 통과, ReLU′=1)' : '(z₁ ≤ 0 → 0으로 막힘, ReLU′=0)'}</Note>
             </div>
-            <div>z₂ = w₂·h + b₂ = <Sub>{W.w2.toFixed(2)}·{t.h.toFixed(2)} + {W.b2.toFixed(2)}</Sub> = <Acc>{t.z2.toFixed(2)}</Acc></div>
-            <div>ŷ = z₂ = <Acc>{t.yhat.toFixed(2)}</Acc></div>
+            <div>z₂ = w₂·h + b₂ = <Sub>{fmt(W.w2)}·{fmt(t.h)} + {fmt(W.b2)}</Sub> = <Acc>{fmt(t.z2)}</Acc></div>
+            <div>ŷ = z₂ = <Acc>{fmt(t.yhat)}</Acc></div>
           </>
         )}
         {stage === 'error' && (
           <>
-            <div>e = ŷ − y = <Sub>{t.yhat.toFixed(2)} − {SAMPLE.y}</Sub> = <Err>{t.e.toFixed(2)}</Err></div>
-            <div><Note>참고: 손실 ½·e² = {t.loss.toFixed(2)} (실제 갱신에는 e만 필요)</Note></div>
+            <div>e = ŷ − y = <Sub>{fmt(t.yhat)} − {SAMPLE.y}</Sub> = <Err>{fmt(t.e)}</Err></div>
+            <div><Note>참고: 손실 ½·e² = {fmt(t.loss)} (실제 업데이트에는 e만 필요)</Note></div>
           </>
         )}
         {stage === 'outputGrad' && (
           <>
-            <div>dw₂ = e·h = <Sub><Err>{t.e.toFixed(2)}</Err>·{t.h.toFixed(2)}</Sub> = <Acc>{t.dw2.toFixed(2)}</Acc></div>
-            <div>db₂ = e = <Err>{t.db2.toFixed(2)}</Err> <Note>(b는 1이 곱해지는 상수항)</Note></div>
+            <div>dw₂ = e·h = <Sub><Err>{fmt(t.e)}</Err>·{fmt(t.h)}</Sub> = <Acc>{fmt(t.dw2)}</Acc></div>
+            <div>db₂ = e = <Err>{fmt(t.db2)}</Err> <Note>(b는 1이 곱해지는 상수항)</Note></div>
           </>
         )}
         {stage === 'hiddenSignal' && (
           <>
-            <div>e_h = e·w₂ = <Sub><Err>{t.e.toFixed(2)}</Err>·{W.w2.toFixed(2)}</Sub> = <Err>{t.eh.toFixed(2)}</Err> <Note>(h의 오차 — w₂ 거꾸로)</Note></div>
-            <div>e_z₁ = e_h·ReLU′(z₁) = <Sub><Err>{t.eh.toFixed(2)}</Err>·{t.reluP}</Sub> = <Err>{t.ez1.toFixed(2)}</Err> {t.reluP === 1 ? <Note>(ReLU′=1 → 문지기 열려 있어 같은 값)</Note> : <Note>(ReLU′=0 → 문지기 막혀 신호 끊김)</Note>}</div>
+            <div>e_h = e·w₂ = <Sub><Err>{fmt(t.e)}</Err>·{fmt(W.w2)}</Sub> = <Err>{fmt(t.eh)}</Err> <Note>(h의 오차 — w₂ 거꾸로)</Note></div>
+            <div>e_z₁ = e_h·ReLU′(z₁) = <Sub><Err>{fmt(t.eh)}</Err>·{t.reluP}</Sub> = <Err>{fmt(t.ez1)}</Err> {t.reluP === 1 ? <Note>(ReLU′=1 → 문지기 열려 있어 같은 값)</Note> : <Note>(ReLU′=0 → 문지기 막혀 신호 끊김)</Note>}</div>
           </>
         )}
         {stage === 'hiddenGrad' && (
           <>
-            <div>dw₁ = e_z₁·x = <Sub><Err>{t.ez1.toFixed(2)}</Err>·{SAMPLE.x}</Sub> = <Acc>{t.dw1.toFixed(2)}</Acc></div>
-            <div>db₁ = e_z₁ = <Err>{t.db1.toFixed(2)}</Err></div>
+            <div>dw₁ = e_z₁·x = <Sub><Err>{fmt(t.ez1)}</Err>·{SAMPLE.x}</Sub> = <Acc>{fmt(t.dw1)}</Acc></div>
+            <div>db₁ = e_z₁ = <Err>{fmt(t.db1)}</Err></div>
           </>
         )}
         {stage === 'update' && (
           <>
-            <div>w₂ ← <Sub>{W.w2.toFixed(2)} − {LR}·{t.dw2.toFixed(2)}</Sub> = <Acc>{newW.w2.toFixed(3)}</Acc></div>
-            <div>b₂ ← <Sub>{W.b2.toFixed(2)} − {LR}·{t.db2.toFixed(2)}</Sub> = <Acc>{newW.b2.toFixed(3)}</Acc></div>
-            <div>w₁ ← <Sub>{W.w1.toFixed(2)} − {LR}·{t.dw1.toFixed(2)}</Sub> = <Acc>{newW.w1.toFixed(3)}</Acc></div>
-            <div>b₁ ← <Sub>{W.b1.toFixed(2)} − {LR}·{t.db1.toFixed(2)}</Sub> = <Acc>{newW.b1.toFixed(3)}</Acc></div>
+            <div>w₂ ← <Sub>{fmt(W.w2)} − {LR}·{fmt(t.dw2)}</Sub> = <Acc>{fmt(newW.w2)}</Acc></div>
+            <div>b₂ ← <Sub>{fmt(W.b2)} − {LR}·{fmt(t.db2)}</Sub> = <Acc>{fmt(newW.b2)}</Acc></div>
+            <div>w₁ ← <Sub>{fmt(W.w1)} − {LR}·{fmt(t.dw1)}</Sub> = <Acc>{fmt(newW.w1)}</Acc></div>
+            <div>b₁ ← <Sub>{fmt(W.b1)} − {LR}·{fmt(t.db1)}</Sub> = <Acc>{fmt(newW.b1)}</Acc></div>
           </>
         )}
       </div>
@@ -533,16 +553,16 @@ function ActiveFormulaStrip({ W, t, stage }: { W: Weights; t: Trace; stage: Stag
 function whyFor(stage: StageId, t: Trace): string {
   if (stage === 'predict') return 'A1에서 본 곱·합·활성화 한 묶음을 두 번 적용. 출력층은 회귀라 ReLU 없이 그대로.';
   if (stage === 'error') return t.e < 0
-    ? 'e의 부호가 모든 기울기의 부호를 결정. 음수라 모든 가중치가 *커지는* 방향으로 움직일 예정.'
+    ? 'e의 부호가 모든 기울기의 부호를 결정. 음수라 모든 가중치가 커지는 방향으로 움직일 예정.'
     : t.e > 0
-      ? 'e의 부호가 모든 기울기의 부호를 결정. 양수라 모든 가중치가 *작아지는* 방향으로 움직일 예정.'
-      : 'e가 0이라 갱신 없음 — 이미 정답.';
+      ? 'e의 부호가 모든 기울기의 부호를 결정. 양수라 모든 가중치가 작아지는 방향으로 움직일 예정.'
+      : 'e가 0이라 업데이트 없음 — 이미 정답.';
   if (stage === 'outputGrad') return 'A4의 dw = e·x 식 그대로. 출력층 입장에서 그 층의 입력은 뉴런 1 출력 h.';
   if (stage === 'hiddenSignal') return t.reluP === 0
-    ? 'e_h = e·w₂ 까지는 살아 있지만 ReLU′(z₁)=0 — 문지기가 막혀 e_z₁=0 (Dying ReLU). 뉴런 1 가중치는 갱신 안 됨.'
-    : '두 번 거꾸로: ① w₂ 통과 → h의 오차 e_h, ② ReLU′ 통과 → z₁의 오차 e_z₁. 이번엔 ReLU′=1이라 두 값이 같은 수치. 이 거꾸로 흐름이 *역전파*.';
+    ? 'e_h = e·w₂ 까지는 살아 있지만 ReLU′(z₁)=0 — 문지기가 막혀 e_z₁=0 (Dying ReLU). 뉴런 1 가중치는 업데이트 안 됨.'
+    : '두 번 거꾸로: ① w₂ 통과 → h의 오차 e_h, ② ReLU′ 통과 → z₁의 오차 e_z₁. 이번엔 ReLU′=1이라 두 값이 같은 수치. 이 거꾸로 흐름이 역전파.';
   if (stage === 'hiddenGrad') return 'A4의 dw = e·x 식이 다시. e 자리에 e_z₁(z₁까지 거꾸로 흘러온 오차), x 자리에 이 층의 입력 x.';
-  return '모든 기울기에 η를 곱해 *반대 방향*으로 4개 가중치를 동시에 움직임. 다음 step에서 ŷ이 정답에 더 가까워져 손실이 줄어요.';
+  return '모든 기울기에 η를 곱해 반대 방향으로 4개 가중치를 동시에 움직임. 다음 step에서 ŷ이 정답에 더 가까워져 손실이 줄어요.';
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -555,60 +575,60 @@ function FormulaCard({ W, t, stage }: { W: Weights; t: Trace; stage: StageId }) 
 
   return (
     <div className="card p-3 space-y-2 text-sm">
-      <div className="font-medium">한 step의 6단계 — 모든 숫자가 *지금의 가중치*로 다시 계산</div>
+      <div className="font-medium">한 step의 6단계 — 모든 숫자가 지금의 가중치로 다시 계산</div>
       <p className="text-[11px] text-muted leading-snug">
-        x = {SAMPLE.x}, y = {SAMPLE.y}, η = {LR}. 다음 단계 →나 자동 학습을 누르면 가중치가 갱신되고 6단계 모든 칸이 새 값으로 다시 채워져요.
+        x = {SAMPLE.x}, y = {SAMPLE.y}, η = {LR}. 다음 단계 →나 자동 학습을 누르면 가중치가 업데이트되고 6단계 모든 칸이 새 값으로 다시 채워져요.
         {' '}<span style={{ color: 'rgb(var(--color-accent))' }}>강조된 칸</span>이 지금 단계.
       </p>
 
       <StageBox id="predict" num={1} label="예측 — x를 두 층 통과" stage={stage}
-        why="A1에서 본 곱·합·활성화 한 묶음을 *두 번* 적용. 출력층은 회귀라 ReLU 없이 그대로.">
+        why="A1에서 본 곱·합·활성화 한 묶음을 두 번 적용. 출력층은 회귀라 ReLU 없이 그대로.">
         <Line>
-          z₁ = w₁·x + b₁ = <Sub>{W.w1.toFixed(2)}·{SAMPLE.x} + {W.b1.toFixed(2)}</Sub> = <Acc>{t.z1.toFixed(2)}</Acc>
+          z₁ = w₁·x + b₁ = <Sub>{fmt(W.w1)}·{SAMPLE.x} + {fmt(W.b1)}</Sub> = <Acc>{fmt(t.z1)}</Acc>
         </Line>
         <Line>
-          h = ReLU(z₁) = <Sub>max(0, {t.z1.toFixed(2)})</Sub> = <Acc>{t.h.toFixed(2)}</Acc>
+          h = ReLU(z₁) = <Sub>max(0, {fmt(t.z1)})</Sub> = <Acc>{fmt(t.h)}</Acc>
           {' '}<Note>{t.reluP === 1 ? '(z₁ > 0 → 그대로 통과, ReLU′=1)' : '(z₁ ≤ 0 → 0으로 막힘, ReLU′=0)'}</Note>
         </Line>
         <Line>
-          z₂ = w₂·h + b₂ = <Sub>{W.w2.toFixed(2)}·{t.h.toFixed(2)} + {W.b2.toFixed(2)}</Sub> = <Acc>{t.z2.toFixed(2)}</Acc>
+          z₂ = w₂·h + b₂ = <Sub>{fmt(W.w2)}·{fmt(t.h)} + {fmt(W.b2)}</Sub> = <Acc>{fmt(t.z2)}</Acc>
         </Line>
         <Line>
-          ŷ = z₂ = <Acc>{t.yhat.toFixed(2)}</Acc>
+          ŷ = z₂ = <Acc>{fmt(t.yhat)}</Acc>
         </Line>
       </StageBox>
 
       <StageBox id="error" num={2} label="오차 — 예측과 정답의 차" stage={stage}
-        why={`e의 부호가 모든 기울기의 부호를 결정. ${t.e < 0 ? '음수 → 모든 가중치가 *커지는* 방향.' : t.e > 0 ? '양수 → 모든 가중치가 *작아지는* 방향.' : '0이라 갱신 없음.'}`}>
+        why={`e의 부호가 모든 기울기의 부호를 결정. ${t.e < 0 ? '음수 → 모든 가중치가 커지는 방향.' : t.e > 0 ? '양수 → 모든 가중치가 작아지는 방향.' : '0이라 업데이트 없음.'}`}>
         <Line>
-          e = ŷ − y = <Sub>{t.yhat.toFixed(2)} − {SAMPLE.y}</Sub> = <Err>{t.e.toFixed(2)}</Err>
+          e = ŷ − y = <Sub>{fmt(t.yhat)} − {SAMPLE.y}</Sub> = <Err>{fmt(t.e)}</Err>
         </Line>
         <Line>
-          <Note>참고: 손실 ½·e² = {t.loss.toFixed(2)} (실제 갱신에는 e만 필요 — ½·e²의 미분이 e)</Note>
+          <Note>참고: 손실 ½·e² = {fmt(t.loss)} (실제 업데이트에는 e만 필요 — ½·e²의 미분이 e)</Note>
         </Line>
       </StageBox>
 
       <StageBox id="outputGrad" num={3} label="출력층 기울기 — w₂·b₂를 얼마나" stage={stage}
-        why="A4의 dw = e·x 식 그대로. 출력층 입장에서 *그 층의 입력*은 뉴런 1 출력 h.">
+        why="A4의 dw = e·x 식 그대로. 출력층 입장에서 그 층의 입력은 뉴런 1 출력 h.">
         <Line>
-          dw₂ = e·h = <Sub><Err>{t.e.toFixed(2)}</Err>·{t.h.toFixed(2)}</Sub> = <Acc>{t.dw2.toFixed(2)}</Acc>
+          dw₂ = e·h = <Sub><Err>{fmt(t.e)}</Err>·{fmt(t.h)}</Sub> = <Acc>{fmt(t.dw2)}</Acc>
         </Line>
         <Line>
-          db₂ = e = <Err>{t.db2.toFixed(2)}</Err>
+          db₂ = e = <Err>{fmt(t.db2)}</Err>
           {' '}<Note>(b는 1이 곱해지는 상수항)</Note>
         </Line>
       </StageBox>
 
       <StageBox id="hiddenSignal" num={4} label="거꾸로 흐른 신호 — w₂ 통과 → ReLU 통과 ★ 역전파 핵심" stage={stage}
         why={t.reluP === 0
-          ? 'e_h(=e·w₂)는 살아 있지만 ReLU′(z₁)=0 — 문지기가 막혀 e_z₁=0 (Dying ReLU). 뉴런 1 가중치는 갱신 안 됨.'
-          : '두 번 거꾸로: ① w₂ 통과 → h의 오차 e_h, ② ReLU′ 통과 → z₁의 오차 e_z₁. ReLU′=1이라 두 값이 같은 수치 — 그러나 *통과 자체*는 식에 명시.'}>
+          ? 'e_h(=e·w₂)는 살아 있지만 ReLU′(z₁)=0 — 문지기가 막혀 e_z₁=0 (Dying ReLU). 뉴런 1 가중치는 업데이트 안 됨.'
+          : '두 번 거꾸로: ① w₂ 통과 → h의 오차 e_h, ② ReLU′ 통과 → z₁의 오차 e_z₁. ReLU′=1이라 두 값이 같은 수치 — 그러나 통과 자체는 식에 명시.'}>
         <Line>
-          e_h = e·w₂ = <Sub><Err>{t.e.toFixed(2)}</Err>·{W.w2.toFixed(2)}</Sub> = <Err>{t.eh.toFixed(2)}</Err>
+          e_h = e·w₂ = <Sub><Err>{fmt(t.e)}</Err>·{fmt(W.w2)}</Sub> = <Err>{fmt(t.eh)}</Err>
           {' '}<Note>(h의 오차 — w₂ 거꾸로 통과)</Note>
         </Line>
         <Line>
-          e_z₁ = e_h·ReLU′(z₁) = <Sub><Err>{t.eh.toFixed(2)}</Err>·{t.reluP}</Sub> = <Err>{t.ez1.toFixed(2)}</Err>
+          e_z₁ = e_h·ReLU′(z₁) = <Sub><Err>{fmt(t.eh)}</Err>·{t.reluP}</Sub> = <Err>{fmt(t.ez1)}</Err>
           {' '}<Note>{t.reluP === 1 ? '(ReLU′=1, z₁>0이라 문지기 열림 → e_h와 같은 값)' : '(ReLU′=0, z₁≤0이라 문지기 막힘 → 끊김)'}</Note>
         </Line>
       </StageBox>
@@ -616,31 +636,31 @@ function FormulaCard({ W, t, stage }: { W: Weights; t: Trace; stage: StageId }) 
       <StageBox id="hiddenGrad" num={5} label="뉴런 1 기울기 — w₁·b₁를 얼마나" stage={stage}
         why="A4의 dw = e·x 식이 다시. e 자리에 e_z₁(z₁까지 거꾸로 흘러온 오차), x 자리에 이 층의 입력 x. 깊은 망에서도 모든 층이 같은 모양.">
         <Line>
-          dw₁ = e_z₁·x = <Sub><Err>{t.ez1.toFixed(2)}</Err>·{SAMPLE.x}</Sub> = <Acc>{t.dw1.toFixed(2)}</Acc>
+          dw₁ = e_z₁·x = <Sub><Err>{fmt(t.ez1)}</Err>·{SAMPLE.x}</Sub> = <Acc>{fmt(t.dw1)}</Acc>
         </Line>
         <Line>
-          db₁ = e_z₁ = <Err>{t.db1.toFixed(2)}</Err>
+          db₁ = e_z₁ = <Err>{fmt(t.db1)}</Err>
         </Line>
       </StageBox>
 
-      <StageBox id="update" num={6} label={`갱신 — w ← w − η·dw  (η=${LR})`} stage={stage}
-        why="모든 기울기에 η를 곱해 *반대 방향*으로 4개 가중치를 동시에 움직임. 다음 step에서 ŷ이 정답 y에 더 가까워져 손실이 줄어요.">
+      <StageBox id="update" num={6} label={`업데이트 — w ← w − η·dw  (η=${LR})`} stage={stage}
+        why="모든 기울기에 η를 곱해 반대 방향으로 4개 가중치를 동시에 움직임. 다음 step에서 ŷ이 정답 y에 더 가까워져 손실이 줄어요.">
         <Line>
-          w₂ ← <Sub>{W.w2.toFixed(2)} − {LR}·{t.dw2.toFixed(2)}</Sub> = <Acc>{newW.w2.toFixed(3)}</Acc>
+          w₂ ← <Sub>{fmt(W.w2)} − {LR}·{fmt(t.dw2)}</Sub> = <Acc>{fmt(newW.w2)}</Acc>
         </Line>
         <Line>
-          b₂ ← <Sub>{W.b2.toFixed(2)} − {LR}·{t.db2.toFixed(2)}</Sub> = <Acc>{newW.b2.toFixed(3)}</Acc>
+          b₂ ← <Sub>{fmt(W.b2)} − {LR}·{fmt(t.db2)}</Sub> = <Acc>{fmt(newW.b2)}</Acc>
         </Line>
         <Line>
-          w₁ ← <Sub>{W.w1.toFixed(2)} − {LR}·{t.dw1.toFixed(2)}</Sub> = <Acc>{newW.w1.toFixed(3)}</Acc>
+          w₁ ← <Sub>{fmt(W.w1)} − {LR}·{fmt(t.dw1)}</Sub> = <Acc>{fmt(newW.w1)}</Acc>
         </Line>
         <Line>
-          b₁ ← <Sub>{W.b1.toFixed(2)} − {LR}·{t.db1.toFixed(2)}</Sub> = <Acc>{newW.b1.toFixed(3)}</Acc>
+          b₁ ← <Sub>{fmt(W.b1)} − {LR}·{fmt(t.db1)}</Sub> = <Acc>{fmt(newW.b1)}</Acc>
         </Line>
       </StageBox>
 
       <div className="text-[10.5px] text-muted leading-snug pt-1 border-t border-border">
-        색 안내 — <Err>e·e_h·e_z₁·db</Err>(오차 계열) · <Acc>dw·새 가중치</Acc>(갱신 계열) · <Note>대입한 숫자</Note>는 흐림.
+        색 안내 — <Err>e·e_h·e_z₁·db</Err>(오차 계열) · <Acc>dw·새 가중치</Acc>(업데이트 계열) · <Note>대입한 숫자</Note>는 흐림.
       </div>
     </div>
   );
@@ -718,7 +738,7 @@ function IntuitionCard({ stage }: { stage: StageId }) {
         ))}
       </ol>
       <div className="text-[10px] text-muted leading-snug pt-1 border-t border-border">
-        식의 *대입 → 결과 → 의미*가 궁금하면 위에서 <strong>식·풀이</strong> 모드로 바꿔 보세요.
+        식의 대입 → 결과 → 의미가 궁금하면 위에서 <strong>식·풀이</strong> 모드로 바꿔 보세요.
       </div>
     </div>
   );
@@ -742,7 +762,7 @@ function LossCurve({ history }: { history: number[] }) {
           step {history.length - 1} · 손실 {history[history.length - 1].toFixed(3)}
         </div>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-1">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-1" data-present-svg>
         <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="rgb(var(--color-border))" />
         <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="rgb(var(--color-border))" />
         <line x1={padL} y1={sy(0.05)} x2={W - padR} y2={sy(0.05)}

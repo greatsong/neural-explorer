@@ -71,3 +71,20 @@
   .card { @apply border border-border rounded-lg bg-bg; }
 }
 
+
+/* ── 발표 모드(html.present) — 프로젝터 화면용 ──
+   사이드바·헤더 숨김과 본문 폭은 App.tsx가 맡고, 여기서는 글자만 다룬다.
+   SVG 글자는 viewBox 좌표로 고정돼 html font-size(22px)를 따르지 않는다.
+   그래서 data-present-svg로 표시한 그림만 글자 크기 속성값별로 키운다(SVG 안의 px = 사용자 단위).
+   라벨 배경 폭을 글자 수로 계산하는 그림(A1·A5 뉴런)은 여기서 키우지 않고 배치를 넓혀 키운다. */
+html.present [data-present="hide"] { display: none !important; }
+html.present .text-\[10px\],
+html.present .text-\[11px\],
+html.present .text-\[12px\] { font-size: 0.8rem; }
+html.present .text-\[13px\] { font-size: 0.85rem; }
+html.present [data-present-svg] { overflow: visible; }
+html.present [data-present-svg] [font-size="9"] { font-size: 13px; }
+html.present [data-present-svg] [font-size="10"] { font-size: 15px; }
+html.present [data-present-svg] [font-size="11"] { font-size: 16px; }
+/* 글자 폭에 맞춘 고정 좌표 묶음(A2 범례 등)은 CSS로 키우지 않고 컴포넌트가 묶음째 확대한다 */
+html.present [data-present-svg] [data-present-keep] { font-size: 10px; }

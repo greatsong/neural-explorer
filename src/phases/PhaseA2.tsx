@@ -47,7 +47,7 @@ export function PhaseA2() {
     <article>
       <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
       <h1>{meta.title}</h1>
-      <p className="text-muted mt-2 text-sm">
+      <p className="text-muted mt-2 text-sm" data-present="hide">
         예측이 정답과 얼마나 어긋났는지를 <strong>숫자</strong>로 만들면 학습이 시작됩니다.
         오차 e = ŷ − y 를 점마다 계산하고, 제곱해서 평균을 내면 그게 바로 <strong>평균 제곱 오차(MSE)</strong>예요.
       </p>
@@ -113,7 +113,7 @@ export function PhaseA2() {
       </div>
 
       {/* 왜 제곱? + 다음 안내 */}
-      <div className="grid md:grid-cols-3 gap-3 mt-3 text-xs">
+      <div className="grid md:grid-cols-3 gap-3 mt-3 text-xs" data-present="hide">
         <div className="aside-tip md:col-span-2 !my-0 !py-2 !px-3">
           <div className="text-sm font-medium mb-0.5">왜 제곱인가?</div>
           오차 e 그대로 더하면 +와 −가 서로 상쇄됩니다. 절댓값 |e|는 부호는 없애지만
@@ -179,9 +179,12 @@ function ScatterPlot({
   const lineX2 = 6;
   const lineY1 = w * lineX1 + b;
   const lineY2 = w * lineX2 + b;
+  // 범례는 글자 폭에 맞춘 고정 좌표라 글자만 키우면 겹친다 — 발표 모드에서는 묶음째 확대한다
+  const present = useApp((s) => s.present);
+  const legendK = present ? 1.5 : 1;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" data-present-svg>
       {/* 격자 */}
       <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="rgb(var(--color-border))" />
       <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="rgb(var(--color-border))" />
@@ -231,7 +234,7 @@ function ScatterPlot({
       ))}
 
       {/* 범례 */}
-      <g transform={`translate(${W - padR - 96}, ${padT + 4})`} fontSize={10}>
+      <g transform={`translate(${W - padR - 96 * legendK}, ${padT + 4}) scale(${legendK})`} fontSize={10} data-present-keep>
         <circle cx={6} cy={6} r={3} fill="rgb(var(--color-text))" />
         <text x={14} y={9} fill="rgb(var(--color-muted))">정답 y</text>
         <line x1={50} y1={6} x2={62} y2={6} stroke="rgb(var(--color-accent))" strokeWidth={2} />

@@ -21,6 +21,7 @@ function activate(fn: ActFn, z: number): number {
 export function PhaseA1() {
   const meta = PHASES.find((p) => p.id === 'a1')!;
   const markCompleted = useApp((s) => s.markCompleted);
+  const present = useApp((s) => s.present);
 
   // 슬라이더 상태
   const [x1, setX1] = useState(2);
@@ -58,13 +59,13 @@ export function PhaseA1() {
     <article>
       <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
       <h1>{meta.title}</h1>
-      <p className="text-muted mt-2 text-sm">
+      <p className="text-muted mt-2 text-sm" data-present="hide">
         인공 뉴런 하나의 일은 단순합니다. <strong>입력 × 가중치를 더하고, 편향을 보탠 뒤, 활성화 함수를 한 번 통과</strong>시키면
         예측값 ŷ 이 나옵니다. 이 한 줄짜리 계산이 딥러닝의 가장 작은 부품이에요.
       </p>
 
-      {/* 좌: 다이어그램 / 우: 슬라이더 + 활성화 토글 + 현재 ŷ */}
-      <div className="grid md:grid-cols-2 gap-4 mt-4 items-start">
+      {/* 좌: 다이어그램 / 우: 슬라이더 + 활성화 토글 + 현재 ŷ. 발표 모드에서는 다이어그램 칸을 넓힌다 */}
+      <div className={`grid ${present ? 'md:grid-cols-[3fr_2fr]' : 'md:grid-cols-2'} gap-4 mt-4 items-start`}>
         <div className="card p-3">
           <NeuronDiagram x1={x1} x2={x2} w1={w1} w2={w2} b={b} z={z} yhat={yhat} act={act} />
           <div className="mt-2 font-mono text-xs text-muted text-center leading-relaxed">
@@ -126,7 +127,7 @@ export function PhaseA1() {
       </div>
 
       {/* 미니 퀴즈 */}
-      <div className="card p-3 mt-4">
+      <div className="card p-3 mt-4" data-present="hide">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <div className="text-base font-medium">미니 순전파 퀴즈</div>
           <div className="text-sm text-muted font-mono">
@@ -153,7 +154,7 @@ export function PhaseA1() {
         </div>
       </div>
 
-      <p className="text-xs text-muted mt-3">
+      <p className="text-xs text-muted mt-3" data-present="hide">
         다음 A2에서는 이렇게 만든 ŷ 이 정답 y 와 얼마나 어긋났는지를 <strong>숫자(MSE)</strong>로 만들어 봅니다.
       </p>
     </article>
@@ -197,8 +198,10 @@ function NeuronDiagram({
 }: {
   x1: number; x2: number; w1: number; w2: number; b: number; z: number; yhat: number; act: ActFn;
 }) {
+  // 발표 모드에서는 빈 여백을 잘라(그림 범위 x 26~490, y 36~164) 같은 폭에서 더 크게 보이게 한다
+  const present = useApp((s) => s.present);
   return (
-    <svg viewBox="0 0 520 200" className="w-full">
+    <svg viewBox={present ? '18 28 482 146' : '0 0 520 200'} className="w-full">
       <g fontFamily="JetBrains Mono">
         <Node cx={50} cy={60} label={`x₁=${x1}`} />
         <Node cx={50} cy={140} label={`x₂=${x2}`} />

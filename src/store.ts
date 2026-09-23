@@ -10,6 +10,9 @@ interface AppState {
   bonusUnlocked2: boolean;
   // 1~4부 → A/B/C 재구성 시 옛 진행도가 발견되면 1회만 띄울 안내 토스트
   legacyResetNotice: boolean;
+  // 발표 모드 — 프로젝터용. 사이드바·헤더를 숨기고 그림·작은 글자를 키운다.
+  present: boolean;
+  setPresent: (v: boolean) => void;
   setCurrent: (id: PhaseId) => void;
   markCompleted: (id: PhaseId) => void;
   toggleTheme: () => void;
@@ -50,6 +53,8 @@ export const useApp = create<AppState>()(
       bonusUnlocked: false,
       bonusUnlocked2: false,
       legacyResetNotice: legacyDetected,
+      present: false,
+      setPresent: (v) => set({ present: v }),
       setCurrent: (id) => set({ current: id }),
       markCompleted: (id) =>
         set((s) => ({ completed: { ...s.completed, [id]: true } })),
@@ -72,7 +77,16 @@ export const useApp = create<AppState>()(
         theme: s.theme,
         bonusUnlocked: s.bonusUnlocked,
         bonusUnlocked2: s.bonusUnlocked2,
+        present: s.present,
       }),
     }
   )
 );
+
+// 다른 탭에서 바꾼 저장 상태(발표 모드·테마 등)를 이미 열린 탭에도 반영한다.
+// 교사가 여러 탭을 미리 열어 두고 한 탭에서 발표 모드를 켜는 경우를 위해서다.
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY) void useApp.persist.rehydrate();
+  });
+}
