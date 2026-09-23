@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { PageNav } from './components/PageNav';
@@ -22,6 +22,7 @@ import { PhaseD1 } from './phases/PhaseD1'; // 회귀 평가 (신규)
 import { PhaseD2 } from './phases/PhaseD2'; // 분류 평가 — 시나리오+임계값 (신규)
 import { PhaseMnistIntro } from './phases/PhaseMnistIntro'; // MNIST 데이터셋 소개 (새 C1)
 import { PhaseDive } from './phases/PhaseDive'; // 자기주도 심층 탐구
+import { PhaseC1 as PhaseBackprop } from './phases/PhaseC1'; // 역전파 직관 — 특강용 숨은 주소 #/backprop
 import { Phase13 } from './phases/Phase13';
 import { Phase14 } from './phases/Phase14';
 import { Phase15 } from './phases/Phase15';
@@ -34,12 +35,14 @@ import { Phase21 } from './phases/Phase21';
 import { Phase22 } from './phases/Phase22';
 import { Stub } from './phases/Stub';
 import { Textbook } from './textbook/Textbook';
+import { hashParams } from './lib/hashParams';
 
 const PHASE_IDS = new Set(PHASES.map((p) => p.id));
 
 type View =
   | { kind: 'intro' }
   | { kind: 'guide' }
+  | { kind: 'backprop' }
   | { kind: 'phase'; id: PhaseId }
   | { kind: 'textbook'; slug: string };
 
@@ -48,26 +51,40 @@ export default function App() {
   const theme = useApp((s) => s.theme);
   const legacyResetNotice = useApp((s) => s.legacyResetNotice);
   const dismissLegacyResetNotice = useApp((s) => s.dismissLegacyResetNotice);
+  const present = useApp((s) => s.present);
+  const setPresent = useApp((s) => s.setPresent);
 
   const [view, setView] = useState<View>(() => readHash());
+  // 같은 화면에서 주소 뒤 조건만 바뀌어도(#/c2 → #/c2?hidden=16) 화면을 새로 만들어 시작 상태를 다시 읽게 한다
+  const [routeKey, setRouteKey] = useState(() => readRouteKey());
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     const sync = () => {
       const v = readHash();
       setView(v);
+      setRouteKey(readRouteKey());
       if (v.kind === 'phase') setCurrent(v.id);
+      // 주소로 발표 모드를 켜고 끈다 (#/a3?mode=b&present=1)
+      const p = hashParams().get('present');
+      if (p === '1') setPresent(true);
+      if (p === '0') setPresent(false);
       // 라우트 바뀌면 드로어 닫기 (모바일에서 메뉴 클릭 시 자동 닫힘)
       setDrawerOpen(false);
     };
     sync();
     window.addEventListener('hashchange', sync);
     return () => window.removeEventListener('hashchange', sync);
-  }, [setCurrent]);
+  }, [setCurrent, setPresent]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
+
+  // 발표 모드 — index.css의 html.present 규칙(작은 글자·그림 글자 확대, 설명 접기)이 여기에 걸린다
+  useEffect(() => {
+    document.documentElement.classList.toggle('present', present);
+  }, [present]);
 
   const wide = view.kind === 'phase' ? isWide(view.id) : true;
 
@@ -82,13 +99,26 @@ export default function App() {
   }
 
   const isPhase = view.kind === 'phase';
+  // 발표 모드에서는 사이드바·헤더를 숨기고 본문을 넓게 쓴다 (좁은 max-w-prose 화면도 넓힌다)
+  const maxW = present ? 'max-w-6xl' : wide ? 'max-w-6xl' : 'max-w-prose';
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header
-        showMenuButton={isPhase}
-        onMenuClick={() => setDrawerOpen((v) => !v)}
-      />
+      {!present && (
+        <Header
+          showMenuButton={isPhase}
+          onMenuClick={() => setDrawerOpen((v) => !v)}
+        />
+      )}
+      {present && (
+        <button
+          type="button"
+          onClick={() => setPresent(false)}
+          className="fixed bottom-3 right-3 z-50 px-3 py-1.5 rounded-md border border-border bg-bg/90 text-xs text-muted shadow-sm opacity-60 hover:opacity-100 transition"
+        >
+          발표 모드 종료
+        </button>
+      )}
       {legacyResetNotice && (
         <div role="status" className="bg-amber-50 border-b border-amber-200 text-amber-900 text-sm px-4 py-2 flex items-center gap-3">
           <span className="flex-1">
@@ -104,15 +134,16 @@ export default function App() {
         </div>
       )}
       <div className="flex-1 flex">
-        {isPhase && (
+        {isPhase && !present && (
           <Sidebar open={drawerOpen} onClose={() => setDrawerOpen(false)} />
         )}
-        <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
-          <div className={`${wide ? 'max-w-6xl' : 'max-w-prose'} mx-auto`}>
+        <main className={`flex-1 min-w-0 px-4 sm:px-6 lg:px-8 ${present ? 'py-4 sm:py-5' : 'py-6 sm:py-10'}`}>
+          <div className={`${maxW} mx-auto`}>
             {view.kind === 'intro' ? <Intro /> :
-             view.kind === 'guide' ? <Guide /> : (
+             view.kind === 'guide' ? <Guide /> :
+             view.kind === 'backprop' ? <PhaseBackprop /> : (
               <>
-                {renderPhase(view.id)}
+                <Fragment key={routeKey}>{renderPhase(view.id)}</Fragment>
                 <PageNav />
               </>
             )}
@@ -123,11 +154,18 @@ export default function App() {
   );
 }
 
+// 화면 경로 + 쿼리 (#/a3?mode=b → /a3?mode=b). 문서 안 앵커(#h-foo)는 빼서 앵커 이동으로는 다시 만들지 않는다.
+function readRouteKey(): string {
+  return window.location.hash.replace(/^#/, '').split('#')[0];
+}
+
 function readHash(): View {
   // hash 점프(#h-foo)가 함께 붙는 경우가 있어 querystring/anchor를 분리한다.
   // querystring(#/a5?data=1)은 라우트 판별에서 떼어 내고, 각 화면이 필요하면 직접 읽는다.
   const raw = window.location.hash.replace(/^#\/?/, '').split('#')[0].split('?')[0];
   if (raw === 'guide') return { kind: 'guide' };
+  // 특강용 숨은 주소 — 메뉴·다음/이전 이동에는 나오지 않는다
+  if (raw === 'backprop') return { kind: 'backprop' };
   if (raw === 'textbook' || raw === 'textbook/') return { kind: 'textbook', slug: 'intro' };
   if (raw.startsWith('textbook/')) return { kind: 'textbook', slug: raw.slice('textbook/'.length) };
   if (raw && PHASE_IDS.has(raw as PhaseId)) {

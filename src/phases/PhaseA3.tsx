@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { PHASES } from '../phases';
 import { useApp } from '../store';
+import { hashParams } from '../lib/hashParams';
 
 // 정답: y = 2x + 1 — A2~A5 가 공유하는 데이터.
 const DATA: [number, number][] = [
@@ -102,7 +103,8 @@ export function PhaseA3() {
   const meta = PHASES.find((p) => p.id === 'a3')!;
   const markCompleted = useApp((s) => s.markCompleted);
 
-  const [mode, setMode] = useState<VarMode>('w');
+  // 기본은 w 모드. #/a3?mode=b 로 열면 b 모드로 시작한다(특강 활동지 4-A와 같은 문제).
+  const [mode, setMode] = useState<VarMode>(() => (hashParams().get('mode') === 'b' ? 'b' : 'w'));
   const conf = CONF[mode];
 
   // 직접 조작
@@ -189,12 +191,12 @@ export function PhaseA3() {
     <article>
       <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
       <h1>{meta.title}</h1>
-      <p className="text-muted mt-2">
+      <p className="text-muted mt-2" data-present="hide">
         손실을 줄이려면 <strong>기울기 방향의 반대로</strong> 움직여요 — 그래서 식에 빼기가 들어갑니다.
         한 step에 얼마나 옮길지 정하는 보폭이 <strong className="text-accent">학습률 η</strong> —
         새 {conf.varLabel} = {conf.varLabel} − η × 기울기. 이 한 줄이 경사하강법의 전부예요.
       </p>
-      <div className="aside-note mt-3 text-[12px]">
+      <div className="aside-note mt-3 text-[12px]" data-present="hide">
         <strong>여기 손실 L 은 ½ · MSE</strong> = MSE ÷ 2 예요. A2 에서 본 MSE 와 똑같은 모양의 곡선이고
         세로축 값만 정확히 절반 — ½ 을 곱해 두면 다음 A4 에서 미분할 때 제곱에서 나오는 2 와 약분돼 식이 깔끔해집니다.
       </div>
@@ -300,7 +302,7 @@ export function PhaseA3() {
       </div>
 
       {/* ── 강조: η = 학습률 = 한 step의 보폭 ──────────────────── */}
-      <div className="aside-tip mt-4 text-sm">
+      <div className="aside-tip mt-4 text-sm" data-present="hide">
         <strong>η = 학습률 = 한 step의 보폭.</strong>{' '}
         매 step마다 기울기 방향으로 얼마나 옮길지를 정하는 한 숫자예요.
         같은 곡선·같은 출발점이어도 이 한 숫자만 바꾸면 결과가 이렇게 달라집니다 ↓
@@ -361,7 +363,7 @@ export function PhaseA3() {
             );
           })}
         </div>
-        <p className="text-[11px] text-muted mt-2 leading-relaxed">
+        <p className="text-[11px] text-muted mt-2 leading-relaxed" data-present="hide">
           이 곡선의 안정 조건은 <code>{conf.curvature}</code>.{' '}
           {mode === 'w' ? (
             <>같은 알고리즘인데 <strong>w 곡선이 b 곡선보다 훨씬 가팔라서</strong> 발산 한계도 작아요 — 입력 x의 크기가 곡률에 들어가기 때문이에요.</>
@@ -428,7 +430,7 @@ function LossCurve({
 
   return (
     <div className="card p-2">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet" data-present-svg>
         <defs>
           <marker id="a3-arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
             <path d="M0,0 L6,3 L0,6 z" fill="rgb(var(--color-accent))" />
@@ -535,7 +537,7 @@ function MiniLossHistory({ history }: { history: { v: number; mse: number }[] })
   const path = history.map((h, i) => `${i === 0 ? 'M' : 'L'}${sx(i).toFixed(1)},${sy(h.mse).toFixed(1)}`).join(' ');
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-1">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-1" data-present-svg>
       <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="rgb(var(--color-border))" />
       <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="rgb(var(--color-border))" />
       <text x={padL - 4} y={padT + 8} textAnchor="end" fontSize={9} fill="rgb(var(--color-muted))">{Lmax.toFixed(1)}</text>
@@ -559,7 +561,8 @@ function Stat({ label, value, highlight, accent }: {
     <div className={`p-2 rounded border text-xs ${
       highlight ? 'border-accent bg-accent-bg' : 'border-border'
     }`}>
-      <div className="text-muted text-[10px] uppercase tracking-wide">{label}</div>
+      {/* uppercase를 쓰면 변수 b가 B로 바뀌어 보인다 — 활동지 표기(소문자 b, w)와 맞춘다 */}
+      <div className="text-muted text-[10px] tracking-wide">{label}</div>
       <div className={`text-sm ${accent ? 'text-accent font-semibold' : ''}`}>{value}</div>
     </div>
   );

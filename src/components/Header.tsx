@@ -9,6 +9,7 @@ interface HeaderProps {
 export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
   const theme = useApp((s) => s.theme);
   const toggle = useApp((s) => s.toggleTheme);
+  const setPresent = useApp((s) => s.setPresent);
 
   return (
     <header className="sticky top-0 z-50 h-14 border-b border-border bg-bg/80 backdrop-blur flex items-center px-3 sm:px-6 gap-2 sm:gap-4">
@@ -35,6 +36,13 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
         코드 없이 만져보며 배우는 신경망
       </span>
       <div className="ml-auto flex items-center gap-1 sm:gap-2">
+        {/* 프로젝터용 — 켜면 헤더가 사라지고 오른쪽 아래 종료 버튼으로 끈다 */}
+        <button
+          onClick={() => setPresent(true)}
+          className="hidden md:inline-flex px-3 py-1.5 rounded-md border border-border hover:bg-surface text-sm"
+        >
+          발표 모드
+        </button>
         <button
           onClick={toggle}
           aria-label="테마 전환"

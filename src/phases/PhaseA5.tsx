@@ -62,6 +62,7 @@ const gradient = (data: Point[], w: number, b: number) => {
 export function PhaseA5() {
   const meta = PHASES.find((p) => p.id === 'a5')!;
   const markCompleted = useApp((s) => s.markCompleted);
+  const present = useApp((s) => s.present);
 
   // 데이터 모드 — 1(기본, 점 (3, 7) 하나) / 5(다섯 점)
   const [dataMode, setDataMode] = useState<DataMode>(() => readDataModeFromHash());
@@ -213,77 +214,99 @@ export function PhaseA5() {
   const meanZ = w * meanX + b;
   const meanE = meanYhat - meanY;
 
+  // 칸마다 한 번만 정의해 두고, 보통 화면과 발표 모드 화면에서 배치만 달리한다.
+  const neuronView = (
+    <NeuronView w={w} b={b} grad={grad} stage={currentStage} meanX={meanX} meanY={meanY} meanZ={meanZ} meanYhat={meanYhat} meanE={meanE} one={one} />
+  );
+  const formulaCard = (
+    <FormulaCard
+      data={DATA}
+      w={w} b={b}
+      grad={grad}
+      current={currentStage}
+      stepCount={stepCount}
+    />
+  );
+  const controlsCard = (
+    // 발표 모드에서는 가로 막대로 펼쳐 그림 위에 둔다 — 버튼과 그림이 1280×720 한 화면에 함께 보이게
+    <div className={present ? 'card p-3 flex flex-wrap items-center gap-x-6 gap-y-2' : 'card p-3 space-y-2'}>
+      {/* 데이터 모드 토글 — 기존 버튼 스타일(선택=primary, 나머지=ghost)을 작게 */}
+      <div className="flex gap-1.5" role="group">
+        {([1, 5] as DataMode[]).map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => switchDataMode(m)}
+            aria-pressed={dataMode === m}
+            className={`${dataMode === m ? 'btn-primary border border-accent' : 'btn-ghost'} px-2.5 py-1 text-xs`}
+          >
+            {m === 5 ? '데이터 5개' : '데이터 1개'}
+          </button>
+        ))}
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-center font-mono text-xs">
+        <Stat label="w" value={w.toFixed(3)} />
+        <Stat label="b" value={b.toFixed(3)} />
+        <Stat label="손실" value={loss.toFixed(4)} highlight={converged} />
+      </div>
+      <div className="text-[11px] text-muted">
+        step {stepCount} · 학습률 η = {LR} · 다음 단계: <strong className="text-accent">
+          {((stageIdx + 1) % STAGE_ORDER.length) + 1}. {STAGE_LABEL[STAGE_ORDER[(stageIdx + 1) % STAGE_ORDER.length]]}
+        </strong>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button onClick={advanceStage} className="btn-primary" disabled={auto}>
+          다음 단계 →
+        </button>
+        <button onClick={stepOnce} className="btn-ghost" disabled={auto}>한 step 통째로</button>
+        <button onClick={() => setAuto((v) => !v)} className="btn-ghost">
+          {auto ? '⏸ 자동 멈춤' : '▶ 자동 학습'}
+        </button>
+        <button onClick={reset} className="btn-ghost">초기화</button>
+      </div>
+      <div className="text-[10px] text-muted leading-snug" data-present="hide">
+        ※ <strong>다음 단계 →</strong>를 한 번씩 누르며 *예측 → 오차 → 기울기 → 업데이트* 4단계가
+        어떻게 차례로 변하는지 직접 보세요. 업데이트 단계로 넘어갈 때만 실제 가중치가 움직여요.
+      </div>
+    </div>
+  );
+
   return (
     <article>
-      <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
+      <div className="text-xs font-mono text-muted" data-present="hide">PHASE {meta.num}</div>
       <h1>{meta.title}</h1>
-      <p className="text-muted mt-2 text-sm">
+      <p className="text-muted mt-2 text-sm" data-present="hide">
         지금까지 본 네 가지 — <strong>예측</strong>(A1) · <strong>오차</strong>(A2) ·
         <strong> 보폭</strong>(A3) · <strong>기울기 식</strong>(A4)을 한 step으로 묶어요.
         {!one && <> 오른쪽 카드의 다섯 점 표가 매 step마다 다시 계산되고, 강조된 칸이 지금 어느 단계인지 알려줘요.</>}
       </p>
 
-      {/* ── 메인 한 viewport — 좌: 다이어그램+5점 표(넓게) / 우: 컨트롤+손실 곡선 ── */}
-      <div className="mt-3 grid lg:grid-cols-[1.7fr_1fr] gap-3 items-start">
-        {/* 좌측 컬럼 — 다이어그램 위, 5점 표는 넓은 폭으로 한 줄로 펴짐 */}
-        <div className="space-y-2">
-          <NeuronView w={w} b={b} grad={grad} stage={currentStage} meanX={meanX} meanY={meanY} meanZ={meanZ} meanYhat={meanYhat} meanE={meanE} one={one} />
-          <FormulaCard
-            data={DATA}
-            w={w} b={b}
-            grad={grad}
-            current={currentStage}
-            stepCount={stepCount}
-          />
+      {present ? (
+        /* 발표 모드 — 조작 막대(위) → 전체 폭 뉴런 그림(라벨이 커진다) → 계산표·손실 곡선(아래) */
+        <div className="mt-3 space-y-3">
+          {controlsCard}
+          {neuronView}
+          <div className="grid lg:grid-cols-2 gap-3 items-start">
+            {formulaCard}
+            <LossCurve history={history} />
+          </div>
         </div>
-
-        {/* 우측 컬럼 — 컨트롤(위) → 손실 곡선(아래). 좁은 폭에서도 짧게 유지. */}
-        <div className="space-y-2">
-          {/* 학습 컨트롤 — 직관/식 모드 공통 */}
-          <div className="card p-3 space-y-2">
-            {/* 데이터 모드 토글 — 기존 버튼 스타일(선택=primary, 나머지=ghost)을 작게 */}
-            <div className="flex gap-1.5" role="group">
-              {([1, 5] as DataMode[]).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => switchDataMode(m)}
-                  aria-pressed={dataMode === m}
-                  className={`${dataMode === m ? 'btn-primary border border-accent' : 'btn-ghost'} px-2.5 py-1 text-xs`}
-                >
-                  {m === 5 ? '데이터 5개' : '데이터 1개'}
-                </button>
-              ))}
-            </div>
-            <div className="grid grid-cols-3 gap-2 text-center font-mono text-xs">
-              <Stat label="w" value={w.toFixed(3)} />
-              <Stat label="b" value={b.toFixed(3)} />
-              <Stat label="손실" value={loss.toFixed(4)} highlight={converged} />
-            </div>
-            <div className="text-[11px] text-muted">
-              step {stepCount} · 학습률 η = {LR} · 다음 단계: <strong className="text-accent">
-                {((stageIdx + 1) % STAGE_ORDER.length) + 1}. {STAGE_LABEL[STAGE_ORDER[(stageIdx + 1) % STAGE_ORDER.length]]}
-              </strong>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button onClick={advanceStage} className="btn-primary" disabled={auto}>
-                다음 단계 →
-              </button>
-              <button onClick={stepOnce} className="btn-ghost" disabled={auto}>한 step 통째로</button>
-              <button onClick={() => setAuto((v) => !v)} className="btn-ghost">
-                {auto ? '⏸ 자동 멈춤' : '▶ 자동 학습'}
-              </button>
-              <button onClick={reset} className="btn-ghost">초기화</button>
-            </div>
-            <div className="text-[10px] text-muted leading-snug">
-              ※ <strong>다음 단계 →</strong>를 한 번씩 누르며 *예측 → 오차 → 기울기 → 업데이트* 4단계가
-              어떻게 차례로 변하는지 직접 보세요. 업데이트 단계로 넘어갈 때만 실제 가중치가 움직여요.
-            </div>
+      ) : (
+        /* ── 메인 한 viewport — 좌: 다이어그램+5점 표(넓게) / 우: 컨트롤+손실 곡선 ── */
+        <div className="mt-3 grid lg:grid-cols-[1.7fr_1fr] gap-3 items-start">
+          {/* 좌측 컬럼 — 다이어그램 위, 5점 표는 넓은 폭으로 한 줄로 펴짐 */}
+          <div className="space-y-2">
+            {neuronView}
+            {formulaCard}
           </div>
 
-          <LossCurve history={history} />
+          {/* 우측 컬럼 — 컨트롤(위) → 손실 곡선(아래). 좁은 폭에서도 짧게 유지. */}
+          <div className="space-y-2">
+            {controlsCard}
+            <LossCurve history={history} />
+          </div>
         </div>
-      </div>
+      )}
     </article>
   );
 }
@@ -606,7 +629,7 @@ function LossCurve({ history }: { history: number[] }) {
           )}
         </div>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-1">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-1" data-present-svg>
         <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="rgb(var(--color-border))" />
         <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke="rgb(var(--color-border))" />
         <text x={W - padR} y={H - 6} textAnchor="end" fontSize={9} fill="rgb(var(--color-muted))">step</text>

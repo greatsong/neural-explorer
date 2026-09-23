@@ -37,7 +37,7 @@ export function NetworkDiagram({ layers, labels, height = 180, maxDots = 9 }: Pr
     return colX(k);
   };
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full border border-border rounded-md bg-surface/40">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full border border-border rounded-md bg-surface/40" data-present-svg>
       {layers.slice(0, -1).map((_, k) => {
         const x1 = colX(k), x2 = colX(k + 1);
         const dA = dotsFor(layers[k]);

@@ -19,6 +19,7 @@ import {
   type TrainSample,
 } from '../lib/nn';
 import { NetworkDiagram, LayerEditor } from '../components/NetworkDiagram';
+import { hashParams } from '../lib/hashParams';
 
 export function PhaseC2() {
   const meta = PHASES.find((p) => p.id === 'c2')!;
@@ -75,9 +76,23 @@ function augmentImage(pixels: Float32Array): Float32Array {
   return out;
 }
 
+// #/c2?hidden=16 또는 16,16,16 → [16] / [16, 16, 16]. 층은 최대 4개, 뉴런은 1~256(LayerEditor 범위). 틀리면 null.
+function readHiddenFromHash(): number[] | null {
+  const raw = hashParams().get('hidden');
+  if (!raw) return null;
+  const layers = raw.split(',').map((t) => Number(t.trim()));
+  if (layers.length < 1 || layers.length > 4) return null;
+  if (!layers.every((n) => Number.isInteger(n) && n >= 1 && n <= 256)) return null;
+  return layers;
+}
+
 function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; title: string } }) {
-  // 시작은 일부러 작게 — 정확도가 낮게 나오는 상태에서 출발
-  const [hiddenLayers, setHiddenLayers] = useState<number[]>([4]);
+  // 시작은 일부러 작게 — 정확도가 낮게 나오는 상태에서 출발.
+  // 수업용으로 #/c2?hidden=16 (여러 층은 16,16,16)을 주면 그 구조로 시작하고 구조 칸을 펼쳐 둔다.
+  const [startHidden] = useState(() => readHiddenFromHash());
+  const [hiddenLayers, setHiddenLayers] = useState<number[]>(startHidden ?? [4]);
+  const present = useApp((s) => s.present);
+  const [structureOpen] = useState(() => startHidden !== null || present);
   const [epochs, setEpochs] = useState(3);
   const [lr, setLr] = useState(0.05);
   const [model, setModel] = useState<MLP | null>(null);
@@ -169,16 +184,16 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
       <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
       <h1>{meta.title}</h1>
       {/* B4 → C2 다리. "같은 구조" 표현 금지. */}
-      <p className="mt-2 text-sm leading-relaxed">
+      <p className="mt-2 text-sm leading-relaxed" data-present="hide">
         B4에서는 출력 뉴런 1개로 세모·네모를 시그모이드로 갈랐죠. MNIST는 입력이 28×28로 훨씬 크고, 출력 뉴런을 10개로 늘려 0~9 숫자를 가립니다.
-        시그모이드 대신 <strong>softmax</strong>로 여러 클래스의 확률을 동시에 만들고, A5에서 본 한 step 흐름(예측 → 오차 → 기울기 → 갱신)이 모든 층에 동시 적용되어 은닉층을 더 키워도 학습이 가능합니다.
+        시그모이드 대신 <strong>softmax</strong>로 여러 클래스의 확률을 동시에 만들고, A5에서 본 한 step 흐름(예측 → 오차 → 기울기 → 업데이트)이 모든 층에 동시 적용되어 은닉층을 더 키워도 학습이 가능합니다.
       </p>
-      <p className="mt-2 text-sm leading-relaxed text-muted">
-        진짜 MNIST 는 7만 장이 넘지만, 브라우저에서 다 돌리면 메모리·시간 부담이 커요. 그래서 여기선 <strong>실제 MNIST 에서 300장만 골라</strong> 작은 모델로 학습 사이클 전체를 직접 굴려 봅니다 — 한 마디로 <strong>"미니 MNIST 도전"</strong>. 데이터·모델 크기는 작아도 예측 → 오차 → 기울기 → 갱신의 흐름은 풀 데이터와 동일해요.
+      <p className="mt-2 text-sm leading-relaxed text-muted" data-present="hide">
+        진짜 MNIST 는 7만 장이 넘지만, 브라우저에서 다 돌리면 메모리·시간 부담이 커요. 그래서 여기선 <strong>실제 MNIST 에서 300장만 골라</strong> 작은 모델로 학습 사이클 전체를 직접 굴려 봅니다 — 한 마디로 <strong>"미니 MNIST 도전"</strong>. 데이터·모델 크기는 작아도 예측 → 오차 → 기울기 → 업데이트의 흐름은 풀 데이터와 동일해요.
       </p>
 
-      <div className="aside-tip mt-3 text-sm">
-        <div className="font-medium">엔진은 A5의 갱신식 그대로</div>
+      <div className="aside-tip mt-3 text-sm" data-present="hide">
+        <div className="font-medium">엔진은 A5의 업데이트 식 그대로</div>
         <p className="mt-1 text-muted">
           은닉층 = <strong>ReLU</strong>, 출력층 = <strong>softmax</strong>로 10개 숫자에 대한 확률을 만들어요.
           매 step마다 A5에서 본 <code>w ← w − η · dw</code> 식이 모든 층의 가중치에 자동으로 적용됩니다.
@@ -212,7 +227,7 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
         )}
       </div>
 
-      <details className="mt-4">
+      <details className="mt-4" open={structureOpen}>
         <summary className="cursor-pointer text-sm font-medium hover:text-accent">신경망 구조 짜기 (고급)</summary>
         <p className="text-muted text-sm mt-2">
           은닉층은 자유롭게 추가/삭제할 수 있어요. 입력(784, 픽셀)과 출력(10, 숫자 0~9)은 고정입니다.
@@ -223,6 +238,13 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
       <div className="mt-4">
         <NetworkDiagram layers={layerSizes} />
       </div>
+      {/* 발표 모드 — 파라미터 수가 아래 학습 설정 칸까지 내려가지 않고 그림 바로 밑에서 크게 보이게 */}
+      {present && (
+        <div className="mt-3 flex flex-wrap items-baseline gap-x-10 gap-y-2 font-mono">
+          <div><span className="text-sm text-muted mr-2">구조</span><span className="text-2xl text-accent">{layerSizes.join(' → ')}</span></div>
+          <div><span className="text-sm text-muted mr-2">파라미터 수</span><span className="text-3xl text-accent font-semibold">{params.toLocaleString()}개</span></div>
+        </div>
+      )}
 
       <h2>🛠 학습 설정</h2>
       <div className="grid lg:grid-cols-2 gap-6 items-start mt-3">
