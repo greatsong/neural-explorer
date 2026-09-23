@@ -33,7 +33,7 @@ export const PHASES: PhaseMeta[] = [
   { id: 'a2', num: 'A2', title: '오차와 MSE',        subtitle: '예측 − 정답, 그리고 평균 제곱',         group: 'A. 단일 인공 뉴런의 학습' },
   { id: 'a3', num: 'A3', title: '경사하강법',         subtitle: '손실이 줄어드는 방향 + 보폭 η',         group: 'A. 단일 인공 뉴런의 학습' },
   { id: 'a4', num: 'A4', title: '기울기 계산하기',    subtitle: 'e·x 모양 + 표본 평균',                  group: 'A. 단일 인공 뉴런의 학습' },
-  { id: 'a5', num: 'A5', title: '전체 흐름 완성',     subtitle: '예측 → 오차 → 기울기 → 갱신 한 묶음',   group: 'A. 단일 인공 뉴런의 학습' },
+  { id: 'a5', num: 'A5', title: '전체 흐름 완성',     subtitle: '예측 → 오차 → 기울기 → 업데이트 한 묶음',   group: 'A. 단일 인공 뉴런의 학습' },
   { id: 'a6', num: 'A6', title: '기온 예측 프로젝트', subtitle: '인공 뉴런 1개로 서울 기온 회귀',         group: 'A. 단일 인공 뉴런의 학습' },
 
   // B. 데이터 수집·학습·분류 출력 — 도트 데이터 하나로 통일
