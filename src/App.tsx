@@ -125,7 +125,8 @@ export default function App() {
 
 function readHash(): View {
   // hash 점프(#h-foo)가 함께 붙는 경우가 있어 querystring/anchor를 분리한다.
-  const raw = window.location.hash.replace(/^#\/?/, '').split('#')[0];
+  // querystring(#/a5?data=1)은 라우트 판별에서 떼어 내고, 각 화면이 필요하면 직접 읽는다.
+  const raw = window.location.hash.replace(/^#\/?/, '').split('#')[0].split('?')[0];
   if (raw === 'guide') return { kind: 'guide' };
   if (raw === 'textbook' || raw === 'textbook/') return { kind: 'textbook', slug: 'intro' };
   if (raw.startsWith('textbook/')) return { kind: 'textbook', slug: raw.slice('textbook/'.length) };
