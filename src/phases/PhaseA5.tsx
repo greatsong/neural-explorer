@@ -74,6 +74,8 @@ export function PhaseA5() {
   const [history, setHistory] = useState<number[]>(() => [lossFn(dataFor(dataMode), 0, 0)]);
   const [stageIdx, setStageIdx] = useState(0); // 0~3: 마지막으로 강조된 단계
   const [auto, setAuto] = useState(false);
+  // "한 step 통째로"가 단계를 도는 동안 true — 다른 버튼이 끼어들어 순서가 섞이거나 두 번 갱신되지 않게 막는다
+  const [cycling, setCycling] = useState(false);
   const stepCount = history.length - 1;
 
   // setInterval 안에서 stale closure 없이 최신 w·b·데이터를 읽기 위한 ref
@@ -89,29 +91,36 @@ export function PhaseA5() {
   const grad = gradient(DATA, w, b);
   const completedRef = useRef(false);
 
-  // 한 step = 4단계를 짧게 순회한 뒤 실제 갱신. (UI 사이클 200ms × 4)
+  // 한 step = 예측 → 오차 → 기울기 → 업데이트를 차례로 보여 준 뒤, 업데이트 화면을 떠날 때 실제 갱신하고
+  // 다음 step의 예측으로 돌아간다. "다음 단계 →"와 같은 순서라, 업데이트 화면에는 방금 적용할 옛값 → 새값이 보인다.
+  // (예전에는 업데이트 화면을 띄우는 순간 갱신해, 화면에 그다음 step의 값이 보이고 이어서 누른 "다음 단계 →"가 한 번 더 갱신했다.)
+  // 기울기 단계의 역전파 화살표가 차례로 그려질 시간을 주려고 한 단계를 600ms로 둔다.
   // markCompleted 호출은 history useEffect로 위임 — 여기서는 setState만.
   const stepOnce = () => {
     let i = 0;
     setStageIdx(0);
+    setCycling(true);
     if (cycleRef.current) clearInterval(cycleRef.current);
     const cycle = setInterval(() => {
       i += 1;
-      setStageIdx(i);
-      if (i >= STAGE_ORDER.length - 1) {
-        clearInterval(cycle);
-        cycleRef.current = null;
-        const data = dataRef.current;
-        const cw = wRef.current;
-        const cb = bRef.current;
-        const g = gradient(data, cw, cb);
-        const nw = cw - LR * g.dw;
-        const nb = cb - LR * g.db;
-        setW(nw);
-        setB(nb);
-        setHistory((h) => [...h, lossFn(data, nw, nb)]);
+      if (i < STAGE_ORDER.length) {
+        setStageIdx(i);
+        return;
       }
-    }, 220);
+      clearInterval(cycle);
+      cycleRef.current = null;
+      const data = dataRef.current;
+      const cw = wRef.current;
+      const cb = bRef.current;
+      const g = gradient(data, cw, cb);
+      const nw = cw - LR * g.dw;
+      const nb = cb - LR * g.db;
+      setW(nw);
+      setB(nb);
+      setHistory((h) => [...h, lossFn(data, nw, nb)]);
+      setStageIdx(0);
+      setCycling(false);
+    }, 600);
     cycleRef.current = cycle;
   };
 
@@ -154,7 +163,9 @@ export function PhaseA5() {
       setW(newW);
       setB(newB);
       setHistory((h) => [...h, newLoss]);
-      setStageIdx((s) => (s + 1) % STAGE_ORDER.length);
+      // 한 번 돌 때마다 한 step 전체(예측→오차→기울기→업데이트)를 적용한다.
+      // 단계 표시를 따로 돌리면 실제 처리와 어긋나므로, 다음 step의 시작인 예측에 둔다.
+      setStageIdx(0);
     }, 160);
     return () => clearInterval(id);
   }, [auto]);
@@ -170,6 +181,7 @@ export function PhaseA5() {
 
   const resetFor = (mode: DataMode) => {
     if (cycleRef.current) { clearInterval(cycleRef.current); cycleRef.current = null; }
+    setCycling(false);
     setW(0); setB(0);
     setHistory([lossFn(dataFor(mode), 0, 0)]);
     setStageIdx(0);
@@ -255,11 +267,11 @@ export function PhaseA5() {
         </strong>
       </div>
       <div className="flex flex-wrap gap-2">
-        <button onClick={advanceStage} className="btn-primary" disabled={auto}>
+        <button onClick={advanceStage} className="btn-primary" disabled={auto || cycling}>
           다음 단계 →
         </button>
-        <button onClick={stepOnce} className="btn-ghost" disabled={auto}>한 step 통째로</button>
-        <button onClick={() => setAuto((v) => !v)} className="btn-ghost">
+        <button onClick={stepOnce} className="btn-ghost" disabled={auto || cycling}>한 step 통째로</button>
+        <button onClick={() => setAuto((v) => !v)} className="btn-ghost" disabled={cycling}>
           {auto ? '⏸ 자동 멈춤' : '▶ 자동 학습'}
         </button>
         <button onClick={reset} className="btn-ghost">초기화</button>
@@ -336,6 +348,11 @@ function FormulaCard({
 
   const stageBg = (s: StageLabel) =>
     current === s ? 'bg-accent-bg' : '';
+  // 아직 계산하지 않은 값은 ?로 둔다 — e는 오차 단계부터, e·x·합계·dw·db는 기울기 단계부터 (뉴런 그림과 같은 순서)
+  const stageNo = STAGE_ORDER.indexOf(current);
+  const showE = stageNo >= 1;
+  const showGrad = stageNo >= 2;
+  const q = <span className="text-muted">?</span>;
 
   return (
     <div className="card p-2.5 space-y-1.5 text-sm">
@@ -367,10 +384,10 @@ function FormulaCard({
                 <td className="text-right">{r.y}</td>
                 <td className="text-right text-accent">{r.yhat.toFixed(2)}</td>
                 <td className="text-right" style={{ color: 'rgb(190,18,60)' }}>
-                  {r.e >= 0 ? '+' : ''}{r.e.toFixed(2)}
+                  {showE ? <>{r.e >= 0 ? '+' : ''}{r.e.toFixed(2)}</> : q}
                 </td>
                 <td className="text-right px-2" style={{ color: 'rgb(59,130,246)' }}>
-                  {r.ex >= 0 ? '+' : ''}{r.ex.toFixed(2)}
+                  {showGrad ? <>{r.ex >= 0 ? '+' : ''}{r.ex.toFixed(2)}</> : q}
                 </td>
               </tr>
             ))}
@@ -378,10 +395,10 @@ function FormulaCard({
               <tr className="border-t border-border bg-surface/40 text-[10px] text-muted leading-tight">
                 <td className="text-right px-2" colSpan={3}>합계 →</td>
                 <td className="text-right" style={{ color: 'rgb(190,18,60)' }}>
-                  {sumE >= 0 ? '+' : ''}{sumE.toFixed(2)}
+                  {showGrad ? <>{sumE >= 0 ? '+' : ''}{sumE.toFixed(2)}</> : q}
                 </td>
                 <td className="text-right px-2" style={{ color: 'rgb(59,130,246)' }}>
-                  {sumEx >= 0 ? '+' : ''}{sumEx.toFixed(2)}
+                  {showGrad ? <>{sumEx >= 0 ? '+' : ''}{sumEx.toFixed(2)}</> : q}
                 </td>
               </tr>
             )}
@@ -394,11 +411,11 @@ function FormulaCard({
         <div className="flex items-baseline gap-2 flex-wrap">
           <span className="font-mono text-[10px] text-accent shrink-0">{one ? '3' : '3 평균'}</span>
           <span className="font-mono text-[11px] leading-snug">
-            {one ? 'dw =' : <>dw = {sumEx.toFixed(2)} ÷ {data.length} =</>}
-            <span className="font-semibold ml-1" style={{ color: 'rgb(59,130,246)' }}>{grad.dw.toFixed(3)}</span>
+            {one || !showGrad ? 'dw =' : <>dw = {sumEx.toFixed(2)} ÷ {data.length} =</>}
+            <span className="font-semibold ml-1" style={{ color: 'rgb(59,130,246)' }}>{showGrad ? grad.dw.toFixed(3) : q}</span>
             <span className="text-muted mx-2">·</span>
-            {one ? 'db =' : <>db = {sumE.toFixed(2)} ÷ {data.length} =</>}
-            <span className="font-semibold ml-1" style={{ color: 'rgb(190,18,60)' }}>{grad.db.toFixed(3)}</span>
+            {one || !showGrad ? 'db =' : <>db = {sumE.toFixed(2)} ÷ {data.length} =</>}
+            <span className="font-semibold ml-1" style={{ color: 'rgb(190,18,60)' }}>{showGrad ? grad.db.toFixed(3) : q}</span>
           </span>
         </div>
       </div>
@@ -467,6 +484,9 @@ function NeuronView({
           <marker id="a5-arr" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto">
             <path d="M0,0 L5,2.5 L0,5 z" fill="rgb(var(--color-muted))" />
           </marker>
+          <marker id="a5-back" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 z" fill={red} />
+          </marker>
         </defs>
 
         {/* ── 선 ── */}
@@ -488,6 +508,33 @@ function NeuronView({
           <line x1={predCx} y1={fwdY + 22} x2={predCx} y2={yCy - 22}
             stroke={red} strokeWidth={1.8} strokeDasharray="4 3" />
         )}
+        {/* 역전파 — 기울기 단계부터. 순서가 핵심이라 구간별로 차례로 나타난다(index.css .bp-step).
+              ① 오차 e가 ŷ에서 출발 → ReLU 쪽으로  ② ReLU를 지나 Σ로  ③ Σ에서 갈라져 dw(× x)와 db로
+            #/backprop(뉴런 2개)과 같은 빨간 점선 화살표. 노드보다 먼저 그려 노드가 선을 덮게 한다.
+            경로는 배지를 피한다: 가로선은 dw 배지 높이(fwdY + 22), db 쪽은 b 배지 아래·z 배지 위(y 54)로 돌아간다. */}
+        {showGrad && (
+          <g opacity={stageNo === 2 ? 1 : 0.45}>
+            <g className="bp-step" style={{ animationDelay: '0s' }}>
+              <line x1={predCx - 4} y1={fwdY + 22} x2={reluCx + 36} y2={fwdY + 22}
+                stroke={red} strokeWidth={1.8} strokeDasharray="5 3" markerEnd="url(#a5-back)" />
+              <text x={(reluCx + 28 + predCx - 22) / 2} y={fwdY + 42} textAnchor="middle" fill={red} fontSize={12} fontWeight={700}>역전파</text>
+            </g>
+            <g className="bp-step" style={{ animationDelay: '0.25s' }}>
+              <line x1={reluCx + 22} y1={fwdY + 22} x2={sumCx + 30} y2={fwdY + 22}
+                stroke={red} strokeWidth={1.8} strokeDasharray="5 3" markerEnd="url(#a5-back)" />
+            </g>
+            <g className="bp-step" style={{ animationDelay: '0.5s' }}>
+              <line x1={sumCx - 16} y1={fwdY + 22} x2={wEdgeCx + badgeWidth(`dw = ${grad.dw.toFixed(2)}`) / 2 + 6} y2={fwdY + 22}
+                stroke={red} strokeWidth={1.8} strokeDasharray="5 3" markerEnd="url(#a5-back)" />
+              <polyline points={`${sumCx + 14},${fwdY - 20} ${sumCx + 14},54 ${dbCx - 20},54 ${dbCx - 20},${bCy + 12}`}
+                fill="none" stroke={red} strokeWidth={1.8} strokeDasharray="5 3" markerEnd="url(#a5-back)" />
+            </g>
+            <g className="bp-step" style={{ animationDelay: '0.7s' }}>
+              <text x={wEdgeCx} y={fwdY + 48} textAnchor="middle" fill={red} fontSize={11} fontFamily="JetBrains Mono">{one ? '= e·x' : '= 평균(e·x)'}</text>
+              <text x={dbCx + badgeWidth(dbLabel) / 2 + 6} y={bCy + 4} textAnchor="start" fill={red} fontSize={11} fontFamily="JetBrains Mono">{one ? '= e' : '= 평균(e)'}</text>
+            </g>
+          </g>
+        )}
 
         {/* ── 노드 ── */}
         <Node cx={xCx} cy={fwdY} label="x" />
@@ -505,14 +552,18 @@ function NeuronView({
         <ValueBadge cx={wEdgeCx} cy={fwdY - 22} label={wLabel}
           color={isUpdate ? green : text} strong={isUpdate} />
         {showGrad && (
-          <ValueBadge cx={wEdgeCx} cy={fwdY + 22} label={`dw = ${grad.dw.toFixed(2)}`}
-            color={blue} strong={stageNo === 2} />
+          <g className="bp-step" style={{ animationDelay: '0.7s' }}>
+            <ValueBadge cx={wEdgeCx} cy={fwdY + 22} label={`dw = ${grad.dw.toFixed(2)}`}
+              color={blue} strong={stageNo === 2} />
+          </g>
         )}
         {/* b (업데이트 단계에서는 옛값 → 새값) + 바로 오른쪽 db */}
         <ValueBadge cx={sumCx} cy={bCy} label={bLabel}
           color={isUpdate ? green : text} strong={isUpdate} />
         {showGrad && (
-          <ValueBadge cx={dbCx} cy={bCy} label={dbLabel} color={blue} strong={stageNo === 2} />
+          <g className="bp-step" style={{ animationDelay: '0.7s' }}>
+            <ValueBadge cx={dbCx} cy={bCy} label={dbLabel} color={blue} strong={stageNo === 2} />
+          </g>
         )}
         <ValueBadge cx={(sumCx + 24 + reluCx - 28) / 2} cy={fwdY - 30} label={`${pre}z = ${z.toFixed(2)}`}
           color={accent} strong={stageNo === 0} />

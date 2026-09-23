@@ -134,6 +134,8 @@ export function PhaseC1() {
   };
 
   const currentStage = STAGES[stageIdx];
+  // "다음 단계" 표시는 버튼을 누르면 갈 단계다(A5와 같은 규칙). 6단계(업데이트) 다음은 새 step의 1단계.
+  const nextStage = STAGES[(stageIdx + 1) % STAGES.length];
 
   // 칸마다 한 번만 정의해 두고, 보통 화면과 발표 모드 화면에서 배치만 달리한다.
   const modeToggle = (
@@ -159,11 +161,11 @@ export function PhaseC1() {
       <div className="grid grid-cols-3 gap-2 text-center font-mono text-xs">
         <Stat label="step" value={stepCount.toString()} />
         <Stat label="손실" value={t.loss.toFixed(3)} highlight={t.loss < 0.05} />
-        <Stat label="다음" value={`${currentStage.num}/6`} accent />
+        <Stat label="다음" value={`${nextStage.num}/6`} accent />
       </div>
       <div className="text-[11px] text-muted">
-        다음 단계: <strong className="text-accent">{currentStage.num}. {currentStage.label}</strong>
-        <span className="ml-1 text-muted">— {currentStage.sub}</span>
+        다음 단계: <strong className="text-accent">{nextStage.num}. {nextStage.label}</strong>
+        <span className="ml-1 text-muted">— {nextStage.sub}</span>
       </div>
       <div className="flex flex-wrap gap-2">
         <button onClick={advance} disabled={auto} className="btn-primary">
@@ -673,10 +675,13 @@ function StageBox({
   id: StageId; num: number; label: string; stage: StageId; why: string; children: React.ReactNode;
 }) {
   const active = stage === id;
+  // 아직 오지 않은 단계는 값을 숨긴다 — 역전파는 순서가 핵심이라, 앞 단계 값이 있어야 뒤 단계를 계산할 수 있다
+  const order = (s: StageId) => STAGES.findIndex((x) => x.id === s);
+  const reached = order(id) <= order(stage);
   return (
     <div className={`rounded-md border px-3 py-2 transition-colors ${
       active ? 'border-accent bg-accent-bg/50' : 'border-border bg-bg/30'
-    }`}>
+    } ${reached ? '' : 'opacity-50'}`}>
       <div className="flex items-baseline gap-2 mb-1">
         <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded ${
           active ? 'bg-accent text-white' : 'bg-surface text-muted'
@@ -687,7 +692,11 @@ function StageBox({
           {label}
         </span>
       </div>
-      <div className="font-mono text-[11.5px] leading-relaxed space-y-0.5">{children}</div>
+      {reached ? (
+        <div className="font-mono text-[11.5px] leading-relaxed space-y-0.5">{children}</div>
+      ) : (
+        <div className="font-mono text-[11.5px] text-muted">?</div>
+      )}
       {active && (
         <div className="text-[11px] text-muted leading-snug pt-1.5 border-t border-border/60 mt-1.5">
           → {why}
