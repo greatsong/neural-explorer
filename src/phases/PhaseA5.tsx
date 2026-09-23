@@ -12,7 +12,7 @@ const STAGE_LABEL: Record<StageLabel, string> = {
   predict: '예측',
   error: '오차',
   gradient: '기울기',
-  update: '갱신',
+  update: '업데이트',
 };
 
 // Phase5 (옛본) 과 동일 — 단일 뉴런 ŷ = ReLU(w·x + b), 정답선 y = 2x + 1
@@ -204,8 +204,8 @@ export function PhaseA5() {
               <button onClick={reset} className="btn-ghost">초기화</button>
             </div>
             <div className="text-[10px] text-muted leading-snug">
-              ※ <strong>다음 단계 →</strong>를 한 번씩 누르며 *예측 → 오차 → 기울기 → 갱신* 4단계가
-              어떻게 차례로 변하는지 직접 보세요. 갱신 단계로 넘어갈 때만 실제 가중치가 움직여요.
+              ※ <strong>다음 단계 →</strong>를 한 번씩 누르며 *예측 → 오차 → 기울기 → 업데이트* 4단계가
+              어떻게 차례로 변하는지 직접 보세요. 업데이트 단계로 넘어갈 때만 실제 가중치가 움직여요.
             </div>
           </div>
 
@@ -303,7 +303,7 @@ function FormulaCard({
         </div>
       </div>
 
-      {/* 갱신(4단계)은 NeuronView 하단의 "갱신 식" 박스가 담당 — 중복 제거 */}
+      {/* 갱신(4단계)은 NeuronView 하단의 "업데이트 식" 박스가 담당 — 중복 제거 */}
     </div>
   );
 }
@@ -429,7 +429,7 @@ function NeuronView({
           : 'border-t border-border'
       }`}>
         <div className={`text-[10px] font-sans mb-1 ${stage === 'update' ? 'text-accent font-semibold' : 'text-muted font-normal'}`}>
-          {stage === 'update' ? '★ 지금 — 갱신 식이 적용되는 단계' : '갱신 식 (일반형) — 한 step에 w·b 동시 적용'}
+          {stage === 'update' ? '★ 지금 — 업데이트 식이 적용되는 단계' : '업데이트 식 (일반형) — 한 step에 w·b 동시 적용'}
         </div>
         <div>
           w ← w − η · dw
