@@ -289,7 +289,8 @@ export function PhaseA3() {
             </div>
           </div>
 
-          <div className="card p-3">
+          {/* 발표 모드에서는 접는다 — 오른쪽 칸이 짧아져야 아래 칩(느림·수렴·진동·발산)과 그래프가 한 번 스크롤로 함께 보인다 */}
+          <div className="card p-3" data-present="hide">
             <div className="flex items-baseline justify-between">
               <div className="text-sm font-medium">손실 추이</div>
               <div className="text-[11px] text-muted font-mono">

@@ -84,6 +84,17 @@ export default function App() {
   // 발표 모드 — index.css의 html.present 규칙(작은 글자·그림 글자 확대, 설명 접기)이 여기에 걸린다
   useEffect(() => {
     document.documentElement.classList.toggle('present', present);
+    // 발표 모드를 끄면(이 탭의 버튼이든 다른 탭에서든) 주소의 present=1도 지운다.
+    // 남겨 두면 그 탭을 새로 고칠 때 발표 모드가 다시 켜지고 모든 탭에 퍼진다.
+    if (!present && hashParams().get('present') === '1') {
+      const hash = window.location.hash;
+      const q = hash.indexOf('?');
+      const params = new URLSearchParams(hash.slice(q + 1));
+      params.delete('present');
+      const rest = params.toString();
+      const nextHash = hash.slice(0, q) + (rest ? `?${rest}` : '');
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`);
+    }
   }, [present]);
 
   const wide = view.kind === 'phase' ? isWide(view.id) : true;

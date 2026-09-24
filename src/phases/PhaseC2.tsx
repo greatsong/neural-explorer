@@ -179,6 +179,16 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
     { label: '👑 최강 (128·64 2층·30에폭)', layers: [128, 64], epochs: 30, hint: '95%+ 도전' },
   ];
 
+  const structureEditor = (
+    <details className="mt-4" open={structureOpen}>
+      <summary className="cursor-pointer text-sm font-medium hover:text-accent">신경망 구조 짜기 (고급)</summary>
+      <p className="text-muted text-sm mt-2" data-present="hide">
+        은닉층은 자유롭게 추가/삭제할 수 있어요. 입력(784, 픽셀)과 출력(10, 숫자 0~9)은 고정입니다.
+      </p>
+      <LayerEditor hiddenLayers={hiddenLayers} setHiddenLayers={setHiddenLayers} disabled={training} />
+    </details>
+  );
+
   return (
     <article>
       <div className="text-xs font-mono text-muted">PHASE {meta.num}</div>
@@ -201,8 +211,9 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
         </p>
       </div>
 
-      <h2>🎚 빠른 프리셋</h2>
-      <div className="flex flex-wrap items-center gap-2 mt-3">
+      {/* 발표 모드에서는 접는다 — 특강에서는 구조 편집과 파라미터 수만 쓴다 */}
+      <h2 data-present="hide">🎚 빠른 프리셋</h2>
+      <div className="flex flex-wrap items-center gap-2 mt-3" data-present="hide">
         {presets.map((p) => (
           <button
             key={p.label}
@@ -227,24 +238,20 @@ function Workbench({ samples, meta }: { samples: Sample[]; meta: { num: string; 
         )}
       </div>
 
-      <details className="mt-4" open={structureOpen}>
-        <summary className="cursor-pointer text-sm font-medium hover:text-accent">신경망 구조 짜기 (고급)</summary>
-        <p className="text-muted text-sm mt-2">
-          은닉층은 자유롭게 추가/삭제할 수 있어요. 입력(784, 픽셀)과 출력(10, 숫자 0~9)은 고정입니다.
-        </p>
-        <LayerEditor hiddenLayers={hiddenLayers} setHiddenLayers={setHiddenLayers} disabled={training} />
-      </details>
+      {/* 구조 편집 칸 — 발표 모드에서는 그림 아래로 내린다(특강에서는 편집하지 않고 구조·파라미터 수·그림만 본다) */}
+      {!present && structureEditor}
 
-      <div className="mt-4">
-        <NetworkDiagram layers={layerSizes} />
-      </div>
-      {/* 발표 모드 — 파라미터 수가 아래 학습 설정 칸까지 내려가지 않고 그림 바로 밑에서 크게 보이게 */}
+      {/* 발표 모드 — 구조·파라미터 수를 그림 위에 크게. 1280×720 첫 화면에 파라미터 수와 그림이 함께 들어오게 한다(세 층이어도) */}
       {present && (
-        <div className="mt-3 flex flex-wrap items-baseline gap-x-10 gap-y-2 font-mono">
+        <div className="mt-4 flex flex-wrap items-baseline gap-x-10 gap-y-2 font-mono">
           <div><span className="text-sm text-muted mr-2">구조</span><span className="text-2xl text-accent">{layerSizes.join(' → ')}</span></div>
           <div><span className="text-sm text-muted mr-2">파라미터 수</span><span className="text-3xl text-accent font-semibold">{params.toLocaleString()}개</span></div>
         </div>
       )}
+      <div className="mt-4">
+        <NetworkDiagram layers={layerSizes} />
+      </div>
+      {present && structureEditor}
 
       <h2>🛠 학습 설정</h2>
       <div className="grid lg:grid-cols-2 gap-6 items-start mt-3">
