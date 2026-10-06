@@ -81,24 +81,20 @@ function fmt(v: number | null | undefined) {
   return (r < 0 ? '−' : '') + Math.abs(r).toString();
 }
 
-function textWidth(s: string, size: number) {
-  let w = 0;
-  for (const ch of s) {
-    const c = ch.charCodeAt(0);
-    if (c > 0x2e80) w += 1.0;               // 한글·한자
-    else if (/[A-Z]/.test(ch)) w += 0.68;
-    else if (/[0-9]/.test(ch)) w += 0.58;
-    else if (ch === ' ') w += 0.3;
-    else if ('.,·'.includes(ch)) w += 0.3;
-    else w += 0.56;
+let _canvas: CanvasRenderingContext2D | null = null;
+function textWidth(s: string, size: number, bold = true) {
+  if (!_canvas && typeof document !== 'undefined') _canvas = document.createElement('canvas').getContext('2d');
+  if (_canvas) {
+    _canvas.font = `${bold ? 700 : 500} ${size}px Pretendard, system-ui, sans-serif`;
+    return _canvas.measureText(s).width;
   }
-  return w * size;
+  return s.length * size * 0.62;
 }
 
 export function Badge({
   cx, cy, label, color = ACCENT, fill = BG, size = 22, bold = true, anchor = 'middle',
 }: { cx: number; cy: number; label: string; color?: string; fill?: string; size?: number; bold?: boolean; anchor?: 'middle' | 'start' | 'end' }) {
-  const w = textWidth(label, size) + size * 0.9;
+  const w = textWidth(label, size, bold) + size * 1.0;
   const h = size * 1.5;
   const x = anchor === 'middle' ? cx - w / 2 : anchor === 'start' ? cx : cx - w;
   return (
@@ -161,9 +157,9 @@ export function NeuronFigure(p: NeuronFigureProps) {
           const w = p.weights[i];
           const hot = w?.hot || p.flow === 'inputs';
           const col = w ? wColor(w) : MUTED;
-          const mx = s.x + (e.x - s.x) * 0.4, my = s.y + (e.y - s.y) * 0.4;
+          const mx = s.x + (e.x - s.x) * 0.36, my = s.y + (e.y - s.y) * 0.36;
           const px = s.x + (e.x - s.x) * 0.7, py = s.y + (e.y - s.y) * 0.7;
-          const off = n === 1 ? -30 : (i === 0 ? -26 : 26);
+          const off = n === 1 ? -30 : 0;
           const wLabel = w
             ? (p.symbolic || w.value === null || w.value === undefined)
               ? w.name
@@ -178,7 +174,7 @@ export function NeuronFigure(p: NeuronFigureProps) {
                 markerEnd={hot ? (col === RED ? undefined : 'url(#lec-fwd)') : 'url(#lec-fwd-m)'} />
               {w && <Badge cx={mx} cy={my + off} label={wLabel} color={hot ? col : MUTED} size={22} />}
               <Fade show={!!w?.product}>
-                {w?.product && <Badge cx={px} cy={py + (n === 1 ? 38 : (i === 0 ? -68 : 68))} label={w.product} color={col} fill={col === RED ? '#fff1f2' : ACCENT_BG} size={23} />}
+                {w?.product && <Badge cx={px} cy={py + (n === 1 ? 40 : (i === 0 ? -58 : 58))} label={w.product} color={col} fill={col === RED ? '#fff1f2' : ACCENT_BG} size={23} />}
               </Fade>
             </g>
           );
@@ -204,7 +200,7 @@ export function NeuronFigure(p: NeuronFigureProps) {
         <line x1={NX} y1={NY - NR + 3} x2={NX} y2={NY + NR - 3} stroke={ACCENT} strokeWidth={2} strokeOpacity={0.6} />
         <text x={NX - 34} y={NY + 14} textAnchor="middle" fill={ACCENT} fontSize={40} fontWeight={700} opacity={p.flow === 'sum' || p.z?.hot ? 1 : 0.85}>Σ</text>
         <text x={NX + 36} y={NY + 8} textAnchor="middle" fill={p.relu?.hot ? ACCENT : ACCENT} fontSize={21} fontWeight={700} opacity={p.relu?.show === false ? 0.25 : 1}>ReLU</text>
-        <text x={NX - 16} y={NY + NR + 34} textAnchor="end" fill={MUTED} fontSize={19}>인공 뉴런</text>
+        <text x={NX + NR - 6} y={NY - NR - 8} textAnchor="start" fill={MUTED} fontSize={19}>인공 뉴런</text>
 
         {/* z 배지 — Σ와 ReLU 사이 값 */}
         <Fade show={p.z?.show}>

@@ -71,6 +71,15 @@ export function Lecture() {
     return () => window.removeEventListener('keydown', onKey);
   }, [go]);
 
+  // 점검용 훅 — 브라우저 콘솔에서 슬라이드·단계를 바로 지정한다
+  useEffect(() => {
+    (window as unknown as { __lecture?: unknown }).__lecture = {
+      set: (i: number, s: number) => { setIndex(i); setStep(s); },
+      count: SLIDES.length,
+      steps: SLIDES.map((d) => d.steps),
+    };
+  }, []);
+
   const section = SECTIONS.find((s) => s.id === slide.section);
   const sectionIdx = SECTIONS.findIndex((s) => s.id === slide.section);
 

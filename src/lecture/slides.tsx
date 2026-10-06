@@ -109,6 +109,7 @@ const A1Negative: ComponentType<{ step: number }> = ({ step }) => {
   useEffect(() => { if (step === 0) { setW1(2); setW2(1); setB(0); } if (step === 1) { setW1(2); setW2(-1); setB(0); } }, [step]);
   const z = w1 * x1 + w2 * x2 + b, y = relu(z);
   const worksheet = w1 === 2 && w2 === -1 && b === 0;
+  const custom = step === 0 ? !(w1 === 2 && w2 === 1 && b === 0) : !worksheet;
   return (
     <Layout
       figure={
@@ -130,13 +131,14 @@ const A1Negative: ComponentType<{ step: number }> = ({ step }) => {
           <Slider label="w₁" value={w1} set={setW1} min={-3} max={3} step={0.5} />
           <Slider label="w₂" value={w2} set={setW2} min={-3} max={3} step={0.5} />
           <Slider label="b" value={b} set={setB} min={-7} max={7} step={1} />
-          <button type="button" className="btn-ghost text-[17px] px-[12px] py-[6px]" onClick={() => { setW1(2); setW2(-1); setB(0); }} disabled={worksheet}>활동지 값으로</button>
+          <button type="button" className="btn-ghost text-[17px] px-[12px] py-[6px]" onClick={() => { if (step === 0) { setW1(2); setW2(1); setB(0); } else { setW1(2); setW2(-1); setB(0); } }} disabled={!custom}>활동지 값으로</button>
         </div>
       }
       lines={[
-        step === 0 ? <>시범 줄입니다. <M>w₂ = 1</M>일 때 <M>z = 7</M>.</> : null,
-        step === 1 ? <><M>w₂</M>만 <Key>−1</Key>로 바꾸면 <M>(−1) × 3 = −3</M>이라 <M>z = 4 − 3 = 1</M>. z가 작아졌습니다.</> : null,
-        step === 2 ? <>가중치가 <Key>음수</Key>이면 그 입력은 <M>z</M>를 <Key>줄이는</Key> 쪽으로 작용합니다.</> : null,
+        custom ? <><M>w₁ = {fmt(w1)}, w₂ = {fmt(w2)}, b = {fmt(b)}</M>이면 <M>z = {fmt(w1 * x1)} + {fmt(w2 * x2)} + {fmt(b)} = {fmt(z)}</M>, <M>ŷ = ReLU({fmt(z)}) = {fmt(y)}</M>.</> : null,
+        !custom && step === 0 ? <>시범 줄입니다. <M>w₂ = 1</M>일 때 <M>z = 7</M>.</> : null,
+        !custom && step === 1 ? <><M>w₂</M>만 <Key>−1</Key>로 바꾸면 <M>(−1) × 3 = −3</M>이라 <M>z = 4 − 3 = 1</M>. z가 작아졌습니다.</> : null,
+        !custom && step === 2 ? <>가중치가 <Key>음수</Key>이면 그 입력은 <M>z</M>를 <Key>줄이는</Key> 쪽으로 작용합니다.</> : null,
       ]}
     />
   );
