@@ -52,6 +52,8 @@ function Slider({ label, value, set, min, max, step }: { label: string; value: n
   );
 }
 function fmt(v: number) { const r = Math.round(v * 1000) / 1000; return (r < 0 ? '−' : '') + Math.abs(r).toString(); }
+// 식 안에서 더할 때 음수는 괄호로: 4 + (−3) + 0
+const par = (v: number) => (v < 0 ? `(${fmt(v)})` : fmt(v));
 const relu = (z: number) => Math.max(0, z);
 
 /* ───────── 0. 표지 ───────── */
@@ -135,7 +137,7 @@ const A1Negative: ComponentType<{ step: number }> = ({ step }) => {
         </div>
       }
       lines={[
-        custom ? <><M>w₁ = {fmt(w1)}, w₂ = {fmt(w2)}, b = {fmt(b)}</M>이면 <M>z = {fmt(w1 * x1)} + {fmt(w2 * x2)} + {fmt(b)} = {fmt(z)}</M>, <M>ŷ = ReLU({fmt(z)}) = {fmt(y)}</M>.</> : null,
+        custom ? <><M>w₁ = {fmt(w1)}, w₂ = {fmt(w2)}, b = {fmt(b)}</M>이면 <M>z = {par(w1 * x1)} + {par(w2 * x2)} + {par(b)} = {fmt(z)}</M>, <M>ŷ = ReLU({fmt(z)}) = {fmt(y)}</M>.</> : null,
         !custom && step === 0 ? <>시범 줄입니다. <M>w₂ = 1</M>일 때 <M>z = 7</M>.</> : null,
         !custom && step === 1 ? <><M>w₂</M>만 <Key>−1</Key>로 바꾸면 <M>(−1) × 3 = −3</M>이라 <M>z = 4 − 3 = 1</M>. z가 작아졌습니다.</> : null,
         !custom && step === 2 ? <>가중치가 <Key>음수</Key>이면 그 입력은 <M>z</M>를 <Key>줄이는</Key> 쪽으로 작용합니다.</> : null,
