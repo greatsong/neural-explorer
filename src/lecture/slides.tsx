@@ -173,7 +173,7 @@ const B1Experiment: ComponentType<{ step: number }> = ({ step }) => {
           flow={step >= 1 && step <= 2 ? 'inputs' : 'none'}
         />
       }
-      asideWidth={560}
+      asideWidth={470}
       aside={<MiniTable title="활동지 4B-1 표" head={['바꾼 것', 'z 계산', 'z', '늘어난 양']} rows={rows} active={step >= 1 && step <= 2 ? step : -1} />}
       lines={[
         step === 0 ? <>출발은 1-2 시범 줄과 같음. <M>x₁ = 2, x₂ = 3, w₁ = w₂ = 1, b = 0</M>이라 <M>z = 5</M>.</> : null,

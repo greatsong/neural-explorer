@@ -199,8 +199,10 @@ export function NeuronFigure(p: NeuronFigureProps) {
           const w = p.weights[i];
           const hot = w?.hot || p.flow === 'inputs';
           const col = w ? wColor(w) : MUTED;
-          const mx = s.x + (e.x - s.x) * 0.36, my = s.y + (e.y - s.y) * 0.36;
-          const px = s.x + (e.x - s.x) * 0.7, py = s.y + (e.y - s.y) * 0.7;
+          const longW = w?.prev !== null && w?.prev !== undefined;   // 'w₁ = 1 → 1.5'처럼 긴 라벨은 입력 원에서 더 떨어뜨림
+          const tw = p.detail && longW ? 0.45 : 0.36, tp = p.detail ? 0.62 : 0.7, po = p.detail ? 52 : 58;
+          const mx = s.x + (e.x - s.x) * tw, my = s.y + (e.y - s.y) * tw;
+          const px = s.x + (e.x - s.x) * tp, py = s.y + (e.y - s.y) * tp;
           const off = n === 1 ? -30 : 0;
           const wLabel = w
             ? (p.symbolic || w.value === null || w.value === undefined)
@@ -216,7 +218,7 @@ export function NeuronFigure(p: NeuronFigureProps) {
                 markerEnd={hot ? (col === RED ? undefined : 'url(#lec-fwd)') : 'url(#lec-fwd-m)'} />
               {w && <Badge cx={mx} cy={my + off} label={wLabel} color={hot ? col : MUTED} size={22} />}
               <Fade show={!!w?.product}>
-                {w?.product && <Badge cx={px} cy={py + (n === 1 ? 40 : (i === 0 ? -58 : 58))} label={w.product} color={col} fill={col === RED ? '#fff1f2' : ACCENT_BG} size={23} />}
+                {w?.product && <Badge cx={px} cy={py + (n === 1 ? 40 : (i === 0 ? -po : po))} label={w.product} color={col} fill={col === RED ? '#fff1f2' : ACCENT_BG} size={23} />}
               </Fade>
             </g>
           );
@@ -246,7 +248,7 @@ export function NeuronFigure(p: NeuronFigureProps) {
             <text x={G.NX + 36} y={G.NY + 8} textAnchor="middle" fill={p.relu?.hot ? ACCENT : ACCENT} fontSize={21} fontWeight={700} opacity={p.relu?.show === false ? 0.25 : 1}>ReLU</text>
           </>
         )}
-        <text x={G.NX + G.NR - 6} y={G.NY - G.NR - 8} textAnchor="start" fill={MUTED} fontSize={19}>인공 뉴런</text>
+        <text x={p.detail ? G.NX : G.NX + G.NR - 6} y={G.NY - G.NR - (p.detail ? 14 : 8)} textAnchor={p.detail ? "middle" : "start"} fill={MUTED} fontSize={19}>인공 뉴런</text>
 
         {/* z 배지 — Σ와 ReLU 사이 값 */}
         <Fade show={p.z?.show && !p.detail}>
