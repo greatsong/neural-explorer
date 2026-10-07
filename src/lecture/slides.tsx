@@ -438,6 +438,6 @@ export const SLIDES: SlideDef[] = [
     notes: ['건너뛸 수 있는 슬라이드입니다. 미분을 아는 학생을 위해 ∂ 기호와 연쇄법칙, ½·2가 지워지는 것만 보여 줍니다.'] },
   { id: 'a5-one-step', section: 'grad', tag: '4B-2 ~ 4B-5', title: '한 step', steps: 4, component: OneStep,
     notes: ['예측 → 오차 → 기울기 → 업데이트 → 다시 예측. 학생이 종이로 계산한 뒤 화면에서 확인합니다.', '손실 24.5 → 6.125.'] },
-  { id: 'a5-repeat', section: 'grad', tag: '도전', title: '반복하면 학습'), steps: 3, component: Repeat,
+  { id: 'a5-repeat', section: 'grad', tag: '도전', title: '반복하면 학습', steps: 3, component: Repeat,
     notes: ['도전 문항의 두 번째 step(w 1.575, b 0.525)을 확인한 뒤 자동 학습을 켭니다. w ≈ 2.1, b ≈ 0.7에서 멈춥니다.'] },
 ];
