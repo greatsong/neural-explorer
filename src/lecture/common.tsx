@@ -6,14 +6,15 @@ export function Layout({ figure, lines, aside, asideWidth = 300 }: { figure: Rea
   const shown = (lines ?? []).filter((l) => l !== null && l !== undefined);
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-1 min-h-0 flex items-stretch gap-[24px]">
-        <div className="flex-1 min-w-0">{figure}</div>
-        {aside && <div className="shrink-0 flex flex-col justify-center" style={{ width: asideWidth }}>{aside}</div>}
-      </div>
+      {/* 설명 문장은 제목 바로 아래. 화면 아래쪽은 강당에서 앞사람에게 가린다. */}
       <div className="h-[112px] shrink-0 flex flex-col justify-center gap-[6px]">
         {shown.map((l, i) => (
           <div key={i} className={`lec-fade text-[34px] leading-snug ${i === shown.length - 1 ? 'text-text font-semibold' : 'text-muted'}`}>{l}</div>
         ))}
+      </div>
+      <div className="flex-1 min-h-0 flex items-stretch gap-[24px]">
+        <div className="flex-1 min-w-0">{figure}</div>
+        {aside && <div className="shrink-0 flex flex-col justify-center" style={{ width: asideWidth }}>{aside}</div>}
       </div>
     </div>
   );

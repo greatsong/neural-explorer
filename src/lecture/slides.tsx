@@ -75,23 +75,44 @@ const A1Predict: ComponentType<{ step: number }> = ({ step }) => {
 };
 
 /* ───────── 1-1 관찰. 가중치가 음수이면 ───────── */
+/* 활동지 표를 옆 칸에 그대로 보여 주는 미니 표. 현재 줄은 보라색으로 */
+function MiniTable({ head, rows, active, title }: { head: string[]; rows: (string | null)[][]; active: number; title: string }) {
+  return (
+    <div>
+      <div className="text-[18px] text-muted mb-[8px]">{title}</div>
+      <table className="w-full text-[20px] tabular-nums border-collapse">
+        <thead><tr>{head.map((h) => <th key={h} className="text-muted font-medium text-left px-[8px] py-[4px] border-b border-border">{h}</th>)}</tr></thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i} className={i === active ? 'bg-accent-bg text-accent font-bold' : i < active ? 'text-text' : 'text-muted/60'}>
+              {r.map((c, j) => <td key={j} className="px-[8px] py-[5px] border-b border-border/60 whitespace-nowrap">{c ?? ''}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 const A1Negative: ComponentType<{ step: number }> = ({ step }) => {
   const x1 = 2, x2 = 3;
+  const ROWS: [number, number][] = [[2, 1], [1, 1], [2, -1], [-1, 3]];   // 활동지 1-1 표의 네 줄
+  const row = Math.min(step, 3);
   const [w1, setW1] = useState(2);
   const [w2, setW2] = useState(1);
   const [b, setB] = useState(0);
-  useEffect(() => { if (step === 0) { setW1(2); setW2(1); setB(0); } if (step === 1) { setW1(2); setW2(-1); setB(0); } }, [step]);
+  useEffect(() => { setW1(ROWS[row][0]); setW2(ROWS[row][1]); setB(0); }, [row]); // eslint-disable-line react-hooks/exhaustive-deps
   const z = w1 * x1 + w2 * x2 + b, y = relu(z);
-  const worksheet = w1 === 2 && w2 === -1 && b === 0;
-  const custom = step === 0 ? !(w1 === 2 && w2 === 1 && b === 0) : !worksheet;
+  const custom = !(w1 === ROWS[row][0] && w2 === ROWS[row][1] && b === 0);
+  const zOf = ([a, c]: [number, number]) => a * x1 + c * x2;
   return (
     <Layout
       figure={
         <NeuronFigure
           inputs={[{ name: 'x₁', value: x1 }, { name: 'x₂', value: x2 }]}
           weights={[
-            { name: 'w₁', value: w1, product: `${fmt(w1)} × ${x1} = ${fmt(w1 * x1)}` },
-            { name: 'w₂', value: w2, hot: step >= 1, product: `${fmt(w2)} × ${x2} = ${fmt(w2 * x2)}` },
+            { name: 'w₁', value: w1, hot: step >= 1 && w1 !== 2, product: `${fmt(w1)} × ${x1} = ${fmt(w1 * x1)}` },
+            { name: 'w₂', value: w2, hot: step >= 1 && w2 !== 1, product: `${fmt(w2)} × ${x2} = ${fmt(w2 * x2)}` },
           ]}
           bias={{ value: b }}
           z={{ value: z, show: true, hot: step >= 1 }}
@@ -101,18 +122,61 @@ const A1Negative: ComponentType<{ step: number }> = ({ step }) => {
       }
       aside={
         <div onClick={(e) => e.stopPropagation()}>
-          <div className="text-[18px] text-muted mb-[10px]">값을 바꿔 보기</div>
+          <MiniTable title="활동지 1-1 표" head={['w₁', 'w₂', 'z']} active={custom ? -1 : row}
+            rows={ROWS.map((r, i) => [fmt(r[0]), fmt(r[1]), i <= row ? fmt(zOf(r)) : null])} />
+          <div className="text-[18px] text-muted mt-[18px] mb-[8px]">값을 바꿔 보기</div>
           <Slider label="w₁" value={w1} set={setW1} min={-3} max={3} step={0.5} />
           <Slider label="w₂" value={w2} set={setW2} min={-3} max={3} step={0.5} />
           <Slider label="b" value={b} set={setB} min={-7} max={7} step={1} />
-          <button type="button" className="btn-ghost text-[17px] px-[12px] py-[6px]" onClick={() => { if (step === 0) { setW1(2); setW2(1); setB(0); } else { setW1(2); setW2(-1); setB(0); } }} disabled={!custom}>활동지 값으로</button>
+          <button type="button" className="btn-ghost text-[17px] px-[12px] py-[6px]" onClick={() => { setW1(ROWS[row][0]); setW2(ROWS[row][1]); setB(0); }} disabled={!custom}>활동지 값으로</button>
         </div>
       }
       lines={[
         custom ? <><M>w₁ = {fmt(w1)}, w₂ = {fmt(w2)}, b = {fmt(b)}</M>이면 <M>z = {par(w1 * x1)} + {par(w2 * x2)} + {par(b)} = {fmt(z)}</M>, <M>ŷ = ReLU({fmt(z)}) = {fmt(y)}</M>.</> : null,
-        !custom && step === 0 ? <>시범 줄. <M>w₂ = 1</M>일 때 <M>z = 7</M>.</> : null,
-        !custom && step === 1 ? <><M>w₂</M>만 <Key>−1</Key>로 바꾸면 <M>(−1) × 3 = −3</M>이라 <M>z = 4 − 3 = 1</M>. z가 작아짐.</> : null,
-        !custom && step === 2 ? <>가중치가 <Key>음수</Key>이면 그 입력은 <M>z</M>를 <Key>줄이는</Key> 쪽으로 작용함.</> : null,
+        !custom && step === 0 ? <>시범 줄. <M>w₁ = 2, w₂ = 1</M>이면 <M>z = 4 + 3 = 7</M>.</> : null,
+        !custom && step === 1 ? <>둘째 줄. <M>w₁</M>을 <Key>1</Key>로 줄이면 <M>z = 2 + 3 = 5</M>. x₁의 영향이 줄어듦.</> : null,
+        !custom && step === 2 ? <>셋째 줄. <M>w₂</M>를 <Key>−1</Key>로 바꾸면 <M>(−1) × 3 = −3</M>이라 <M>z = 4 − 3 = 1</M>. 시범 줄보다 작아짐.</> : null,
+        !custom && step === 3 ? <>넷째 줄. <M>w₁ = −1, w₂ = 3</M>이면 <M>z = −2 + 9 = 7</M>.</> : null,
+        !custom && step === 4 ? <>가중치는 그 입력이 결과에 미치는 영향의 크기. <Key>음수</Key>이면 그 입력은 <M>z</M>를 <Key>줄이는</Key> 쪽으로 작용함.</> : null,
+      ]}
+    />
+  );
+};
+
+/* ───────── 4B-1 왜 e에 x가 곱해지나 (활동지 실험을 그대로) ───────── */
+const B1Experiment: ComponentType<{ step: number }> = ({ step }) => {
+  const x1 = 2, x2 = 3, b = 0;
+  const w1 = step === 1 ? 1.5 : 1, w2 = step === 2 ? 1.5 : 1;
+  const z = w1 * x1 + w2 * x2 + b;
+  const rows: (string | null)[][] = [
+    ['처음 상태', '1·2 + 1·3 + 0', '5', '—'],
+    ['w₁만 1 → 1.5', step >= 1 ? '1.5·2 + 1·3 + 0' : null, step >= 1 ? '6' : null, step >= 1 ? '1 = 0.5 × 2' : null],
+    ['w₂만 1 → 1.5', step >= 2 ? '1·2 + 1.5·3 + 0' : null, step >= 2 ? '6.5' : null, step >= 2 ? '1.5 = 0.5 × 3' : null],
+  ];
+  return (
+    <Layout
+      figure={
+        <NeuronFigure
+          inputs={[{ name: 'x₁', value: x1 }, { name: 'x₂', value: x2 }]}
+          weights={[
+            { name: 'w₁', value: w1, prev: step === 1 ? 1 : null, hot: step === 1, product: `${fmt(w1)} × ${x1} = ${fmt(w1 * x1)}` },
+            { name: 'w₂', value: w2, prev: step === 2 ? 1 : null, hot: step === 2, product: `${fmt(w2)} × ${x2} = ${fmt(w2 * x2)}` },
+          ]}
+          bias={{ value: b }}
+          z={{ value: z, show: true, hot: step >= 1 && step <= 2 }}
+          relu={{ show: false }}
+          yhat={{ show: false }}
+          flow={step >= 1 && step <= 2 ? 'inputs' : 'none'}
+        />
+      }
+      asideWidth={560}
+      aside={<MiniTable title="활동지 4B-1 표" head={['바꾼 것', 'z 계산', 'z', '늘어난 양']} rows={rows} active={step >= 1 && step <= 2 ? step : -1} />}
+      lines={[
+        step === 0 ? <>출발은 1-2 시범 줄과 같음. <M>x₁ = 2, x₂ = 3, w₁ = w₂ = 1, b = 0</M>이라 <M>z = 5</M>.</> : null,
+        step === 1 ? <><M>w₁</M>만 <Key>0.5</Key> 올림. <M>z = 3 + 3 = 6</M>, 늘어난 양 <Hot>1 = 0.5 × 2</Hot>. 입력 x₁ = 2만큼 커짐.</> : null,
+        step === 2 ? <><M>w₂</M>만 <Key>0.5</Key> 올림. <M>z = 2 + 4.5 = 6.5</M>, 늘어난 양 <Hot>1.5 = 0.5 × 3</Hot>. 입력 x₂ = 3만큼 커짐.</> : null,
+        step === 3 ? <>똑같이 0.5를 올려도 입력이 큰 쪽(<Hot>3</Hot>)이 z를 더 움직임. 변화량 = 올린 양 × 입력.</> : null,
+        step === 3 ? <>그래서 <M>w</M>의 기울기에는 <Key>x</Key>가 곱해지고(<M>dw = e·x</M>), <M>b</M>는 입력과 무관해 <M>db = e</M>.</> : null,
       ]}
     />
   );
@@ -279,8 +343,8 @@ export const SLIDES: SlideDef[] = [
   DIVIDERS.neuron,
   { id: 'a1-predict', section: 'neuron', tag: '1-1', title: '인공 뉴런 하나가 예측을 만든다', steps: 5, component: A1Predict,
     notes: ['화면이 인공 뉴런 하나입니다. 왼쪽 두 원이 입력, 선 위의 w가 가중치입니다. 뉴런 안에서 곱해 더하고 b를 더한 z가 ReLU를 지나 ŷ이 됩니다.', '활동지 1-1 시범 줄과 같은 숫자입니다.'] },
-  { id: 'a1-negative', section: 'neuron', tag: '1-1', title: '가중치가 음수이면', steps: 2, component: A1Negative,
-    notes: ['학생이 1-1 표를 채운 뒤 w₂를 −1로 옮겨 z = 1을 확인합니다. 슬라이더로 다른 값도 보여 줄 수 있습니다. "활동지 값으로"로 돌아옵니다.'] },
+  { id: 'a1-negative', section: 'neuron', tag: '1-1', title: '가중치를 바꾸면', steps: 4, component: A1Negative,
+    notes: ['활동지 1-1 표의 네 줄을 순서대로 보여 줍니다. 셋째 줄(w₂ = −1)에서 z가 시범 줄보다 작아지는 것을 확인합니다. 슬라이더로 다른 값도 보여 줄 수 있고 "활동지 값으로"로 돌아옵니다.'] },
   ...NEURON_EXTRA,
   DIVIDERS.forward,
   ...FORWARD_SLIDES,
@@ -294,6 +358,8 @@ export const SLIDES: SlideDef[] = [
     notes: ['건너뛸 수 있는 슬라이드입니다. 미분을 아는 학생을 위해 ∂ 기호와 연쇄법칙, ½·2가 지워지는 것만 보여 줍니다.'] },
   { id: 'grad-formula', section: 'grad', tag: '4-B', title: '4-B에서 쓰는 식', steps: 4, component: GradFormula,
     notes: ['식은 배율 설명이 끝난 뒤에 처음 보여 줌. 학생은 이 상자를 보며 4B-2부터 4B-5까지 종이로 계산함.'] },
+  { id: 'b1-experiment', section: 'grad', tag: '4B-1', title: '왜 e에 x가 곱해지나', steps: 3, component: B1Experiment,
+    notes: ['활동지 4B-1 실험. 가중치 하나만 0.5 올릴 때 z가 입력값 × 0.5만큼 변하는 것을 확인합니다. 방금 유도한 ∂ŷ/∂w = x를 숫자로 확인하는 장입니다.'] },
   { id: 'a5-one-step', section: 'grad', tag: '4B-2 ~ 4B-5', title: '한 step', steps: 4, component: OneStep,
     notes: ['예측 → 오차 → 기울기 → 업데이트 → 다시 예측. 학생이 종이로 계산한 뒤 화면에서 확인합니다.', '손실 24.5 → 6.125.'] },
   { id: 'a5-repeat', section: 'grad', tag: '도전', title: '반복하면 학습', steps: 3, component: Repeat,

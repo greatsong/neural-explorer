@@ -125,53 +125,67 @@ const EndNext: ComponentType<{ step: number }> = ({ step }) => {
 /* ───────── 2. 같은 그림 ───────── */
 const EndNet: ComponentType<{ step: number }> = ({ step }) => {
   const dist = useMemo(() => nextDist(START_CTX), []);
-  const IX = 90, IY = [90, 170, 250, 330];
-  const cols = [300, 420, 540, 660];
-  const OX = 820;
+  const ROWS = Array.from({ length: 6 }, (_, r) => 60 + r * 60);  // 은닉·출력 열의 세로 위치
+  const IY = [90, 170, 250, 330];                                   // 입력 단어 네 개
+  const CX = 95, NX = 190;                                          // 단어 칩, 숫자 알약
+  const cols = [330, 450, 570];
+  const OX = 790, BX = 900, BW = 85;
+  const maxP = dist[0].p;
   return (
     <Layout
       figure={
         <Svg>
-          {/* 입력: 단어 → 숫자 */}
+          {/* 선: 숫자 → 은닉, 은닉 ↔ 은닉, 은닉 → 출력 (모두 완전 연결, 흐리게) */}
+          <Fade show={step >= 2}>
+            {IY.map((iy, i) => ROWS.map((ry, r) => (
+              <line key={`i${i}${r}`} x1={NX + 28} y1={iy} x2={cols[0] - 15} y2={ry} stroke={MUTED} strokeOpacity={0.22} strokeWidth={1.2} />
+            )))}
+            {cols.slice(0, -1).map((cx, c) => ROWS.map((y1, i) => ROWS.map((y2, j) => (
+              <line key={`h${c}${i}${j}`} x1={cx + 15} y1={y1} x2={cols[c + 1] - 15} y2={y2} stroke={MUTED} strokeOpacity={0.18} strokeWidth={1.2} />
+            ))))}
+          </Fade>
+          <Fade show={step >= 3}>
+            {ROWS.map((y1, i) => ROWS.map((y2, j) => (
+              <line key={`o${i}${j}`} x1={cols[2] + 15} y1={y1} x2={OX - 15} y2={y2}
+                stroke={j === 0 ? ACCENT : MUTED} strokeOpacity={j === 0 ? 0.55 : 0.18} strokeWidth={j === 0 ? 1.8 : 1.2} />
+            )))}
+          </Fade>
+
+          {/* 입력: 단어 칩 → 숫자 알약 */}
           {START_CTX.map((w, i) => (
             <g key={i}>
-              <rect x={IX - 60} y={IY[i] - 26} width={120} height={52} rx={10} fill={SURFACE} stroke={MUTED} strokeOpacity={0.5} strokeWidth={2} />
-              <text x={IX} y={IY[i] + 9} textAnchor="middle" fill={TEXT} fontSize={26} fontWeight={700}>{w}</text>
+              <rect x={CX - 55} y={IY[i] - 25} width={110} height={50} rx={10} fill={SURFACE} stroke={MUTED} strokeOpacity={0.5} strokeWidth={2} />
+              <text x={CX} y={IY[i] + 9} textAnchor="middle" fill={TEXT} fontSize={26} fontWeight={700}>{w}</text>
               <Fade show={step >= 1}>
-                <text x={IX + 90} y={IY[i] + 9} textAnchor="middle" fill={ACCENT} fontSize={22} fontWeight={700}>→ {MODEL.index.get(w)}</text>
+                <rect x={NX - 28} y={IY[i] - 17} width={56} height={34} rx={17} fill={ACCENT} />
+                <text x={NX} y={IY[i] + 8} textAnchor="middle" fill={BG} fontSize={21} fontWeight={700}>{MODEL.index.get(w)}</text>
               </Fade>
             </g>
           ))}
-          <text x={IX} y={IY[3] + 60} textAnchor="middle" fill={MUTED} fontSize={19}>입력: 단어를 숫자로</text>
+          <text x={(CX + NX) / 2} y={400} textAnchor="middle" fill={MUTED} fontSize={19}>입력: 단어를 숫자로</text>
+
           {/* 은닉층 */}
           <Fade show={step >= 2}>
-            {cols.map((cx, c) => (
-              <g key={c}>
-                {Array.from({ length: 6 }).map((_, r) => (
-                  <circle key={r} cx={cx} cy={70 + r * 56} r={16} fill={ACCENT_BG} stroke={ACCENT} strokeWidth={2} />
-                ))}
-                {c < cols.length - 1 && Array.from({ length: 6 }).map((_, r) => (
-                  <line key={`l${r}`} x1={cx + 16} y1={70 + r * 56} x2={cols[c + 1] - 16} y2={70 + ((r * 5 + 2) % 6) * 56} stroke={MUTED} strokeOpacity={0.25} strokeWidth={1.5} />
-                ))}
-              </g>
-            ))}
-            {IY.map((iy, i) => <line key={i} x1={IX + 140} y1={iy} x2={cols[0] - 16} y2={70 + (i + 1) * 56} stroke={MUTED} strokeOpacity={0.3} strokeWidth={1.5} />)}
-            <text x={(cols[0] + cols[3]) / 2} y={420} textAnchor="middle" fill={MUTED} fontSize={19}>은닉층 수십 층 · 뉴런마다 Σ와 활성화</text>
+            <rect x={cols[0] - 45} y={12} width={cols[2] - cols[0] + 90} height={30} rx={8} fill={ACCENT_BG} />
+            <text x={(cols[0] + cols[2]) / 2} y={34} textAnchor="middle" fill={ACCENT} fontSize={19} fontWeight={700}>은닉층 수십 층</text>
+            {cols.map((cx, c) => ROWS.map((y, r) => <circle key={`${c}${r}`} cx={cx} cy={y} r={15} fill={ACCENT_BG} stroke={ACCENT} strokeWidth={2} />))}
+            <text x={(cols[0] + cols[2]) / 2} y={400} textAnchor="middle" fill={MUTED} fontSize={19}>뉴런마다 Σ와 활성화 함수</text>
           </Fade>
-          {/* 출력층: 단어마다 뉴런 하나 */}
+
+          {/* 출력층: 단어마다 뉴런 하나, 값은 막대로 */}
           <Fade show={step >= 3}>
             {dist.map((d, i) => {
-              const y = 70 + i * 56;
+              const y = ROWS[i], top = i === 0;
               return (
                 <g key={d.w}>
-                  <line x1={cols[3] + 16} y1={70 + ((i * 5 + 1) % 6) * 56} x2={OX - 18} y2={y} stroke={MUTED} strokeOpacity={0.3} strokeWidth={1.5} />
-                  <circle cx={OX} cy={y} r={16} fill={i === 0 ? ACCENT : ACCENT_BG} stroke={ACCENT} strokeWidth={2} />
-                  <text x={OX + 30} y={y + 8} fill={i === 0 ? ACCENT : TEXT} fontSize={22} fontWeight={700}>{show(d.w)}</text>
-                  <rect x={OX + 110} y={y - 10} width={Math.max(4, d.p * 70)} height={20} rx={5} fill={i === 0 ? ACCENT : ACCENT_BG} />
+                  <circle cx={OX} cy={y} r={15} fill={top ? ACCENT : ACCENT_BG} stroke={ACCENT} strokeWidth={2} />
+                  <text x={OX + 28} y={y + 8} fill={top ? ACCENT : TEXT} fontSize={21} fontWeight={700}>{show(d.w)}</text>
+                  <rect x={BX} y={y - 8} width={Math.max(4, (d.p / maxP) * BW)} height={16} rx={4} fill={top ? ACCENT : ACCENT_BG} />
                 </g>
               );
             })}
-            <text x={OX + 60} y={420} textAnchor="middle" fill={MUTED} fontSize={19}>출력층: 단어마다 뉴런 하나 (수만 개)</text>
+            <Badge cx={OX + 100} cy={26} label="다음 단어" color={ACCENT} fill={ACCENT_BG} size={19} />
+            <text x={(OX + BX + BW) / 2} y={400} textAnchor="middle" fill={MUTED} fontSize={19}>출력: 단어마다 뉴런 하나</text>
           </Fade>
         </Svg>
       }
@@ -179,7 +193,8 @@ const EndNet: ComponentType<{ step: number }> = ({ step }) => {
         step === 0 ? <>이 기계의 속은 오늘 본 그림과 같음. 입력층, 은닉층, 출력층.</> : null,
         step === 1 ? <>글자는 계산할 수 없으니 단어를 <Key>숫자</Key>로 바꿔 넣음.</> : null,
         step === 2 ? <>가운데는 뉴런이 층층이. 뉴런 하나하나는 <M>Σ</M>와 활성화 함수, 1-1의 계산 그대로.</> : null,
-        step === 3 ? <>출력층은 <Key>단어마다 뉴런 하나</Key>. 가장 큰 값이 나온 뉴런의 단어가 "다음 단어". 1-5의 그림에서 입력 수천, 출력 수만으로 커졌을 뿐.</> : null,
+        step === 3 ? <>1-5의 그림에서 입력 수천, 출력 수만으로 커졌을 뿐.</> : null,
+        step === 3 ? <>출력층은 <Key>단어마다 뉴런 하나</Key>. 가장 큰 값이 나온 뉴런의 단어가 "다음 단어".</> : null,
       ]}
     />
   );
@@ -281,14 +296,14 @@ const End3B: ComponentType<{ step: number }> = ({ step }) => {
   );
 };
 
-/* ───────── 5. 오늘의 다섯 단어 ───────── */
+/* ───────── 5. 오늘의 핵심 키워드 (활동지 끝-2의 다섯 단어) ───────── */
 const EndFive: ComponentType<{ step: number }> = ({ step }) => {
   const words = [
     ['예측', '입력 × 가중치 + 편향 → ReLU'],
-    ['오차', '예측 − 정답'],
+    ['오차', 'e = 예측 − 정답'],
     ['기울기', 'dw = e·x, db = e'],
+    ['학습률', 'η, 한 번에 옮기는 보폭'],
     ['업데이트', '새 w = w − η · dw'],
-    ['반복', '수조 번. 그래서 ChatGPT'],
   ];
   return (
     <Layout
@@ -306,7 +321,7 @@ const EndFive: ComponentType<{ step: number }> = ({ step }) => {
         </div>
       }
       lines={[
-        step < 4 ? <>오늘의 다섯 단어. 활동지 끝-2에 이 순서로 한 문장씩 씀.</> : <>뉴런 하나를 손으로 풀었으면, ChatGPT 안에서 일어나는 일도 같은 다섯 단어로 설명할 수 있음.</>,
+        step < 4 ? <>활동지 끝-2. 이 다섯 단어를 모두 써서 "뉴런 하나가 어떻게 학습하는가"를 4~5문장으로 적음.</> : <>뉴런 하나를 손으로 풀었으면, ChatGPT 안에서 일어나는 일도 같은 다섯 단어로 설명할 수 있음.</>,
       ]}
     />
   );
@@ -321,6 +336,6 @@ export const END_SLIDES: SlideDef[] = [
     notes: ['핵심: 정답이 문장 안에 이미 있어 사람이 답을 달 필요가 없음. 인터넷의 글 전체가 문제집이자 정답지.', '오차 → 기울기 → 업데이트를 30억 개 파라미터에 동시에, 수조 단어로 반복.'] },
   { id: 'end-3b', section: 'end', tag: '끝-1', title: '3B의 의미', steps: 3, component: End3B,
     notes: ['끝-1: 오늘 고친 파라미터 2개, 3B 모델은 30억 개. 눈금은 로그.'] },
-  { id: 'end-five', section: 'end', tag: '끝-2', title: '오늘의 다섯 단어', steps: 4, component: EndFive,
+  { id: 'end-five', section: 'end', tag: '끝-2', title: '오늘의 핵심 키워드', steps: 4, component: EndFive,
     notes: ['끝-2: 다섯 단어로 한 단계에 한 문장씩.'] },
 ];

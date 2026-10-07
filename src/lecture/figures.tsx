@@ -40,7 +40,7 @@ function ValueNode({ cx, cy, r = 34, label, accent, hot }: { cx: number; cy: num
 function Edge({ x1, y1, x2, y2, hot, dashed }: { x1: number; y1: number; x2: number; y2: number; hot?: boolean; dashed?: boolean }) {
   return (
     <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={hot ? ACCENT : MUTED} strokeWidth={hot ? 5 : 3} strokeOpacity={hot ? 0.95 : 0.5}
-      strokeLinecap="round" strokeDasharray={dashed ? '12 9' : undefined} className={hot && !dashed ? 'lec-flow' : ''} markerEnd={hot ? 'url(#fig-fwd)' : 'url(#fig-fwd-m)'} />
+      strokeLinecap="round" strokeDasharray={dashed ? '12 9' : undefined} className={hot ? (dashed ? 'lec-dash' : 'lec-flow') : ''} markerEnd={hot ? 'url(#fig-fwd)' : 'url(#fig-fwd-m)'} />
   );
 }
 function BiasNode({ cx, cy, ncy, r = 24, value, hot, name = 'b' }: { cx: number; cy: number; ncy: number; r?: number; value?: string; hot?: boolean; name?: string }) {

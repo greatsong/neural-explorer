@@ -123,7 +123,11 @@ export function Lecture() {
         <main className="absolute left-0 right-0 top-[64px] bottom-[64px] px-[56px] z-10 pointer-events-none">
           <div className="h-full flex flex-col pointer-events-none [&_input]:pointer-events-auto [&_button]:pointer-events-auto">
             <div className="flex items-baseline gap-[18px] mt-[6px] mb-[4px]">
-              {slide.tag && <span className="text-[20px] font-bold text-accent bg-accent-bg px-[12px] py-[2px] rounded-md">{slide.tag}</span>}
+              {slide.tag && (
+                <span className="text-[22px] font-bold text-accent bg-accent-bg px-[14px] py-[3px] rounded-md whitespace-nowrap">
+                  {/^[0-9끝도]/.test(slide.tag) ? `활동지 ${slide.tag}` : slide.tag}
+                </span>
+              )}
               <h1 className="text-[40px] font-bold tracking-tight leading-tight m-0">{slide.title}</h1>
               {slide.sub && <span className="text-[22px] text-muted">{slide.sub}</span>}
             </div>
