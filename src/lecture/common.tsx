@@ -31,6 +31,7 @@ export function Slider({ label, value, set, min, max, step }: { label: string; v
   );
 }
 export function fmt(v: number) { const r = Math.round(v * 1000) / 1000; return (r < 0 ? '−' : '') + Math.abs(r).toString(); }
+export function fmt2(v: number) { const r = Math.round(v * 100) / 100; return (r < 0 ? '−' : '') + Math.abs(r).toString(); }
 // 식 안에서 더할 때 음수는 괄호로: 4 + (−3) + 0
 export const par = (v: number) => (v < 0 ? `(${fmt(v)})` : fmt(v));
 export const relu = (z: number) => Math.max(0, z);

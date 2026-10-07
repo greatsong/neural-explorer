@@ -77,7 +77,7 @@ export function inputY(count: number, i: number) {
 
 function fmt(v: number | null | undefined) {
   if (v === null || v === undefined) return '';
-  const r = Math.round(v * 1000) / 1000;
+  const r = Math.round(v * 100) / 100;
   return (r < 0 ? '−' : '') + Math.abs(r).toString();
 }
 
@@ -215,7 +215,7 @@ export function NeuronFigure(p: NeuronFigureProps) {
         <circle cx={YX} cy={NY} r={YR} fill={p.yhat?.hot ? ACCENT : BG} stroke={ACCENT} strokeWidth={2.6} />
         <text x={YX} y={NY + 9} textAnchor="middle" fill={p.yhat?.hot ? '#fff' : ACCENT} fontSize={26} fontWeight={700}>ŷ</text>
         <Fade show={p.yhat?.show && !p.symbolic && p.yhat?.value !== null && p.yhat?.value !== undefined}>
-          <Badge cx={YX} cy={NY - YR - 24} label={`ŷ = ${fmt(p.yhat?.value)}`} color={ACCENT} size={23} />
+          <Badge cx={YX} cy={NY - YR - 32} label={`ŷ = ${fmt(p.yhat?.value)}`} color={ACCENT} size={23} />
         </Fade>
         <text x={YX} y={NY + YR + 30} textAnchor="middle" fill={MUTED} fontSize={19}>예측값</text>
 
@@ -244,7 +244,7 @@ export function NeuronFigure(p: NeuronFigureProps) {
           <text x={(YX + LX) / 2} y={NY - 104} textAnchor="middle" fill={MUTED} fontSize={17}>정답</text>
         </Fade>
         <Fade show={!!p.loss?.e}>
-          <Badge cx={(YX + LX) / 2} cy={NY - 38} label={p.loss?.e ?? ''} color={ORANGE} size={22} />
+          <Badge cx={(YX + LX) / 2 + 6} cy={NY - 30} label={p.loss?.e ?? ''} color={ORANGE} size={22} />
         </Fade>
         <Fade show={!!p.loss?.L}>
           <Badge cx={LX} cy={NY - LR - 36} label={p.loss?.L ?? ''} color={TEXT} size={22} />
@@ -350,7 +350,7 @@ function BackArrows({
               <g key={i}>
                 <line x1={ax1} y1={ay1} x2={ax2} y2={ay2} stroke={ORANGE} strokeWidth={3.5} strokeDasharray="8 6" markerEnd="url(#lec-back)" className="lec-dash" />
                 {label && <Badge cx={bx} cy={by} label={label} color={ORANGE} fill={ORANGE_BG} size={21} />}
-                {res && <Badge cx={ax2 + 24} cy={ay2 + oy * 1.7 + (n === 1 ? 12 : 0)} label={res} color={ORANGE} size={22} anchor="start" />}
+                {res && <Badge cx={ax2 + 24} cy={ay2 + oy * 2.3 + (n === 1 ? 14 : 0)} label={res} color={ORANGE} size={22} anchor="start" />}
               </g>
             );
           })}

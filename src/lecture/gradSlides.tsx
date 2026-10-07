@@ -19,7 +19,7 @@ function Fade({ show, children }: { show: boolean; children: ReactNode }) {
 }
 /* 분수 ∂a/∂b */
 function Frac({ cx, cy, top, bot, size = 30, color = ACCENT }: { cx: number; cy: number; top: string; bot: string; size?: number; color?: string }) {
-  const w = Math.max(top.length, bot.length) * size * 0.62 + size * 0.4;
+  const w = Math.max(top.length, bot.length) * size * 0.78 + size * 0.5;
   return (
     <g>
       <text x={cx} y={cy - size * 0.35} textAnchor="middle" fill={color} fontSize={size} fontWeight={700}>{top}</text>
@@ -42,11 +42,6 @@ function Arrow({ x1, x2, y, hot }: { x1: number; x2: number; y: number; hot?: bo
 function Big({ x, y, text, color = TEXT, size = 36, anchor = 'start', bold = true }: { x: number; y: number; text: string; color?: string; size?: number; anchor?: 'start' | 'middle' | 'end'; bold?: boolean }) {
   return <text x={x} y={y} textAnchor={anchor} fill={color} fontSize={size} fontWeight={bold ? 700 : 500}>{text}</text>;
 }
-/* 글자 위에 사선 — 지우기 */
-function Strike({ x, y, w, show }: { x: number; y: number; w: number; show: boolean }) {
-  return <Fade show={show}><line x1={x} y1={y + 14} x2={x + w} y2={y - 34} stroke={ORANGE} strokeWidth={4} strokeLinecap="round" /></Fade>;
-}
-
 /* ───────── w → ŷ → L 연결 그래프 ───────── */
 // step 0 상자, 1 화살표 강조, 2 화살표 아래 변화율(기호), 3 연쇄법칙 식(기호)
 // values: 변화율 자리에 값(x, e)을 함께 표시. children: 아래쪽 식 영역(y 280~440)을 바깥에서 그린다.
@@ -122,66 +117,73 @@ const GChain: ComponentType<{ step: number }> = ({ step }) => (
 );
 
 /* ───────── 손실을 미분하면 오차 ───────── */
-const GLoss: ComponentType<{ step: number }> = ({ step }) => (
-  <Layout
-    figure={
-      <Svg>
-        <Big x={120} y={110} text="L = ½ (ŷ − y)²" size={44} />
-        <text x={620} y={110} fill={MUTED} fontSize={22}>정답 y는 고정, ŷ에 대해 미분</text>
-        <Fade show={step >= 1}>
-          <Frac cx={160} cy={250} top="∂L" bot="∂ŷ" size={36} color={TEXT} />
-          <Big x={225} y={262} text="=" size={40} />
-          <Big x={275} y={262} text="½ × 2 (ŷ − y)" size={44} />
-          <text x={275} y={312} fill={MUTED} fontSize={21}>제곱을 미분하면 2가 앞으로 나옴</text>
-        </Fade>
-        <Strike x={272} y={262} w={34} show={step >= 2} />
-        <Strike x={352} y={262} w={34} show={step >= 2} />
-        <Fade show={step >= 2}><text x={330} y={200} textAnchor="middle" fill={ORANGE} fontSize={24} fontWeight={700}>½ × 2 = 1</text></Fade>
-        <Fade show={step >= 3}>
-          <Big x={620} y={262} text="= ŷ − y" size={44} />
-          <Big x={820} y={262} text="= e" size={48} color={ORANGE} />
-          <text x={620} y={312} fill={MUTED} fontSize={21}>예측값 − 정답 = 오차</text>
-        </Fade>
-      </Svg>
-    }
-    lines={[
-      step === 0 ? <>손실 <M>L</M>을 예측값 <M>ŷ</M>에 대해 미분함.</> : null,
-      step === 1 ? <>제곱에서 2가 앞으로 나오고 제곱은 한 단계 줄어듦.</> : null,
-      step === 2 ? <>½과 2가 서로 지워짐.</> : null,
-      step === 3 ? <>남는 것은 <M>ŷ − y</M>, 곧 오차 <Hot>e</Hot>. 손실의 변화율은 오차임.</> : null,
-    ]}
-  />
-);
+const GLoss: ComponentType<{ step: number }> = ({ step }) => {
+  const Y1 = 120, Y2 = 290;
+  return (
+    <Layout
+      figure={
+        <Svg>
+          <Big x={140} y={Y1} text="L = ½ (ŷ − y)²" size={46} />
+          <text x={600} y={Y1} fill={MUTED} fontSize={22}>정답 y는 고정 · ŷ에 대해 미분</text>
+          <Fade show={step >= 1}>
+            <Frac cx={185} cy={Y2 - 12} top="∂L" bot="∂ŷ" size={36} color={TEXT} />
+            <Big x={262} y={Y2} text="=" size={44} />
+            <Big x={320} y={Y2} text="½" size={46} anchor="middle" />
+            <Big x={372} y={Y2} text="×" size={44} anchor="middle" />
+            <Big x={425} y={Y2} text="2" size={46} anchor="middle" />
+            <Big x={458} y={Y2} text="(ŷ − y)" size={46} />
+          </Fade>
+          <Fade show={step >= 2}>
+            <line x1={300} y1={Y2 + 14} x2={340} y2={Y2 - 40} stroke={ORANGE} strokeWidth={4} strokeLinecap="round" />
+            <line x1={407} y1={Y2 + 14} x2={443} y2={Y2 - 40} stroke={ORANGE} strokeWidth={4} strokeLinecap="round" />
+            <text x={372} y={Y2 - 62} textAnchor="middle" fill={ORANGE} fontSize={24} fontWeight={700}>½ × 2 = 1</text>
+          </Fade>
+          <Fade show={step >= 3}>
+            <Big x={640} y={Y2} text="= ŷ − y" size={46} />
+            <Big x={840} y={Y2} text="= e" size={52} color={ORANGE} />
+          </Fade>
+        </Svg>
+      }
+      lines={[
+        step === 0 ? <>손실 <M>L</M>을 예측값 <M>ŷ</M>에 대해 미분함.</> : null,
+        step === 1 ? <>제곱을 미분하면 2가 앞으로 나오고 제곱은 한 단계 줄어듦.</> : null,
+        step === 2 ? <>½과 2가 서로 지워짐.</> : null,
+        step === 3 ? <>남는 것은 <M>ŷ − y</M>, 곧 오차 <Hot>e</Hot>. 손실의 변화율은 오차임.</> : null,
+      ]}
+    />
+  );
+};
 
 /* ───────── 예측값을 미분하면 x ───────── */
-const GPred: ComponentType<{ step: number }> = ({ step }) => (
-  <Layout
-    figure={
-      <Svg>
-        <Big x={120} y={100} text="ŷ = wx + b" size={44} />
-        <Fade show={step >= 1}>
-          <Frac cx={160} cy={220} top="∂ŷ" bot="∂w" size={36} color={TEXT} />
-          <Big x={225} y={232} text="=" size={40} />
-          <Big x={275} y={232} text="x + 0" size={44} />
-          <Big x={450} y={232} text="= x" size={48} color={ORANGE} />
-          <text x={275} y={280} fill={MUTED} fontSize={21}>wx에서 w의 계수 x가 남음 · b는 w와 상관없으니 0</text>
-        </Fade>
-        <Fade show={step >= 2}>
-          <Frac cx={160} cy={360} top="∂ŷ" bot="∂b" size={36} color={TEXT} />
-          <Big x={225} y={372} text="=" size={40} />
-          <Big x={275} y={372} text="0 + 1" size={44} />
-          <Big x={450} y={372} text="= 1" size={48} color={ORANGE} />
-          <text x={275} y={420} fill={MUTED} fontSize={21}>wx는 b와 상관없으니 0 · b의 계수는 1</text>
-        </Fade>
-      </Svg>
-    }
-    lines={[
-      step === 0 ? <>예측값 <M>ŷ</M>을 <M>w</M>에 대해, 그리고 <M>b</M>에 대해 미분함.</> : null,
-      step === 1 ? <><M>w</M>에 대해 미분하면 <Hot>x</Hot>. 입력이 그대로 남음.</> : null,
-      step === 2 ? <><M>b</M>에 대해 미분하면 <Hot>1</Hot>.</> : null,
-    ]}
-  />
-);
+const GPred: ComponentType<{ step: number }> = ({ step }) => {
+  const Y1 = 110, Y2 = 250, Y3 = 380;
+  return (
+    <Layout
+      figure={
+        <Svg>
+          <Big x={140} y={Y1} text="ŷ = wx + b" size={46} />
+          <Fade show={step >= 1}>
+            <Frac cx={185} cy={Y2 - 12} top="∂ŷ" bot="∂w" size={36} color={TEXT} />
+            <Big x={262} y={Y2} text="= x + 0" size={46} />
+            <Big x={500} y={Y2} text="= x" size={52} color={ORANGE} />
+            <text x={640} y={Y2} fill={MUTED} fontSize={22}>b는 w와 상관없으니 0</text>
+          </Fade>
+          <Fade show={step >= 2}>
+            <Frac cx={185} cy={Y3 - 12} top="∂ŷ" bot="∂b" size={36} color={TEXT} />
+            <Big x={262} y={Y3} text="= 0 + 1" size={46} />
+            <Big x={500} y={Y3} text="= 1" size={52} color={ORANGE} />
+            <text x={640} y={Y3} fill={MUTED} fontSize={22}>wx는 b와 상관없으니 0</text>
+          </Fade>
+        </Svg>
+      }
+      lines={[
+        step === 0 ? <>예측값 <M>ŷ</M>을 <M>w</M>에 대해, 그리고 <M>b</M>에 대해 미분함.</> : null,
+        step === 1 ? <><M>w</M>에 대해 미분하면 계수 <Hot>x</Hot>가 남음.</> : null,
+        step === 2 ? <><M>b</M>에 대해 미분하면 <Hot>1</Hot>.</> : null,
+      ]}
+    />
+  );
+};
 
 /* ───────── 연결하면 dw = e·x, db = e ───────── */
 // step 0 값이 들어간 그래프 + w 줄(기호), 1 w 줄 대입, 2 w 결과, 3 b 줄(기호), 4 b 대입, 5 b 결과

@@ -8,6 +8,14 @@ import { SLIDES, SECTIONS, type SlideDef } from './slides';
 export const STAGE_W = 1600;
 export const STAGE_H = 900;
 
+function readStep(): number {
+  const q = window.location.hash.indexOf('?');
+  if (q < 0) return 0;
+  const s = new URLSearchParams(window.location.hash.slice(q + 1)).get('step');
+  const n = s ? parseInt(s, 10) : 0;
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
 function readIndex(): number {
   const raw = window.location.hash.replace(/^#\/?/, '').split('?')[0];
   const m = raw.match(/^lecture\/?(\d+)?/);
@@ -18,7 +26,7 @@ function readIndex(): number {
 
 export function Lecture() {
   const [index, setIndex] = useState(readIndex);
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(readStep);
   const [notes, setNotes] = useState(false);
   const [scale, setScale] = useState(1);
 
@@ -36,7 +44,7 @@ export function Lecture() {
   // 주소 동기화
   useEffect(() => {
     const want = `#/lecture/${index + 1}`;
-    if (window.location.hash !== want) window.history.replaceState(null, '', want);
+    if (window.location.hash.split('?')[0] !== want) window.history.replaceState(null, '', want);
   }, [index]);
   useEffect(() => {
     const onHash = () => { const i = readIndex(); setIndex(i); setStep(0); };

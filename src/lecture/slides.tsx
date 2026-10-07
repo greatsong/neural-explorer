@@ -1,10 +1,11 @@
 // 특강 슬라이드 정의 — 시안: 세션1(인공 뉴런) 세 장, 기울기 화면 네 장, 한 step 두 장.
 // 숫자는 활동지 v2와 같다. 1-1 시범(x₁ 2, x₂ 3, w₁ 2, w₂ 1, b 0 → z 7), 4B 모델(x 3, y 7, w 0, b 0, η 0.05).
 import { useEffect, useRef, useState, type ComponentType } from 'react';
-import { NeuronFigure, ACCENT, ORANGE, type BackSpec } from './NeuronFigure';
-import { Layout, M, Key, Hot, Slider, fmt, par, relu } from './common';
+import { NeuronFigure, ACCENT, type BackSpec } from './NeuronFigure';
+import { Layout, M, Key, Hot, Slider, fmt, fmt2, par, relu } from './common';
 import { FORWARD_SLIDES, LOSS_SLIDES, GD_SLIDES } from './sectionSlides';
 import { GRAD_DERIVE_SLIDES } from './gradSlides';
+import { END_SLIDES } from './endSlides';
 
 export interface SlideDef {
   id: string;
@@ -16,13 +17,14 @@ export interface SlideDef {
   component: ComponentType<{ step: number }>;
   notes?: string[];
 }
-export type SectionId = 'neuron' | 'forward' | 'loss' | 'gd' | 'grad';
+export type SectionId = 'neuron' | 'forward' | 'loss' | 'gd' | 'grad' | 'end';
 export const SECTIONS: { id: SectionId; label: string }[] = [
   { id: 'neuron', label: '인공 뉴런' },
   { id: 'forward', label: '순전파' },
   { id: 'loss', label: '오차와 손실' },
   { id: 'gd', label: '경사하강법' },
   { id: 'grad', label: '기울기 계산과 업데이트' },
+  { id: 'end', label: '마무리' },
 ];
 
 /* ───────── 0. 표지 ───────── */
@@ -150,18 +152,18 @@ const GradFormula: ComponentType<{ step: number }> = ({ step }) => {
     ['모델', 'ŷ = w·x + b', '점 (3, 7) 하나, 출발 w = 0, b = 0'],
     ['오차', 'e = ŷ − y', '예측 − 정답'],
     ['손실', 'L = ½e²', '½은 기울기를 간단하게 하려는 약속'],
-    ['기울기', 'dw = e · x,   db = e', '방금 배율로 확인한 식'],
-    ['업데이트', '새 w = w − η · dw,   새 b = b − η · db', 'η = 0.05, 기울기의 반대 방향으로 보폭만큼'],
+    ['기울기', 'dw = e · x,   db = e', '방금 유도한 식'],
+    ['업데이트', '새 w = w − η·dw,  새 b = b − η·db', 'η = 0.05, 기울기의 반대 방향으로 보폭만큼'],
   ];
   return (
     <Layout
       figure={
         <div className="h-full flex items-center justify-center">
-          <div className="w-[1100px] grid grid-cols-[150px_1fr_1fr] gap-x-[28px] gap-y-[18px] items-center">
+          <div className="w-[1300px] grid grid-cols-[140px_720px_1fr] gap-x-[28px] gap-y-[20px] items-center">
             {rows.map(([k, f, d], i) => (
               <div key={k} className={`contents lec-fade`}>
                 <div className={`text-[24px] font-bold ${i <= step ? 'text-accent' : 'text-border'}`}>{k}</div>
-                <div className={`text-[34px] font-semibold tabular-nums ${i <= step ? (i === step ? 'text-text' : 'text-text/70') : 'text-border'}`}>{f}</div>
+                <div className={`text-[32px] font-semibold tabular-nums whitespace-nowrap ${i <= step ? (i === step ? 'text-text' : 'text-text/70') : 'text-border'}`}>{f}</div>
                 <div className={`text-[21px] ${i <= step ? 'text-muted' : 'text-border'}`}>{d}</div>
               </div>
             ))}
@@ -179,7 +181,7 @@ const GradFormula: ComponentType<{ step: number }> = ({ step }) => {
 const GradSymbols: ComponentType<{ step: number }> = ({ step }) => {
   const back: BackSpec = {
     stage: 4, dimForward: true,
-    atY: '∂L/∂ŷ = e', atRelu: '× 1', atW: ['∂ŷ/∂w = x'], atB: '∂ŷ/∂b = 1',
+    atY: '∂L/∂ŷ = e', atRelu: '그대로', atW: ['∂ŷ/∂w = x'], atB: '∂ŷ/∂b = 1',
     dw: ['∂L/∂w = e · x'], db: '∂L/∂b = e',
   };
   return (
@@ -190,22 +192,6 @@ const GradSymbols: ComponentType<{ step: number }> = ({ step }) => {
           loss={{ show: true, e: 'e = ŷ − y', L: 'L = ½e²' }}
           back={back}
         />
-      }
-      aside={
-        <div className="text-[21px] leading-relaxed">
-          <div className={`lec-fade ${step >= 1 ? '' : 'opacity-0'} mb-[20px]`}>
-            <div className="text-muted text-[17px] mb-[4px]">연쇄법칙</div>
-            <div className="font-mono"><span style={{ color: ORANGE }}>∂L/∂w</span> = ∂L/∂ŷ × ∂ŷ/∂w</div>
-          </div>
-          <div className={`lec-fade ${step >= 2 ? '' : 'opacity-0'} mb-[20px]`}>
-            <div className="text-muted text-[17px] mb-[4px]">손실을 ŷ에 대해 미분하면</div>
-            <div className="font-mono">∂L/∂ŷ = <s className="text-muted">½</s> × <s className="text-muted">2</s>(ŷ − y) = <span style={{ color: ORANGE }}>e</span></div>
-          </div>
-          <div className={`lec-fade ${step >= 3 ? '' : 'opacity-0'}`}>
-            <div className="text-muted text-[17px] mb-[4px]">ŷ = wx + b를 미분하면</div>
-            <div className="font-mono">∂ŷ/∂w = <span style={{ color: ORANGE }}>x</span>,   ∂ŷ/∂b = <span style={{ color: ORANGE }}>1</span></div>
-          </div>
-        </div>
       }
       lines={[
         step === 0 ? <>오차 <M>e</M>가 <M>L</M>에서 출발해 거꾸로 흐름. 지나는 곳마다 변화율을 곱함.</> : null,
@@ -269,7 +255,7 @@ const Repeat: ComponentType<{ step: number }> = ({ step }) => {
     const e2 = relu(w * x + b) - y;
     return { w, b, n: s.n + 1, hist: [...s.hist, 0.5 * e2 * e2] };
   };
-  useEffect(() => { if (step === 0) { setState({ w: 1.05, b: 0.35, n: 1, hist: [24.5, 6.125] }); setRunning(false); } if (step === 1) setState((s) => s.n === 1 ? one(s) : s); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (step === 0) { setState({ w: 1.05, b: 0.35, n: 1, hist: [24.5, 6.125] }); setRunning(false); } if (step === 1) setState((s) => s.n === 1 ? one(s) : s); if (step === 3) setRunning(true); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!running) { if (timer.current) window.clearInterval(timer.current); return; }
     timer.current = window.setInterval(() => setState((s) => (s.n >= 60 ? s : one(s))), 140);
@@ -287,7 +273,7 @@ const Repeat: ComponentType<{ step: number }> = ({ step }) => {
           weights={[{ name: 'w', value: state.w, hot: true }]}
           bias={{ value: state.b, hot: true }}
           yhat={{ value: yhat, show: true, hot: true }}
-          loss={{ show: true, y, e: `e = ${fmt(e)}`, L: `L = ${fmt(L)}` }}
+          loss={{ show: true, y, e: `e = ${fmt2(e)}`, L: `L = ${fmt2(L)}` }}
           flow="out"
         />
       }
@@ -335,4 +321,5 @@ export const SLIDES: SlideDef[] = [
     notes: ['예측 → 오차 → 기울기 → 업데이트 → 다시 예측. 학생이 종이로 계산한 뒤 화면에서 확인합니다.', '손실 24.5 → 6.125.'] },
   { id: 'a5-repeat', section: 'grad', tag: '도전', title: '반복하면 학습', steps: 3, component: Repeat,
     notes: ['도전 문항의 두 번째 step(w 1.575, b 0.525)을 확인한 뒤 자동 학습을 켭니다. w ≈ 2.1, b ≈ 0.7에서 멈춥니다.'] },
+  ...END_SLIDES,
 ];

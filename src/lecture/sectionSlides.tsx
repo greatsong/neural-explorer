@@ -109,11 +109,11 @@ const LossMse: ComponentType<{ step: number }> = ({ step }) => (
 /* ───────── 4-A 손실 곡선 소개 ───────── */
 const GdIntro: ComponentType<{ step: number }> = ({ step }) => (
   <Layout
-    figure={<LossCurveB showHalf={step === 2} marks={step >= 1 ? [{ b: -2, label: step === 2 ? '기울기 −6' : '기울기 −3', tangent: true }] : []} note="w = 2 고정, b만 움직임" />}
+    figure={<LossCurveB compare={step === 2} marks={step >= 1 ? [{ b: -2, label: '기울기 −3 = 오차 e', tangent: true }] : []} />}
     lines={[
       step === 0 ? <>세션3의 다섯 점 그대로. 계산을 쉽게 하려고 <M>w = 2</M>로 두고 <M>b</M>만 움직임. 가로축이 <M>b</M>, 세로축이 손실 <M>L</M>.</> : null,
       step === 1 ? <>손실은 <M>L = ½(b − 1)²</M>. 다섯 점의 오차가 모두 <M>b − 1</M>로 같음. <M>b = −2</M>에서 오차 −3, 접선 기울기도 <Hot>−3</Hot>.</> : null,
-      step === 2 ? <>½이 없으면 기울기가 모두 2배(<M>b = −2</M>에서 −6). ½을 곱하면 <Key>b의 기울기 = 오차 e</Key>가 되어 4-B의 계산이 간단해짐. 바닥 <M>b = 1</M>은 그대로.</> : null,
+      step === 2 ? <>½이 없으면(회색) 기울기가 모두 2배. ½을 곱하면 <Key>b의 기울기 = 오차 e</Key>가 되어 4-B의 식이 간단해짐. 바닥은 그대로 1.</> : null,
     ]}
   />
 );
@@ -121,7 +121,7 @@ const GdIntro: ComponentType<{ step: number }> = ({ step }) => (
 /* ───────── 4A-1 접선의 방향과 기울기 부호 ───────── */
 const GdTangent: ComponentType<{ step: number }> = ({ step }) => {
   const marks = [
-    ...(step >= 1 ? [{ b: -2, label: '기울기 −3', tangent: true, dir: step >= 1 ? '→' : undefined }] : []),
+    ...(step >= 1 ? [{ b: -2, label: '기울기 −3', tangent: true, dir: '→' }] : []),
     ...(step >= 2 ? [{ b: 3, label: '기울기 2', tangent: true, dir: '←' }] : []),
     ...(step >= 3 ? [{ b: 1, label: '기울기 0', tangent: true, dir: '정지' }] : []),
   ];
@@ -163,7 +163,7 @@ const GdEta: ComponentType<{ step: number }> = ({ step }) => {
   ];
   const r = runs[Math.min(Math.max(step - 1, 0), 3)];
   const path: number[] = [-2];
-  for (let i = 0; i < r.n; i++) { const b = path[path.length - 1]; const nb = b - r.eta * (b - 1); if (Math.abs(nb - 1) > 5.5) { path.push(nb); break; } path.push(nb); }
+  for (let i = 0; i < r.n; i++) { const b = path[path.length - 1]; const nb = b - r.eta * (b - 1); if (nb < -3 || nb > 5.5) break; path.push(nb); }
   return (
     <Layout
       figure={<LossCurveB path={step >= 1 ? path : [-2]} pathLabel={step >= 1 ? `η = ${r.eta} · ${r.name}` : undefined} />}
@@ -197,7 +197,7 @@ export const LOSS_SLIDES: SlideDef[] = [
 ];
 
 export const GD_SLIDES: SlideDef[] = [
-  { id: 'gd-intro', section: 'gd', tag: '4-A', title: '손실 곡선', steps: 2, component: GdIntro,
+  { id: 'gd-intro', section: 'gd', tag: '4-A', title: '손실 곡선', sub: 'w = 2 고정, b만 움직임', steps: 2, component: GdIntro,
     notes: ['이 세션의 기울기는 직선 y = 2x + 1의 기울기가 아니라 손실 곡선의 기울기.', '½을 곱하지 않으면 기울기가 모두 2배. ½을 곱하면 b의 기울기가 오차 e와 같아져 4-B 식이 간단해짐.'] },
   { id: 'gd-tangent', section: 'gd', tag: '4A-1', title: '접선의 방향과 기울기 부호', steps: 4, component: GdTangent,
     notes: ['앱 A3 b 모드에서 b = −2, 3, 1로 옮겨 접선을 확인. 슬라이더는 방향키로 0.05씩.'] },
