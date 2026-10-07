@@ -23,6 +23,7 @@ import { PhaseD2 } from './phases/PhaseD2'; // 분류 평가 — 시나리오+�
 import { PhaseMnistIntro } from './phases/PhaseMnistIntro'; // MNIST 데이터셋 소개 (새 C1)
 import { PhaseDive } from './phases/PhaseDive'; // 자기주도 심층 탐구
 import { PhaseC1 as PhaseBackprop } from './phases/PhaseC1'; // 역전파 직관 — 특강용 숨은 주소 #/backprop
+import { Lecture } from './lecture/Lecture'; // 특강 슬라이드 무대 — #/lecture (메뉴에는 없음)
 import { Phase13 } from './phases/Phase13';
 import { Phase14 } from './phases/Phase14';
 import { Phase15 } from './phases/Phase15';
@@ -43,6 +44,7 @@ type View =
   | { kind: 'intro' }
   | { kind: 'guide' }
   | { kind: 'backprop' }
+  | { kind: 'lecture' }
   | { kind: 'phase'; id: PhaseId }
   | { kind: 'textbook'; slug: string };
 
@@ -98,6 +100,11 @@ export default function App() {
   }, [present]);
 
   const wide = view.kind === 'phase' ? isWide(view.id) : true;
+
+  // 특강 슬라이드는 헤더·사이드바 없이 전체 화면 무대만 쓴다
+  if (view.kind === 'lecture') {
+    return <Lecture />;
+  }
 
   // 교과서 뷰는 자체 레이아웃(좌측 사이드바 + 본문 + 우측 TOC)을 가지므로 여기선 Header만 감싼다.
   if (view.kind === 'textbook') {
@@ -177,6 +184,7 @@ function readHash(): View {
   if (raw === 'guide') return { kind: 'guide' };
   // 특강용 숨은 주소 — 메뉴·다음/이전 이동에는 나오지 않는다
   if (raw === 'backprop') return { kind: 'backprop' };
+  if (raw === 'lecture' || raw.startsWith('lecture/')) return { kind: 'lecture' };
   if (raw === 'textbook' || raw === 'textbook/') return { kind: 'textbook', slug: 'intro' };
   if (raw.startsWith('textbook/')) return { kind: 'textbook', slug: raw.slice('textbook/'.length) };
   if (raw && PHASE_IDS.has(raw as PhaseId)) {

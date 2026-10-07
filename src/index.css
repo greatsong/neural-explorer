@@ -94,3 +94,15 @@ html.present [data-present-svg] [data-present-keep] { font-size: 10px; }
 @keyframes bp-in { from { opacity: 0; } to { opacity: 1; } }
 .bp-step { opacity: 0; animation: bp-in 0.35s ease-out forwards; }
 @media (prefers-reduced-motion: reduce) { .bp-step { animation: none; opacity: 1; } }
+
+/* ── 특강 슬라이드(#/lecture) ──
+   lec-fade: 요소가 켜지고 꺼질 때 부드럽게. lec-flow: 순전파로 강조된 선이 흐르는 느낌. lec-dash: 역전파 점선 흐름. */
+.lec-fade { transition: opacity 0.35s ease; }
+.lec-back { transition: opacity 0.4s ease; }
+.lec-flow { stroke-dasharray: 14 10; animation: lec-flow 0.9s linear infinite; }
+@keyframes lec-flow { to { stroke-dashoffset: -24; } }
+.lec-dash { animation: lec-dash 1s linear infinite; }
+@keyframes lec-dash { to { stroke-dashoffset: -21; } }
+.lec-root input[type=range] { height: 28px; }
+.lec-slide-in { animation: lec-slide-in 0.35s ease; }
+@keyframes lec-slide-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
