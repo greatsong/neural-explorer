@@ -1,7 +1,10 @@
 // 특강 슬라이드 정의 — 시안: 세션1(인공 뉴런) 세 장, 기울기 화면 네 장, 한 step 두 장.
 // 숫자는 활동지 v2와 같다. 1-1 시범(x₁ 2, x₂ 3, w₁ 2, w₂ 1, b 0 → z 7), 4B 모델(x 3, y 7, w 0, b 0, η 0.05).
-import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { NeuronFigure, ACCENT, ORANGE, type BackSpec } from './NeuronFigure';
+import { Layout, M, Key, Hot, Slider, fmt, par, relu } from './common';
+import { FORWARD_SLIDES, LOSS_SLIDES, GD_SLIDES } from './sectionSlides';
+import { GRAD_DERIVE_SLIDES } from './gradSlides';
 
 export interface SlideDef {
   id: string;
@@ -22,40 +25,6 @@ export const SECTIONS: { id: SectionId; label: string }[] = [
   { id: 'grad', label: '기울기 계산과 업데이트' },
 ];
 
-/* ───────── 공용 레이아웃 ───────── */
-function Layout({ figure, lines, aside }: { figure: ReactNode; lines?: (ReactNode | null)[]; aside?: ReactNode }) {
-  const shown = (lines ?? []).filter((l) => l !== null && l !== undefined);
-  return (
-    <div className="h-full flex flex-col">
-      <div className="flex-1 min-h-0 flex items-stretch gap-[24px]">
-        <div className="flex-1 min-w-0">{figure}</div>
-        {aside && <div className="w-[300px] shrink-0 flex flex-col justify-center">{aside}</div>}
-      </div>
-      <div className="h-[112px] shrink-0 flex flex-col justify-center gap-[6px]">
-        {shown.map((l, i) => (
-          <div key={i} className={`lec-fade text-[34px] leading-snug ${i === shown.length - 1 ? 'text-text font-semibold' : 'text-muted'}`}>{l}</div>
-        ))}
-      </div>
-    </div>
-  );
-}
-const M = ({ children }: { children: ReactNode }) => <span className="tabular-nums font-semibold text-text">{children}</span>;
-const Key = ({ children }: { children: ReactNode }) => <span className="text-accent font-bold">{children}</span>;
-const Hot = ({ children }: { children: ReactNode }) => <span style={{ color: ORANGE }} className="font-bold">{children}</span>;
-
-function Slider({ label, value, set, min, max, step }: { label: string; value: number; set: (v: number) => void; min: number; max: number; step: number }) {
-  return (
-    <label className="block mb-[14px]" onClick={(e) => e.stopPropagation()}>
-      <div className="flex justify-between text-[19px] mb-[2px]"><span className="text-muted">{label}</span><span className="font-mono text-accent font-semibold">{fmt(value)}</span></div>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => set(parseFloat(e.target.value))} className="w-full accent-[rgb(var(--color-accent))]" />
-    </label>
-  );
-}
-function fmt(v: number) { const r = Math.round(v * 1000) / 1000; return (r < 0 ? '−' : '') + Math.abs(r).toString(); }
-// 식 안에서 더할 때 음수는 괄호로: 4 + (−3) + 0
-const par = (v: number) => (v < 0 ? `(${fmt(v)})` : fmt(v));
-const relu = (z: number) => Math.max(0, z);
-
 /* ───────── 0. 표지 ───────── */
 const Cover: ComponentType<{ step: number }> = () => (
   <div className="h-full flex flex-col items-center justify-center text-center">
@@ -64,7 +33,7 @@ const Cover: ComponentType<{ step: number }> = () => (
     <div className="mt-[40px] flex items-center gap-[14px] text-[24px] text-muted">
       {SECTIONS.map((s, i) => <span key={s.id} className="flex items-center gap-[14px]"><span className="px-[14px] py-[4px] rounded-full border border-border">{s.label}</span>{i < SECTIONS.length - 1 && <span>→</span>}</span>)}
     </div>
-    <div className="mt-[44px] text-[22px] text-muted">종이와 펜으로 계산한다 · 화면은 그 계산이 그림의 어디에서 나오는지 보여 준다</div>
+    <div className="mt-[44px] text-[22px] text-muted">종이와 펜으로 계산함 · 화면은 그 계산이 그림의 어디에서 나오는지 보여 줌</div>
   </div>
 );
 
@@ -91,11 +60,11 @@ const A1Predict: ComponentType<{ step: number }> = ({ step }) => {
         />
       }
       lines={[
-        s === 0 ? <>입력 <M>x</M>가 선을 타고 들어와 뉴런을 지나면 예측값 <M>ŷ</M>이 나온다.</> : null,
+        s === 0 ? <>입력 <M>x</M>가 선을 타고 들어와 뉴런을 지나면 예측값 <M>ŷ</M>이 나옴.</> : null,
         s === 1 ? <>입력은 <Key>x₁ = 2, x₂ = 3</Key>.</> : null,
-        s === 2 ? <>선마다 가중치가 있다. 입력에 가중치를 <Key>곱한다</Key>. <M>2 × 2 = 4, 1 × 3 = 3</M></> : null,
-        s === 3 ? <>곱한 것을 <Key>모두 더하고</Key> 편향 <M>b</M>를 더한다. <M>z = 4 + 3 + 0 = 7</M></> : null,
-        s === 4 ? <><M>z</M>가 <Key>ReLU</Key>를 지나 예측값이 된다. 양수는 그대로. <M>ŷ = ReLU(7) = 7</M></> : null,
+        s === 2 ? <>선마다 가중치가 있음. 입력에 가중치를 <Key>곱한다</Key>. <M>2 × 2 = 4, 1 × 3 = 3</M></> : null,
+        s === 3 ? <>곱한 것을 <Key>모두 더하고</Key> 편향 <M>b</M>를 더함. <M>z = 4 + 3 + 0 = 7</M></> : null,
+        s === 4 ? <><M>z</M>가 <Key>ReLU</Key>를 지나 예측값이 됨. 양수는 그대로. <M>ŷ = ReLU(7) = 7</M></> : null,
         s === 5 ? <M>z = w₁·x₁ + w₂·x₂ + b = 2·2 + 1·3 + 0 = 7,   ŷ = ReLU(z) = 7</M> : null,
       ]}
     />
@@ -139,8 +108,8 @@ const A1Negative: ComponentType<{ step: number }> = ({ step }) => {
       lines={[
         custom ? <><M>w₁ = {fmt(w1)}, w₂ = {fmt(w2)}, b = {fmt(b)}</M>이면 <M>z = {par(w1 * x1)} + {par(w2 * x2)} + {par(b)} = {fmt(z)}</M>, <M>ŷ = ReLU({fmt(z)}) = {fmt(y)}</M>.</> : null,
         !custom && step === 0 ? <>시범 줄. <M>w₂ = 1</M>일 때 <M>z = 7</M>.</> : null,
-        !custom && step === 1 ? <><M>w₂</M>만 <Key>−1</Key>로 바꾸면 <M>(−1) × 3 = −3</M>이라 <M>z = 4 − 3 = 1</M>. z가 작아진다.</> : null,
-        !custom && step === 2 ? <>가중치가 <Key>음수</Key>이면 그 입력은 <M>z</M>를 <Key>줄이는</Key> 쪽으로 작용한다.</> : null,
+        !custom && step === 1 ? <><M>w₂</M>만 <Key>−1</Key>로 바꾸면 <M>(−1) × 3 = −3</M>이라 <M>z = 4 − 3 = 1</M>. z가 작아짐.</> : null,
+        !custom && step === 2 ? <>가중치가 <Key>음수</Key>이면 그 입력은 <M>z</M>를 <Key>줄이는</Key> 쪽으로 작용함.</> : null,
       ]}
     />
   );
@@ -168,113 +137,39 @@ const A1BiasRelu: ComponentType<{ step: number }> = ({ step }) => {
       }
       lines={[
         step === 0 ? <>편향 <M>b</M>는 입력과 상관없이 더하는 값. <M>z = −2 + 3 + (−3) = −2</M></> : null,
-        step === 1 ? <><M>z</M>가 음수다. ReLU는 <Key>음수를 0으로</Key> 내보낸다. <M>ŷ = ReLU(−2) = 0</M></> : null,
+        step === 1 ? <><M>z</M>가 음수임. ReLU는 <Key>음수를 0으로</Key> 내보냄. <M>ŷ = ReLU(−2) = 0</M></> : null,
         step === 2 ? <>ReLU(z) = max(0, z). 0과 z 중 큰 쪽. 양수는 그대로, 음수는 0.</> : null,
       ]}
     />
   );
 };
 
-/* ───────── 기울기 1. 가중치를 올리면 z는 입력 배로 (활동지 4B-1) ───────── */
-const GradScale: ComponentType<{ step: number }> = ({ step }) => {
-  const x1 = 2, x2 = 3;
-  const w1 = step === 1 ? 1.5 : 1, w2 = step === 2 ? 1.5 : 1, b = step === 3 ? 0.5 : 0;
-  const z = w1 * x1 + w2 * x2 + b;
+/* ───────── 4-B 식 정리 — 배율 설명이 끝난 뒤에야 식이 등장한다 ───────── */
+const GradFormula: ComponentType<{ step: number }> = ({ step }) => {
+  const rows = [
+    ['모델', 'ŷ = w·x + b', '점 (3, 7) 하나, 출발 w = 0, b = 0'],
+    ['오차', 'e = ŷ − y', '예측 − 정답'],
+    ['손실', 'L = ½e²', '½은 기울기를 간단하게 하려는 약속'],
+    ['기울기', 'dw = e · x,   db = e', '방금 배율로 확인한 식'],
+    ['업데이트', '새 w = w − η · dw,   새 b = b − η · db', 'η = 0.05, 기울기의 반대 방향으로 보폭만큼'],
+  ];
   return (
     <Layout
       figure={
-        <NeuronFigure
-          inputs={[{ name: 'x₁', value: x1 }, { name: 'x₂', value: x2 }]}
-          weights={[
-            { name: 'w₁', value: w1, prev: step === 1 ? 1 : null, hot: step === 1, product: step === 1 ? '0.5 × 2 = 1' : step >= 4 ? '배율 × 2' : undefined },
-            { name: 'w₂', value: w2, prev: step === 2 ? 1 : null, hot: step === 2, product: step === 2 ? '0.5 × 3 = 1.5' : step >= 4 ? '배율 × 3' : undefined },
-          ]}
-          bias={{ value: b, prev: step === 3 ? 0 : null, hot: step === 3, badge: step === 3 ? '0.5 × 1 = 0.5' : step >= 4 ? '배율 × 1' : undefined }}
-          z={{ value: z, show: true, hot: step >= 1 && step <= 3 }}
-          relu={{ show: false }}
-          yhat={{ show: false }}
-          flow={step === 1 || step === 2 ? 'inputs' : step === 3 ? 'sum' : 'none'}
-        />
+        <div className="h-full flex items-center justify-center">
+          <div className="w-[1100px] grid grid-cols-[150px_1fr_1fr] gap-x-[28px] gap-y-[18px] items-center">
+            {rows.map(([k, f, d], i) => (
+              <div key={k} className={`contents lec-fade`}>
+                <div className={`text-[24px] font-bold ${i <= step ? 'text-accent' : 'text-border'}`}>{k}</div>
+                <div className={`text-[34px] font-semibold tabular-nums ${i <= step ? (i === step ? 'text-text' : 'text-text/70') : 'text-border'}`}>{f}</div>
+                <div className={`text-[21px] ${i <= step ? 'text-muted' : 'text-border'}`}>{d}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       }
       lines={[
-        step === 0 ? <>출발 상태. <M>w₁ = w₂ = 1, b = 0</M>이면 <M>z = 2 + 3 + 0 = 5</M>.</> : null,
-        step === 1 ? <><M>w₁</M>만 0.5 올리면 <M>z</M>는 <Key>1</Key> 늘어난다. 올린 양 0.5 × 입력 2.</> : null,
-        step === 2 ? <><M>w₂</M>만 0.5 올리면 <M>z</M>는 <Key>1.5</Key> 늘어난다. 올린 양 0.5 × 입력 3.</> : null,
-        step === 3 ? <><M>b</M>를 0.5 올리면 <M>z</M>는 <Key>0.5</Key> 늘어난다. 올린 양 × 1.</> : null,
-        step === 4 ? <><M>z</M>가 늘어난 양 = 올린 양 × <Key>입력</Key>. 입력이 w의 <Key>배율</Key>이고, b의 배율은 1이다.</> : null,
-      ]}
-    />
-  );
-};
-
-/* ───────── 기울기 2. ŷ을 움직이면 L은 오차 배로 ───────── */
-const GradLoss: ComponentType<{ step: number }> = ({ step }) => {
-  const x = 3, y = 7, w = 0, b = 0;
-  const yhat = relu(w * x + b), e = yhat - y, L = 0.5 * e * e;
-  return (
-    <Layout
-      figure={
-        <NeuronFigure
-          inputs={[{ name: 'x', value: x }]}
-          weights={[{ name: 'w', value: w }]}
-          bias={{ value: b }}
-          z={{ value: w * x + b, show: false }}
-          yhat={{ value: yhat, show: true }}
-          loss={{
-            show: true, y,
-            e: step >= 1 ? `e = ŷ − y = ${fmt(e)}` : null,
-            L: step >= 1 ? `L = ${fmt(L)}` : null,
-            curve: step >= 2 ? { yhat, y, slopeLabel: step >= 3 ? `접선 기울기 = e = ${fmt(e)}` : undefined } : null,
-            edgeBadge: step >= 3 ? '배율 × e' : undefined,
-          }}
-        />
-      }
-      lines={[
-        step === 0 ? <>이제 입력 하나짜리 모델. <M>x = 3</M>, 정답 <M>y = 7</M>, 출발 <M>w = 0, b = 0</M>이라 <M>ŷ = 0</M>.</> : null,
-        step === 1 ? <>오차 <M>e = ŷ − y = −7</M>, 손실 <M>L = ½e² = 24.5</M>.</> : null,
-        step === 2 ? <>손실 <M>L</M>을 <M>ŷ</M>의 함수로 그리면 곡선이다. 지금 자리의 <Key>접선 기울기</Key>는 4A에서 본 대로 <Hot>e = −7</Hot>.</> : null,
-        step === 3 ? <><M>ŷ</M>이 조금 움직이면 <M>L</M>은 그 <Key>e배</Key>로 움직인다. ½을 곱한 이유가 여기 있다. ½이 없으면 2e.</> : null,
-        step === 4 ? <><M>e</M>가 음수이니 <M>ŷ</M>을 <Key>올리면</Key> 손실이 <Key>줄어든다</Key>.</> : null,
-      ]}
-    />
-  );
-};
-
-/* ───────── 기울기 3. 배율을 곱하면 기울기 ───────── */
-const GradChain: ComponentType<{ step: number }> = ({ step }) => {
-  const x = 3, y = 7, w = 0, b = 0;
-  const yhat = relu(w * x + b), e = yhat - y;
-  const num = step >= 5;
-  const back: BackSpec = {
-    stage: Math.min(step, 4), dimForward: true,
-    atY: num ? `× (−7)` : '× e',
-    atRelu: step >= 2 ? '그대로 (z > 0)' : undefined,
-    atW: step >= 3 ? [num ? '× 3' : '× x'] : undefined,
-    atB: step >= 4 ? '× 1' : undefined,
-    dw: step >= 3 ? [num ? `dw = (−7) × 3 = −21` : 'dw = e · x'] : undefined,
-    db: step >= 4 ? (num ? 'db = −7' : 'db = e') : undefined,
-  };
-  return (
-    <Layout
-      figure={
-        <NeuronFigure
-          inputs={[{ name: 'x', value: num ? x : null }]}
-          weights={[{ name: 'w', value: num ? w : null }]}
-          bias={{ value: num ? b : null }}
-          yhat={{ value: yhat, show: num }}
-          loss={{ show: true, y: num ? y : null, e: num ? `e = ${fmt(e)}` : null, L: null }}
-          back={step >= 1 ? back : undefined}
-          symbolic={!num}
-        />
-      }
-      lines={[
-        step === 0 ? <>기울기는 "<M>w</M>를 조금 바꾸면 <M>L</M>이 얼마나 바뀌나". <M>w</M>는 <M>ŷ</M>을 바꾸고, <M>ŷ</M>이 <M>L</M>을 바꾼다.</> : null,
-        step === 1 ? <><M>L</M>에서 거꾸로 출발한다. <M>ŷ → L</M>의 배율은 <Hot>e</Hot>.</> : null,
-        step === 2 ? <>ReLU를 거꾸로 지난다. <M>z</M>가 양수였으니 <Hot>그대로</Hot> 통과.</> : null,
-        step === 3 ? <><M>w → ŷ</M>의 배율은 입력 <Hot>x</Hot>. 곱하면 <Hot>dw = e · x</Hot>.</> : null,
-        step === 4 ? <><M>b → ŷ</M>의 배율은 <Hot>1</Hot>. 곱하면 <Hot>db = e</Hot>.</> : null,
-        step === 5 ? <>숫자를 넣는다. <M>e = −7, x = 3</M>이라 <Hot>dw = −21, db = −7</Hot>. 이것이 4B-3.</> : null,
-        step === 6 ? <>둘 다 <Key>음수</Key>. 4A의 규칙대로 <M>w</M>와 <M>b</M>를 <Key>키워야</Key> 손실이 줄어든다.</> : null,
+        step <= 3 ? <>4-B에서 쓰는 식. 위에서부터 차례로 읽음.</> : <>이 다섯 줄이 딥러닝 학습의 전부임. 이제 종이로 한 step을 계산함.</>,
       ]}
     />
   );
@@ -313,10 +208,10 @@ const GradSymbols: ComponentType<{ step: number }> = ({ step }) => {
         </div>
       }
       lines={[
-        step === 0 ? <>배율을 수학에서는 <Key>∂</Key>로 쓴다. "다른 값은 두고 이 값만 바꿀 때의 변화율".</> : null,
-        step === 1 ? <>연결된 변화율은 <Key>곱한다</Key>. 이것이 연쇄법칙이고, 주황 화살표가 한 일이다.</> : null,
-        step === 2 ? <>제곱을 미분하면 2가 앞으로 나오고, ½과 2가 지워져 <Hot>e</Hot>만 남는다.</> : null,
-        step === 3 ? <><M>wx + b</M>에서 <M>w</M>의 계수 <Hot>x</Hot>, <M>b</M>의 계수 <Hot>1</Hot>이 남는다. 그래서 <M>dw = e·x, db = e</M>.</> : null,
+        step === 0 ? <>오차 <M>e</M>가 <M>L</M>에서 출발해 거꾸로 흐름. 지나는 곳마다 변화율을 곱함.</> : null,
+        step === 1 ? <>연결된 변화율은 <Key>곱한다</Key>. 이것이 연쇄법칙이고, 주황 화살표가 한 일임.</> : null,
+        step === 2 ? <><M>w</M> 선에서 <M>x</M>를 곱해 <Hot>dw = e·x</Hot>.</> : null,
+        step === 3 ? <><M>b</M> 선에서 1을 곱해 <Hot>db = e</Hot>. 다음 장(한 step)에서 숫자를 넣음.</> : null,
       ]}
     />
   );
@@ -356,7 +251,7 @@ const OneStep: ComponentType<{ step: number }> = ({ step }) => {
         step === 1 ? <>② <Key>오차</Key>. <M>e = 0 − 7 = −7</M>, 손실 <M>L = 24.5</M>.</> : null,
         step === 2 ? <>③ <Key>기울기</Key>. 주황 화살표를 따라 <Hot>dw = (−7) × 3 = −21, db = −7</Hot>.</> : null,
         step === 3 ? <>④ <Key>업데이트</Key>. <M>w = 0 − 0.05 × (−21) = 1.05</M>, <M>b = 0 − 0.05 × (−7) = 0.35</M>.</> : null,
-        step === 4 ? <>다시 예측하면 <M>ŷ = 1.05·3 + 0.35 = 3.5</M>. 손실 <M>24.5 → </M><Hot>6.125</Hot>. 한 번 고쳤는데 4분의 1로 줄었다.</> : null,
+        step === 4 ? <>다시 예측하면 <M>ŷ = 1.05·3 + 0.35 = 3.5</M>. 손실 <M>24.5 → </M><Hot>6.125</Hot>. 한 번 고쳤는데 4분의 1로 줄었음.</> : null,
       ]}
     />
   );
@@ -412,9 +307,9 @@ const Repeat: ComponentType<{ step: number }> = ({ step }) => {
       }
       lines={[
         step === 0 ? <>한 step 뒤의 뉴런. <M>w = 1.05, b = 0.35</M>, 오차 <M>−3.5</M>.</> : null,
-        step === 1 ? <>두 번째 step. <M>dw = (−3.5) × 3 = −10.5, db = −3.5</M> → <M>w = 1.575, b = 0.525</M>. 기울기가 작아졌다.</> : null,
-        step === 2 ? <>같은 네 단계를 <Key>반복</Key>한다. 컴퓨터는 이 step을 1초에 수백만 번 한다.</> : null,
-        step === 3 ? <>오차가 0에 가까워지며 <M>w ≈ 2.1, b ≈ 0.7</M>에서 멈춘다. 점 하나를 지나는 직선은 많아서 정답 <M>w = 2, b = 1</M>과 다르다.</> : null,
+        step === 1 ? <>두 번째 step. <M>dw = (−3.5) × 3 = −10.5, db = −3.5</M> → <M>w = 1.575, b = 0.525</M>. 기울기가 작아졌음.</> : null,
+        step === 2 ? <>같은 네 단계를 <Key>반복</Key>함. 컴퓨터는 이 step을 1초에 수백만 번 함.</> : null,
+        step === 3 ? <>오차가 0에 가까워지며 <M>w ≈ 2.1, b ≈ 0.7</M>에서 멈춤. 점 하나를 지나는 직선은 많아서 정답 <M>w = 2, b = 1</M>과 다름.</> : null,
       ]}
     />
   );
@@ -428,14 +323,14 @@ export const SLIDES: SlideDef[] = [
     notes: ['학생이 1-1 표를 채운 뒤 w₂를 −1로 옮겨 z = 1을 확인합니다. 슬라이더로 다른 값도 보여 줄 수 있습니다. "활동지 값으로"로 돌아옵니다.'] },
   { id: 'a1-bias-relu', section: 'neuron', tag: '1-2 · 1-3', title: '편향과 ReLU', steps: 2, component: A1BiasRelu,
     notes: ['1-3의 셋째 줄(w₁ −1, w₂ 1, b −3)입니다. z = −2가 ReLU를 지나 0이 됩니다.'] },
-  { id: 'grad-scale', section: 'grad', tag: '4B-1', title: '가중치를 올리면 z는 입력 배로 움직인다', steps: 4, component: GradScale,
-    notes: ['활동지 4B-1 표와 같은 실험입니다. 두 가중치를 똑같이 0.5 올렸는데 입력이 3인 쪽이 더 크게 움직입니다.', '결론 한 줄: 늘어난 양 = 올린 양 × 입력. 입력이 배율입니다.'] },
-  { id: 'grad-loss', section: 'grad', tag: '4-B', title: 'ŷ을 움직이면 L은 오차 배로 움직인다', steps: 4, component: GradLoss,
-    notes: ['4B 모델로 바꿉니다. 손실 곡선의 접선 기울기가 e라는 것은 4A에서 확인했습니다(½을 곱한 이유).', '부호 읽기: e가 음수이니 ŷ을 올리면 L이 줄어듭니다.'] },
-  { id: 'grad-chain', section: 'grad', tag: '4B-3', title: '배율을 곱하면 기울기', steps: 6, component: GradChain,
-    notes: ['주황 화살표가 L에서 출발해 ŷ, 뉴런을 거꾸로 지나 w 선과 b 선에 도착합니다. 지나는 곳마다 배율을 곱합니다.', '기호로 끝낸 뒤 숫자를 넣습니다. −7 × 3 = −21, −7. 활동지 4B-3과 같은 값입니다.'] },
-  { id: 'grad-symbols', section: 'grad', tag: '더 알아보기', title: '기호로 쓰면', steps: 3, component: GradSymbols,
+  ...FORWARD_SLIDES,
+  ...LOSS_SLIDES,
+  ...GD_SLIDES,
+  ...GRAD_DERIVE_SLIDES,
+  { id: 'grad-symbols', section: 'grad', tag: '4-B', title: '같은 것을 뉴런 그림으로 보면', steps: 3, component: GradSymbols,
     notes: ['건너뛸 수 있는 슬라이드입니다. 미분을 아는 학생을 위해 ∂ 기호와 연쇄법칙, ½·2가 지워지는 것만 보여 줍니다.'] },
+  { id: 'grad-formula', section: 'grad', tag: '4-B', title: '4-B에서 쓰는 식', steps: 4, component: GradFormula,
+    notes: ['식은 배율 설명이 끝난 뒤에 처음 보여 줌. 학생은 이 상자를 보며 4B-2부터 4B-5까지 종이로 계산함.'] },
   { id: 'a5-one-step', section: 'grad', tag: '4B-2 ~ 4B-5', title: '한 step', steps: 4, component: OneStep,
     notes: ['예측 → 오차 → 기울기 → 업데이트 → 다시 예측. 학생이 종이로 계산한 뒤 화면에서 확인합니다.', '손실 24.5 → 6.125.'] },
   { id: 'a5-repeat', section: 'grad', tag: '도전', title: '반복하면 학습', steps: 3, component: Repeat,
