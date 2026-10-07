@@ -131,10 +131,10 @@ function DetailInside({ G, p }: { G: Geom; p: NeuronFigureProps }) {
   const reluOn = p.relu?.show !== false;
   const yv = p.yhat?.value;
   const yKnown = !!p.yhat?.show && !p.symbolic && yv !== null && yv !== undefined;
-  const y0 = G.NY - 40, dy = 27;
+  const y0 = G.NY - 32, dy = 27;
   return (
     <g>
-      <text x={LX} y={G.NY - 74} textAnchor="middle" fill={ACCENT} fontSize={30} fontWeight={700}>Σ</text>
+      <text x={LX} y={G.NY - 62} textAnchor="middle" fill={ACCENT} fontSize={30} fontWeight={700}>Σ</text>
       {lines.map((t, i) => (
         <text key={i} x={LX} y={y0 + i * dy} textAnchor="middle" fontSize={21} fontWeight={600}
           fill={i === lines.length - 1 ? (p.bias.hot ? ACCENT : TEXT) : TEXT}>{t}</text>
@@ -144,10 +144,10 @@ function DetailInside({ G, p }: { G: Geom; p: NeuronFigureProps }) {
         {zKnown ? `z = ${fmt(zVal)}` : 'z'}
       </text>
       <g opacity={reluOn ? 1 : 0.3}>
-        <text x={RX} y={G.NY - 74} textAnchor="middle" fill={ACCENT} fontSize={22} fontWeight={700}>ReLU</text>
-        <text x={RX} y={G.NY - 30} textAnchor="middle" fill={p.relu?.hot ? ACCENT : MUTED} fontSize={20} fontWeight={600}>max(0, z)</text>
-        {zKnown && <text x={RX} y={G.NY + 4} textAnchor="middle" fill={p.relu?.hot ? ACCENT : TEXT} fontSize={20} fontWeight={600}>max(0, {fmt(zVal)})</text>}
-        {yKnown && <text x={RX} y={G.NY + 44} textAnchor="middle" fill={ACCENT} fontSize={24} fontWeight={700}>= {fmt(yv)}</text>}
+        <text x={RX - 6} y={G.NY - 56} textAnchor="middle" fill={ACCENT} fontSize={22} fontWeight={700}>ReLU</text>
+        <text x={RX} y={G.NY - 20} textAnchor="middle" fill={p.relu?.hot ? ACCENT : MUTED} fontSize={20} fontWeight={600}>max(0, z)</text>
+        {zKnown && <text x={RX} y={G.NY + 12} textAnchor="middle" fill={p.relu?.hot ? ACCENT : TEXT} fontSize={20} fontWeight={600}>max(0, {fmt(zVal)})</text>}
+        {yKnown && <text x={RX} y={G.NY + 48} textAnchor="middle" fill={ACCENT} fontSize={24} fontWeight={700}>= {fmt(yv)}</text>}
       </g>
     </g>
   );
