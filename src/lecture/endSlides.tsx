@@ -190,7 +190,7 @@ const EndNet: ComponentType<{ step: number }> = ({ step }) => {
         </Svg>
       }
       lines={[
-        step === 0 ? <>이 기계의 속은 오늘 본 그림과 같음. 입력층, 은닉층, 출력층.</> : null,
+        step === 0 ? <>ChatGPT의 내부 구조도 오늘 본 그림과 같음. 입력층, 은닉층, 출력층.</> : null,
         step === 1 ? <>글자는 계산할 수 없으니 단어를 <Key>숫자</Key>로 바꿔 넣음.</> : null,
         step === 2 ? <>가운데는 뉴런이 층층이. 뉴런 하나하나는 <M>Σ</M>와 활성화 함수, 1-1의 계산 그대로.</> : null,
         step === 3 ? <>1-5의 그림에서 입력 수천, 출력 수만으로 커졌을 뿐.</> : null,
@@ -321,7 +321,7 @@ const EndFive: ComponentType<{ step: number }> = ({ step }) => {
         </div>
       }
       lines={[
-        step < 4 ? <>활동지 끝-2. 이 다섯 단어를 모두 써서 "뉴런 하나가 어떻게 학습하는가"를 4~5문장으로 적음.</> : <>뉴런 하나를 손으로 풀었으면, ChatGPT 안에서 일어나는 일도 같은 다섯 단어로 설명할 수 있음.</>,
+        step < 4 ? <>활동지 끝-2. 이 다섯 단어를 모두 써서 "뉴런 하나가 어떻게 학습하는가"를 4~5문장으로 적음.</> : <>오늘 여러분이 손으로 풀었던 과정이 ChatGPT의 가장 기본적인 개념과 원리입니다.</>,
       ]}
     />
   );
@@ -330,7 +330,7 @@ const EndFive: ComponentType<{ step: number }> = ({ step }) => {
 export const END_SLIDES: SlideDef[] = [
   { id: 'end-next', section: 'end', tag: '마무리', title: 'ChatGPT는 다음 단어를 맞히는 기계', steps: 3, component: EndNext,
     notes: ['토큰이 정확하지만 "단어"라고 설명함. 후보 막대는 앱 E4 말뭉치로 실제 계산한 값.', '"다음 단어 →"를 눌러 문장이 끝날 때까지 이어 감. ChatGPT는 1등만 고르지 않고 가끔 섞어 고르기 때문에 매번 조금 다른 글이 나옴.'] },
-  { id: 'end-net', section: 'end', tag: '마무리', title: '속은 오늘 본 그림과 같다', steps: 3, component: EndNet,
+  { id: 'end-net', section: 'end', tag: '마무리', title: 'ChatGPT의 내부 구조', steps: 3, component: EndNet,
     notes: ['입력 단어를 숫자로 바꿔 넣고, 출력층은 단어마다 뉴런 하나. 1-5 그림의 입력 3·출력 2가 수천·수만으로 커진 것.'] },
   { id: 'end-train', section: 'end', tag: '마무리', title: '배우는 방법도 4B와 같다', steps: 3, component: EndTrain,
     notes: ['핵심: 정답이 문장 안에 이미 있어 사람이 답을 달 필요가 없음. 인터넷의 글 전체가 문제집이자 정답지.', '오차 → 기울기 → 업데이트를 30억 개 파라미터에 동시에, 수조 단어로 반복.'] },

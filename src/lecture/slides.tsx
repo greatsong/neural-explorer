@@ -37,7 +37,6 @@ const Cover: ComponentType<{ step: number }> = () => (
     <div className="mt-[40px] flex items-center gap-[14px] text-[24px] text-muted">
       {SECTIONS.map((s, i) => <span key={s.id} className="flex items-center gap-[14px]"><span className="px-[14px] py-[4px] rounded-full border border-border">{s.label}</span>{i < SECTIONS.length - 1 && <span>→</span>}</span>)}
     </div>
-    <div className="mt-[44px] text-[22px] text-muted">종이와 펜으로 계산함 · 화면은 그 계산이 그림의 어디에서 나오는지 보여 줌</div>
   </div>
 );
 
