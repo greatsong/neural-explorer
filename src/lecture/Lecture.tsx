@@ -109,7 +109,9 @@ export function Lecture() {
           <div className="flex items-center gap-[10px] text-[17px]">
             {SECTIONS.map((s, i) => (
               <div key={s.id} className="flex items-center gap-[10px]">
-                <span className={`px-[12px] py-[4px] rounded-full ${i === sectionIdx ? 'bg-accent text-white font-semibold' : i < sectionIdx ? 'text-accent' : 'text-muted'}`}>{s.label}</span>
+                <button type="button" title={`${s.label} 섹션으로`}
+                  onClick={(e) => { e.stopPropagation(); const k = SLIDES.findIndex((d) => d.section === s.id); if (k >= 0) { setIndex(k); setStep(0); } }}
+                  className={`pointer-events-auto px-[12px] py-[4px] rounded-full transition hover:bg-accent-bg ${i === sectionIdx ? 'bg-accent text-white font-semibold hover:bg-accent' : i < sectionIdx ? 'text-accent' : 'text-muted'}`}>{s.label}</button>
                 {i < SECTIONS.length - 1 && <span className="text-muted/50">→</span>}
               </div>
             ))}
@@ -125,7 +127,7 @@ export function Lecture() {
               <h1 className="text-[40px] font-bold tracking-tight leading-tight m-0">{slide.title}</h1>
               {slide.sub && <span className="text-[22px] text-muted">{slide.sub}</span>}
             </div>
-            <div className="flex-1 min-h-0">
+            <div key={index} className="flex-1 min-h-0 lec-slide-in">
               <Body step={step} />
             </div>
           </div>

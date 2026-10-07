@@ -1,7 +1,7 @@
 // 순전파·오차와 손실·경사하강법 섹션의 그림. NeuronFigure와 같은 색·선·배지 규칙을 쓴다.
 import type { ReactNode } from 'react';
 import { Badge, ACCENT, ACCENT_BG, MUTED, TEXT, BG, SURFACE, ORANGE, ORANGE_BG, VB_W, VB_H } from './NeuronFigure';
-import { fmt } from './common';
+import { fmt, fmt2 } from './common';
 
 function Fade({ show, children, dim }: { show: boolean | undefined; children: ReactNode; dim?: boolean }) {
   return <g className="lec-fade" style={{ opacity: show ? (dim ? 0.3 : 1) : 0 }}>{children}</g>;
@@ -370,7 +370,7 @@ export function LossCurveB({ marks = [], path = [], pathLabel, compare }: { mark
       {path.map((b, i) => (
         <g key={`p${i}`}>
           <circle cx={sx(b)} cy={sy(L(b))} r={i === path.length - 1 ? 11 : 7} fill={ORANGE} />
-          {i === path.length - 1 && <Badge cx={sx(b)} cy={sy(L(b)) - 34} label={`b = ${fmt(b)}`} color={ORANGE} size={21} />}
+          {i === path.length - 1 && <Badge cx={sx(b) + 20} cy={sy(L(b)) - 30} anchor="start" label={`b = ${fmt2(b)}`} color={ORANGE} size={21} />}
         </g>
       ))}
       {marks.map((m, i) => {

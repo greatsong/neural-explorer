@@ -6,6 +6,7 @@ import { Layout, M, Key, Hot, Slider, fmt, fmt2, par, relu } from './common';
 import { FORWARD_SLIDES, LOSS_SLIDES, GD_SLIDES } from './sectionSlides';
 import { GRAD_DERIVE_SLIDES } from './gradSlides';
 import { END_SLIDES } from './endSlides';
+import { GOAL_SLIDE, DIVIDERS, NEURON_EXTRA } from './introSlides';
 
 export interface SlideDef {
   id: string;
@@ -117,35 +118,6 @@ const A1Negative: ComponentType<{ step: number }> = ({ step }) => {
   );
 };
 
-/* ───────── 1-2 · 1-3. 편향과 ReLU ───────── */
-const A1BiasRelu: ComponentType<{ step: number }> = ({ step }) => {
-  const x1 = 2, x2 = 3, w1 = -1, w2 = 1, b = -3;
-  const z = w1 * x1 + w2 * x2 + b, y = relu(z);
-  return (
-    <Layout
-      figure={
-        <NeuronFigure
-          inputs={[{ name: 'x₁', value: x1 }, { name: 'x₂', value: x2 }]}
-          weights={[
-            { name: 'w₁', value: w1, product: `(−1) × 2 = −2` },
-            { name: 'w₂', value: w2, product: `1 × 3 = 3` },
-          ]}
-          bias={{ value: b, hot: step === 0 }}
-          z={{ value: z, show: true, hot: step <= 1 }}
-          relu={{ hot: step >= 1 }}
-          yhat={{ value: y, show: step >= 1, hot: step >= 1 }}
-          flow={step === 0 ? 'sum' : step === 1 ? 'out' : 'none'}
-        />
-      }
-      lines={[
-        step === 0 ? <>편향 <M>b</M>는 입력과 상관없이 더하는 값. <M>z = −2 + 3 + (−3) = −2</M></> : null,
-        step === 1 ? <><M>z</M>가 음수임. ReLU는 <Key>음수를 0으로</Key> 내보냄. <M>ŷ = ReLU(−2) = 0</M></> : null,
-        step === 2 ? <>ReLU(z) = max(0, z). 0과 z 중 큰 쪽. 양수는 그대로, 음수는 0.</> : null,
-      ]}
-    />
-  );
-};
-
 /* ───────── 4-B 식 정리 — 배율 설명이 끝난 뒤에야 식이 등장한다 ───────── */
 const GradFormula: ComponentType<{ step: number }> = ({ step }) => {
   const rows = [
@@ -212,7 +184,7 @@ const OneStep: ComponentType<{ step: number }> = ({ step }) => {
   const w1 = w0 - eta * dw, b1 = b0 - eta * db;
   const yhat1 = relu(w1 * x + b1), e1 = yhat1 - y, L1 = 0.5 * e1 * e1;
   const after = step >= 4;
-  const w = after ? w1 : w0, b = after ? b1 : b0;
+  const w = step >= 3 ? w1 : w0, b = step >= 3 ? b1 : b0;
   const yhat = after ? yhat1 : yhat0, e = after ? e1 : e0, L = after ? L1 : L0;
   const back: BackSpec | undefined = step === 2 || step === 3 ? {
     stage: 4, dimForward: step === 2, atY: `× (${fmt(e0)})`, atRelu: '그대로', atW: ['× 3'], atB: '× 1',
@@ -255,7 +227,7 @@ const Repeat: ComponentType<{ step: number }> = ({ step }) => {
     const e2 = relu(w * x + b) - y;
     return { w, b, n: s.n + 1, hist: [...s.hist, 0.5 * e2 * e2] };
   };
-  useEffect(() => { if (step === 0) { setState({ w: 1.05, b: 0.35, n: 1, hist: [24.5, 6.125] }); setRunning(false); } if (step === 1) setState((s) => s.n === 1 ? one(s) : s); if (step === 3) setRunning(true); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (step === 0) { setState({ w: 1.05, b: 0.35, n: 1, hist: [24.5, 6.125] }); setRunning(false); } if (step >= 1) setState((s) => s.n === 1 ? one(s) : s); if (step === 3) setRunning(true); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!running) { if (timer.current) window.clearInterval(timer.current); return; }
     timer.current = window.setInterval(() => setState((s) => (s.n >= 60 ? s : one(s))), 140);
@@ -303,15 +275,20 @@ const Repeat: ComponentType<{ step: number }> = ({ step }) => {
 
 export const SLIDES: SlideDef[] = [
   { id: 'cover', section: 'neuron', title: '', steps: 0, component: Cover },
+  GOAL_SLIDE,
+  DIVIDERS.neuron,
   { id: 'a1-predict', section: 'neuron', tag: '1-1', title: '인공 뉴런 하나가 예측을 만든다', steps: 5, component: A1Predict,
     notes: ['화면이 인공 뉴런 하나입니다. 왼쪽 두 원이 입력, 선 위의 w가 가중치입니다. 뉴런 안에서 곱해 더하고 b를 더한 z가 ReLU를 지나 ŷ이 됩니다.', '활동지 1-1 시범 줄과 같은 숫자입니다.'] },
   { id: 'a1-negative', section: 'neuron', tag: '1-1', title: '가중치가 음수이면', steps: 2, component: A1Negative,
     notes: ['학생이 1-1 표를 채운 뒤 w₂를 −1로 옮겨 z = 1을 확인합니다. 슬라이더로 다른 값도 보여 줄 수 있습니다. "활동지 값으로"로 돌아옵니다.'] },
-  { id: 'a1-bias-relu', section: 'neuron', tag: '1-2 · 1-3', title: '편향과 ReLU', steps: 2, component: A1BiasRelu,
-    notes: ['1-3의 셋째 줄(w₁ −1, w₂ 1, b −3)입니다. z = −2가 ReLU를 지나 0이 됩니다.'] },
+  ...NEURON_EXTRA,
+  DIVIDERS.forward,
   ...FORWARD_SLIDES,
+  DIVIDERS.loss,
   ...LOSS_SLIDES,
+  DIVIDERS.gd,
   ...GD_SLIDES,
+  DIVIDERS.grad,
   ...GRAD_DERIVE_SLIDES,
   { id: 'grad-symbols', section: 'grad', tag: '4-B', title: '같은 것을 뉴런 그림으로 보면', steps: 3, component: GradSymbols,
     notes: ['건너뛸 수 있는 슬라이드입니다. 미분을 아는 학생을 위해 ∂ 기호와 연쇄법칙, ½·2가 지워지는 것만 보여 줍니다.'] },

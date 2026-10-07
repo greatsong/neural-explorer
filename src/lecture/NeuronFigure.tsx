@@ -77,7 +77,7 @@ export function inputY(count: number, i: number) {
 
 function fmt(v: number | null | undefined) {
   if (v === null || v === undefined) return '';
-  const r = Math.round(v * 100) / 100;
+  const r = Math.round(v * 1000) / 1000;
   return (r < 0 ? '−' : '') + Math.abs(r).toString();
 }
 

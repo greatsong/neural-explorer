@@ -48,8 +48,10 @@ function Big({ x, y, text, color = TEXT, size = 36, anchor = 'start', bold = tru
 function ChainGraph({ step, values, children, compact }: { step: number; values?: boolean; children?: ReactNode; compact?: boolean }) {
   const BY = compact ? 28 : 60, BH = compact ? 76 : 90;
   const FY = compact ? 150 : 200; // 변화율 분수의 세로 위치
+  const lift = !compact && !values && step < 3; // 식이 나오기 전에는 그래프를 가운데로
   return (
     <Svg>
+      <g style={{ transform: lift ? 'translateY(110px)' : 'translateY(0)', transition: 'transform 0.45s ease' }}>
       <Box x={40} y={BY} w={170} h={BH} label="w, b" hot={step === 1} />
       <Arrow x1={226} x2={326} y={BY + BH / 2} hot={step === 1} />
       <Box x={340} y={BY} w={300} h={BH} label="ŷ = wx + b" hot={step === 1} />
@@ -65,6 +67,7 @@ function ChainGraph({ step, values, children, compact }: { step: number; values?
         {values && <Frac cx={380} cy={FY} top="∂ŷ" bot="∂b" size={26} />}
         {values && <Big x={418} y={FY + 10} text="= 1" color={ORANGE} size={30} />}
       </Fade>
+      </g>
       {!values && (
         <Fade show={step >= 3}>
           <Frac cx={110} cy={360} top="∂L" bot="∂w" size={34} color={TEXT} />

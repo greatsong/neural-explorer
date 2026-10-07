@@ -2,13 +2,13 @@
 import type { ReactNode } from 'react';
 import { ORANGE } from './NeuronFigure';
 
-export function Layout({ figure, lines, aside }: { figure: ReactNode; lines?: (ReactNode | null)[]; aside?: ReactNode }) {
+export function Layout({ figure, lines, aside, asideWidth = 300 }: { figure: ReactNode; lines?: (ReactNode | null)[]; aside?: ReactNode; asideWidth?: number }) {
   const shown = (lines ?? []).filter((l) => l !== null && l !== undefined);
   return (
     <div className="h-full flex flex-col">
       <div className="flex-1 min-h-0 flex items-stretch gap-[24px]">
         <div className="flex-1 min-w-0">{figure}</div>
-        {aside && <div className="w-[300px] shrink-0 flex flex-col justify-center">{aside}</div>}
+        {aside && <div className="shrink-0 flex flex-col justify-center" style={{ width: asideWidth }}>{aside}</div>}
       </div>
       <div className="h-[112px] shrink-0 flex flex-col justify-center gap-[6px]">
         {shown.map((l, i) => (
