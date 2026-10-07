@@ -72,7 +72,7 @@ const FwPlayground: ComponentType<{ step: number }> = ({ step }) => {
         </div>
       }
       lines={[
-        <>가운데 파란 점과 바깥 주황 점을 나누는 문제. 교사 시연, 각 장면은 5초 안에 멈춤.</>,
+        <>가운데 파란 점과 바깥 주황 점을 나누는 문제. 각 장면은 5초 안에 멈춤.</>,
       ]}
     />
   );
