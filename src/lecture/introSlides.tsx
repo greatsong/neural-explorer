@@ -294,7 +294,7 @@ const DeepFigure: ComponentType<{ step: number }> = ({ step }) => {
   );
 };
 
-export const GOAL_SLIDE: SlideDef = { id: 'goals', section: 'neuron', tag: '학습 목표', title: '오늘 할 수 있게 되는 것 넷', steps: 3, component: Goals,
+export const GOAL_SLIDE: SlideDef = { id: 'goals', section: 'neuron', title: '학습 목표', steps: 3, component: Goals,
   notes: ['활동지 첫 쪽의 학습 목표 네 개. "3B 모델"의 B는 billion, 10억. 무엇이 10억 개인지 세션1 끝에서 센다.'] };
 
 export const NEURON_EXTRA: SlideDef[] = [
