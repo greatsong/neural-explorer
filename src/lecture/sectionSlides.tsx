@@ -179,20 +179,20 @@ const GdEta: ComponentType<{ step: number }> = ({ step }) => {
 };
 
 export const FORWARD_SLIDES: SlideDef[] = [
-  { id: 'fw-chain', section: 'forward', tag: '2-1', title: '뉴런을 이으면 순전파', steps: 4, component: FwChain,
+  { id: 'fw-chain', section: 'forward', tag: '2-1', title: '뉴런을 이으면 순전파', formula: 'z₁ = w₁·x + b₁ → h = ReLU(z₁)', steps: 4, component: FwChain,
     notes: ['뉴런마다 세션1의 계산을 그대로 함. 앞 뉴런의 출력 h가 뒤 뉴런의 입력.'] },
-  { id: 'fw-net', section: 'forward', tag: '2-2', title: '3 × 2 × 1 신경망의 순전파', steps: 3, component: FwNet,
+  { id: 'fw-net', section: 'forward', tag: '2-2', title: '3 × 2 × 1 신경망의 순전파', formula: 'h = ReLU(w₁x₁ + w₂x₂ + w₃x₃ + b)', steps: 3, component: FwNet,
     notes: ['1-4에서 파라미터 11개를 센 신경망. 실선은 h₁, 점선은 h₂. 편향은 선 위가 아니라 뉴런 옆 b에서 읽음.'] },
-  { id: 'fw-relu', section: 'forward', tag: '2-3', title: 'ReLU를 빼면 직선뿐', steps: 3, component: FwRelu,
+  { id: 'fw-relu', section: 'forward', tag: '2-3', title: 'ReLU를 빼면 직선뿐', formula: 'h = ReLU(2x − 1),  ŷ = ReLU(h − 3)', steps: 3, component: FwRelu,
     notes: ['왼쪽은 직선, 오른쪽은 꺾인 선. 꺾인 선을 모으면 곡선 모양도 만들 수 있음. 바로 플레이그라운드에서 봄.'] },
   { id: 'fw-playground', section: 'forward', title: '플레이그라운드 세 장면', steps: 2, component: FwPlayground,
     notes: ['장면 ① 은닉층 없음 → 직선. 장면 ② Linear → 여전히 직선. 장면 ③ ReLU → 경계가 꺾이며 원을 둘러쌈.', '장면 ③ 파라미터: 선 2×4 + 4×1 = 12, 뉴런 4 + 1 = 5, 합 17.'] },
 ];
 
 export const LOSS_SLIDES: SlideDef[] = [
-  { id: 'loss-e', section: 'loss', tag: '3-1', title: '오차는 예측 빼기 정답', steps: 4, component: LossE,
+  { id: 'loss-e', section: 'loss', tag: '3-1', title: '오차는 예측 빼기 정답', formula: 'e = ŷ − y', steps: 4, component: LossE,
     notes: ['e = 예측 − 정답으로 고정. (−0.5)² = 0.25를 칠판에 씀.', '"절댓값으로 하면 안 돼요?"가 나오면 4-A에서 답함.'] },
-  { id: 'loss-mse', section: 'loss', tag: '3-2', title: '다섯 점의 손실, MSE', steps: 4, component: LossMse,
+  { id: 'loss-mse', section: 'loss', tag: '3-2', title: '다섯 점의 손실, MSE', formula: 'MSE = (e₁² + … + e₅²) ÷ 5', steps: 4, component: LossMse,
     notes: ['앱 A2에서 기울기 w 1, 절편 b 2로 맞추면 MSE 6. Σe²에서 멈추지 말고 5로 나눔.'] },
 ];
 
@@ -201,8 +201,8 @@ export const GD_SLIDES: SlideDef[] = [
     notes: ['이 세션의 기울기는 직선 y = 2x + 1의 기울기가 아니라 손실 곡선의 기울기.', '½을 곱하지 않으면 기울기가 모두 2배. ½을 곱하면 b의 기울기가 오차 e와 같아져 4-B 식이 간단해짐.'] },
   { id: 'gd-tangent', section: 'gd', tag: '4A-1', title: '접선의 방향과 기울기 부호', steps: 4, component: GdTangent,
     notes: ['앱 A3 b 모드에서 b = −2, 3, 1로 옮겨 접선을 확인. 슬라이더는 방향키로 0.05씩.'] },
-  { id: 'gd-update', section: 'gd', tag: '4A-2', title: '업데이트 식으로 세 step', steps: 3, component: GdUpdate,
+  { id: 'gd-update', section: 'gd', tag: '4A-2', title: '업데이트 식으로 세 step', formula: '새 b = 지금 b − η × 기울기', steps: 3, component: GdUpdate,
     notes: ['앱 A3 "한 step 진행"을 세 번 누르면 현재 b가 −0.5, 0.25, 0.625로 종이와 같이 움직임.', '절댓값 손실이면 바닥에서 뾰족해 이동 거리가 저절로 줄지 않음.'] },
-  { id: 'gd-eta', section: 'gd', tag: '4A-3', title: '보폭 η를 바꾸면', steps: 4, component: GdEta,
+  { id: 'gd-eta', section: 'gd', tag: '4A-3', title: '보폭 η를 바꾸면', formula: '새 b = −2 − η × (−3)', steps: 4, component: GdEta,
     notes: ['앱 A3 칩 네 개: 느림 → 수렴 → 진동 → 발산. 발산은 점선이 그래프 윗변을 따라 오감.'] },
 ];

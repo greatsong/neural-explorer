@@ -130,6 +130,9 @@ export function Lecture() {
               )}
               <h1 className="text-[40px] font-bold tracking-tight leading-tight m-0">{slide.title}</h1>
               {slide.sub && <span className="text-[22px] text-muted">{slide.sub}</span>}
+              {slide.formula && (
+                <span className="ml-auto self-center text-[27px] font-semibold text-accent bg-accent-bg/60 px-[18px] py-[5px] rounded-lg tabular-nums whitespace-nowrap">{slide.formula}</span>
+              )}
             </div>
             <div key={index} className="flex-1 min-h-0 lec-slide-in">
               <Body step={step} />

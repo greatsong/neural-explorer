@@ -14,6 +14,7 @@ export interface SlideDef {
   tag?: string;      // 활동지 문항 번호 (작게)
   title: string;
   sub?: string;
+  formula?: string;  // 제목 줄 오른쪽에 띄우는 그 장의 식
   steps: number;     // 클릭 단계 수 (0..steps)
   component: ComponentType<{ step: number }>;
   notes?: string[];
@@ -49,6 +50,7 @@ const A1Predict: ComponentType<{ step: number }> = ({ step }) => {
     <Layout
       figure={
         <NeuronFigure
+          detail
           symbolic={s === 0}
           inputs={[{ name: 'x₁', value: s >= 1 ? x1 : null }, { name: 'x₂', value: s >= 1 ? x2 : null }]}
           weights={[
@@ -109,6 +111,7 @@ const A1Negative: ComponentType<{ step: number }> = ({ step }) => {
     <Layout
       figure={
         <NeuronFigure
+          detail
           inputs={[{ name: 'x₁', value: x1 }, { name: 'x₂', value: x2 }]}
           weights={[
             { name: 'w₁', value: w1, hot: step >= 1 && w1 !== 2, product: `${fmt(w1)} × ${x1} = ${fmt(w1 * x1)}` },
@@ -157,6 +160,7 @@ const B1Experiment: ComponentType<{ step: number }> = ({ step }) => {
     <Layout
       figure={
         <NeuronFigure
+          detail
           inputs={[{ name: 'x₁', value: x1 }, { name: 'x₂', value: x2 }]}
           weights={[
             { name: 'w₁', value: w1, prev: step === 1 ? 1 : null, hot: step === 1, product: `${fmt(w1)} × ${x1} = ${fmt(w1 * x1)}` },
@@ -341,9 +345,9 @@ export const SLIDES: SlideDef[] = [
   { id: 'cover', section: 'neuron', title: '', steps: 0, component: Cover },
   GOAL_SLIDE,
   DIVIDERS.neuron,
-  { id: 'a1-predict', section: 'neuron', tag: '1-1', title: '인공 뉴런 하나가 예측을 만든다', steps: 5, component: A1Predict,
+  { id: 'a1-predict', section: 'neuron', tag: '1-1', title: '인공 뉴런 하나가 예측을 만든다', formula: 'z = w₁·x₁ + w₂·x₂ + b', steps: 5, component: A1Predict,
     notes: ['화면이 인공 뉴런 하나입니다. 왼쪽 두 원이 입력, 선 위의 w가 가중치입니다. 뉴런 안에서 곱해 더하고 b를 더한 z가 ReLU를 지나 ŷ이 됩니다.', '활동지 1-1 시범 줄과 같은 숫자입니다.'] },
-  { id: 'a1-negative', section: 'neuron', tag: '1-1', title: '가중치를 바꾸면', steps: 4, component: A1Negative,
+  { id: 'a1-negative', section: 'neuron', tag: '1-1', title: '가중치를 바꾸면', formula: 'z = w₁·x₁ + w₂·x₂ + b', steps: 4, component: A1Negative,
     notes: ['활동지 1-1 표의 네 줄을 순서대로 보여 줍니다. 셋째 줄(w₂ = −1)에서 z가 시범 줄보다 작아지는 것을 확인합니다. 슬라이더로 다른 값도 보여 줄 수 있고 "활동지 값으로"로 돌아옵니다.'] },
   ...NEURON_EXTRA,
   DIVIDERS.forward,
@@ -358,11 +362,11 @@ export const SLIDES: SlideDef[] = [
     notes: ['건너뛸 수 있는 슬라이드입니다. 미분을 아는 학생을 위해 ∂ 기호와 연쇄법칙, ½·2가 지워지는 것만 보여 줍니다.'] },
   { id: 'grad-formula', section: 'grad', tag: '4-B', title: '4-B에서 쓰는 식', steps: 4, component: GradFormula,
     notes: ['식은 배율 설명이 끝난 뒤에 처음 보여 줌. 학생은 이 상자를 보며 4B-2부터 4B-5까지 종이로 계산함.'] },
-  { id: 'b1-experiment', section: 'grad', tag: '4B-1', title: '왜 e에 x가 곱해지나', steps: 3, component: B1Experiment,
+  { id: 'b1-experiment', section: 'grad', tag: '4B-1', title: '왜 e에 x가 곱해지나', formula: 'z = w₁·x₁ + w₂·x₂ + b', steps: 3, component: B1Experiment,
     notes: ['활동지 4B-1 실험. 가중치 하나만 0.5 올릴 때 z가 입력값 × 0.5만큼 변하는 것을 확인합니다. 방금 유도한 ∂ŷ/∂w = x를 숫자로 확인하는 장입니다.'] },
-  { id: 'a5-one-step', section: 'grad', tag: '4B-2 ~ 4B-5', title: '한 step', steps: 4, component: OneStep,
+  { id: 'a5-one-step', section: 'grad', tag: '4B-2 ~ 4B-5', title: '한 step', formula: 'dw = e·x,  db = e,  새 w = w − η·dw', steps: 4, component: OneStep,
     notes: ['예측 → 오차 → 기울기 → 업데이트 → 다시 예측. 학생이 종이로 계산한 뒤 화면에서 확인합니다.', '손실 24.5 → 6.125.'] },
-  { id: 'a5-repeat', section: 'grad', tag: '도전', title: '반복하면 학습', steps: 3, component: Repeat,
+  { id: 'a5-repeat', section: 'grad', tag: '도전', title: '반복하면 학습', formula: 'dw = e·x,  db = e,  새 w = w − η·dw', steps: 3, component: Repeat,
     notes: ['도전 문항의 두 번째 step(w 1.575, b 0.525)을 확인한 뒤 자동 학습을 켭니다. w ≈ 2.1, b ≈ 0.7에서 멈춥니다.'] },
   ...END_SLIDES,
 ];

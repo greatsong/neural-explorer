@@ -63,6 +63,7 @@ const Bias: ComponentType<{ step: number }> = ({ step }) => {
     <Layout
       figure={
         <NeuronFigure
+          detail
           inputs={[{ name: 'x₁', value: x1 }, { name: 'x₂', value: x2 }]}
           weights={[{ name: 'w₁', value: w1, product: '1 × 2 = 2' }, { name: 'w₂', value: w2, product: '1 × 3 = 3' }]}
           bias={{ value: b, hot: step >= 1, prev: step === 1 ? 0 : step === 2 ? 3 : null }}
@@ -118,6 +119,7 @@ const Relu: ComponentType<{ step: number }> = ({ step }) => {
     <Layout
       figure={
         <NeuronFigure
+          detail
           inputs={[{ name: 'x₁', value: x1 }, { name: 'x₂', value: x2 }]}
           weights={[{ name: 'w₁', value: w1 }, { name: 'w₂', value: w2 }]}
           bias={{ value: b }}
@@ -299,9 +301,9 @@ export const GOAL_SLIDE: SlideDef = { id: 'goals', section: 'neuron', title: '�
   notes: ['활동지 첫 쪽의 학습 목표 네 개. "3B 모델"의 B는 billion, 10억. 무엇이 10억 개인지 세션1 끝에서 센다.'] };
 
 export const NEURON_EXTRA: SlideDef[] = [
-  { id: 'a1-bias', section: 'neuron', tag: '1-2', title: '편향이 더해지면', steps: 3, component: Bias,
+  { id: 'a1-bias', section: 'neuron', tag: '1-2', title: '편향이 더해지면', formula: 'z = w₁·x₁ + w₂·x₂ + b', steps: 3, component: Bias,
     notes: ['w₁ = w₂ = 1로 두면 가중치 부분은 늘 5. b를 0, 3, −7로 바꾸면 z가 5, 8, −2.', '앱 A1의 b 슬라이더는 −3까지라 −7은 종이로만 계산한다.'] },
-  { id: 'a1-relu', section: 'neuron', tag: '1-3', title: '활성화 함수 ReLU', steps: 3, component: Relu,
+  { id: 'a1-relu', section: 'neuron', tag: '1-3', title: '활성화 함수 ReLU', formula: 'ŷ = ReLU(z) = max(0, z)', steps: 3, component: Relu,
     notes: ['1-2의 b = −7에서 z = −2가 ReLU를 지나 0. ReLU(0)은 0과 0 중 큰 쪽이라 0.'] },
   { id: 'a1-params1', section: 'neuron', tag: '1-4', title: '파라미터 세기 ① 3 × 2 × 1', steps: 4, component: Params1,
     notes: ['선 하나가 가중치 하나, 입력을 뺀 동그라미 하나가 편향 하나. 교차하는 선을 하나로 보는 학생이 있으니 선마다 번호를 붙이며 세게 한다.'] },

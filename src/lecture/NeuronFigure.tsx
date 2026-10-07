@@ -58,6 +58,7 @@ export interface NeuronFigureProps {
   loss?: LossSpec;
   back?: BackSpec;
   symbolic?: boolean; // 값 대신 기호만 (유도 화면)
+  detail?: boolean;   // 자세히 보기: 큰 원 안에 Σ의 덧셈과 ReLU 과정을 그대로 적음 (1-1 ~ 1-3, 4B-1)
   children?: ReactNode; // 추가 주석 레이어
 }
 
@@ -113,7 +114,48 @@ function Fade({ show, children, dim }: { show: boolean | undefined; children: Re
   );
 }
 
+type Geom = { NX: number; NY: number; NR: number; BX: number; BY: number; BR: number };
+
+// 자세히 보기: 왼쪽 반원에 "4 / + 3 / + 0 / ─ / z = 7", 오른쪽 반원에 "max(0, z) / max(0, 7) / = 7"
+function DetailInside({ G, p }: { G: Geom; p: NeuronFigureProps }) {
+  const LX = G.NX - 58, RX = G.NX + 58;
+  const known = !p.symbolic && p.weights.every((w, i) => w.value !== null && w.value !== undefined && p.inputs[i]?.value !== null && p.inputs[i]?.value !== undefined);
+  const bVal = p.bias.value;
+  const bKnown = !p.symbolic && bVal !== null && bVal !== undefined;
+  const zVal = p.z?.value;
+  const zKnown = !!p.z?.show && !p.symbolic && zVal !== null && zVal !== undefined;
+  const terms = p.weights.map((w, i) => (known ? fmt((w.value as number) * (p.inputs[i].value as number)) : `${w.name}·${p.inputs[i]?.name ?? 'x'}`));
+  const par = (t: string) => (t.startsWith('−') ? `(${t})` : t);
+  const lines = [terms[0], ...terms.slice(1).map((t) => `+ ${par(t)}`), bKnown ? `+ ${(bVal as number) < 0 ? `(${fmt(bVal)})` : fmt(bVal)}` : '+ b'];
+  const sumHot = p.flow === 'sum' || !!p.z?.hot;
+  const reluOn = p.relu?.show !== false;
+  const yv = p.yhat?.value;
+  const yKnown = !!p.yhat?.show && !p.symbolic && yv !== null && yv !== undefined;
+  const y0 = G.NY - 40, dy = 27;
+  return (
+    <g>
+      <text x={LX} y={G.NY - 74} textAnchor="middle" fill={ACCENT} fontSize={30} fontWeight={700}>Σ</text>
+      {lines.map((t, i) => (
+        <text key={i} x={LX} y={y0 + i * dy} textAnchor="middle" fontSize={21} fontWeight={600}
+          fill={i === lines.length - 1 ? (p.bias.hot ? ACCENT : TEXT) : TEXT}>{t}</text>
+      ))}
+      <line x1={LX - 46} y1={y0 + lines.length * dy - 14} x2={LX + 46} y2={y0 + lines.length * dy - 14} stroke={sumHot ? ACCENT : MUTED} strokeWidth={2} />
+      <text x={LX} y={y0 + lines.length * dy + 14} textAnchor="middle" fill={sumHot || zKnown ? ACCENT : MUTED} fontSize={23} fontWeight={700}>
+        {zKnown ? `z = ${fmt(zVal)}` : 'z'}
+      </text>
+      <g opacity={reluOn ? 1 : 0.3}>
+        <text x={RX} y={G.NY - 74} textAnchor="middle" fill={ACCENT} fontSize={22} fontWeight={700}>ReLU</text>
+        <text x={RX} y={G.NY - 30} textAnchor="middle" fill={p.relu?.hot ? ACCENT : MUTED} fontSize={20} fontWeight={600}>max(0, z)</text>
+        {zKnown && <text x={RX} y={G.NY + 4} textAnchor="middle" fill={p.relu?.hot ? ACCENT : TEXT} fontSize={20} fontWeight={600}>max(0, {fmt(zVal)})</text>}
+        {yKnown && <text x={RX} y={G.NY + 44} textAnchor="middle" fill={ACCENT} fontSize={24} fontWeight={700}>= {fmt(yv)}</text>}
+      </g>
+    </g>
+  );
+}
+
 export function NeuronFigure(p: NeuronFigureProps) {
+  // 자세히 보기 모드는 원을 키우고 b를 Σ 쪽(왼쪽 아래)으로 들어오게 한다
+  const G: Geom = p.detail ? { NX: 500, NY: 215, NR: 118, BX: 455, BY: 400, BR: 24 } : { NX, NY, NR, BX, BY, BR };
   const n = p.inputs.length;
   const back = p.back ?? { stage: 0 };
   const dimF = back.dimForward && back.stage > 0;
@@ -122,12 +164,12 @@ export function NeuronFigure(p: NeuronFigureProps) {
 
   // 입력 선의 끝점(뉴런 원 둘레)
   const edgeEnd = (y: number) => {
-    const dx = NX - IX, dy = NY - y;
+    const dx = G.NX - IX, dy = G.NY - y;
     const d = Math.hypot(dx, dy);
-    return { x: NX - (dx / d) * (NR + 2), y: NY - (dy / d) * (NR + 2) };
+    return { x: G.NX - (dx / d) * (G.NR + 2), y: G.NY - (dy / d) * (G.NR + 2) };
   };
   const edgeStart = (y: number) => {
-    const dx = NX - IX, dy = NY - y;
+    const dx = G.NX - IX, dy = G.NY - y;
     const d = Math.hypot(dx, dy);
     return { x: IX + (dx / d) * (IR + 2), y: y + (dy / d) * (IR + 2) };
   };
@@ -182,42 +224,46 @@ export function NeuronFigure(p: NeuronFigureProps) {
 
         {/* b → 뉴런 */}
         <Fade show={showB}>
-          <line x1={BX} y1={BY - BR - 2} x2={NX} y2={NY + NR + 2} stroke={p.bias.hot ? ACCENT : MUTED} strokeWidth={p.bias.hot ? 5 : 3} strokeOpacity={p.bias.hot ? 0.95 : 0.5} strokeLinecap="round" className={p.bias.hot ? 'lec-flow' : ''} markerEnd={p.bias.hot ? 'url(#lec-fwd)' : 'url(#lec-fwd-m)'} />
-          <circle cx={BX} cy={BY} r={BR} fill={BG} stroke={p.bias.hot ? ACCENT : MUTED} strokeWidth={2.4} />
-          <text x={BX} y={BY + 8} textAnchor="middle" fill={p.bias.hot ? ACCENT : TEXT} fontSize={24} fontWeight={700}>b</text>
+          <line x1={G.BX} y1={G.BY - G.BR - 2} x2={G.BX} y2={G.NY + Math.sqrt(G.NR ** 2 - (G.BX - G.NX) ** 2) + 2} stroke={p.bias.hot ? ACCENT : MUTED} strokeWidth={p.bias.hot ? 5 : 3} strokeOpacity={p.bias.hot ? 0.95 : 0.5} strokeLinecap="round" className={p.bias.hot ? 'lec-flow' : ''} markerEnd={p.bias.hot ? 'url(#lec-fwd)' : 'url(#lec-fwd-m)'} />
+          <circle cx={G.BX} cy={G.BY} r={G.BR} fill={BG} stroke={p.bias.hot ? ACCENT : MUTED} strokeWidth={2.4} />
+          <text x={G.BX} y={G.BY + 8} textAnchor="middle" fill={p.bias.hot ? ACCENT : TEXT} fontSize={24} fontWeight={700}>b</text>
           {p.bias.value !== null && p.bias.value !== undefined && !p.symbolic && (
-            <Badge cx={BX + BR + 14} cy={BY} anchor="start"
+            <Badge cx={G.BX + G.BR + 14} cy={G.BY} anchor="start"
               label={p.bias.prev !== null && p.bias.prev !== undefined ? `b = ${fmt(p.bias.prev)} → ${fmt(p.bias.value)}` : `b = ${fmt(p.bias.value)}`}
               color={p.bias.hot ? ACCENT : MUTED} size={22} />
           )}
           <Fade show={!!p.bias.badge}>
-            {p.bias.badge && <Badge cx={BX - BR - 14} cy={BY} anchor="end" label={p.bias.badge} color={ACCENT} fill={ACCENT_BG} size={21} />}
+            {p.bias.badge && <Badge cx={G.BX - G.BR - 14} cy={G.BY} anchor="end" label={p.bias.badge} color={ACCENT} fill={ACCENT_BG} size={21} />}
           </Fade>
         </Fade>
 
         {/* 뉴런 원 */}
-        <circle cx={NX} cy={NY} r={NR} fill={ACCENT_BG} stroke={ACCENT} strokeWidth={3} />
-        <line x1={NX} y1={NY - NR + 3} x2={NX} y2={NY + NR - 3} stroke={ACCENT} strokeWidth={2} strokeOpacity={0.6} />
-        <text x={NX - 34} y={NY + 14} textAnchor="middle" fill={ACCENT} fontSize={40} fontWeight={700} opacity={p.flow === 'sum' || p.z?.hot ? 1 : 0.85}>Σ</text>
-        <text x={NX + 36} y={NY + 8} textAnchor="middle" fill={p.relu?.hot ? ACCENT : ACCENT} fontSize={21} fontWeight={700} opacity={p.relu?.show === false ? 0.25 : 1}>ReLU</text>
-        <text x={NX + NR - 6} y={NY - NR - 8} textAnchor="start" fill={MUTED} fontSize={19}>인공 뉴런</text>
+        <circle cx={G.NX} cy={G.NY} r={G.NR} fill={ACCENT_BG} stroke={ACCENT} strokeWidth={3} />
+        <line x1={G.NX} y1={G.NY - G.NR + 3} x2={G.NX} y2={G.NY + G.NR - 3} stroke={ACCENT} strokeWidth={2} strokeOpacity={0.6} />
+        {p.detail ? <DetailInside G={G} p={p} /> : (
+          <>
+            <text x={G.NX - 34} y={G.NY + 14} textAnchor="middle" fill={ACCENT} fontSize={40} fontWeight={700} opacity={p.flow === 'sum' || p.z?.hot ? 1 : 0.85}>Σ</text>
+            <text x={G.NX + 36} y={G.NY + 8} textAnchor="middle" fill={p.relu?.hot ? ACCENT : ACCENT} fontSize={21} fontWeight={700} opacity={p.relu?.show === false ? 0.25 : 1}>ReLU</text>
+          </>
+        )}
+        <text x={G.NX + G.NR - 6} y={G.NY - G.NR - 8} textAnchor="start" fill={MUTED} fontSize={19}>인공 뉴런</text>
 
         {/* z 배지 — Σ와 ReLU 사이 값 */}
-        <Fade show={p.z?.show}>
-          <line x1={NX} y1={NY - NR - 2} x2={NX} y2={NY - NR - 24} stroke={p.z?.hot ? ACCENT : MUTED} strokeWidth={2} />
-          <Badge cx={NX} cy={NY - NR - 44} label={p.symbolic || p.z?.value === null || p.z?.value === undefined ? 'z' : `z = ${fmt(p.z?.value)}`} color={p.z?.hot ? ACCENT : MUTED} size={23} />
+        <Fade show={p.z?.show && !p.detail}>
+          <line x1={G.NX} y1={G.NY - G.NR - 2} x2={G.NX} y2={G.NY - G.NR - 24} stroke={p.z?.hot ? ACCENT : MUTED} strokeWidth={2} />
+          <Badge cx={G.NX} cy={G.NY - G.NR - 44} label={p.symbolic || p.z?.value === null || p.z?.value === undefined ? 'z' : `z = ${fmt(p.z?.value)}`} color={p.z?.hot ? ACCENT : MUTED} size={23} />
         </Fade>
 
         {/* 뉴런 → ŷ */}
-        <line x1={NX + NR + 2} y1={NY} x2={YX - YR - 4} y2={NY} stroke={p.flow === 'out' ? ACCENT : MUTED} strokeWidth={p.flow === 'out' ? 5 : 3} strokeOpacity={p.flow === 'out' ? 0.95 : 0.5} strokeLinecap="round" className={p.flow === 'out' ? 'lec-flow' : ''} markerEnd={p.flow === 'out' ? 'url(#lec-fwd)' : 'url(#lec-fwd-m)'} />
+        <line x1={G.NX + G.NR + 2} y1={G.NY} x2={YX - YR - 4} y2={G.NY} stroke={p.flow === 'out' ? ACCENT : MUTED} strokeWidth={p.flow === 'out' ? 5 : 3} strokeOpacity={p.flow === 'out' ? 0.95 : 0.5} strokeLinecap="round" className={p.flow === 'out' ? 'lec-flow' : ''} markerEnd={p.flow === 'out' ? 'url(#lec-fwd)' : 'url(#lec-fwd-m)'} />
 
         {/* ŷ 원 */}
-        <circle cx={YX} cy={NY} r={YR} fill={p.yhat?.hot ? ACCENT : BG} stroke={ACCENT} strokeWidth={2.6} />
-        <text x={YX} y={NY + 9} textAnchor="middle" fill={p.yhat?.hot ? '#fff' : ACCENT} fontSize={26} fontWeight={700}>ŷ</text>
+        <circle cx={YX} cy={G.NY} r={YR} fill={p.yhat?.hot ? ACCENT : BG} stroke={ACCENT} strokeWidth={2.6} />
+        <text x={YX} y={G.NY + 9} textAnchor="middle" fill={p.yhat?.hot ? '#fff' : ACCENT} fontSize={26} fontWeight={700}>ŷ</text>
         <Fade show={p.yhat?.show && !p.symbolic && p.yhat?.value !== null && p.yhat?.value !== undefined}>
-          <Badge cx={YX} cy={NY - YR - 32} label={`ŷ = ${fmt(p.yhat?.value)}`} color={ACCENT} size={23} />
+          <Badge cx={YX} cy={G.NY - YR - 32} label={`ŷ = ${fmt(p.yhat?.value)}`} color={ACCENT} size={23} />
         </Fade>
-        <text x={YX} y={NY + YR + 30} textAnchor="middle" fill={MUTED} fontSize={19}>예측값</text>
+        <text x={YX} y={G.NY + YR + 30} textAnchor="middle" fill={MUTED} fontSize={19}>예측값</text>
 
         {/* 입력 원 */}
         {p.inputs.map((inp, i) => {
@@ -235,22 +281,22 @@ export function NeuronFigure(p: NeuronFigureProps) {
 
       {/* ───────── 손실 층 (ŷ → L) ───────── */}
       <Fade show={lossOn}>
-        <line x1={YX + YR + 4} y1={NY} x2={LX - LR - 4} y2={NY} stroke={MUTED} strokeWidth={3} strokeOpacity={0.5} strokeLinecap="round" markerEnd="url(#lec-fwd-m)" />
-        <circle cx={LX} cy={NY} r={LR} fill={SURFACE} stroke={MUTED} strokeWidth={2.4} />
-        <text x={LX} y={NY + 9} textAnchor="middle" fill={TEXT} fontSize={26} fontWeight={700}>L</text>
-        <text x={LX} y={NY + LR + 30} textAnchor="middle" fill={MUTED} fontSize={19}>손실</text>
+        <line x1={YX + YR + 4} y1={G.NY} x2={LX - LR - 4} y2={G.NY} stroke={MUTED} strokeWidth={3} strokeOpacity={0.5} strokeLinecap="round" markerEnd="url(#lec-fwd-m)" />
+        <circle cx={LX} cy={G.NY} r={LR} fill={SURFACE} stroke={MUTED} strokeWidth={2.4} />
+        <text x={LX} y={G.NY + 9} textAnchor="middle" fill={TEXT} fontSize={26} fontWeight={700}>L</text>
+        <text x={LX} y={G.NY + LR + 30} textAnchor="middle" fill={MUTED} fontSize={19}>손실</text>
         <Fade show={p.loss?.y !== null && p.loss?.y !== undefined}>
-          <Badge cx={(YX + LX) / 2} cy={NY - 78} label={`y = ${fmt(p.loss?.y)}`} color={MUTED} size={22} bold={false} />
-          <text x={(YX + LX) / 2} y={NY - 104} textAnchor="middle" fill={MUTED} fontSize={17}>정답</text>
+          <Badge cx={(YX + LX) / 2} cy={G.NY - 78} label={`y = ${fmt(p.loss?.y)}`} color={MUTED} size={22} bold={false} />
+          <text x={(YX + LX) / 2} y={G.NY - 104} textAnchor="middle" fill={MUTED} fontSize={17}>정답</text>
         </Fade>
         <Fade show={!!p.loss?.e}>
-          <Badge cx={(YX + LX) / 2 + 6} cy={NY - 30} label={p.loss?.e ?? ''} color={ORANGE} size={22} />
+          <Badge cx={(YX + LX) / 2 + 6} cy={G.NY - 30} label={p.loss?.e ?? ''} color={ORANGE} size={22} />
         </Fade>
         <Fade show={!!p.loss?.L}>
-          <Badge cx={LX} cy={NY - LR - 36} label={p.loss?.L ?? ''} color={TEXT} size={22} />
+          <Badge cx={LX} cy={G.NY - LR - 36} label={p.loss?.L ?? ''} color={TEXT} size={22} />
         </Fade>
         <Fade show={!!p.loss?.edgeBadge}>
-          <Badge cx={(YX + LX) / 2} cy={NY + 4} label={p.loss?.edgeBadge ?? ''} color={ORANGE} fill={ORANGE_BG} size={22} />
+          <Badge cx={(YX + LX) / 2} cy={G.NY + 4} label={p.loss?.edgeBadge ?? ''} color={ORANGE} fill={ORANGE_BG} size={22} />
         </Fade>
         <Fade show={!!p.loss?.curve}>
           {p.loss?.curve && <LossCurve {...p.loss.curve} />}
