@@ -64,11 +64,11 @@ function NetSketch() {
   );
 }
 export const DIVIDERS = {
-  neuron: divider('div-1', 'neuron', '#1', '동그라미와 선은\n어떤 의미일까요?', <NetSketch />),
-  forward: divider('div-2', 'forward', '#2', '입력 → 뉴럴넷 → 출력,\n계산은 어떻게 흐를까?'),
-  loss: divider('div-3', 'loss', '#3', '파라미터가 적절한 값으로\n학습되었는지 판단하려면?'),
-  gd: divider('div-4', 'gd', '#4', '오차를 줄이는 알고리즘,\n경사하강법'),
-  grad: divider('div-5', 'grad', '#5', '기울기는 어떻게 계산되고,\n오차는 어떻게 줄여 나갈까?'),
+  neuron: divider('div-1', 'neuron', '#1', '동그라미와 선,\n이 연결은 무엇을 뜻할까?', <NetSketch />),
+  forward: divider('div-2', 'forward', '#2', '딥러닝,\n무엇을 학습하는 걸까?'),
+  loss: divider('div-3', 'loss', '#3', '잘 학습되었다는 건\n어떻게 정의할까?'),
+  gd: divider('div-4', 'gd', '#4', '기계 스스로 오차를 줄여 가는 알고리즘,\n경사하강법'),
+  grad: divider('div-5', 'grad', '#5', '기울기는 어떻게 구하고,\n파라미터를 어떻게 업데이트할까?'),
 };
 
 /* ───────── 1-2 편향이 더해지면 ───────── */
