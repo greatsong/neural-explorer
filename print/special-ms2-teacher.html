@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<title>[교사용] 특강 — 손으로 풀어보는 딥러닝의 원리 · 진행안·정답</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;padding:14mm 12mm 16mm;max-width:210mm;margin:0 auto}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:18pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h3{font-size:11.5pt;font-weight:700;margin-top:12pt;margin-bottom:5pt;page-break-after:avoid}
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt;page-break-after:avoid}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .tlab{display:inline-block;background:#1a1a1a;color:#fff;font-size:9pt;padding:1pt 8pt;border-radius:3px;margin-right:8pt;font-weight:700}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0 10pt;font-size:9.8pt;break-inside:avoid;page-break-inside:avoid}
+  .tb th,.tb td{border:1px solid #888;padding:4pt 6pt;text-align:center;vertical-align:top}
+  .tb th{background:#1a1a1a;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb td.l{text-align:left}
+  .ans{background:#fff8e1;border:1.2px solid #c89000;border-radius:5px;padding:8pt 10pt;margin:8pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .ans .lab{display:inline-block;background:#000;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .ans .v{font-family:'JetBrains Mono',monospace;font-weight:600}
+  .tt{background:#eef6ee;border:1px solid #7a7;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .tt .lab{display:inline-block;background:#274;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .pf{background:#fbeeee;border:1px solid #c88;border-radius:5px;padding:7pt 10pt;margin:8pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .pf .lab{display:inline-block;background:#a33;color:#fff;font-size:8.5pt;padding:1pt 7pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .sc{background:#f4f4f4;border-left:3px solid #555;padding:7pt 10pt;margin:8pt 0;font-size:10pt;border-radius:0 4px 4px 0;break-inside:avoid;page-break-inside:avoid}
+  .sc .lab{font-weight:700;margin-right:6pt}
+  .qh{font-weight:700;margin:10pt 0 4pt;font-size:11pt}
+  .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .url{font-family:'JetBrains Mono',monospace;font-size:8.5pt;word-break:break-all;background:#fafafa;border:1px solid #ddd;padding:5pt 7pt;border-radius:4px;margin:4pt 0 8pt}
+  ul,ol{padding-left:20pt;margin:4pt 0 8pt}
+  li{margin-bottom:3pt}
+  p{margin-bottom:6pt}
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0;max-width:none}
+    .tb,.ans,.tt,.pf,.sc{break-inside:avoid;page-break-inside:avoid}
+    .tb th,.qh .num,.lh .tlab,.ans .lab{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .ans,.tt,.pf,.sc,.tt .lab,.pf .lab{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<header class="lh">
+<div><span class="tlab">교사용</span><span class="lab">NEURAL EXPLORER · 특강 진행안 · 정답 · 시연 설정</span></div>
+<h1>손으로 풀어보는 딥러닝의 원리</h1>
+<div class="sub">과학고 준비 중학교 2학년 · 120분 연강 또는 100분 · 짝 활동 권장 · 학생용 활동지·교재와 짝을 이룸</div>
+</header>
+
+<h2>0. 학습 목표</h2>
+<ol>
+<li>딥러닝 그림을 보고 은닉층(히든 레이어)이 몇 층인지, 인공 뉴런과 파라미터가 몇 개인지 셀 수 있다. "3B 모델"의 뜻을 파라미터 수로 설명할 수 있다. (세션1, 특히 1-4·1-5)</li>
+<li>인공 뉴런과 작은 신경망의 계산(순전파)을 손으로 하고, 활성화 함수가 필요한 이유를 설명할 수 있다. (세션2)</li>
+<li>오차와 손실을 계산하고, 오차를 제곱하는 이유를 설명할 수 있다. (세션3)</li>
+<li>기울기를 구해 파라미터를 한 step 고치고, 손실이 줄어드는 것을 확인할 수 있다. (세션4)</li>
+</ol>
+
+<h2>1. 사전 준비</h2>
+<table class="tb">
+<tr><th style="width:24%">항목</th><th>내용</th></tr>
+<tr><td class="lbl">인쇄물</td><td class="l">학생 1인당 활동지 <span class="mono">special-ms2-student.html</span> 1부 + 교재 <span class="mono">special-ms2-textbook.html</span> 1부. 교재는 특강 전날 미리 배부하면 계보 이야기 시간을 줄일 수 있다.</td></tr>
+<tr><td class="lbl">화면</td><td class="l">프로젝터. 브라우저 탭 여섯 개를 미리 열어 둔다. ⓪ 앱 A1 (처음 상태 그대로. 4B-1에서 가중치를 흔들어 본다) ⓪-2 앱 A2 (처음 상태. 3-2 뒤 기울기 w 1, 절편 b 2로 맞춰 MSE 6을 보여 준다) ① 앱 A3 (<strong>b 모드로 바꿔 둔다</strong>. 앱은 w 모드로 열린다. 활동지 4-A는 b 모드와 같은 문제다) ② 앱 A5 (자동 학습) ③ 앱 C2 (<strong>은닉층을 16으로 바꿔 둔다</strong>. 기본값은 4라 파라미터 수가 3,190으로 나온다. 1-5 시연 때 "+ 은닉층 추가"를 두 번 누르면 새 층이 8과 4로 생긴다. 두 층의 숫자 칸에 16을 입력해 세 층을 모두 16으로 맞추면 13,274가 표시된다) ④ 플레이그라운드 (아래 4절의 URL 세 개).</td></tr>
+<tr><td class="lbl">앱 주소</td><td class="l"><span class="mono">https://neural-explorer.vercel.app</span> → 사이드바에서 A3, A5. 학생은 앱을 열지 않아도 된다. 교사 시연 전용.</td></tr>
+<tr><td class="lbl">학생 준비물</td><td class="l">연필, 지우개. 계산기 없이 진행한다. 1-4의 큰 곱셈은 활동지에 결과가 적혀 있어 학생은 어떤 두 수를 곱하는지만 찾는다.</td></tr>
+<tr><td class="lbl">좌석</td><td class="l">2인 1조. 시범 칸을 보고도 막히면 짝과 먼저 확인하게 한다.</td></tr>
+</table>
+
+<h2>2. 시간 편성 — 120분 연강 또는 100분 축소판</h2>
+<p>활동지 전체를 학생이 손으로 채우면 실제로 130~160분이 걸린다. 그래서 두 편성을 준비했다. 상황에 맞게 고르면 되고, 어느 쪽이든 <strong>세션4-B(한 step 손계산)는 줄이지 않는다</strong>. 이 특강에서 가장 중요한 활동이다.</p>
+<table class="tb">
+<tr><th style="width:14%">구간</th><th style="width:9%">120분</th><th style="width:9%">100분</th><th>진행</th><th style="width:22%">100분에서 빼는 것</th></tr>
+<tr><td class="lbl">오프닝</td><td>8</td><td>8</td><td class="l">비트의 세상과 아톰의 세상. "3B 모델, 250B 모델이라는 말을 들어 봤나요? 어느 쪽이 좋아 보이나요?" 손들기로 첫 답을 받아 칠판에 적어 둔다(마무리에서 회수).</td><td class="l">—</td></tr>
+<tr><td class="lbl">세션1</td><td>12</td><td>10</td><td class="l">교재 1절 요점 2분 → 활동지 1-1 ~ 1-5. 1-4에서 그림을 보고 선과 뉴런을 세어 "3B = 이 w와 b가 30억 개"를 확인. 1-5에서 딥러닝 그림을 읽고, 앱 C2에서 은닉층을 세 층으로 늘려 보여 준다.</td><td class="l">1-2 (편향)</td></tr>
+<tr><td class="lbl">계보</td><td>7</td><td>6</td><td class="l">교재 2절. 3절의 요점 카드대로. 갈등 두 개를 반드시 남긴다.</td><td class="l">연도 나열을 줄이고 갈등 두 개만</td></tr>
+<tr><td class="lbl">세션2</td><td>18</td><td>15</td><td class="l">교재 3절 순전파·ReLU 3분 → 활동지 2-1 ~ 2-3. 2-3의 모눈 그리기까지.</td><td class="l">2-3의 모눈 그리기 → 교사 시연</td></tr>
+<tr><td class="lbl">플레이그라운드</td><td>6</td><td>5</td><td class="l">시연 3장면(4절). 파라미터 17개 세기 질문 하나.</td><td class="l">장면 ②를 짧게</td></tr>
+<tr><td class="lbl">휴식</td><td>10</td><td>5</td><td class="l">120분은 두 차시 사이 쉬는 시간.</td><td class="l">—</td></tr>
+<tr><td class="lbl">세션3</td><td>10</td><td>6</td><td class="l">교재 4절 2분 → 활동지 3-1, 3-2. "기계가 자기가 틀린 걸 어떻게 아는가"가 이 세션의 질문.</td><td class="l">3-2 → 4B-2의 오차 열과 합침</td></tr>
+<tr><td class="lbl">세션4-A</td><td>19</td><td>17</td><td class="l">교재 5절 → 앱 A3를 <strong>b 모드</strong>로 열어 두고 활동지 4A-1 ~ 4A-5. 4A-1의 "오차가 모두 b − 1"이 핵심이다. 4A-4의 세 걸음을 앱 "한 step 진행" 세 번과 대조한다. 120분에서도 4A-5는 앱 칩 시연과 함께 빠르게 간다.</td><td class="l">4A-3의 ½ 확인 상자, 4A-5 → 교사 시연</td></tr>
+<tr><td class="lbl">세션4-B</td><td>20</td><td>19</td><td class="l">교재 6절 → 활동지 4B-1 ~ 4B-5. 4B-1은 앱 A1에서 가중치를 흔들어 확인한다. 4B-5에서 점 (3, 7)의 e = −2.90과 전체 손실 28.5 → 4.77이 앱 A5 화면과 같은 것을 확인한다. 먼저 끝난 학생은 도전 문제.</td><td class="l">줄이지 않는다</td></tr>
+<tr><td class="lbl">마무리</td><td>8</td><td>5</td><td class="l">앱 A5 자동 실행 → 플레이그라운드 재생으로 손실 곡선 1분 → 활동지 끝-1 ~ 끝-3. 칠판의 첫 답과 비교.</td><td class="l">끝-3 → 과제</td></tr>
+<tr><td class="lbl">예비</td><td>2</td><td>4</td><td class="l">질문 받기.</td><td class="l">—</td></tr>
+<tr><td class="lbl">합계</td><td><strong>120</strong></td><td><strong>100</strong></td><td class="l" colspan="2">빼는 항목은 활동지에서 지우지 않고 "건너뜁니다"라고만 말한다. 관심 있는 학생은 집에서 풀 수 있다.</td></tr>
+</table>
+
+<h2>3. 계보 이야기 요점 카드 (7분)</h2>
+<table class="tb">
+<tr><th style="width:10%">연도</th><th style="width:22%">인물·사건</th><th>한 줄 요점</th><th style="width:22%">오늘 수업과의 연결</th></tr>
+<tr><td>1943</td><td class="l">매컬러 · 피츠</td><td class="l">신경세포를 수식 하나로. 입력의 합이 문턱값을 넘으면 1, 아니면 0. 방금 계산한 뉴런과 같은 구조. 연결 세기와 문턱값은 사람이 정했다.</td><td class="l">세션1의 식</td></tr>
+<tr><td>1958</td><td class="l">로젠블랫, 퍼셉트론</td><td class="l">틀리면 가중치를 스스로 고친다. 규칙은 오차 × 입력만큼 수정. 마크 1: 광센서 400개(20 × 20)로 입력, 모터로 돌리는 가변저항에 가중치 저장.</td><td class="l"><strong>연결</strong> 4B의 dw = 평균(e · x)와 같은 모양 → 4B-5에서 회수</td></tr>
+<tr><td>1969</td><td class="l">민스키 · 패퍼트, 『퍼셉트론』</td><td class="l">층이 하나면 직선 하나로만 나눈다. XOR 불가. 층을 쌓으면 풀 수 있지만 가운데 층 가중치를 고치는 방법이 널리 알려져 있지 않았다. 연구비가 줄고 첫 침체기.</td><td class="l"><strong>갈등</strong> 직선의 한계 → 2-3과 플레이그라운드. 가운데 층 학습 → 1986</td></tr>
+<tr><td>1986</td><td class="l">러멜하트 · 힌턴 · 윌리엄스</td><td class="l">역전파. 출력 오차를 거꾸로 전달해 가운데 층 가중치의 기울기까지 구한다. 당시 활성화 함수는 ReLU가 아니었다.</td><td class="l">오늘 한 step을 여러 층으로 확장한 것</td></tr>
+<tr><td>2012</td><td class="l">알렉스넷</td><td class="l">이미지 인식 대회 우승. GPU 학습. 파라미터 약 6,000만 개.</td><td class="l">파라미터 수 감각</td></tr>
+<tr><td>2017 / 2020 / 2022</td><td class="l">트랜스포머 / GPT-3 / ChatGPT</td><td class="l">GPT-3 파라미터 1,750억 개. 원리는 1958년과 같고 규모·데이터·계산량이 달라졌다.</td><td class="l">마무리의 3B 회수</td></tr>
+</table>
+<div class="tt"><span class="lab">팁</span>연도는 외우게 하지 않는다. 남길 것은 두 가지다. ① 1958년 규칙과 4B의 dw가 같은 모양이다(4B-5에서 짚는다). ② 층이 하나면 직선뿐이고, 층을 쌓자 가운데 층을 학습시킬 방법이 필요해졌다(2-3 결론과 플레이그라운드에서 짚는다).</div>
+
+<h2>4. 플레이그라운드 시연 설정</h2>
+<p>주소는 <span class="mono">playground.tensorflow.org</span>. 아래 URL은 설정이 주소에 포함되어 있어 열자마자 그 상태가 된다(2026-09-17 확인). 영어 UI라 학생이 직접 조작하지 않고 교사 시연으로 진행한다. 데이터는 왼쪽 DATA에서 원(circle), 입력 특징은 X₁, X₂만 켠다.</p>
+<div class="qh"><span class="num">장면 ①</span>은닉층 없음 → 직선 하나 → 실패</div>
+<div class="url">https://playground.tensorflow.org/#activation=linear&amp;batchSize=10&amp;dataset=circle&amp;regDataset=reg-plane&amp;learningRate=0.03&amp;regularizationRate=0&amp;noise=0&amp;networkShape=&amp;seed=0.5&amp;showTestData=false&amp;discretize=false&amp;percTrainData=50&amp;x=true&amp;y=true&amp;xTimesY=false&amp;xSquared=false&amp;ySquared=false&amp;cosX=false&amp;sinX=false&amp;cosY=false&amp;sinY=false&amp;collectStats=false&amp;problem=classification&amp;initZero=false&amp;hideText=false</div>
+<div class="sc"><span class="lab">멘트</span>"가운데 파란 점을 바깥 주황 점과 나눠야 합니다. 재생을 눌러 봅니다. 경계가 직선 하나라 아무리 돌려도 못 나눕니다. 1969년 민스키가 말한 그 한계입니다."</div>
+<div class="qh"><span class="num">장면 ②</span>은닉층 1층(뉴런 4개) + 활성화 Linear → 여전히 직선</div>
+<div class="url">https://playground.tensorflow.org/#activation=linear&amp;batchSize=10&amp;dataset=circle&amp;regDataset=reg-plane&amp;learningRate=0.03&amp;regularizationRate=0&amp;noise=0&amp;networkShape=4&amp;seed=0.5&amp;showTestData=false&amp;discretize=false&amp;percTrainData=50&amp;x=true&amp;y=true&amp;xTimesY=false&amp;xSquared=false&amp;ySquared=false&amp;cosX=false&amp;sinX=false&amp;cosY=false&amp;sinY=false&amp;collectStats=false&amp;problem=classification&amp;initZero=false&amp;hideText=false</div>
+<div class="sc"><span class="lab">멘트</span>"은닉층에 뉴런 4개를 넣었는데도 직선입니다. 활동지 2-3의 윗줄과 같은 상황입니다. 일차함수에 일차함수를 넣으면 다시 일차함수입니다."</div>
+<div class="qh"><span class="num">장면 ③</span>같은 구조 + 활성화 ReLU → 꺾인 경계가 원을 감쌈</div>
+<div class="url">https://playground.tensorflow.org/#activation=relu&amp;batchSize=10&amp;dataset=circle&amp;regDataset=reg-plane&amp;learningRate=0.03&amp;regularizationRate=0&amp;noise=0&amp;networkShape=4&amp;seed=0.5&amp;showTestData=false&amp;discretize=false&amp;percTrainData=50&amp;x=true&amp;y=true&amp;xTimesY=false&amp;xSquared=false&amp;ySquared=false&amp;cosX=false&amp;sinX=false&amp;cosY=false&amp;sinY=false&amp;collectStats=false&amp;problem=classification&amp;initZero=false&amp;hideText=false</div>
+<div class="sc"><span class="lab">멘트</span>"Activation을 ReLU로 바꿨을 뿐입니다. 경계가 네 번 꺾이며 원을 감쌉니다. 이 신경망은 입력 2 → 은닉 4 → 출력 1입니다. 파라미터가 몇 개인지 세션1 방법으로 세어 봅시다." (정답: 선 2 × 4 + 4 × 1 = 12, 뉴런 4 + 1 = 5, 합 <strong>17</strong>)</div>
+<div class="qh"><span class="num">마무리</span>장면 ③에서 재생 → 오른쪽 위 Training loss 곡선이 내려가는 것을 1분</div>
+<div class="sc"><span class="lab">멘트</span>"화면의 Epoch 숫자가 올라가는 동안 컴퓨터는 여러분이 4B에서 한 step을 계속 반복하고 있습니다. 손실 곡선이 내려가는 게 4B-5에서 49가 8.41이 된 그 장면입니다."</div>
+<div class="pf"><span class="lab">주의</span>장면 ①은 seed에 따라 학습이 잠시 멈춘 것처럼 보일 수 있다. 재생 후 5초 안에 정지하고 "경계 모양"만 보게 한다. 인터넷이 불안하면 세 장면을 미리 캡처해 둔다.</div>
+
+<h2>5. 활동지 정답과 진행 메모</h2>
+
+<h3>세션 1</h3>
+<div class="qh"><span class="num">1-1</span></div>
+<div class="ans"><span class="lab">정답</span>(1, 1) → <span class="v">5</span> · (2, −1) → <span class="v">1</span> · (−1, 3) → <span class="v">7</span>. (앱 A1 기본값 x₁ = 2, x₂ = 3, w₁ = w₂ = 1, b = 0에서 z = 5가 화면에 표시되므로 둘째 줄은 앱으로 검산 가능.) 관찰: <strong>작아졌습니다 / 줄이는</strong>.</div>
+<div class="qh"><span class="num">1-2</span></div>
+<div class="ans"><span class="lab">정답</span>b = +3 → <span class="v">8</span> · b = −7 → <span class="v">−2</span>. b가 하는 일: 입력과 상관없이 기본 점수를 올리거나 내린다.</div>
+<div class="qh"><span class="num">1-3</span></div>
+<div class="ans"><span class="lab">정답</span>−1 → <span class="v">0</span> · 0 → <span class="v">0</span> · 2.5 → <span class="v">2.5</span> · 7 → <span class="v">7</span>. 1-2의 z = −2 → ŷ = <span class="v">0</span>.</div>
+<div class="qh"><span class="num">1-4</span></div>
+<div class="ans"><span class="lab">정답</span>3 × 2 × 1: 선 = 입력→은닉 <span class="v">6</span>, 은닉→출력 <span class="v">2</span>, 합 <span class="v">8</span> · 뉴런 = 2 + 1 = <span class="v">3</span> · 파라미터 <span class="v">11</span>. 손글씨: 입력→은닉 <span class="v">784 × 16</span> = 12,544, 은닉→출력 <span class="v">16 × 10</span> = 160, 선 합 <span class="v">12,704</span> · 뉴런 <span class="v">16 + 10 = 26</span> · 파라미터 <span class="v">12,730</span>. 3B = <span class="v">30억 (3,000,000,000)</span> 개. 30억 ÷ 12,730 ≈ 235,664 → <span class="v">약 24만 배</span>. 힌트대로 1만 3천으로 나눈 "약 23만 배"와 "약 20만 배"도 정답 처리.</div>
+<div class="pf"><span class="lab">자주 틀림</span>① 그림 ①의 선을 셀 때 6개가 아니라 5개로 센다(교차하는 선을 하나로 봄). 선 하나하나에 번호를 매기게 한다. ② 뉴런을 셀 때 입력까지 넣는다. "입력은 값이 들어오는 자리라 편향이 없다"를 짚는다. ③ 손글씨 칸에서 784 × 10처럼 입력과 출력을 바로 곱한다. 선은 바로 옆 층끼리만 잇는다는 것을 그림 ②에서 손가락으로 따라가게 한다.</div>
+<div class="tt"><span class="lab">팁</span>세고 나서 "선의 개수 = 앞층 × 뒤층"을 정리해 준다. 순서가 중요하다. 공식을 먼저 주면 학생은 그림을 보지 않는다. 학생이 센 뒤 미리 16으로 맞춰 둔 앱 C2를 열어 파라미터 수 12,730개를 함께 확인한다. C2의 기본 은닉층은 4라서 그대로 두면 3,190개로 나온다.</div>
+<div class="tt"><span class="lab">팁</span>여기서 "3B = 30억 개의 w와 b"를 칠판에 크게 적고 마무리까지 지운다. 오프닝의 질문이 이 순간 처음으로 구체적인 뜻을 갖는다.</div>
+
+<div class="qh"><span class="num">1-5</span></div>
+<div class="ans"><span class="lab">정답</span>은닉층 <span class="v">3층</span> · 층마다 뉴런 <span class="v">4, 4, 3, 2</span> · 인공 뉴런 <span class="v">13</span>개 · 선 3 × 4 + <span class="v">4 × 4 + 4 × 3 + 3 × 2</span> = <span class="v">46</span> · 파라미터 46 + 13 = <span class="v">59</span>.</div>
+<div class="pf"><span class="lab">자주 틀림</span>① 입력 열까지 층으로 세어 은닉층을 4층으로 답한다. ② 출력 열까지 은닉층으로 넣는다. ③ 인공 뉴런에 입력 3개를 더해 16으로 센다. ④ 선을 셀 때 3 × 4 × 4 × 3 × 2처럼 층을 모두 곱한다. 선은 바로 옆 열끼리만 잇는다는 것을 짚는다.</div>
+<div class="tt"><span class="lab">팁</span>학생이 표를 채운 뒤 앱 C2에서 "+ 은닉층 추가"를 두 번 누르고, 새로 생긴 두 층(8, 4)의 숫자 칸에 16을 입력해 세 층을 모두 16으로 맞춘다. 화면의 신경망 그림이 활동지 그림 ③처럼 세 층이 되고, 파라미터 수가 12,730에서 13,274로 바뀐다. "층을 쌓으면 깊어지고, 파라미터가 늘어난다"를 화면으로 확인하는 지점이다. 확인한 뒤에는 은닉층을 16 한 층으로 되돌려 둔다.</div>
+
+<h3>세션 2</h3>
+<div class="qh"><span class="num">2-1</span></div>
+<div class="ans"><span class="lab">정답</span>z₁ = <span class="v">5</span>, h = <span class="v">5</span>, z₂ = 1·5 − 3 = <span class="v">2</span>, ŷ = <span class="v">2</span>.</div>
+<div class="qh"><span class="num">2-2</span></div>
+<div class="ans"><span class="lab">정답</span>h₂ = ReLU(0 + 2 + 1 − 1) = ReLU(<span class="v">2</span>) = <span class="v">2</span>. ŷ = ReLU(1·3 + 1·2 − 2) = ReLU(<span class="v">3</span>) = <span class="v">3</span>. 관찰: <strong>예</strong>.</div>
+<div class="qh"><span class="num">2-3</span></div>
+<div class="ans"><span class="lab">정답</span>ReLU 없음: x = 0, 1, 2, 3 → <span class="v">−4, −2, 0, 2</span> (직선). ReLU 있음: x = 1: h = 1, ŷ = ReLU(−2) = 0 · x = 2: h = 3, ŷ = ReLU(0) = 0 · x = 3: h = 5, ŷ = ReLU(2) = 2 → <span class="v">0, 0, 0, 2</span> (꺾인 선). 결론 빈칸: <strong>직선</strong>.</div>
+<div class="pf"><span class="lab">자주 틀림</span>ReLU 있음 줄에서 h는 ReLU를 통과시키고 ŷ에서는 잊는다. "뉴런마다 한 번씩, 두 번"을 강조한다.</div>
+<div class="ans"><span class="lab">정답 (식 정리)</span>ŷ = (2x − 1) − 3 = <span class="v">2x − 4</span>, <strong>일차함수</strong>. 이 한 줄이 "활성화 함수 없이는 층을 쌓아도 직선"의 손계산 증명이다.</div>
+
+<h3>세션 3</h3>
+<div class="qh"><span class="num">3-1</span></div>
+<div class="ans"><span class="lab">정답</span>e: <span class="v">−2, −0.5, 0, 1, 2</span> · e²: <span class="v">4, 0.25, 0, 1, 4</span>. 음수 = 예측이 정답보다 <strong>작다</strong>. e의 합 <span class="v">0</span>, e²의 합 <span class="v">8</span>. 고르기: <strong>e²의 합</strong>.</div>
+<div class="qh"><span class="num">3-2</span></div>
+<div class="ans"><span class="lab">정답</span>ŷ: 3, 4, 5, 6, 7 · e: 0, −1, −2, −3, −4 · e²: 0, 1, 4, 9, 16. Σe² = <span class="v">30</span>, MSE = <span class="v">6</span>. 10배 → e²은 1 → <span class="v">100</span>, <span class="v">100</span>배.</div>
+<div class="tt"><span class="lab">팁</span>"직선 ŷ = x + 2를 눈으로 보면 x = 1에서만 정답을 맞히고 오른쪽으로 갈수록 벌어진다"고 말하면 표의 e가 0, −1, −2…로 커지는 이유가 보인다.</div>
+
+<h3>세션 4-A</h3>
+<div class="sc"><span class="lab">이 세션의 설계</span>활동지 4-A는 앱 A3의 <strong>b 모드</strong>와 완전히 같은 문제다. w를 2로 고정하고 b만 움직이므로 다섯 점의 오차가 모두 b − 1로 같아지고, 손실이 L = ½(b − 1)² 한 줄로 정리된다. 그래서 학생이 종이에 적은 손실·기울기·갱신 결과가 화면 숫자와 <strong>하나도 어긋나지 않는다</strong>. 앱은 w 모드로 열리므로 시작 전에 b 모드로 바꿔 둔다.</div>
+<div class="qh"><span class="num">4A-1</span>다섯 점의 오차 구하기 — 정답</div>
+<div class="ans"><span class="lab">정답</span>x = 2: y = <span class="v">5</span>, ŷ = <span class="v">4 + b</span>, e = (4 + b) − 5 = <span class="v">b − 1</span> · x = 3: y = <span class="v">7</span>, ŷ = <span class="v">6 + b</span>, e = <span class="v">b − 1</span> · 어떤 x든: <span class="v">b − 1</span>. 빈칸: <strong>b − 1</strong>. 사슬: MSE = <span class="v">(b − 1)²</span>, L = <span class="v">½(b − 1)²</span> · b = −2: e <span class="v">−3</span>, MSE <span class="v">9</span>, L <span class="v">4.5</span>.</div>
+<div class="tt"><span class="lab">팁</span>여기가 4-A의 핵심이다. ŷ = 2x + b 와 y = 2x + 1 을 나란히 써 놓고 빼면 2x가 지워진다는 것을 칠판에서 한 번 보여 준다. x가 사라졌기 때문에 다섯 점을 따로 계산할 필요가 없어지고, 손실이 포물선 한 줄로 단순해진다. 이 발견이 없으면 뒤의 계산이 전부 다섯 배로 늘어난다.</div>
+
+<div class="qh"><span class="num">4A-2</span>양옆 살펴보기 — 정답</div>
+<div class="ans"><span class="lab">정답</span>b = 0: 왼쪽 <span class="v">2</span>, 지금 <span class="v">0.5</span>, 오른쪽 <span class="v">0</span> → <strong>→</strong> · b = 1: <span class="v">0.5</span>, <span class="v">0</span>, <span class="v">0.5</span> → <strong>정지</strong> · b = 3: <span class="v">0.5</span>, <span class="v">2</span>, <span class="v">4.5</span> → <strong>←</strong>.</div>
+
+<div class="qh"><span class="num">4A-3</span>기울기와 ½의 이유 — 정답</div>
+<div class="ans"><span class="lab">정답</span>기울기: b = 0 → (0 − 2) ÷ 2 = <span class="v">−1</span> · b = 1 → <span class="v">0</span> · b = 3 → (4.5 − 0.5) ÷ 2 = <span class="v">2</span>. 아랫줄 b − 1 도 <span class="v">−1, 0, 2</span> 로 <strong>같다</strong>.</div>
+<div class="ans"><span class="lab">정답 (½ 확인)</span>½ 없이 (b − 1)² 로 두면: b = 0 → (0 − 4) ÷ 2 = <span class="v">−2</span> · b = 3 → (9 − 1) ÷ 2 = <span class="v">4</span>. 늘 <strong>2배</strong>로 나온다. 규칙: 음수일 때 <strong>→</strong>, 양수일 때 <strong>←</strong>, 즉 <strong>반대</strong> 방향.</div>
+<div class="tt"><span class="lab">팁</span>½은 지금까지 근거 없이 곱해 둔 값이었는데 여기서 학생이 직접 근거를 만든다. ½이 없으면 기울기에 2가 따라붙고, ½을 곱해 두면 b − 1 한 줄로 끝난다. 미분을 배우면 이 2가 어디서 오는지 알게 된다고만 덧붙이고 넘어간다. 시간이 부족하면 이 ½ 확인 상자만 건너뛴다.</div>
+
+<div class="qh"><span class="num">4A-4</span>갱신 세 걸음 — 정답</div>
+<div class="ans"><span class="lab">정답</span>걸음 2: b = −0.5, 기울기 <span class="v">−1.5</span>, 새 b = −0.5 + 0.75 = <span class="v">0.25</span> · 걸음 3: b = 0.25, 기울기 <span class="v">−0.75</span>, 새 b = 0.25 + 0.375 = <span class="v">0.625</span>. <strong>가까워집니다 / 작아집니다</strong>. 빼기 이유: 기울기의 반대 방향으로 가기 위해서다. 기울기가 음수이면 빼기가 더하기가 되어 b가 오른쪽으로 움직인다.</div>
+<div class="tt"><span class="lab">팁</span>세 걸음을 다 채운 뒤 앱 A3에서 "한 step 진행"을 세 번 누른다. 화면의 b가 −0.5 → 0.25 → 0.625로 학생 종이와 똑같이 움직인다. 이 순간이 "앱이 하는 일이 내가 한 계산과 같다"를 확인하는 지점이다.</div>
+<div class="pf"><span class="lab">자주 틀림</span>음수를 빼면서 부호를 놓쳐 −2 − 1.5 = −3.5로 적는다. 시범 칸의 "−2 + 1.5"를 짚어 준다.</div>
+
+<div class="qh"><span class="num">4A-5</span>보폭 η 네 가지 — 정답</div>
+<div class="ans"><span class="lab">정답</span>η = 0.05 → 새 b <span class="v">−1.85</span>, 거리 <span class="v">2.85</span>, <strong>느림</strong> · η = 2.0 → <span class="v">4.0</span>, 거리 <span class="v">3.0</span>, <strong>진동</strong> · η = 2.5 → <span class="v">5.5</span>, 거리 <span class="v">4.5</span>, <strong>발산</strong>. 마지막 두 빈칸: <strong>같습니다 / 늘었습니다</strong>.</div>
+<div class="tt"><span class="lab">팁</span>네 값은 앱 A3 아래쪽 칩 네 개(발산 2.5 · 진동 2.0 · 수렴 0.5 · 느림 0.05)와 같은 값이다. 학생이 표를 채운 뒤 칩을 하나씩 눌러 자취를 표시하면 손계산과 같은 움직임이 나온다. 다만 발산 칩은 첫 걸음이 b = 5.5라 그래프 오른쪽 밖으로 나가 자취가 보이지 않는다. 활동지 4A-5에서 구한 5.5가 바로 그 값이라고 짚는다. η = 2.0에서 남은 거리가 출발 때와 똑같이 3이라 영원히 양옆을 오간다는 점을 짚는다. 여기서 "보폭이 2를 넘으면 발산"이라는 경계가 나온다.</div>
+
+<h3>세션 4-B</h3>
+<div class="qh"><span class="num">4B-1</span></div>
+<div class="ans"><span class="lab">정답</span>w₁만 1.5: 1.5·2 + 1·3 + 0 = <span class="v">6</span>, 늘어난 양 <span class="v">1</span> · w₂만 1.5: 1·2 + 1.5·3 + 0 = <span class="v">6.5</span>, 늘어난 양 <span class="v">1.5</span>. 더 크게 변한 쪽: 입력 <strong>3</strong>. 늘어난 양 = 0.5 × <strong>입력</strong>. 4B 데이터: x = 5에서 0 → <span class="v">0.5</span>, 움직인 양 <span class="v">0.5</span>. 정리 빈칸: <strong>5</strong>배. 4-A와 이어 보기: w 줄 오른쪽 <span class="v">8</span>, (8 − 50) ÷ 2 = <span class="v">−21</span>, e × x = <span class="v">−21</span> · b 줄 왼쪽 <span class="v">32</span>, 오른쪽 <span class="v">18</span>, (18 − 32) ÷ 2 = <span class="v">−7</span>, e × 1 = <span class="v">−7</span>. <strong>같습니다</strong>.</div>
+<div class="tt"><span class="lab">팁</span>학생이 표를 채운 뒤 앱 A1에서 w₁ 슬라이더를 1.5로 올렸다가 되돌리고, 이어서 w₂를 1.5로 올린다. 화면의 z가 5 → 6, 5 → 6.5로 움직이는 것을 함께 본다. ReLU를 거쳐도 z가 양수라 ŷ도 같은 값이다. "같은 만큼 움직였는데 입력이 큰 쪽이 더 흔들린다"가 이 문항의 전부이고, 이것이 곧 e에 x를 곱하는 이유다.</div>
+<div class="qh"><span class="num">4B-2</span></div>
+<div class="ans"><span class="lab">정답</span>e: <span class="v">−3, −5, −7, −9, −11</span> (합 <span class="v">−35</span>) · e × x: <span class="v">−3, −10, −21, −36, −55</span> (합 <span class="v">−125</span>) · e²: <span class="v">9, 25, 49, 81, 121</span> (합 <span class="v">285</span>). 손실 = (285 ÷ 2) ÷ 5 = <span class="v">28.5</span>. <strong>앱 A5 화면의 시작 손실과 같은 숫자다.</strong></div>
+<div class="qh"><span class="num">4B-3</span></div>
+<div class="ans"><span class="lab">정답</span>dw = −125 ÷ 5 = <span class="v">−25</span> · db = −35 ÷ 5 = <span class="v">−7</span>. 모두 <strong>음수</strong> → w, b를 <strong>키워야</strong> 한다.</div>
+<div class="qh"><span class="num">4B-4</span></div>
+<div class="ans"><span class="lab">정답</span>새 w = 0 − 0.05 × (−25) = 0 + 1.25 = <span class="v">1.25</span> · 새 b = 0 − 0.05 × (−7) = 0 + 0.35 = <span class="v">0.35</span>. <strong>가까워졌습니다</strong>.</div>
+<div class="qh"><span class="num">4B-5</span></div>
+<div class="ans"><span class="lab">정답</span>ŷ = 1.25 × 3 + 0.35 = <span class="v">4.1</span> · e = 4.1 − 7 = <span class="v">−2.9</span> · e² = <span class="v">8.41</span>. 49 → 8.41, <strong>줄었습니다</strong>. 다섯 점 전체 손실은 <span class="v">28.5</span> → <span class="v">4.77</span>(뒤의 값은 앱 화면 4.7675를 읽어 적는다). 1958 연결: <strong>반대</strong>, <strong>학습률(η)</strong>.</div>
+<div class="tt"><span class="lab">팁</span>앱 A5는 4B를 진행하면서 함께 보여 준다. 4B-2를 마치면 "다음 단계 →"를 눌러 오차 화면을, 4B-3 뒤에 기울기 화면(dw = −25, db = −7)을 보여 준다. 4B-4 뒤에 한 번 더 눌러 갱신 식을 보여 주고, 다시 한 번 눌러 w = 1.25, b = 0.35로 바꾼다. 학생은 이때 화면의 손실 4.7675를 읽어 4B-5에 적는다. 4B-5가 끝나면 "▶ 자동 학습"으로 20~30 step을 돌린다. 이때 w는 금방 2 근처로 가지만 b는 30 step에서 약 0.68로, 1에 가까워지려면 200 step 넘게 걸린다.</div>
+<div class="tt"><span class="lab">팁</span>활동지 4B-2의 손실 28.5와 4B-5의 4.77이 앱 A5 화면에 그대로 표시된다. 4-A에서 ½을 도입해 둔 덕분에 종이와 화면이 끝까지 같은 숫자로 간다. 학생이 "왜 285를 2로도 나누고 5로도 나누나요"라고 물으면, 2로 나누는 것은 4-A에서 확인한 ½이고 5로 나누는 것은 다섯 점의 평균이라고 나누어 답한다.</div>
+<div class="qh"><span class="num">도전</span></div>
+<div class="ans"><span class="lab">정답</span>ŷ: 1.60, 2.85, 4.10, 5.35, 6.60 · e: −1.40, −2.15, −2.90, −3.65, −4.40 (합 −14.50) · e × x: −1.40, −4.30, −8.70, −14.60, −22.00 (합 −51.00). dw = <span class="v">−10.20</span>, db = <span class="v">−2.90</span>. 새 w = 1.25 + 0.51 = <span class="v">1.76</span>, 새 b = 0.35 + 0.145 = <span class="v">0.495 (≈ 0.50)</span>. 크기가 <strong>작아졌다</strong>. 바닥에 가까워질수록 기울기가 0에 가까워지고 한 걸음이 짧아진다.</div>
+
+<h3>마무리</h3>
+<div class="qh"><span class="num">끝-1</span></div>
+<div class="ans"><span class="lab">정답</span>파라미터 <span class="v">2</span>개 · 3B = <span class="v">30억</span> 개 · <strong>파라미터</strong> 수 × <strong>step</strong> 수 × 데이터 양.</div>
+<div class="qh"><span class="num">끝-2</span></div>
+<div class="ans"><span class="lab">평가 기준</span>세 단어(크기·비용·목적)를 모두 쓰고, "무조건 큰 것이 좋다"에서 "목적에 맞는 크기"로 생각이 옮겨 갔는지를 본다. 예: "250B는 더 복잡한 패턴을 표현하지만 학습 비용과 전기가 그만큼 든다. 휴대폰 안에서 돌려야 하면 3B가 맞다. 좋은 모델은 목적에 맞는 크기다."</div>
+<div class="qh"><span class="num">끝-3</span></div>
+<div class="ans"><span class="lab">평가 기준</span>다섯 단어가 모두 들어가고 순서가 예측 → 오차 → 기울기 → 갱신이면 만점. 학습률이 "보폭"의 뜻으로 사용되었는지 확인한다. 예: "뉴런은 입력에 가중치를 곱하고 편향을 더해 예측을 만든다. 예측과 정답의 차이가 오차다. 오차로 기울기를 구하면 어느 쪽으로 고쳐야 하는지 알 수 있다. 기울기의 반대 방향으로, 학습률과 기울기를 곱한 만큼 가중치를 갱신한다. 이것을 반복하면 오차가 줄어든다."</div>
+
+<h3>예상 질문</h3>
+<div class="sc"><span class="lab">입력층도 층인가요? 이 그림은 몇 층 신경망인가요?</span>신경망이 몇 층인지 말할 때는 보통 가중치가 있는 층만 센다. 그래서 그림 ③은 은닉층 세 층과 출력층 한 층을 합해 4층 신경망이라고 부르는 경우가 많다. 자료에 따라 입력층까지 세기도 하므로, 헷갈리지 않게 "은닉층이 몇 층인가"로 묻는다.</div>
+<div class="sc"><span class="lab">왜 절댓값이 아니라 제곱인가</span>절댓값 그래프는 바닥에서 뾰족하게 꺾여 기울기가 정해지지 않고, 바닥 근처에서도 기울기 크기가 같아 걸음이 줄지 않는다. 제곱은 바닥에 가까울수록 기울기가 0에 가까워져 걸음이 저절로 작아진다. 4A-4의 걸음 1.5 → 0.75 → 0.375가 그 예다.</div>
+<div class="sc"><span class="lab">30억 개를 어떻게 한꺼번에 고치나</span>파라미터마다 자기 기울기가 있고, 모두 "새 값 = 지금 값 − η × 기울기"를 동시에 적용한다. 기울기는 역전파로 한 번에 구하고, GPU가 수천 개씩 동시에 계산한다.</div>
+
+<h2>6. 수업 멘트</h2>
+<p>교사 발화와 학생 예상 반응은 교사 스크립트(<span class="mono">special-ms2-script</span>)를 따른다.</p>
+
+</body>
+</html>

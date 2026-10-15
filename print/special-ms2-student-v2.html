@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>특강 활동지 — 손으로 풀어보는 딥러닝의 원리</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.5pt;line-height:1.65;color:#1a1a1a;background:#fff;word-break:keep-all;padding:14mm 12mm 16mm;max-width:210mm;margin:0 auto}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .nw{white-space:nowrap}
+  h1{font-size:20pt;font-weight:700;line-height:1.3}
+  h2{font-size:14pt;font-weight:700;margin-top:18pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h2 .tm{float:right;font-size:9pt;color:#777;font-weight:400;margin-top:4pt}
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt;page-break-after:avoid}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+  .name{font-size:9.5pt;color:#555;margin-top:8pt}
+  .name span{display:inline-block;border-bottom:1px solid #888;min-width:80pt;margin:0 8pt}
+  .qc{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0;break-inside:avoid;page-break-inside:avoid}
+  .qh{font-weight:700;margin-bottom:6pt;font-size:11pt}
+  .qh .num{display:inline-block;background:#1a1a1a;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt;font-family:'JetBrains Mono',monospace}
+  .qd{font-size:10pt;color:#444;margin-bottom:6pt}
+  .how{font-size:9.5pt;color:#333;background:#f6f6f2;border:1px dashed #aaa;border-radius:4px;padding:5pt 8pt;margin:4pt 0 8pt}
+  .how b{margin-right:4pt}
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0;border-radius:0 4px 4px 0;break-inside:avoid;page-break-inside:avoid}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#1a1a1a;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb .blank{height:22pt;background:#fff}
+  .tb td.ex{background:#f7f7f7;color:#333;font-family:'JetBrains Mono',monospace}
+  .tb td.ex.lbl,.tb td.exl{background:#e9e9e9;font-family:'Noto Sans KR',sans-serif;font-weight:600}
+  .tag{display:inline-block;font-size:8pt;background:#666;color:#fff;border-radius:3px;padding:0 5pt;margin-left:4pt;vertical-align:middle;font-family:'Noto Sans KR',sans-serif;font-weight:500}
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;padding:6pt 8pt;border-radius:4px;margin:6pt 0;break-inside:avoid;page-break-inside:avoid;line-height:2}
+  .fm.ex{background:#f0f0ec;color:#333}
+  .bk{display:inline-block;border-bottom:1.5px solid #333;min-width:30pt;text-align:center;padding:0 4pt;margin:0 2pt}
+  .bk.lg{min-width:60pt}
+  .bk.xl{min-width:120pt}
+  .ans-area{border:1px solid #aaa;border-radius:4px;min-height:38pt;padding:6pt;margin:6pt 0;background:#fcfcfc}
+  .ans-area.lg{min-height:60pt}
+  .sf{margin:8pt auto;text-align:center;break-inside:avoid;page-break-inside:avoid}
+  .sf svg{max-width:100%!important;height:auto!important}
+  .cap{font-size:9pt;color:#666;margin-top:3pt;text-align:center}
+  .ob{border:1.2px dashed #777;border-radius:5px;padding:8pt 10pt;margin:6pt 0;break-inside:avoid;page-break-inside:avoid}
+  .ob .lab{font-weight:700;font-size:10pt;margin-bottom:4pt}
+  .opt{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:10pt 0;background:#fbfbfb;break-inside:avoid;page-break-inside:avoid}
+  .opt .qh .num{background:#666}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10pt}
+  @media(max-width:600px){.grid{grid-template-columns:1fr}}
+  p{margin-bottom:5pt}
+  @media screen and (max-width:640px){
+    body{padding:14px 12px 24px;font-size:15px}
+    h1{font-size:22px} h2{font-size:18px} h2 .tm{float:none;display:block;margin-top:2px}
+    .qc,.opt{padding:10px}
+    .tb{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;font-size:13px}
+    .tb th,.tb td{padding:5px 6px;white-space:nowrap}
+    .tb td.lbl{white-space:normal;min-width:88px}
+    .fm{overflow-x:auto;white-space:nowrap;font-size:13px}
+    .bk{min-width:22px}.bk.lg{min-width:44px}.bk.xl{min-width:90px}
+  }
+  @media print{
+    @page{size:A4;margin:12mm 10mm 14mm}
+    body{font-size:9.6pt;line-height:1.55;padding:0;max-width:none}
+    .qc,.qh,.sf,.fm,.ib,.tb,.ob,.opt{break-inside:avoid;page-break-inside:avoid}
+    .tb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .qh .num,.tag{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .tb td.ex,.tb td.exl,.fm.ex,.how{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<header class="lh">
+<div class="lab">NEURAL EXPLORER · 특강 활동지</div>
+<h1>손으로 풀어보는 딥러닝의 원리</h1>
+<div class="sub">인공 뉴런 → 순전파 → 오차와 손실 → 경사하강법 → 기울기 계산과 업데이트</div>
+<div class="obj">
+  <strong>학습 목표</strong><br/>
+  ① 딥러닝 그림을 보고 은닉층(히든 레이어)이 몇 층인지, 인공 뉴런과 파라미터가 몇 개인지 셀 수 있다. "3B 모델"의 뜻을 파라미터 수로 설명할 수 있다.<br/>
+  ② 인공 뉴런과 작은 신경망의 계산(순전파)을 손으로 하고, 활성화 함수가 필요한 이유를 설명할 수 있다.<br/>
+  ③ 오차와 손실을 계산하고, 오차를 제곱하는 이유를 설명할 수 있다.<br/>
+  ④ 기울기를 구해 파라미터를 한 step 고치고, 손실이 줄어드는 것을 확인할 수 있다.<br/>
+  종이와 펜으로 계산합니다. 표마다 있는 회색 <span class="tag">시범</span> 칸과 같은 방법으로 나머지 칸을 채웁니다.
+</div>
+<div class="name">학교 <span></span> 이름 <span></span></div>
+</header>
+
+<!-- ============================================================== -->
+<h2>세션 1. 인공 뉴런</h2>
+
+<div class="ib">
+  <div class="t">인공 뉴런</div>
+  <div class="fm" style="margin:4pt 0">z = w₁·x₁ + w₂·x₂ + b   →   ŷ = ReLU(z)</div>
+</div>
+
+<div class="sf">
+<svg viewBox="0 0 520 150" width="480" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="12">
+  <circle cx="50" cy="45" r="20" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="50" y="49" text-anchor="middle">x₁=2</text>
+  <circle cx="50" cy="110" r="20" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="50" y="114" text-anchor="middle">x₂=3</text>
+  <line x1="70" y1="45" x2="200" y2="70" stroke="#333" stroke-width="1.5"/><text x="125" y="48" text-anchor="middle">w₁</text>
+  <line x1="70" y1="110" x2="200" y2="85" stroke="#333" stroke-width="1.5"/><text x="125" y="112" text-anchor="middle">w₂</text>
+  <circle cx="225" cy="78" r="26" fill="#f3f3f3" stroke="#333" stroke-width="1.5"/><text x="225" y="83" text-anchor="middle" font-size="16">Σ</text>
+  <text x="225" y="128" text-anchor="middle">+ b</text>
+  <line x1="251" y1="78" x2="300" y2="78" stroke="#333" stroke-width="1.5"/><text x="275" y="70" text-anchor="middle">z</text>
+  <rect x="300" y="58" width="70" height="40" rx="6" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="335" y="83" text-anchor="middle">ReLU</text>
+  <line x1="370" y1="78" x2="430" y2="78" stroke="#333" stroke-width="1.5"/>
+  <circle cx="455" cy="78" r="20" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="455" y="83" text-anchor="middle">ŷ</text>
+</svg>
+<div class="cap">▲ 인공 뉴런 하나. Σ는 모두 더한다는 기호입니다.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">1-1</span>가중치만 있을 때</div>
+<div class="how"><b>이렇게 하세요</b>입력은 x₁ = 2, x₂ = 3으로 가정합니다.</div>
+<table class="tb">
+<tr><th>w₁</th><th>w₂</th><th>z = w₁·2 + w₂·3</th></tr>
+<tr><td class="ex">2</td><td class="ex">1</td><td class="ex">2·2 + 1·3 = 4 + 3 = 7 <span class="tag">시범</span></td></tr>
+<tr><td>1</td><td>1</td><td class="blank"></td></tr>
+<tr><td>2</td><td>−1</td><td class="blank"></td></tr>
+<tr><td>−1</td><td>3</td><td class="blank"></td></tr>
+</table>
+<div class="qd">관찰: 회색 시범 줄(w₂ = 1)과 w₂ = −1인 줄을 비교하면, w₂ = −1이 되자 z가 시범 줄보다 <span class="nw">( 커졌습니다 / 작아졌습니다 )</span>. 가중치가 음수이면 그 입력은 z를 <span class="nw">( 키우는 / 줄이는 )</span> 쪽으로 작용합니다. <span class="nw">☞ <span class="bk lg"></span> / <span class="bk lg"></span></span></div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">1-2</span>편향이 더해지면</div>
+<div class="how"><b>이렇게 하세요</b>w₁ = 1, w₂ = 1로 가정하면 가중치 부분은 1·2 + 1·3 = 5로 늘 같습니다.</div>
+<table class="tb">
+<tr><th>b</th><th>z = 5 + b</th><th>b가 하는 일을 한 줄로</th></tr>
+<tr><td class="ex">0</td><td class="ex">5 + 0 = 5 <span class="tag">시범</span></td><td class="ex" style="text-align:left;font-family:'Noto Sans KR',sans-serif">아무것도 더하지 않은 상태</td></tr>
+<tr><td>+3</td><td class="blank"></td><td class="blank" style="text-align:left"></td></tr>
+<tr><td>−7</td><td class="blank"></td><td class="blank" style="text-align:left"></td></tr>
+</table>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">1-3</span>활성화 함수(ReLU) 통과시키기</div>
+<div class="how"><b>이렇게 하세요</b>ReLU(z) = max(0, z). z와 0 중 큰 쪽을 고르면 됩니다.</div>
+<table class="tb">
+<tr><th>z</th><th>−4</th><th>−1</th><th>0</th><th>2.5</th><th>7</th></tr>
+<tr><td class="lbl">ReLU(z)</td><td class="ex">0 <span class="tag">시범</span></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">1-2에서 b = −7일 때 z가 음수였습니다. 그 z를 ReLU에 통과시키면 <span class="nw">ŷ = <span class="bk"></span> 입니다.</span></div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">1-4</span>파라미터 세기</div>
+<div class="how"><b>이렇게 하세요</b>파라미터는 학습으로 값이 정해지는 숫자, 곧 가중치와 편향 전부입니다. 신경망 그림에서 <strong>뉴런을 잇는 선 하나가 가중치 하나</strong>이고, <strong>입력을 뺀 뉴런 하나마다 편향이 하나</strong>입니다.</div>
+<table class="tb">
+<tr><th>신경망</th><th>선(가중치)의 개수</th><th>입력을 뺀 뉴런(편향)의 개수</th><th>파라미터 수 = 선 + 뉴런</th></tr>
+<tr><td class="exl">뉴런 하나<br/>(맨 위 그림)</td><td class="ex">x₁, x₂에서 오는 선 2개</td><td class="ex">Σ 뉴런 1개</td><td class="ex">2 + 1 = 3 <span class="tag">시범</span></td></tr>
+<tr><td class="lbl">3 × 2 × 1 신경망<br/>(아래 그림 ①)</td><td class="blank" style="text-align:left">입력→은닉 <span class="bk"></span>개<br/>은닉→출력 <span class="bk"></span>개<br/>합 <span class="bk"></span>개</td><td class="blank" style="text-align:left">은닉 <span class="bk"></span> + <span class="nw">출력 <span class="bk"></span></span><br/>= <span class="bk"></span>개</td><td class="blank"></td></tr>
+<tr><td class="lbl">손글씨 숫자 신경망<br/>(아래 그림 ②)</td><td class="blank" style="text-align:left">입력→은닉 <span class="nw"><span class="bk"></span> × <span class="bk"></span> = 12,544</span><br/>은닉→출력 <span class="nw"><span class="bk"></span> × <span class="bk"></span> = 160</span><br/>합 12,544 + 160 = <span class="bk lg"></span>개</td><td class="blank" style="text-align:left"><span class="bk"></span> + <span class="bk"></span><br/>= <span class="bk"></span>개</td><td class="blank"></td></tr>
+</table>
+<div class="grid">
+<div class="sf"><svg viewBox="-40 0 460 188" width="438" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="11">
+  <g stroke="#333" stroke-width="1.3">
+    <line x1="60" y1="35" x2="200" y2="60"/><line x1="60" y1="35" x2="200" y2="110"/>
+    <line x1="60" y1="85" x2="200" y2="60"/><line x1="60" y1="85" x2="200" y2="110"/>
+    <line x1="60" y1="135" x2="200" y2="60"/><line x1="60" y1="135" x2="200" y2="110"/>
+    <line x1="220" y1="60" x2="340" y2="85"/><line x1="220" y1="110" x2="340" y2="85"/>
+  </g>
+  <g fill="#fff" stroke="#333" stroke-width="1.5">
+    <circle cx="40" cy="35" r="20"/><circle cx="40" cy="85" r="20"/><circle cx="40" cy="135" r="20"/>
+    <circle cx="220" cy="60" r="22" fill="#f3f3f3"/><circle cx="220" cy="110" r="22" fill="#f3f3f3"/>
+    <circle cx="362" cy="85" r="22" fill="#f3f3f3"/>
+  </g>
+  <text x="40" y="39" text-anchor="middle">x₁</text><text x="40" y="89" text-anchor="middle">x₂</text><text x="40" y="139" text-anchor="middle">x₃</text>
+  <text x="220" y="64" text-anchor="middle">h₁</text><text x="220" y="114" text-anchor="middle">h₂</text>
+  <text x="362" y="89" text-anchor="middle">ŷ</text>
+  <text x="40" y="178" text-anchor="middle" font-size="10" fill="#666">입력 3개 (파라미터 없음)</text>
+  <text x="220" y="150" text-anchor="middle" font-size="10" fill="#666">은닉 2개</text>
+  <text x="362" y="125" text-anchor="middle" font-size="10" fill="#666">출력 1개</text>
+</svg><div class="cap">그림 ① 3 × 2 × 1 신경망</div></div>
+<div class="sf"><svg viewBox="-40 0 460 175" width="438" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="11">
+  <g stroke="#bbb" stroke-width="0.8">
+    <line x1="60" y1="30" x2="200" y2="40"/><line x1="60" y1="30" x2="200" y2="75"/><line x1="60" y1="30" x2="200" y2="130"/>
+    <line x1="60" y1="62" x2="200" y2="40"/><line x1="60" y1="62" x2="200" y2="75"/><line x1="60" y1="62" x2="200" y2="130"/>
+    <line x1="60" y1="140" x2="200" y2="40"/><line x1="60" y1="140" x2="200" y2="75"/><line x1="60" y1="140" x2="200" y2="130"/>
+    <line x1="220" y1="40" x2="340" y2="45"/><line x1="220" y1="40" x2="340" y2="125"/>
+    <line x1="220" y1="75" x2="340" y2="45"/><line x1="220" y1="75" x2="340" y2="125"/>
+    <line x1="220" y1="130" x2="340" y2="45"/><line x1="220" y1="130" x2="340" y2="125"/>
+  </g>
+  <g fill="#fff" stroke="#333" stroke-width="1.4">
+    <circle cx="45" cy="30" r="14"/><circle cx="45" cy="62" r="14"/><circle cx="45" cy="140" r="14"/>
+    <circle cx="210" cy="40" r="14" fill="#f3f3f3"/><circle cx="210" cy="75" r="14" fill="#f3f3f3"/><circle cx="210" cy="130" r="14" fill="#f3f3f3"/>
+    <circle cx="354" cy="45" r="14" fill="#f3f3f3"/><circle cx="354" cy="125" r="14" fill="#f3f3f3"/>
+  </g>
+  <text x="45" y="105" text-anchor="middle" font-size="16">⋮</text>
+  <text x="210" y="108" text-anchor="middle" font-size="16">⋮</text>
+  <text x="354" y="90" text-anchor="middle" font-size="16">⋮</text>
+  <text x="45" y="168" text-anchor="middle" font-size="10" fill="#333">입력 784개 (28 × 28 픽셀)</text>
+  <text x="210" y="160" text-anchor="middle" font-size="10" fill="#333">은닉 16개</text>
+  <text x="354" y="155" text-anchor="middle" font-size="10" fill="#333">출력 10개 (숫자 0~9)</text>
+  <text x="130" y="12" text-anchor="middle" font-size="9.5" fill="#666">선을 다 그릴 수 없어 일부만 그림</text>
+</svg><div class="cap">그림 ② 손글씨 숫자 신경망 784 → 16 → 10</div></div>
+</div>
+<div class="qd">앞층의 모든 뉴런이 뒤층의 모든 뉴런과 이어지므로, 선의 개수 = 앞층 개수 × 뒤층 개수입니다. 그림 ②처럼 선을 다 그릴 수 없을 때는 이 곱셈으로 셉니다.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">1-5</span>딥러닝 그림 읽기</div>
+<div class="how"><b>이렇게 하세요</b>그림 ③의 맨 왼쪽 열은 입력, 맨 오른쪽 열은 출력이고, 그 사이의 열이 은닉층(히든 레이어)입니다.</div>
+<div class="sf"><svg viewBox="10 20 480 190" width="440" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="11">
+  <g stroke="#999" stroke-width="0.9"><line x1="64" y1="70" x2="136" y2="50"/><line x1="64" y1="70" x2="136" y2="90"/><line x1="64" y1="70" x2="136" y2="130"/><line x1="64" y1="70" x2="136" y2="170"/><line x1="64" y1="110" x2="136" y2="50"/><line x1="64" y1="110" x2="136" y2="90"/><line x1="64" y1="110" x2="136" y2="130"/><line x1="64" y1="110" x2="136" y2="170"/><line x1="64" y1="150" x2="136" y2="50"/><line x1="64" y1="150" x2="136" y2="90"/><line x1="64" y1="150" x2="136" y2="130"/><line x1="64" y1="150" x2="136" y2="170"/><line x1="164" y1="50" x2="236" y2="50"/><line x1="164" y1="50" x2="236" y2="90"/><line x1="164" y1="50" x2="236" y2="130"/><line x1="164" y1="50" x2="236" y2="170"/><line x1="164" y1="90" x2="236" y2="50"/><line x1="164" y1="90" x2="236" y2="90"/><line x1="164" y1="90" x2="236" y2="130"/><line x1="164" y1="90" x2="236" y2="170"/><line x1="164" y1="130" x2="236" y2="50"/><line x1="164" y1="130" x2="236" y2="90"/><line x1="164" y1="130" x2="236" y2="130"/><line x1="164" y1="130" x2="236" y2="170"/><line x1="164" y1="170" x2="236" y2="50"/><line x1="164" y1="170" x2="236" y2="90"/><line x1="164" y1="170" x2="236" y2="130"/><line x1="164" y1="170" x2="236" y2="170"/><line x1="264" y1="50" x2="336" y2="70"/><line x1="264" y1="50" x2="336" y2="110"/><line x1="264" y1="50" x2="336" y2="150"/><line x1="264" y1="90" x2="336" y2="70"/><line x1="264" y1="90" x2="336" y2="110"/><line x1="264" y1="90" x2="336" y2="150"/><line x1="264" y1="130" x2="336" y2="70"/><line x1="264" y1="130" x2="336" y2="110"/><line x1="264" y1="130" x2="336" y2="150"/><line x1="264" y1="170" x2="336" y2="70"/><line x1="264" y1="170" x2="336" y2="110"/><line x1="264" y1="170" x2="336" y2="150"/><line x1="364" y1="70" x2="436" y2="90"/><line x1="364" y1="70" x2="436" y2="130"/><line x1="364" y1="110" x2="436" y2="90"/><line x1="364" y1="110" x2="436" y2="130"/><line x1="364" y1="150" x2="436" y2="90"/><line x1="364" y1="150" x2="436" y2="130"/></g>
+  <g stroke="#333" stroke-width="1.5"><circle cx="50" cy="70" r="14" fill="#fff"/><circle cx="50" cy="110" r="14" fill="#fff"/><circle cx="50" cy="150" r="14" fill="#fff"/><circle cx="150" cy="50" r="14" fill="#f3f3f3"/><circle cx="150" cy="90" r="14" fill="#f3f3f3"/><circle cx="150" cy="130" r="14" fill="#f3f3f3"/><circle cx="150" cy="170" r="14" fill="#f3f3f3"/><circle cx="250" cy="50" r="14" fill="#f3f3f3"/><circle cx="250" cy="90" r="14" fill="#f3f3f3"/><circle cx="250" cy="130" r="14" fill="#f3f3f3"/><circle cx="250" cy="170" r="14" fill="#f3f3f3"/><circle cx="350" cy="70" r="14" fill="#f3f3f3"/><circle cx="350" cy="110" r="14" fill="#f3f3f3"/><circle cx="350" cy="150" r="14" fill="#f3f3f3"/><circle cx="450" cy="90" r="14" fill="#f3f3f3"/><circle cx="450" cy="130" r="14" fill="#f3f3f3"/></g>
+  <text x="50" y="200" text-anchor="middle">입력</text>
+  <text x="450" y="200" text-anchor="middle">출력</text>
+</svg><div class="cap">그림 ③ 딥러닝을 소개할 때 자주 보는 그림</div></div>
+<table class="tb">
+<tr><th>묻는 것</th><th>답</th></tr>
+<tr><td class="exl">입력은 몇 개인가</td><td class="ex">3개 <span class="tag">시범</span></td></tr>
+<tr><td class="lbl">은닉층(히든 레이어)은 몇 층인가</td><td class="blank"></td></tr>
+<tr><td class="lbl">층마다 인공 뉴런은 몇 개인가<br/>(입력 다음 열부터 차례로)</td><td class="blank" style="text-align:left"><span class="bk"></span> , <span class="bk"></span> , <span class="bk"></span> , <span class="bk"></span></td></tr>
+<tr><td class="lbl">인공 뉴런은 모두 몇 개인가<br/>(입력 제외)</td><td class="blank"></td></tr>
+<tr><td class="lbl">선(가중치)은 모두 몇 개인가</td><td class="blank" style="text-align:left">3 × 4 + <span class="nw"><span class="bk"></span> × <span class="bk"></span></span> + <span class="nw"><span class="bk"></span> × <span class="bk"></span></span> + <span class="nw"><span class="bk"></span> × <span class="bk"></span></span> = <span class="bk lg"></span></td></tr>
+<tr><td class="lbl">파라미터는 모두 몇 개인가</td><td class="blank" style="text-align:left">선 <span class="bk"></span> + 뉴런 <span class="bk"></span> = <span class="bk lg"></span></td></tr>
+</table>
+<div class="ob"><div class="lab">정리</div>은닉층을 여러 층 쌓은 신경망을 깊은 신경망이라 하고, 이런 신경망을 학습시키는 방법이 딥러닝입니다.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>세션 2. 순전파(Forward Propagation)</h2>
+
+<div class="ib">
+  <div class="t">순전파</div>
+  입력에서 출력 쪽으로 한 방향으로 계산이 흐릅니다. 뉴런이 몇 개든 <strong>곱셈 → 합산 → ReLU</strong>의 반복이고, 앞 뉴런의 출력 h가 뒤 뉴런의 입력이 됩니다.
+</div>
+
+<div class="sf">
+<svg viewBox="0 6 480 100" width="440" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="12">
+  <line x1="62" y1="65" x2="150" y2="65" stroke="#333" stroke-width="1.5"/>
+  <line x1="210" y1="65" x2="330" y2="65" stroke="#333" stroke-width="1.5"/>
+  <line x1="390" y1="65" x2="436" y2="65" stroke="#333" stroke-width="1.5"/>
+  <text x="106" y="56" text-anchor="middle">w₁ = 2</text>
+  <text x="294" y="56" text-anchor="middle">w₂ = 1</text>
+  <text x="226" y="58" text-anchor="middle" font-weight="700">h</text>
+  <circle cx="40" cy="65" r="22" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="40" y="69" text-anchor="middle">x = 3</text>
+  <circle cx="180" cy="65" r="30" fill="#f3f3f3" stroke="#333" stroke-width="1.5"/><line x1="180" y1="35" x2="180" y2="95" stroke="#333" stroke-width="1"/>
+  <text x="166" y="70" text-anchor="middle" font-size="15">Σ</text><text x="195" y="69" text-anchor="middle" font-size="9">ReLU</text>
+  <circle cx="360" cy="65" r="30" fill="#f3f3f3" stroke="#333" stroke-width="1.5"/><line x1="360" y1="35" x2="360" y2="95" stroke="#333" stroke-width="1"/>
+  <text x="346" y="70" text-anchor="middle" font-size="15">Σ</text><text x="375" y="69" text-anchor="middle" font-size="9">ReLU</text>
+  <text x="450" y="70" text-anchor="middle" font-weight="700">ŷ</text>
+  <text x="180" y="26" text-anchor="middle" font-size="11">b₁ = −1</text>
+  <text x="360" y="26" text-anchor="middle" font-size="11">b₂ = −3</text>
+</svg>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">2-1</span>뉴런 → 뉴런 (직렬)</div>
+<div class="how"><b>이렇게 하세요</b>x = 3, w₁ = 2, b₁ = −1, w₂ = 1, b₂ = −3. 뉴런 1을 끝까지 계산해 h를 얻은 뒤, 그 h를 뉴런 2의 입력 자리에 넣습니다.</div>
+<div class="fm">
+  뉴런 1:  z₁ = w₁·x + b₁ = 2·3 + (−1) = <span class="bk"></span><br/>        → h = ReLU(z₁) = <span class="bk"></span><br/>
+  뉴런 2:  z₂ = w₂·h + b₂ = 1·<span class="bk"></span> + (−3) = <span class="bk"></span><br/>        → ŷ = ReLU(z₂) = <span class="bk"></span>
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">2-2</span>3 × 2 × 1 신경망</div>
+<div class="how"><b>이렇게 하세요</b>1-4의 그림 ①에 실제 가중치와 편향을 적어 넣었습니다. 선 위의 숫자가 가중치, 뉴런 옆의 b가 편향입니다. 은닉층의 h₁, h₂를 각각 계산한 다음, 그 둘을 출력 뉴런의 입력으로 사용합니다.</div>
+<div class="sf"><svg viewBox="0 0 440 185" width="420" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="11">
+  <g stroke="#333" stroke-width="1.4">
+    <line x1="60" y1="35" x2="200" y2="60"/><line x1="60" y1="85" x2="200" y2="60"/><line x1="60" y1="135" x2="200" y2="60"/>
+    <line x1="244" y1="60" x2="345" y2="85"/>
+  </g>
+  <g stroke="#333" stroke-width="1.4" stroke-dasharray="5 3">
+    <line x1="60" y1="35" x2="200" y2="110"/><line x1="60" y1="85" x2="200" y2="110"/><line x1="60" y1="135" x2="200" y2="110"/>
+    <line x1="244" y1="110" x2="345" y2="85"/>
+  </g>
+  <rect x="101" y="36.75" width="16" height="12" fill="#fff"/><text x="109" y="46.75" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10">1</text><rect x="101" y="54.25" width="16" height="12" fill="#fff"/><text x="109" y="64.25" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10">0</text><rect x="101" y="69.25" width="16" height="12" fill="#fff"/><text x="109" y="79.25" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10">1</text><rect x="101" y="86.75" width="16" height="12" fill="#fff"/><text x="109" y="96.75" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10">1</text><rect x="101" y="101.75" width="16" height="12" fill="#fff"/><text x="109" y="111.75" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10">0</text><rect x="101" y="119.25" width="16" height="12" fill="#fff"/><text x="109" y="129.25" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10">1</text><rect x="275" y="65.5" width="16" height="12" fill="#fff"/><text x="283" y="75.5" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10">1</text><rect x="275" y="90.5" width="16" height="12" fill="#fff"/><text x="283" y="100.5" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10">1</text>
+  <g fill="#fff" stroke="#333" stroke-width="1.5">
+    <circle cx="40" cy="35" r="20"/><circle cx="40" cy="85" r="20"/><circle cx="40" cy="135" r="20"/>
+    <circle cx="222" cy="60" r="22" fill="#f3f3f3"/><circle cx="222" cy="110" r="22" fill="#f3f3f3"/>
+    <circle cx="367" cy="85" r="22" fill="#f3f3f3"/>
+  </g>
+  <text x="40" y="39" text-anchor="middle">x₁=1</text><text x="40" y="89" text-anchor="middle">x₂=2</text><text x="40" y="139" text-anchor="middle">x₃=1</text>
+  <text x="222" y="64" text-anchor="middle">h₁</text><text x="222" y="114" text-anchor="middle">h₂</text><text x="367" y="89" text-anchor="middle">ŷ</text>
+  <text x="222" y="31" text-anchor="middle" font-size="10">b = 0</text>
+  <text x="222" y="146" text-anchor="middle" font-size="10">b = −1</text>
+  <text x="367" y="121" text-anchor="middle" font-size="10">b = −2</text>
+  <line x1="120" y1="172" x2="150" y2="172" stroke="#333" stroke-width="1.4"/><text x="156" y="176" font-size="10">h₁과 이어진 선</text>
+  <line x1="250" y1="172" x2="280" y2="172" stroke="#333" stroke-width="1.4" stroke-dasharray="5 3"/><text x="286" y="176" font-size="10">h₂와 이어진 선</text>
+</svg><div class="cap">실선은 h₁과 이어진 선, 점선은 h₂와 이어진 선입니다.</div></div>
+<div class="fm ex">
+  h₁ = ReLU(1·x₁ + 1·x₂ + 0·x₃ + 0)<br/>     = ReLU(1·1 + 1·2 + 0·1 + 0) = ReLU(3) = 3 <span class="tag">시범</span>
+</div>
+<div class="fm">
+  h₂ = ReLU(<span class="bk"></span>·x₁ + <span class="bk"></span>·x₂ + <span class="bk"></span>·x₃ + (<span class="bk"></span>))<br/>     = ReLU(<span class="bk"></span> + <span class="bk"></span> + <span class="bk"></span> + (<span class="bk"></span>))<br/>     = ReLU(<span class="bk"></span>) = <span class="bk"></span><br/>
+  ŷ = ReLU(<span class="bk"></span>·h₁ + <span class="bk"></span>·h₂ + (<span class="bk"></span>))<br/>    = ReLU(<span class="bk"></span> + <span class="bk"></span> + (<span class="bk"></span>)) = ReLU(<span class="bk"></span>) = <span class="bk"></span>
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">2-3</span>ReLU를 빼면 어떻게 달라지나</div>
+<div class="how"><b>이렇게 하세요</b>2-1의 직렬 뉴런(w₁ = 2, b₁ = −1, w₂ = 1, b₂ = −3)에 x를 0, 1, 2, 3으로 바꿔 넣습니다.</div>
+<table class="tb">
+<tr><th>x</th><th>0</th><th>1</th><th>2</th><th>3</th></tr>
+<tr><td class="lbl">ReLU 없음<br/><span class="mono" style="font-weight:400">ŷ = (2x − 1) − 3</span></td><td class="ex">(0 − 1) − 3 = −4 <span class="tag">시범</span></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">ReLU 있음<br/><span class="mono" style="font-weight:400">h = ReLU(2x − 1), ŷ = ReLU(h − 3)</span></td><td class="ex">h = ReLU(−1) = 0<br/>ŷ = ReLU(0 − 3) = 0 <span class="tag">시범</span></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">두 줄의 값을 아래 모눈에 점으로 찍고 잇습니다.</div>
+<div class="grid">
+<div><div class="sf"><svg viewBox="0 0 220 212" width="210" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="10">
+  <g stroke="#ccc" stroke-width="0.7"><line x1="40" y1="20" x2="40" y2="180"/><line x1="80" y1="20" x2="80" y2="180"/><line x1="120" y1="20" x2="120" y2="180"/><line x1="160" y1="20" x2="160" y2="180"/><line x1="200" y1="20" x2="200" y2="180"/><line x1="40" y1="20" x2="200" y2="20"/><line x1="40" y1="40" x2="200" y2="40"/><line x1="40" y1="60" x2="200" y2="60"/><line x1="40" y1="80" x2="200" y2="80"/><line x1="40" y1="100" x2="200" y2="100"/><line x1="40" y1="120" x2="200" y2="120"/><line x1="40" y1="140" x2="200" y2="140"/><line x1="40" y1="160" x2="200" y2="160"/><line x1="40" y1="180" x2="200" y2="180"/></g>
+  <line x1="40" y1="100" x2="200" y2="100" stroke="#333" stroke-width="1.2"/>
+  <line x1="40" y1="20" x2="40" y2="180" stroke="#333" stroke-width="1.2"/>
+  <text x="36" y="23" text-anchor="end">4</text><text x="36" y="63" text-anchor="end">2</text><text x="36" y="103" text-anchor="end">0</text><text x="36" y="143" text-anchor="end">−2</text><text x="36" y="183" text-anchor="end">−4</text>
+  <text x="80" y="195" text-anchor="middle">1</text><text x="120" y="195" text-anchor="middle">2</text><text x="160" y="195" text-anchor="middle">3</text><text x="207" y="104">x</text>
+  <text x="120" y="209" text-anchor="middle" font-weight="700">ReLU 없음</text>
+</svg></div></div>
+<div><div class="sf"><svg viewBox="0 0 220 212" width="210" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="10">
+  <g stroke="#ccc" stroke-width="0.7"><line x1="40" y1="20" x2="40" y2="180"/><line x1="80" y1="20" x2="80" y2="180"/><line x1="120" y1="20" x2="120" y2="180"/><line x1="160" y1="20" x2="160" y2="180"/><line x1="200" y1="20" x2="200" y2="180"/><line x1="40" y1="20" x2="200" y2="20"/><line x1="40" y1="40" x2="200" y2="40"/><line x1="40" y1="60" x2="200" y2="60"/><line x1="40" y1="80" x2="200" y2="80"/><line x1="40" y1="100" x2="200" y2="100"/><line x1="40" y1="120" x2="200" y2="120"/><line x1="40" y1="140" x2="200" y2="140"/><line x1="40" y1="160" x2="200" y2="160"/><line x1="40" y1="180" x2="200" y2="180"/></g>
+  <line x1="40" y1="100" x2="200" y2="100" stroke="#333" stroke-width="1.2"/>
+  <line x1="40" y1="20" x2="40" y2="180" stroke="#333" stroke-width="1.2"/>
+  <text x="36" y="23" text-anchor="end">4</text><text x="36" y="63" text-anchor="end">2</text><text x="36" y="103" text-anchor="end">0</text><text x="36" y="143" text-anchor="end">−2</text><text x="36" y="183" text-anchor="end">−4</text>
+  <text x="80" y="195" text-anchor="middle">1</text><text x="120" y="195" text-anchor="middle">2</text><text x="160" y="195" text-anchor="middle">3</text><text x="207" y="104">x</text>
+  <text x="120" y="209" text-anchor="middle" font-weight="700">ReLU 있음</text>
+</svg></div></div>
+</div>
+<div class="qd">왼쪽 그래프는 <span class="nw">( 직선 / 꺾인 선 )</span>, 오른쪽 그래프는 <span class="nw">( 직선 / 꺾인 선 )</span>. <span class="nw">☞ <span class="bk lg"></span> / <span class="bk lg"></span></span></div>
+<div class="qd">ReLU 없음 줄의 식을 정리하면 ŷ = (2x − 1) − 3 = <span class="bk lg"></span>. 일차함수에 일차함수를 넣었더니 다시 <span class="nw">( 일차함수 / 이차함수 )</span>가 되었습니다. <span class="nw">☞ <span class="bk lg"></span></span></div>
+<div class="ob"><div class="lab">한 줄 결론</div>ReLU가 없으면 뉴런을 아무리 이어 붙여도 결과는 <span class="bk lg"></span> 하나입니다. 층을 쌓고 층 사이에 활성화 함수를 두면 이 한계를 넘을 수 있습니다.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>세션 3. 오차와 손실</h2>
+
+<div class="ib">
+  <div class="t">오차와 손실</div>
+  한 점의 오차 <span class="mono">e = ŷ − y</span> (예측 − 정답). 점이 여러 개면 오차를 제곱해 평균 낸 <span class="mono">MSE = (Σe²) ÷ N</span> 을 손실이라 부릅니다. 이 숫자가 작아지는 것이 학습의 목표입니다.
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">3-1</span>한 점의 오차: 부호와 크기</div>
+<div class="how"><b>이렇게 하세요</b>정답 y = 5입니다.</div>
+<table class="tb" data-hwpx-row-mm="9">
+<tr><th>ŷ</th><th>3</th><th>4.5</th><th>5</th><th>6</th><th>7</th></tr>
+<tr><td class="lbl">e = ŷ − 5</td><td class="ex">3 − 5 = −2 <span class="tag">시범</span></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">e²</td><td class="ex">(−2)² = 4</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">e가 음수라는 것은 예측이 정답보다 <span class="nw">( 크다 / 작다 )</span>는 뜻입니다. <span class="nw">☞ <span class="bk lg"></span></span></div>
+<div class="qd">ŷ = 3과 ŷ = 7은 정답에서 같은 거리(2)에 있습니다. 두 e를 그대로 더하면 <span class="bk"></span>, 두 e²을 더하면 <span class="bk"></span>. 두 합 가운데 틀린 정도를 제대로 나타내는 쪽은 <span class="nw">( e의 합 / e²의 합 )</span>입니다. <span class="nw">☞ <span class="bk lg"></span></span>. 이것이 오차를 제곱하는 첫 번째 이유입니다.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">3-2</span>다섯 점의 손실: MSE 손계산</div>
+<div class="how"><b>이렇게 하세요</b>정답은 모두 y = 2x + 1 위에 있습니다. 아직 덜 맞춰진 직선 ŷ = x + 2로 예측하면 얼마나 틀리는지 계산합니다.</div>
+<table class="tb" data-hwpx-row-mm="9">
+<tr><th>x</th><th>정답 y</th><th>ŷ = x + 2</th><th>e = ŷ − y</th><th>e²</th></tr>
+<tr><td class="ex">1</td><td class="ex">3</td><td class="ex">1 + 2 = 3</td><td class="ex">3 − 3 = 0</td><td class="ex">0 <span class="tag">시범</span></td></tr>
+<tr><td>2</td><td>5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>3</td><td>7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>4</td><td>9</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>5</td><td>11</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="fm">
+  Σe² = 0 + <span class="bk"></span> + <span class="bk"></span> + <span class="bk"></span> + <span class="bk"></span> = <span class="bk lg"></span><br/>  MSE = Σe² ÷ 5 = <span class="bk lg"></span>
+</div>
+<div class="qd">e가 1 → 10으로 10배 커지면 e²은 1 → <span class="nw"><span class="bk"></span> 으로</span> <span class="nw"><span class="bk"></span> 배</span> 커집니다. 큰 실수에 훨씬 큰 벌점을 주는 것이 제곱의 두 번째 이유입니다.</div>
+</div>
+
+<!-- ============================================================== -->
+<h2>세션 4-A. 경사하강법(Gradient Descent)</h2>
+
+<div class="ib">
+  <div class="t">경사하강법</div>
+  세션3의 다섯 점 (1, 3), (2, 5), (3, 7), (4, 9), (5, 11)을 그대로 사용합니다. 정답은 y = 2x + 1 입니다.<br/>
+  여기서는 계산 편의를 위해 <strong>w = 2로 설정하고 b 하나만</strong> 움직입니다.<br/>
+  이 세션에서 말하는 "기울기"는 직선 y = 2x + 1의 기울기가 아니라 <strong>손실 곡선의 기울기</strong>입니다.<br/>
+  아래 그림의 가로축은 b, 세로축은 그 b일 때의 손실 L입니다. 손실 L은 세션3의 MSE에 ½을 곱한 값이며, ½을 곱해도 바닥의 위치 b = 1은 그대로입니다. ½을 곱하지 않으면 기울기가 모두 2배가 되고(b = −2에서 −6), ½을 곱하면 b의 기울기가 오차 e와 같은 값이 됩니다(b = −2에서 다섯 점의 오차는 모두 −3, 기울기도 −3). 그래서 기울기 계산이 간단해지며, 세션4-B의 기울기 식도 이 약속에서 나옵니다.
+</div>
+
+<div class="sf"><svg viewBox="-6 6 412 182" width="380" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="11">
+  <line x1="40" y1="150" x2="388" y2="150" stroke="#333" stroke-width="1.2"/>
+  <line x1="40" y1="150" x2="40" y2="18" stroke="#333" stroke-width="1.2"/>
+  <path d="M 50 25 Q 210 275 370 25" fill="none" stroke="#333" stroke-width="2"/>
+  <g stroke="#bbb" stroke-width="0.7" stroke-dasharray="3 3">
+    <line x1="90" y1="79.7" x2="90" y2="150"/><line x1="210" y1="18" x2="210" y2="150"/>
+  </g>
+  <line x1="60" y1="44.5" x2="120" y2="114.8" stroke="#e8590c" stroke-width="2"/>
+  <line x1="255" y1="146.1" x2="325" y2="91.4" stroke="#e8590c" stroke-width="2"/>
+  <circle cx="290" cy="118.75" r="4.5" fill="#fff" stroke="#333" stroke-width="1.6"/>
+  <text x="296" y="136" font-size="10">b = 3</text>
+  <circle cx="90" cy="79.7" r="4.5" fill="#fff" stroke="#333" stroke-width="1.6"/>
+  <circle cx="210" cy="150" r="4.5" fill="#333"/>
+  <text x="96" y="72" font-size="10">지금 여기 (b = −2)</text>
+  <text x="210" y="140" text-anchor="middle" font-size="10">바닥 (b = 1)</text>
+  <text x="50" y="164" text-anchor="middle">−3</text><text x="90" y="164" text-anchor="middle">−2</text>
+  <text x="170" y="164" text-anchor="middle">0</text><text x="210" y="164" text-anchor="middle">1</text>
+  <text x="290" y="164" text-anchor="middle">3</text><text x="370" y="164" text-anchor="middle">5</text>
+  <text x="393" y="154">b</text><text x="32" y="24" text-anchor="end">L</text>
+</svg><div class="cap">▲ 손실 L</div></div>
+
+<div class="qc">
+<div class="qh"><span class="num">4A-1</span>접선의 방향과 기울기 부호</div>
+<div class="how"><b>이렇게 하세요</b>접선은 곡선 위 한 점에 닿는 직선입니다. 그 점에서 곡선의 기울기는 접선의 기울기로 읽으며, 이는 일차함수에서 배운 직선의 기울기와 같은 방법입니다. 그림에는 b = −2, b = 3 두 점의 접선이 주황색으로 그려져 있고, 바닥 b = 1에는 접선을 그리지 않았습니다. 이 점의 접선은 수평입니다. 접선이 오른쪽 아래로 향하면 기울기는 음수, 오른쪽 위로 향하면 양수, 수평이면 0입니다. 표에 각 점의 기울기 부호와 가야 할 방향을 적습니다.</div>
+<table class="tb">
+<tr><th>지금 b</th><th>기울기의 부호<br/>(음수 / 0 / 양수)</th><th>가야 할 방향<br/>(← / 정지 / →)</th></tr>
+<tr><td class="ex">−2</td><td class="ex">음수</td><td class="ex">→ <span class="tag">시범</span></td></tr>
+<tr><td>3</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>1</td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="ob"><div class="lab">규칙 발견</div>기울기가 음수(b = −2)일 때 가야 할 방향은 <span class="nw">( ← / → )</span>, 양수(b = 3)일 때는 <span class="nw">( ← / → )</span>였습니다. 즉 <strong>기울기의 <span class="nw">( 같은 / 반대 )</span> 방향</strong>으로 가면 손실이 줄어듭니다. <span class="nw">☞ <span class="bk"></span> / <span class="bk"></span> / <span class="bk lg"></span></span></div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">4A-2</span>업데이트 식으로 세 step (학습률 η = 0.5)</div>
+<div class="fm" style="text-align:center">새 b = 지금 b − η × 기울기</div>
+<div class="how"><b>이렇게 하세요</b>한 step의 새 b가 다음 step의 지금 b가 됩니다. 기울기는 표에 적힌 값을 사용합니다.</div>
+<table class="tb">
+<tr><th>step</th><th>지금 b</th><th>기울기</th><th>새 b = b − 0.5 × 기울기</th></tr>
+<tr><td class="ex">1</td><td class="ex">−2</td><td class="ex">−3</td><td class="ex">−2 − 0.5 × (−3) = −2 + 1.5 = −0.5 <span class="tag">시범</span></td></tr>
+<tr><td>2</td><td>−0.5</td><td>−1.5</td><td class="blank"></td></tr>
+<tr><td>3</td><td class="blank"></td><td>−0.75</td><td class="blank"></td></tr>
+</table>
+<div class="qd">b는 정답 1에 <span class="nw">( 가까워집니다 / 멀어집니다 )</span>. 한 step의 이동 거리는 갈수록 <span class="nw">( 커집니다 / 작아집니다 )</span>. <span class="nw">☞ <span class="bk lg"></span> / <span class="bk lg"></span></span></div>
+<div class="qd">식에 빼기가 들어 있는 이유를 한 줄로 적습니다. (힌트: 기울기가 음수일 때 새 b는 어느 쪽으로 움직였나요?)</div>
+<div class="ans-area"></div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">4A-3</span>보폭 η를 바꾸면</div>
+<div class="how"><b>이렇게 하세요</b>모두 b = −2에서 출발합니다. 출발할 때 남은 거리는 3이었습니다.</div>
+<table class="tb">
+<tr><th>η</th><th>새 b = −2 − η × (−3)</th><th>1까지 남은 거리</th><th>그 보폭으로 계속 갈 때 나타나는 결과<br/>(느림 / 수렴 / 진동 / 발산)</th></tr>
+<tr><td>0.05</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="ex">0.5</td><td class="ex">−2 + 1.5 = −0.5</td><td class="ex">1.5</td><td class="ex">수렴 <span class="tag">시범</span></td></tr>
+<tr><td>2.0</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td>2.5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">η = 2.0에서 남은 거리는 출발 때와 <span class="nw">( 같습니다 / 다릅니다 )</span>. η = 2.5에서는 거리가 <span class="nw">( 줄었습니다 / 늘었습니다 )</span>. <span class="nw"><span class="nw">☞ <span class="bk lg"></span> / <span class="bk lg"></span></span></span></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>세션 4-B. 기울기 계산과 업데이트</h2>
+
+<div class="ib">
+  <div class="t">4-B에서 사용하는 식</div>
+  이번 계산은 점 (3, 7) 하나로 한 step을 진행합니다.<br/>
+  세션1·2의 뉴런에는 ReLU가 있습니다. 이 문제에서는 z가 음수가 되지 않아 ReLU를 통과해도 값이 그대로이므로, 세션4-B의 종이 계산에서는 ReLU를 생략합니다.<br/>
+  모델 <span class="mono">ŷ = w·x + b</span>, 출발 <span class="mono">w = 0, b = 0</span><br/>
+  오차 <span class="mono">e = ŷ − y</span><br/>
+  손실 <span class="mono">L = ½e²</span><br/>
+  기울기 <span class="mono">dw = e·x</span>, <span class="mono">db = e</span><br/>
+  업데이트 <span class="mono">새 w = w − η · dw</span>, <span class="mono">새 b = b − η · db</span>, <span class="mono">η = 0.05</span>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">4B-1</span>왜 e에 x가 곱해지나</div>
+<div class="how"><b>이렇게 하세요</b>출발 상태는 1-2의 회색 시범 줄과 같습니다(x₁ = 2, x₂ = 3, w₁ = 1, w₂ = 1, b = 0). 가중치 하나만 1에서 1.5로 키울 때 z가 얼마나 변하는지 계산합니다.</div>
+<table class="tb">
+<tr><th>바꾼 것</th><th>z = w₁·x₁ + w₂·x₂ + b</th><th>z</th><th>처음보다 늘어난 양</th></tr>
+<tr><td class="exl">처음 상태</td><td class="ex">1·2 + 1·3 + 0</td><td class="ex">5</td><td class="ex">— <span class="tag">시범</span></td></tr>
+<tr><td class="lbl">w₁만 1 → 1.5<br/>(입력 x₁ = 2 쪽)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="lbl">w₂만 1 → 1.5<br/>(입력 x₂ = 3 쪽)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">두 가중치를 똑같이 0.5 키웠는데 z가 더 크게 변한 쪽은 입력이 <span class="nw">( 2 / 3 )</span>인 쪽입니다. 늘어난 양은 <span class="nw">0.5 × (그 쪽 입력값)인 <span class="bk lg"></span> 입니다.</span> <span class="nw"><span class="nw">☞ <span class="bk"></span></span></span></div>
+<div class="ob"><div class="lab">정리</div>같은 양만큼 가중치를 올려도 입력값이 큰 쪽이 z를 더 크게 움직입니다. 변화량은 입력과 올린 양의 곱이므로, w의 기울기 계산에는 입력 x가 곱해지고 b는 입력과 무관하게 그대로 더해져 기울기가 e로 남습니다.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">4B-2</span>한 step ① 예측과 오차 (출발점 w = 0, b = 0)</div>
+<div class="fm">
+  ŷ = w·3 + b = 0·3 + 0 = <span class="bk"></span><br/>
+  e = ŷ − 7 = <span class="bk"></span>
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">4B-3</span>한 step ② 기울기</div>
+<div class="fm">
+  dw = e × x = (<span class="bk lg"></span>) × 3 = <span class="bk lg"></span><br/>
+  db = e = <span class="bk lg"></span>
+</div>
+<div class="qd">dw, db가 모두 <span class="nw">( 양수 / 음수 )</span>입니다. 4A에서 찾은 규칙대로라면 손실을 줄이려면 w와 b를 <span class="nw">( 키워야 / 줄여야 )</span> 합니다. <span class="nw">☞ <span class="bk lg"></span> / <span class="bk lg"></span></span></div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">4B-4</span>한 step ③ 업데이트 (η = 0.05)</div>
+<div class="how"><b>이렇게 하세요</b>음수를 빼면 더하기가 된다는 점에 주의합니다.</div>
+<div class="fm">
+  새 w = 0 − 0.05 × (<span class="bk lg"></span>)<br/>
+        = 0 + <span class="bk lg"></span> = <span class="bk lg"></span><br/>
+  새 b = 0 − 0.05 × (<span class="bk lg"></span>)<br/>
+        = 0 + <span class="bk lg"></span> = <span class="bk lg"></span>
+</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">4B-5</span>한 step ④ 확인: 손실이 정말 줄었나</div>
+<div class="how"><b>이렇게 하세요</b>새 w, b로 다시 계산해 출발점과 비교합니다.</div>
+<table class="tb">
+<tr><th>모델</th><th>ŷ = w·3 + b</th><th>e = ŷ − 7</th><th>e²</th><th>L = ½e²</th></tr>
+<tr><td class="exl">출발점 (w = 0, b = 0)</td><td class="ex">0·3 + 0 = 0</td><td class="ex">0 − 7 = −7</td><td class="ex">49</td><td class="ex">24.5 <span class="tag">시범</span></td></tr>
+<tr><td class="lbl">한 step 뒤 (4B-4의 w, b)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="qd">이 점의 손실 L은 24.5에서 <span class="nw"><span class="bk lg"></span> 로</span> <span class="nw">( 줄었습니다 / 늘었습니다 )</span>. <span class="nw">☞ <span class="bk lg"></span></span></div>
+<div class="ob"><div class="lab">한 step 정리</div>① 예측(세션1·2) → ② 오차(세션3) → ③ 기울기(4B-3) → ④ 업데이트(4B-4). 학습은 이 네 단계의 반복입니다. 점이 여러 개일 때는 점마다 기울기를 구해 평균합니다.</div>
+<div class="qd">고치는 방향은 기울기와 <span class="nw">( 같은 / 반대 )</span> 방향이고, 고치는 양은 <span class="nw"><span class="bk lg"></span> × 기울기입니다.</span> <span class="nw">☞ <span class="bk"></span></span></div>
+</div>
+
+<div class="opt">
+<div class="qh"><span class="num">도전</span>두 번째 step (먼저 끝난 사람만)</div>
+<div class="how"><b>이렇게 하세요</b>4B-5에서 구한 e로 dw, db를 구하고, 4B-4에서 얻은 w, b에서 한 번 더 업데이트합니다.</div>
+<table class="tb">
+<tr><th>dw = e × 3</th><th>db = e</th></tr>
+<tr><td class="blank"></td><td class="blank"></td></tr>
+</table>
+<div class="fm">
+  새 w = <span class="bk lg"></span>   새 b = <span class="bk lg"></span>
+</div>
+<div class="qd">4B-3의 dw, db와 비교해 크기가 <span class="nw">( 커졌습니다 / 작아졌습니다 )</span>. 바닥에 가까워질수록 기울기는 어떻게 되나요? <span class="nw">☞ <span class="bk xl"></span></span></div>
+</div>
+
+<!-- ============================================================== -->
+<h2>마무리. 3B의 의미</h2>
+
+<div class="qc">
+<div class="qh"><span class="num">끝-1</span></div>
+<div class="qd">오늘 손으로 업데이트한 파라미터의 개수는 <span class="nw"><span class="bk"></span> 개입니다.</span></div>
+<div class="qd">3B 모델의 B는 billion, 곧 10억이라는 뜻이며 파라미터 개수는 <span class="nw"><span class="bk lg"></span> 개입니다.</span> 이는 학습할 가중치가 그만큼 많다는 뜻입니다.</div>
+</div>
+
+<div class="qc">
+<div class="qh"><span class="num">끝-2</span>친구에게 설명하기</div>
+<div class="qd">"인공 뉴런 하나가 어떻게 학습하는가"를 오늘 배운 단어 다섯 개(<strong>예측 · 오차 · 기울기 · 학습률 · 업데이트</strong>)를 모두 써서 4~5문장으로 적습니다. 4B-5의 "한 step 정리" 순서를 따라가면 됩니다.</div>
+<div class="ans-area lg" style="min-height:90pt"></div>
+</div>
+
+</body>
+</html>

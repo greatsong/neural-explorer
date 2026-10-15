@@ -18,7 +18,7 @@ const PUNCT_RE = /^[.,!?;:。、！？""''「」『』·…\-—()[\]{}]+$/;
 const EMOJI_RE = /\p{Extended_Pictographic}/u;
 const HANGUL_SYLLABLE_RE = /[가-힯]/;
 const LATIN_RE = /[A-Za-z]/;
-const DIGIT_RE = /^\d+$/;
+type BufferKind = 'latin' | 'hangul' | 'digit' | 'other';
 
 // 공백/구두점을 기준으로 1차 분리한 뒤, 각 조각에 추가 규칙을 적용한다.
 export function tokenize(input: string): Token[] {
@@ -28,7 +28,7 @@ export function tokenize(input: string): Token[] {
   // 1) 1차 분리: 공백·구두점·이모지를 경계로
   //    Array.from으로 코드포인트 단위 순회 (이모지 결합문자 안전)
   let buf = '';
-  let bufKind: 'latin' | 'hangul' | 'digit' | 'other' | null = null;
+  let bufKind: BufferKind | null = null;
 
   const flush = () => {
     if (!buf) return;
@@ -63,7 +63,7 @@ export function tokenize(input: string): Token[] {
       out.push({ text: ch, kind: 'emoji' });
       continue;
     }
-    let kind: typeof bufKind;
+    let kind: BufferKind;
     if (LATIN_RE.test(ch))           kind = 'latin';
     else if (HANGUL_SYLLABLE_RE.test(ch)) kind = 'hangul';
     else if (/\d/.test(ch))          kind = 'digit';

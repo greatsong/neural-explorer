@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>특강 교재 — 손으로 풀어보는 딥러닝의 원리</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans KR',sans-serif;font-size:10.8pt;line-height:1.75;color:#1a1a1a;background:#fff;padding:14mm 14mm 16mm;max-width:190mm;margin:0 auto}
+  .mono{font-family:'JetBrains Mono',monospace}
+  h1{font-size:21pt;font-weight:700;line-height:1.3}
+  h2{font-size:14.5pt;font-weight:700;margin-top:22pt;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1px solid #ccc;page-break-after:avoid}
+  h2 .ss{font-size:9pt;color:#777;font-weight:400;margin-left:8pt}
+  h3{font-size:11.5pt;font-weight:700;margin-top:12pt;margin-bottom:4pt;page-break-after:avoid}
+  p{margin-bottom:8pt;text-align:justify}
+  p b{font-weight:700}
+  .lh{border-bottom:2px solid #1a1a1a;padding-bottom:10pt;margin-bottom:14pt;page-break-after:avoid}
+  .lh .lab{font-size:9pt;color:#666;letter-spacing:2px}
+  .lh .sub{font-size:10.5pt;color:#555;margin-top:3pt}
+  .lh .obj{font-size:10pt;color:#222;background:#f3f3f3;border-left:3px solid #333;padding:6pt 10pt;margin-top:8pt;border-radius:0 4px 4px 0}
+  .fm{font-family:'JetBrains Mono',monospace;background:#fafafa;border:1px solid #e3e3e3;padding:7pt 10pt;border-radius:4px;margin:6pt 0 10pt;text-align:center;font-size:10.5pt;break-inside:avoid;page-break-inside:avoid}
+  .ib{background:#f8f8f5;border-left:3px solid #555;padding:8pt 10pt;margin:8pt 0 10pt;border-radius:0 4px 4px 0;break-inside:avoid;page-break-inside:avoid;font-size:10pt}
+  .ib .t{font-weight:700;margin-bottom:3pt}
+  .ws{background:#eef3fa;border:1px solid #99b;border-radius:5px;padding:6pt 10pt;margin:8pt 0 10pt;font-size:9.8pt;break-inside:avoid;page-break-inside:avoid}
+  .ws .lab{display:inline-block;background:#334;color:#fff;font-size:8.5pt;padding:1pt 6pt;border-radius:3px;margin-right:6pt;font-weight:600}
+  .tb{width:100%;border-collapse:collapse;margin:6pt 0 10pt;font-size:10pt;break-inside:avoid;page-break-inside:avoid}
+  .tb th,.tb td{border:1px solid #888;padding:5pt 7pt;text-align:center}
+  .tb th{background:#1a1a1a;color:#fff;font-weight:600}
+  .tb td.lbl{background:#f0f0f0;font-weight:600;text-align:left}
+  .tb td.l{text-align:left}
+  .sf{margin:8pt auto 4pt;text-align:center;break-inside:avoid;page-break-inside:avoid}
+  .sf svg{max-width:100%!important;height:auto!important}
+  .cap{font-size:9pt;color:#666;margin:2pt 0 10pt;text-align:center}
+  .deep{border:1.2px solid #999;border-radius:6px;padding:10pt 12pt;margin:12pt 0;background:#fbfbfb;break-inside:avoid;page-break-inside:avoid;font-size:10pt}
+  .deep .t{font-weight:700;margin-bottom:6pt}
+  .deep .t .num{display:inline-block;background:#666;color:#fff;padding:1pt 6pt;border-radius:3px;font-size:9pt;margin-right:6pt}
+  .deep p{margin-bottom:5pt}
+  .tl{display:flex;justify-content:space-between;gap:4pt;margin:8pt 0 12pt;flex-wrap:wrap}
+  .tl div{flex:1 1 60pt;min-width:60pt;border-top:3px solid #333;padding-top:4pt;font-size:9pt;line-height:1.4}
+  .tl div b{display:block;font-size:11pt;font-family:'JetBrains Mono',monospace}
+  ol,ul{padding-left:20pt;margin:4pt 0 8pt}
+  li{margin-bottom:3pt}
+  @media screen and (max-width:640px){
+    body{padding:14px 12px 24px;font-size:16px;line-height:1.75}
+    h1{font-size:22px} h2{font-size:19px} h2 .ss{display:block;margin-left:0;margin-top:2px}
+    p{text-align:left}
+    .tb{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;font-size:14px}
+    .fm{overflow-x:auto;white-space:nowrap;font-size:14px}
+    .tl div{flex:1 1 40%}
+  }
+  @media print{
+    @page{size:A4;margin:14mm 12mm 16mm}
+    body{font-size:10pt;line-height:1.65;padding:0;max-width:none}
+    .fm,.ib,.ws,.tb,.sf,.deep{break-inside:avoid;page-break-inside:avoid}
+    .tb th{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .ws .lab,.deep .t .num{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<header class="lh">
+<div class="lab">NEURAL EXPLORER · 특강 교재</div>
+<h1>손으로 풀어보는 딥러닝의 원리</h1>
+<div class="sub">중학교 2학년을 위한 특강 · 읽기 자료</div>
+<div class="obj">
+  이 교재는 활동지와 짝을 이룹니다. 활동지 문항을 먼저 풀고, 그 뒤에 짝이 되는 절을 읽어 정리합니다. 각 절 끝의 '활동지' 표시 상자가 짝이 되는 문항 번호를 알려 줍니다. 표와 계산은 활동지에 있고 교재에는 개념과 이유가 있습니다. 모르는 단어는 앞 절에서 찾습니다.<br/><br/>
+  <strong>학습 목표</strong><br/>
+  ① 딥러닝 그림을 보고 은닉층(히든 레이어)이 몇 층인지, 인공 뉴런과 파라미터가 몇 개인지 셀 수 있다. "3B 모델"의 뜻을 파라미터 수로 설명할 수 있다.<br/>
+  ② 인공 뉴런과 작은 신경망의 계산(순전파)을 손으로 하고, 활성화 함수가 필요한 이유를 설명할 수 있다.<br/>
+  ③ 오차와 손실을 계산하고, 오차를 제곱하는 이유를 설명할 수 있다.<br/>
+  ④ 기울기를 구해 파라미터를 한 step 고치고, 손실이 줄어드는 것을 확인할 수 있다.
+</div>
+</header>
+
+<!-- 0 -->
+<h2>0. 들어가며 <span class="ss">비트의 세상, 그리고 3B</span></h2>
+<p>우리가 사는 세상은 책상과 공기, 우리 몸처럼 물질로 이루어진 아톰의 세상입니다. 사진, 음악, 검색, 인공지능이 움직이는 세상은 0과 1의 정보로 이루어진 비트의 세상입니다. 앞으로 우리가 살아갈 세상은 이 두 세상이 겹쳐 있는 세상입니다. 비트의 세상을 움직이는 핵심 기술은 딥러닝이며, 이 특강은 딥러닝의 원리를 손으로 직접 계산해 보는 시간입니다.</p>
+<p>인공지능 뉴스에는 "3B 모델" 같은 표현이 자주 나옵니다. 여기서 B는 billion, 즉 10억을 뜻합니다. 이 숫자가 무엇의 개수인지는 1절에서 알게 됩니다. 오늘 배우는 순서는 인공 뉴런, <b>순전파</b>, <b>오차</b>와 손실, <b>경사하강법</b>, <b>기울기</b> 계산과 업데이트입니다.</p>
+
+<!-- 1 -->
+<h2>1. 인공 뉴런</h2>
+<p>인공 뉴런이 하는 일은 입력마다 <b>가중치</b>를 곱해 더한 뒤 <b>편향</b>을 더하고, 그 결과를 활성화 함수에 통과시키는 것입니다. 이 계산 결과가 예측값 ŷ입니다.</p>
+<div class="fm">z = w₁·x₁ + w₂·x₂ + b   →   ŷ = ReLU(z)</div>
+<div class="sf">
+<svg viewBox="0 0 520 150" width="440" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="12">
+  <circle cx="50" cy="45" r="20" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="50" y="49" text-anchor="middle">x₁</text>
+  <circle cx="50" cy="110" r="20" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="50" y="114" text-anchor="middle">x₂</text>
+  <line x1="70" y1="45" x2="200" y2="70" stroke="#333" stroke-width="1.5"/><text x="125" y="48" text-anchor="middle">w₁</text>
+  <line x1="70" y1="110" x2="200" y2="85" stroke="#333" stroke-width="1.5"/><text x="125" y="112" text-anchor="middle">w₂</text>
+  <circle cx="225" cy="78" r="26" fill="#f3f3f3" stroke="#333" stroke-width="1.5"/><text x="225" y="83" text-anchor="middle" font-size="16">Σ</text>
+  <text x="225" y="128" text-anchor="middle">+ b</text>
+  <line x1="251" y1="78" x2="300" y2="78" stroke="#333" stroke-width="1.5"/><text x="275" y="70" text-anchor="middle">z</text>
+  <rect x="300" y="58" width="70" height="40" rx="6" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="335" y="83" text-anchor="middle">ReLU</text>
+  <line x1="370" y1="78" x2="430" y2="78" stroke="#333" stroke-width="1.5"/>
+  <circle cx="455" cy="78" r="20" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="455" y="83" text-anchor="middle">ŷ</text>
+  <text x="50" y="20" text-anchor="middle" font-size="10" fill="#666">입력</text>
+  <text x="125" y="140" text-anchor="middle" font-size="10" fill="#666">가중치</text>
+  <text x="335" y="120" text-anchor="middle" font-size="10" fill="#666">활성화 함수</text>
+  <text x="455" y="120" text-anchor="middle" font-size="10" fill="#666">예측</text>
+</svg>
+<div class="cap">그림 1. 인공 뉴런 하나의 구조</div>
+</div>
+<p>가중치 w는 그 입력이 결과에 미치는 영향의 크기이며, 값이 음수면 반대 방향으로 작용합니다. 편향 b는 입력과 상관없이 항상 더해지는 기본값으로, 입력이 모두 0이어도 출력이 0이 아닐 수 있게 합니다. 활성화 함수는 합산 결과 z를 실제 출력 신호 ŷ로 바꾸는 규칙입니다. 활성화 함수는 3절에서 자세히 다룹니다.</p>
+<p><b>파라미터</b>는 학습으로 값이 정해지는 숫자로, 가중치와 편향 전부를 뜻합니다. 신경망 그림에서 파라미터는 이렇게 셉니다. 뉴런과 뉴런을 잇는 선 하나가 가중치 하나이고, 입력을 제외한 뉴런 하나마다 편향 하나가 있습니다. 따라서 파라미터 수는 선의 개수와 뉴런의 개수를 더한 값입니다. 선의 개수는 앞층 개수와 뒤층 개수를 곱한 값인데, 앞층 모든 뉴런이 뒤층 모든 뉴런과 이어지기 때문입니다. 입력이 둘인 뉴런 하나는 선 둘과 뉴런 하나를 더해 세 개입니다. 3B 모델은 이런 선과 뉴런이 합쳐서 30억 개인 모델입니다.</p>
+<div class="sf"><svg viewBox="0 0 420 188" width="380" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="11">
+  <g stroke="#333" stroke-width="1.3">
+    <line x1="60" y1="35" x2="200" y2="60"/><line x1="60" y1="35" x2="200" y2="110"/>
+    <line x1="60" y1="85" x2="200" y2="60"/><line x1="60" y1="85" x2="200" y2="110"/>
+    <line x1="60" y1="135" x2="200" y2="60"/><line x1="60" y1="135" x2="200" y2="110"/>
+    <line x1="220" y1="60" x2="340" y2="85"/><line x1="220" y1="110" x2="340" y2="85"/>
+  </g>
+  <g fill="#fff" stroke="#333" stroke-width="1.5">
+    <circle cx="40" cy="35" r="20"/><circle cx="40" cy="85" r="20"/><circle cx="40" cy="135" r="20"/>
+    <circle cx="220" cy="60" r="22" fill="#f3f3f3"/><circle cx="220" cy="110" r="22" fill="#f3f3f3"/>
+    <circle cx="362" cy="85" r="22" fill="#f3f3f3"/>
+  </g>
+  <text x="40" y="39" text-anchor="middle">x₁</text><text x="40" y="89" text-anchor="middle">x₂</text><text x="40" y="139" text-anchor="middle">x₃</text>
+  <text x="220" y="64" text-anchor="middle">h₁</text><text x="220" y="114" text-anchor="middle">h₂</text>
+  <text x="362" y="89" text-anchor="middle">ŷ</text>
+  <text x="40" y="178" text-anchor="middle" font-size="10" fill="#666">입력 3개</text>
+  <text x="220" y="150" text-anchor="middle" font-size="10" fill="#666">은닉 2개</text>
+  <text x="362" y="125" text-anchor="middle" font-size="10" fill="#666">출력 1개</text>
+</svg><div class="cap">그림 2. 3 × 2 × 1 신경망. 선 하나가 가중치 하나, 입력을 뺀 뉴런 하나마다 편향 하나</div></div>
+<table class="tb">
+<tr><th>세는 것</th><th>그림에서</th><th>계산으로</th></tr>
+<tr><td class="lbl">가중치</td><td class="l">뉴런을 잇는 선의 개수</td><td class="l">앞층 개수 × 뒤층 개수 (층 사이마다)</td></tr>
+<tr><td class="lbl">편향</td><td class="l">입력을 뺀 뉴런의 개수</td><td class="l">은닉 개수 + 출력 개수</td></tr>
+<tr><td class="lbl">파라미터</td><td class="l" colspan="2">가중치 + 편향. 그림 1의 뉴런 하나는 선 2 + 뉴런 1 = 3</td></tr>
+</table>
+<p>딥러닝을 소개하는 그림은 대개 동그라미를 세로로 줄지어 세우고 선으로 잇습니다. 맨 왼쪽 열은 입력, 맨 오른쪽 열은 출력이고, 그 사이의 열이 <b>은닉층</b>(히든 레이어)입니다. 입력 열의 동그라미는 값이 들어오는 자리라 뉴런으로 세지 않습니다. 은닉층을 여러 층 쌓은 신경망을 깊은 신경망이라 하고, 이런 신경망을 학습시키는 방법이 딥러닝입니다. 신경망이 몇 층인지 말할 때는 보통 입력층을 빼고 셉니다.</p>
+<div class="sf"><svg viewBox="10 20 480 190" width="400" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="11">
+  <g stroke="#999" stroke-width="0.9"><line x1="64" y1="70" x2="136" y2="50"/><line x1="64" y1="70" x2="136" y2="90"/><line x1="64" y1="70" x2="136" y2="130"/><line x1="64" y1="70" x2="136" y2="170"/><line x1="64" y1="110" x2="136" y2="50"/><line x1="64" y1="110" x2="136" y2="90"/><line x1="64" y1="110" x2="136" y2="130"/><line x1="64" y1="110" x2="136" y2="170"/><line x1="64" y1="150" x2="136" y2="50"/><line x1="64" y1="150" x2="136" y2="90"/><line x1="64" y1="150" x2="136" y2="130"/><line x1="64" y1="150" x2="136" y2="170"/><line x1="164" y1="50" x2="236" y2="50"/><line x1="164" y1="50" x2="236" y2="90"/><line x1="164" y1="50" x2="236" y2="130"/><line x1="164" y1="50" x2="236" y2="170"/><line x1="164" y1="90" x2="236" y2="50"/><line x1="164" y1="90" x2="236" y2="90"/><line x1="164" y1="90" x2="236" y2="130"/><line x1="164" y1="90" x2="236" y2="170"/><line x1="164" y1="130" x2="236" y2="50"/><line x1="164" y1="130" x2="236" y2="90"/><line x1="164" y1="130" x2="236" y2="130"/><line x1="164" y1="130" x2="236" y2="170"/><line x1="164" y1="170" x2="236" y2="50"/><line x1="164" y1="170" x2="236" y2="90"/><line x1="164" y1="170" x2="236" y2="130"/><line x1="164" y1="170" x2="236" y2="170"/><line x1="264" y1="50" x2="336" y2="70"/><line x1="264" y1="50" x2="336" y2="110"/><line x1="264" y1="50" x2="336" y2="150"/><line x1="264" y1="90" x2="336" y2="70"/><line x1="264" y1="90" x2="336" y2="110"/><line x1="264" y1="90" x2="336" y2="150"/><line x1="264" y1="130" x2="336" y2="70"/><line x1="264" y1="130" x2="336" y2="110"/><line x1="264" y1="130" x2="336" y2="150"/><line x1="264" y1="170" x2="336" y2="70"/><line x1="264" y1="170" x2="336" y2="110"/><line x1="264" y1="170" x2="336" y2="150"/><line x1="364" y1="70" x2="436" y2="90"/><line x1="364" y1="70" x2="436" y2="130"/><line x1="364" y1="110" x2="436" y2="90"/><line x1="364" y1="110" x2="436" y2="130"/><line x1="364" y1="150" x2="436" y2="90"/><line x1="364" y1="150" x2="436" y2="130"/></g>
+  <g stroke="#333" stroke-width="1.5"><circle cx="50" cy="70" r="14" fill="#fff"/><circle cx="50" cy="110" r="14" fill="#fff"/><circle cx="50" cy="150" r="14" fill="#fff"/><circle cx="150" cy="50" r="14" fill="#f3f3f3"/><circle cx="150" cy="90" r="14" fill="#f3f3f3"/><circle cx="150" cy="130" r="14" fill="#f3f3f3"/><circle cx="150" cy="170" r="14" fill="#f3f3f3"/><circle cx="250" cy="50" r="14" fill="#f3f3f3"/><circle cx="250" cy="90" r="14" fill="#f3f3f3"/><circle cx="250" cy="130" r="14" fill="#f3f3f3"/><circle cx="250" cy="170" r="14" fill="#f3f3f3"/><circle cx="350" cy="70" r="14" fill="#f3f3f3"/><circle cx="350" cy="110" r="14" fill="#f3f3f3"/><circle cx="350" cy="150" r="14" fill="#f3f3f3"/><circle cx="450" cy="90" r="14" fill="#f3f3f3"/><circle cx="450" cy="130" r="14" fill="#f3f3f3"/></g>
+  <text x="50" y="200" text-anchor="middle">입력</text>
+  <text x="450" y="200" text-anchor="middle">출력</text>
+</svg><div class="cap">그림 3. 딥러닝을 소개할 때 자주 보는 그림</div></div>
+<div class="ws"><span class="lab">활동지</span>세션1 (1-1 ~ 1-5). 부품을 하나씩 늘려 가며 계산하고, 그림을 보고 파라미터를 센 뒤, 딥러닝 그림을 읽습니다.</div>
+
+<!-- 2 -->
+<h2>2. 계보 이야기 <span class="ss">1943년에서 오늘까지</span></h2>
+<div class="tl">
+  <div><b>1943</b>매컬러·피츠<br/>뉴런을 수식으로</div>
+  <div><b>1958</b>로젠블랫<br/>퍼셉트론, 스스로 배움</div>
+  <div><b>1969</b>민스키·패퍼트<br/>직선의 한계, 침체기</div>
+  <div><b>1986</b>역전파<br/>여러 층 학습</div>
+  <div><b>2012</b>알렉스넷<br/>GPU, 6,000만 개</div>
+  <div><b>2017</b>트랜스포머</div>
+  <div><b>2022</b>ChatGPT</div>
+</div>
+<p>1943년 신경생리학자 워런 매컬러와 논리학자 월터 피츠는 뇌의 신경세포를 수식 하나로 표현했습니다. 이 수식은 입력의 합이 문턱값을 넘으면 1, 넘지 못하면 0을 출력합니다. 방금 계산한 인공 뉴런과 같은 구조입니다. 다만 연결의 세기와 문턱값은 사람이 손으로 정해 두었으며, 기계가 스스로 바꾸지 못했습니다.</p>
+<p>1958년 심리학자 프랭크 로젠블랫은 퍼셉트론을 발표했습니다. 퍼셉트론은 예측이 틀리면 가중치를 스스로 고쳤습니다. 오차에 입력을 곱한 만큼 가중치를 옮기는 규칙이었고, 세션4에서 계산할 식도 같은 모양입니다. 실제로 만든 기계인 마크 1 퍼셉트론은 20 × 20 = 400개의 광센서로 그림을 입력받았고, 전기 모터로 돌리는 가변저항에 가중치를 저장했습니다.</p>
+<p>1969년 마빈 민스키와 시모어 패퍼트는 책 『퍼셉트론』에서 층이 하나인 퍼셉트론의 한계를 증명했습니다. 층이 하나이면 데이터를 직선 하나로만 나눌 수 있습니다. 두 입력이 서로 다를 때만 1이 되는 XOR 문제는 직선 하나로 나눌 수 없어 풀지 못합니다. 층을 여러 개 쌓으면 이 문제를 풀 수 있다는 것은 알려져 있었지만, 가운데 층의 가중치를 고치는 방법은 널리 알려져 있지 않았습니다. 그 뒤 연구비가 줄어들면서 신경망 연구는 첫 번째 침체기를 맞았습니다.</p>
+<p>1986년 러멜하트, 힌턴, 윌리엄스는 역전파를 발표했습니다. 역전파는 출력에서 생긴 오차를 거꾸로 전달해 가운데 층 가중치의 기울기까지 구하는 방법이고, 이 방법으로 여러 층을 학습시킬 수 있게 되었습니다. 2012년에는 알렉스넷이 이미지 인식 대회에서 우승했습니다. 알렉스넷은 GPU로 학습했고 파라미터는 약 6,000만 개였습니다. 2017년에는 트랜스포머 구조가 발표되었고, 2020년에 나온 GPT-3는 파라미터가 1,750억 개였습니다. 2022년 11월에는 ChatGPT가 공개되었습니다. 뉴런 하나의 계산과 오차를 줄이는 방향으로 가중치를 고치는 원리는 1958년부터 지금까지 같습니다. 달라진 것은 층의 수와 파라미터 수, 데이터 양, 계산량입니다.</p>
+
+<!-- 3 -->
+<h2>3. 순전파(Forward Propagation)</h2>
+<p>순전파는 입력에서 출력 쪽으로 한 방향으로 계산이 흐르는 과정입니다. 뉴런이 여러 개여도 절차는 같으며, 곱셈, 합산, 활성화의 반복입니다. 앞 뉴런의 출력이 뒤 뉴런의 입력이 됩니다.</p>
+<div class="sf">
+<svg viewBox="0 6 480 100" width="440" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="12">
+  <line x1="62" y1="65" x2="150" y2="65" stroke="#333" stroke-width="1.5"/>
+  <line x1="210" y1="65" x2="330" y2="65" stroke="#333" stroke-width="1.5"/>
+  <line x1="390" y1="65" x2="436" y2="65" stroke="#333" stroke-width="1.5"/>
+  <text x="106" y="56" text-anchor="middle">w₁</text>
+  <text x="294" y="56" text-anchor="middle">w₂</text>
+  <text x="226" y="58" text-anchor="middle" font-weight="700">h</text>
+  <circle cx="40" cy="65" r="22" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="40" y="69" text-anchor="middle">x</text>
+  <circle cx="180" cy="65" r="30" fill="#f3f3f3" stroke="#333" stroke-width="1.5"/><line x1="180" y1="35" x2="180" y2="95" stroke="#333" stroke-width="1"/>
+  <text x="166" y="70" text-anchor="middle" font-size="15">Σ</text><text x="195" y="69" text-anchor="middle" font-size="9">ReLU</text>
+  <circle cx="360" cy="65" r="30" fill="#f3f3f3" stroke="#333" stroke-width="1.5"/><line x1="360" y1="35" x2="360" y2="95" stroke="#333" stroke-width="1"/>
+  <text x="346" y="70" text-anchor="middle" font-size="15">Σ</text><text x="375" y="69" text-anchor="middle" font-size="9">ReLU</text>
+  <text x="450" y="70" text-anchor="middle" font-weight="700">ŷ</text>
+  <text x="180" y="26" text-anchor="middle" font-size="11">b₁</text>
+  <text x="360" y="26" text-anchor="middle" font-size="11">b₂</text>
+</svg>
+<div class="cap">그림 4. 뉴런 두 개를 이어 붙인 모습. 동그라미 하나가 뉴런 하나이고, 앞 뉴런의 출력 h가 뒤 뉴런의 입력이다</div>
+</div>
+<p>이 특강에서 사용하는 활성화 함수는 <b>ReLU</b>입니다. 규칙은 z가 음수면 0, 양수면 그대로 통과시키는 것입니다. 규칙은 단순하지만 신경망이 표현할 수 있는 모양을 크게 바꿉니다.</p>
+<div class="fm">ReLU(z) = max(0, z)</div>
+<div class="sf">
+<svg viewBox="0 0 300 130" width="260" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="11">
+  <line x1="20" y1="100" x2="290" y2="100" stroke="#333" stroke-width="1.2"/>
+  <line x1="150" y1="115" x2="150" y2="10" stroke="#333" stroke-width="1.2"/>
+  <line x1="30" y1="100" x2="150" y2="100" stroke="#333" stroke-width="3"/>
+  <line x1="150" y1="100" x2="260" y2="15" stroke="#333" stroke-width="3"/>
+  <text x="285" y="112">z</text><text x="158" y="16">ŷ</text>
+  <text x="80" y="90" text-anchor="middle" font-size="10">음수는 0</text>
+  <text x="200" y="90" font-size="10">양수는 그대로</text>
+</svg>
+<div class="cap">그림 5. ReLU의 모양. 0에서 한 번 꺾인다</div>
+</div>
+<p>활성화 함수 없이 뉴런을 여러 개 이어 붙이면 전체 결과가 다시 직선 하나, 즉 일차함수가 됩니다. 일차함수에 일차함수를 넣으면 다시 일차함수가 되기 때문입니다. ReLU가 있으면 결과가 꺾인 선이 되고, 꺾인 선을 많이 모으면 곡선과 복잡한 경계를 표현할 수 있습니다. 1969년 민스키가 지적한 직선의 한계는 층을 쌓고 층 사이에 활성화 함수를 두어 넘습니다. 1986년 무렵에는 다른 모양의 활성화 함수를 사용했고, 지금은 ReLU를 가장 널리 사용합니다.</p>
+<div class="ws"><span class="lab">활동지</span>세션2 (2-1 ~ 2-3). 2-3에서 ReLU를 뺀 결과와 넣은 결과를 모눈에 그려 직선과 꺾인 선을 눈으로 비교합니다.</div>
+<div class="ib">
+  <div class="t">플레이그라운드 시연에서 볼 것</div>
+  선생님이 화면에 보여 주는 신경망 놀이터(playground.tensorflow.org)에서 세 장면을 봅니다. ① 원 모양 데이터를 은닉층 없이 나누려 하면 경계가 직선 하나라 실패합니다. ② 은닉층을 넣어도 활성화 함수를 Linear로 두면 여전히 직선입니다. ③ 활성화 함수를 ReLU로 바꾸면 경계가 꺾이며 원을 감쌉니다. 세 번째 장면의 신경망(입력 2 → 은닉 4 → 출력 1)의 파라미터 수를 세션1의 방법대로 선과 뉴런을 세어 구합니다.
+</div>
+
+<!-- 4 -->
+<h2>4. 오차와 손실</h2>
+<p>학습의 출발점은 얼마나 틀렸는지를 숫자로 만드는 일입니다. 한 점의 오차 e는 예측 ŷ에서 정답 y를 뺀 값입니다. 오차 e가 양수면 예측이 정답보다 크고, 음수면 작습니다. 이 부호가 고칠 방향을 알려 줍니다.</p>
+<div class="fm">e = ŷ − y   (예측 − 정답)</div>
+<p>데이터가 여러 점이면 오차를 제곱해 평균합니다. 이 값의 이름은 <b>MSE</b>(평균 제곱 오차)이고, 이 값이 <b>손실</b>입니다. 제곱하는 이유는 세 가지입니다. 첫째, 양수 오차와 음수 오차가 더해져 0처럼 보이는 일을 막습니다. 둘째, 큰 오차일수록 훨씬 크게 계산되어 큰 실수부터 줄이게 됩니다. 셋째, 손실 그래프가 매끄러운 곡선이 되어 어느 자리에서든 기울기를 구할 수 있습니다. 이는 다음 절 경사하강법의 바탕입니다.</p>
+<div class="fm">MSE = (e₁² + e₂² + … + e_N²) ÷ N</div>
+<div class="ws"><span class="lab">활동지</span>세션3 (3-1 ~ 3-2). 한 점의 오차에서 다섯 점의 MSE까지 직접 계산합니다.</div>
+
+<!-- 5 -->
+<h2>5. 경사하강법(Gradient Descent)</h2>
+<p>세션4-A에서는 다섯 점 데이터로 계산 편의를 위해 가중치 w를 2로 설정하고 편향 b만 움직입니다. 이 절의 기울기는 직선의 기울기가 아니라 손실 곡선의 기울기입니다. 가로축에 b, 세로축에 손실을 놓고 그리면 바닥이 하나인 곡선이 됩니다. 목표는 바닥 b = 1을 찾는 것입니다. 컴퓨터는 곡선 전체를 한 번에 볼 수 없고 지금 자리의 기울기만 압니다.</p>
+<p>세션3의 손실은 MSE, 세션4부터는 MSE에 ½을 곱한 값을 손실로 사용합니다. ½을 곱해도 바닥의 위치는 그대로입니다. ½을 곱하지 않으면 기울기가 모두 2배가 됩니다. ½을 곱하면 b의 기울기가 오차 e와 같은 값이 되어, 6절의 기울기 식 dw = e·x, db = e가 간단해집니다.</p>
+<div class="sf">
+<svg viewBox="-6 6 412 182" width="360" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="11">
+  <line x1="40" y1="150" x2="388" y2="150" stroke="#333" stroke-width="1.2"/>
+  <line x1="40" y1="150" x2="40" y2="18" stroke="#333" stroke-width="1.2"/>
+  <path d="M 50 25 Q 210 275 370 25" fill="none" stroke="#333" stroke-width="2"/>
+  <circle cx="90" cy="79.7" r="4.5" fill="#fff" stroke="#333" stroke-width="1.6"/>
+  <circle cx="210" cy="150" r="4.5" fill="#333"/>
+  <line x1="45" y1="27.0" x2="140" y2="138.3" stroke="#555" stroke-width="1.3" stroke-dasharray="5 3"/>
+  <text x="96" y="40" font-size="10">기울기 음수(내리막) → 오른쪽으로</text>
+  <text x="210" y="140" text-anchor="middle" font-size="10">바닥 (b = 1)</text>
+  <text x="50" y="164" text-anchor="middle">−3</text><text x="90" y="164" text-anchor="middle">−2</text>
+  <text x="170" y="164" text-anchor="middle">0</text><text x="210" y="164" text-anchor="middle">1</text>
+  <text x="290" y="164" text-anchor="middle">3</text><text x="370" y="164" text-anchor="middle">5</text>
+  <text x="393" y="154">b</text><text x="32" y="24" text-anchor="end">L</text>
+</svg>
+<div class="cap">그림 6. 손실 L. 어느 쪽에 있든 기울기의 반대로 가면 바닥에 가까워진다</div>
+</div>
+<p>접선은 곡선 위 한 점에 닿는 직선이고, 그 점의 기울기는 접선의 기울기입니다. 일차함수에서 배운 직선의 기울기와 같은 방법으로 읽습니다. 접선이 오른쪽 위로 향하면 기울기가 양수이며, 왼쪽으로 옮겨야 손실이 줄어듭니다. 접선이 오른쪽 아래로 향하면 기울기가 음수이며, 오른쪽으로 옮깁니다. 접선이 수평이면 기울기 0이며, 바닥에 도착한 것이므로 멈춥니다. 세션4-A에서는 기울기 값이 주어지고, 계산 방법은 6절에서 다룹니다.</p>
+<p>업데이트 규칙은 새 b가 지금 b에서 <b>학습률</b>과 기울기를 곱한 값을 뺀 값이 되는 것입니다. 빼기를 하는 이유는 기울기 반대 방향으로 가기 위해서입니다. 학습률 η(에타)는 한 번에 옮기는 보폭을 정하는 수입니다. 이 문제에서 출발점 b = −2, 보폭 0.5로 한 step을 진행하면 b = −0.5 가 됩니다. η가 2보다 크면 바닥을 지나쳐 점점 멀어지고, 너무 작으면 도착이 느립니다. 이 방법의 이름은 경사하강법입니다.</p>
+<div class="fm">새 b = 지금 b − η × 기울기</div>
+<div class="ws"><span class="lab">활동지</span>세션4-A 활동지(4A-1부터 4A-3)에서는 접선을 이용해 이동 방향을 정하고 세 step을 진행한 뒤, 보폭 η를 네 가지로 바꾸어 비교합니다.</div>
+
+<!-- 6 -->
+<h2>6. 기울기 계산과 업데이트</h2>
+<p>6절에서는 w와 b를 함께 움직이며, 점 (3, 7) 하나만 사용하여 계산합니다. 점이 여러 개라면 점마다 기울기를 구해 평균을 냅니다. 미분을 이용한 유도 과정은 이 절 끝의 상자에 정리되어 있습니다.</p>
+<div class="fm">dw = e · x      db = e<br/>새 w = w − η · dw      새 b = b − η · db</div>
+<p>w의 기울기에 x가 곱해지는 이유는 x가 큰 점은 w가 조금만 변해도 예측이 크게 변하기 때문입니다.</p>
+<p>학습의 한 <b>step</b>은 예측, 오차, 기울기, 업데이트의 네 단계를 한 묶음으로 진행합니다. 사람이 손으로 한 step을 해 보면 컴퓨터가 하는 일이 곱셈과 덧셈의 반복임을 알게 됩니다.</p>
+<div class="sf">
+<svg viewBox="0 0 560 90" width="500" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans KR, sans-serif" font-size="11">
+  <rect x="10" y="25" width="100" height="40" rx="6" fill="#f3f3f3" stroke="#333" stroke-width="1.5"/><text x="60" y="43" text-anchor="middle" font-weight="700">① 예측</text><text x="60" y="58" text-anchor="middle" font-size="9">ŷ = w·x + b</text>
+  <rect x="150" y="25" width="100" height="40" rx="6" fill="#f3f3f3" stroke="#333" stroke-width="1.5"/><text x="200" y="43" text-anchor="middle" font-weight="700">② 오차</text><text x="200" y="58" text-anchor="middle" font-size="9">e = ŷ − y</text>
+  <rect x="290" y="25" width="100" height="40" rx="6" fill="#f3f3f3" stroke="#333" stroke-width="1.5"/><text x="340" y="43" text-anchor="middle" font-weight="700">③ 기울기</text><text x="340" y="58" text-anchor="middle" font-size="9">dw, db</text>
+  <rect x="430" y="25" width="100" height="40" rx="6" fill="#f3f3f3" stroke="#333" stroke-width="1.5"/><text x="480" y="43" text-anchor="middle" font-weight="700">④ 업데이트</text><text x="480" y="58" text-anchor="middle" font-size="9">w − η·dw</text>
+  <line x1="110" y1="45" x2="150" y2="45" stroke="#333" stroke-width="1.5"/><line x1="250" y1="45" x2="290" y2="45" stroke="#333" stroke-width="1.5"/><line x1="390" y1="45" x2="430" y2="45" stroke="#333" stroke-width="1.5"/>
+  <path d="M 480 65 L 480 80 L 60 80 L 60 65" fill="none" stroke="#333" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <text x="270" y="78" text-anchor="middle" font-size="9" fill="#555">반복</text>
+</svg>
+<div class="cap">그림 7. 학습의 한 step</div>
+</div>
+<div class="ws"><span class="lab">활동지</span>세션4-B (4B-1 ~ 4B-5). w = 0, b = 0에서 출발해 한 step을 손으로 실행하고, 손실이 줄었는지 확인합니다.</div>
+
+<div class="deep">
+  <div class="t"><span class="num">더 알고 싶은 사람</span>dw = e·x는 어디서 오는가 (미분을 배운 학생용)</div>
+  <p>한 점의 손실을 <span class="mono">L = ½·(ŷ − y)²</span>, 예측을 <span class="mono">ŷ = w·x + b</span>로 둡니다. ½은 미분에서 나오는 2를 지우기 위한 약속입니다.</p>
+  <p><span class="mono">∂L/∂ŷ = (ŷ − y) = e</span>, &nbsp; <span class="mono">∂ŷ/∂w = x</span>, &nbsp; <span class="mono">∂ŷ/∂b = 1</span></p>
+  <p>사슬규칙으로 두 자리를 곱합니다. <span class="mono">∂L/∂w = e · x</span>, &nbsp; <span class="mono">∂L/∂b = e · 1 = e</span>.</p>
+</div>
+
+<!-- 7 -->
+<h2>7. 마무리 <span class="ss">3B의 의미</span></h2>
+<p>오늘 손으로 업데이트한 파라미터는 w와 b 두 개입니다. 3B 모델은 학습할 파라미터가 30억 개입니다.</p>
+<table class="tb">
+<tr><th>오늘의 단어</th><th>뜻 한 줄</th><th>활동지</th></tr>
+<tr><td class="lbl">가중치 · 편향</td><td class="l">학습으로 정해지는 숫자. 둘을 합쳐 파라미터라고 부릅니다</td><td>1-1, 1-2</td></tr>
+<tr><td class="lbl">은닉층 (히든 레이어)</td><td class="l">신경망 그림에서 입력 열과 출력 열 사이의 열. 은닉층을 여러 층 쌓은 신경망이 깊은 신경망</td><td>1-5</td></tr>
+<tr><td class="lbl">활성화 함수 (ReLU)</td><td class="l">음수는 0, 양수는 그대로. 직선을 꺾인 선으로 바꿉니다</td><td>1-3, 2-3</td></tr>
+<tr><td class="lbl">순전파</td><td class="l">입력에서 출력으로 곱셈 → 합산 → 활성화를 반복하는 계산</td><td>2-1, 2-2</td></tr>
+<tr><td class="lbl">오차 · 손실 (MSE)</td><td class="l">한 점의 틀림 e = ŷ − y, 여러 점의 e²의 평균</td><td>3-1, 3-2</td></tr>
+<tr><td class="lbl">기울기</td><td class="l">지금 자리에서 손실이 어느 쪽으로 오르는지 알려 주는 수</td><td>4A-1, 4B-3</td></tr>
+<tr><td class="lbl">학습률 η</td><td class="l">한 번에 옮기는 보폭</td><td>4A-2, 4A-3</td></tr>
+<tr><td class="lbl">경사하강법 · 업데이트</td><td class="l">기울기의 반대 방향으로 파라미터를 한 step 옮기는 규칙</td><td>4A-2, 4B-4</td></tr>
+<tr><td class="lbl">step</td><td class="l">예측 → 오차 → 기울기 → 업데이트 한 묶음</td><td>4B-5</td></tr>
+</table>
+<div class="ws"><span class="lab">활동지</span>마무리 (끝-1 ~ 끝-2). 배운 단어 다섯 개로 학습 과정을 설명합니다.</div>
+
+</body>
+</html>

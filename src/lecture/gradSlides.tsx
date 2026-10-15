@@ -57,6 +57,7 @@ function ChainGraph({ step, values, children, compact }: { step: number; values?
       <Box x={340} y={BY} w={300} h={BH} label="ŷ = wx + b" hot={step === 1} />
       <Arrow x1={656} x2={756} y={BY + BH / 2} hot={step === 1} />
       <Box x={770} y={BY} w={210} h={BH} label="L = ½e²" hot={step === 1} />
+          <text x={875} y={BY + BH + 26} textAnchor="middle" fill={MUTED} fontSize={20}>e = ŷ − y</text>
       {!compact && <text x={276} y={BY - 14} textAnchor="middle" fill={MUTED} fontSize={20}>w, b가 바뀌면 ŷ이 바뀜</text>}
       {!compact && <text x={706} y={BY - 14} textAnchor="middle" fill={MUTED} fontSize={20}>ŷ이 바뀌면 L이 바뀜</text>}
       <Fade show={step >= 2}>
@@ -111,7 +112,7 @@ const GChain: ComponentType<{ step: number }> = ({ step }) => (
   <Layout
     figure={<ChainGraph step={step} />}
     lines={[
-      step === 0 ? <>기울기 = <M>w</M>(또는 <M>b</M>)를 조금 바꾸면 <M>L</M>이 얼마나 바뀌나. <M>w</M>는 <M>L</M>을 직접 바꾸지 않음.</> : null,
+      step === 0 ? <>기울기(변화율)는 <M>w</M>나 <M>b</M>를 조금 바꿀 때 <M>L</M>이 바뀌는 정도임. <M>w</M>는 <M>L</M>을 직접 바꾸지 않음.</> : null,
       step === 1 ? <><M>w</M>가 <M>ŷ</M>을 바꾸고, <M>ŷ</M>이 <M>L</M>을 바꿈. 두 단계.</> : null,
       step === 2 ? <>단계마다 변화율 하나. 기호 <Key>∂</Key>로 씀.</> : null,
       step === 3 ? <>연결된 변화율은 <Key>곱함</Key>. <Key>연쇄법칙</Key>. 이제 둘을 각각 구함.</> : null,
@@ -148,10 +149,11 @@ const GLoss: ComponentType<{ step: number }> = ({ step }) => {
         </Svg>
       }
       lines={[
-        step === 0 ? <>손실 <M>L</M>을 예측값 <M>ŷ</M>에 대해 미분함.</> : null,
+        step === 0 ? <>손실 <M>L</M>을 예측값 <M>ŷ</M>에 대해 미분함. 미분은 변화율을 구하는 계산임.</> : null,
         step === 1 ? <>제곱을 미분하면 2가 앞으로 나오고 제곱은 한 단계 줄어듦.</> : null,
         step === 2 ? <>½과 2가 서로 지워짐.</> : null,
-        step === 3 ? <>남는 것은 <M>ŷ − y</M>, 곧 오차 <Hot>e</Hot>. 손실의 변화율은 오차임.</> : null,
+        step === 3 ? <>남는 것은 <M>ŷ − y</M>, 곧 오차 <Hot>e</Hot>. ŷ이 변할 때 손실의 변화율이 오차임.</> : null,
+        step === 3 ? <>4A에서 접선 기울기가 오차 e와 같았던 것과 이어짐.</> : null,
       ]}
     />
   );
@@ -181,8 +183,8 @@ const GPred: ComponentType<{ step: number }> = ({ step }) => {
       }
       lines={[
         step === 0 ? <>예측값 <M>ŷ</M>을 <M>w</M>에 대해, 그리고 <M>b</M>에 대해 미분함.</> : null,
-        step === 1 ? <><M>w</M>에 대해 미분하면 계수 <Hot>x</Hot>가 남음.</> : null,
-        step === 2 ? <><M>b</M>에 대해 미분하면 <Hot>1</Hot>.</> : null,
+        step === 1 ? <><M>w</M>에 대해 미분하면 w 앞에 곱해진 <Hot>x</Hot>가 남음. 4B-1에서 본 '입력이 곱해짐'과 같은 결과임.</> : null,
+        step === 2 ? <><M>b</M>에 대해 미분하면 <Hot>1</Hot>. b는 입력과 무관하게 더해지기 때문임.</> : null,
       ]}
     />
   );
@@ -205,9 +207,61 @@ const GConnect: ComponentType<{ step: number }> = ({ step }) => (
       step === 3 ? <><M>b</M> 줄도 같은 길.</> : null,
       step === 4 ? <>분수 자리에 <Hot>e</Hot>와 <Hot>1</Hot>을 넣음.</> : null,
       step === 5 ? <>1을 곱하니 그대로 <Hot>e</Hot>. 이것이 <Key>db</Key>. <M>dw = e·x, db = e</M>.</> : null,
+      step === 5 ? <>4-A에서 b의 기울기가 오차 e와 같았던 이유가 이것임.</> : null,
     ]}
   />
 );
+
+/* ───────── 4-A 식 유도: L = ½e² → 미분 → e (삼각형 읽기 다음 장) ───────── */
+// 사용자 결정(2026-10-15): (b − 1)² 대신 e²로 쓴다. 53장에서 e = b − 1이므로 b의 기울기 = e의 기울기.
+const GdDeriveB: ComponentType<{ step: number }> = ({ step }) => {
+  const Y1 = 96, Y2 = 236, Y3 = 392;
+  return (
+    <Layout
+      figure={
+        <Svg>
+          <Big x={120} y={Y1} text="L = ½ e²" size={46} />
+          <text x={420} y={Y1} fill={MUTED} fontSize={22}>e = b − 1 (53장) · 미분 = 접선의 기울기</text>
+          <Fade show={step >= 1}>
+            <Big x={120} y={Y2} text="미분하면" size={30} color={MUTED} bold={false} />
+            <Big x={300} y={Y2} text="½" size={46} anchor="middle" />
+            <Big x={352} y={Y2} text="×" size={44} anchor="middle" />
+            <Big x={405} y={Y2} text="2" size={46} anchor="middle" />
+            <Big x={438} y={Y2} text="e" size={46} />
+          </Fade>
+          <Fade show={step >= 2}>
+            <line x1={280} y1={Y2 + 14} x2={320} y2={Y2 - 40} stroke={ORANGE} strokeWidth={4} strokeLinecap="round" />
+            <line x1={387} y1={Y2 + 14} x2={423} y2={Y2 - 40} stroke={ORANGE} strokeWidth={4} strokeLinecap="round" />
+            <text x={352} y={Y2 - 62} textAnchor="middle" fill={ORANGE} fontSize={24} fontWeight={700}>½ × 2 = 1</text>
+            <Big x={540} y={Y2} text="= e" size={52} color={ORANGE} />
+            <text x={680} y={Y2} fill={MUTED} fontSize={24}>기울기 = 오차</text>
+          </Fade>
+          <Fade show={step >= 3}>
+            <text x={540} y={Y2 + 46} fill={ORANGE} fontSize={24} fontWeight={700}>b = −2 → e = −3 → 기울기 −3</text>
+            <text x={540} y={Y2 + 78} fill={MUTED} fontSize={21}>앞 장에서 삼각형으로 읽은 접선 기울기와 같음</text>
+          </Fade>
+          <Fade show={step >= 4}>
+            <Big x={120} y={Y3} text="½이 없으면 e²" size={36} color={MUTED} />
+            <Big x={440} y={Y3} text="→ 미분 → 2e" size={36} color={MUTED} />
+            <text x={720} y={Y3} fill={MUTED} fontSize={24} fontWeight={700}>e = −3 → −6, 오차의 2배</text>
+          </Fade>
+        </Svg>
+      }
+      lines={[
+        step === 0 ? <>손실은 <M>L = ½e²</M>. 53장에서 <M>e = b − 1</M>이었음.</> : null,
+        step === 0 ? <>접선의 기울기는 식으로도 구함. 곡선의 기울기를 구하는 계산이 <Key>미분</Key>.</> : null,
+        step === 1 ? <>제곱을 미분하면 2가 앞으로 나오고 제곱은 한 단계 줄어듦. <M>½ × 2e</M>.</> : null,
+        step === 2 ? <>½과 2가 서로 지워짐. 남는 것은 <Hot>e</Hot>. <Key>기울기 = 오차</Key>.</> : null,
+        step === 3 ? <><M>b = −2</M>이면 <M>e = −3</M>, 기울기 <Hot>−3</Hot>. 앞 장에서 삼각형으로 읽은 값과 같음.</> : null,
+        step === 4 ? <>½이 없으면 <M>e² → 2e</M>. <M>e = −3</M>에서 −6, 오차의 2배.</> : null,
+        step === 5 ? <>그래서 ½을 곱함. <Key>기울기 = 오차 e</Key>.</> : null,
+        step === 5 ? <>4A-2 표의 기울기 <M>−3, −1.5, −0.75</M>는 그때의 오차 <M>e = b − 1</M>.</> : null,
+      ]}
+    />
+  );
+};
+export const GD_DERIVE_B: SlideDef = { id: 'gd-derive-b', section: 'gd', tag: '4-A', title: '식으로 확인한다: 손실을 미분하면 오차', formula: 'L = ½e²', steps: 5, component: GdDeriveB,
+  notes: ['(2026-10-15 결정으로 덱에서 뺌. 4-A는 숫자로만 다루고 유도는 4-B에서.) L = ½e²을 미분하면 e. 53장에서 e = b − 1이므로 b의 기울기도 e입니다(b가 1 커지면 e도 1 커짐).', '63장(손실을 ŷ에 대해 미분)과 같은 모양이라 4-B 유도의 예고가 됩니다. "미분"은 "곡선의 기울기를 구하는 계산"으로만 소개합니다.'] };
 
 export const GRAD_DERIVE_SLIDES: SlideDef[] = [
   { id: 'g-chain', section: 'grad', tag: '4-B', title: 'w → ŷ → L, 연결된 변화율을 곱한다', steps: 3, component: GChain,

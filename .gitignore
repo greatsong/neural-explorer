@@ -30,3 +30,8 @@ private/
 **/assessment/
 *-assessment*.html
 *-assessment*.pdf
+
+# 특강 영상 자산 — GitHub 100MB 한계(오프라인 번들에만 포함)
+public/lecture-assets/*.mp4
+scripts/__pycache__/
+.claude/worktrees/

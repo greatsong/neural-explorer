@@ -6,6 +6,7 @@ import { Badge, ACCENT, ACCENT_BG, MUTED, TEXT, BG, SURFACE, ORANGE, ORANGE_BG, 
 import { STORY_CORPUS } from '../data/storyCorpus';
 import { buildNGram, logitsFor, softmax } from '../lib/ngram';
 import type { SlideDef } from './slides';
+import { EndBridge } from './bridgeComponents';
 
 const MODEL = buildNGram(STORY_CORPUS);
 const START_CTX = ['어느', '날', '토끼', '가'];
@@ -162,12 +163,12 @@ const EndNet: ComponentType<{ step: number }> = ({ step }) => {
               </Fade>
             </g>
           ))}
-          <text x={(CX + NX) / 2} y={400} textAnchor="middle" fill={MUTED} fontSize={19}>입력: 단어를 숫자로</text>
+            <text x={(CX + NX) / 2} y={400} textAnchor="middle" fill={MUTED} fontSize={19}>단어 → 번호 → 숫자 벡터</text>
 
           {/* 은닉층 */}
           <Fade show={step >= 2}>
             <rect x={cols[0] - 45} y={12} width={cols[2] - cols[0] + 90} height={30} rx={8} fill={ACCENT_BG} />
-            <text x={(cols[0] + cols[2]) / 2} y={34} textAnchor="middle" fill={ACCENT} fontSize={19} fontWeight={700}>은닉층 수십 층</text>
+            <text x={(cols[0] + cols[2]) / 2} y={34} textAnchor="middle" fill={ACCENT} fontSize={19} fontWeight={700}>기본 원리를 연결한 단순화 그림</text>
             {cols.map((cx, c) => ROWS.map((y, r) => <circle key={`${c}${r}`} cx={cx} cy={y} r={15} fill={ACCENT_BG} stroke={ACCENT} strokeWidth={2} />))}
             <text x={(cols[0] + cols[2]) / 2} y={400} textAnchor="middle" fill={MUTED} fontSize={19}>뉴런마다 Σ와 활성화 함수</text>
           </Fade>
@@ -190,11 +191,10 @@ const EndNet: ComponentType<{ step: number }> = ({ step }) => {
         </Svg>
       }
       lines={[
-        step === 0 ? <>ChatGPT의 내부 구조도 오늘 본 그림과 같음. 입력층, 은닉층, 출력층.</> : null,
-        step === 1 ? <>글자는 계산할 수 없으니 단어를 <Key>숫자</Key>로 바꿔 넣음.</> : null,
-        step === 2 ? <>가운데는 뉴런이 층층이. 뉴런 하나하나는 <M>Σ</M>와 활성화 함수, 1-1의 계산 그대로.</> : null,
-        step === 3 ? <>1-5의 그림에서 입력 수천, 출력 수만으로 커졌을 뿐.</> : null,
-        step === 3 ? <>출력층은 <Key>단어마다 뉴런 하나</Key>. 가장 큰 값이 나온 뉴런의 단어가 "다음 단어".</> : null,
+        step === 0 ? <>실제 내부 구조는 더 복잡함. 여기서는 <Key>입력 → 계산 → 예측</Key>의 공통점을 봄.</> : null,
+        step === 1 ? <>글을 토큰으로 나누고 번호를 붙인 뒤, 계산에 쓸 <Key>숫자 벡터</Key>로 바꿈.</> : null,
+        step === 2 ? <>여러 층에서 계산하며 다음 토큰을 예측함. 오늘 배운 가중치와 활성화 함수도 쓰임.</> : null,
+        step === 3 ? <>후보마다 점수를 내고 확률로 바꿔 다음 토큰을 고름. 그림에서는 단어를 후보로 표시함.</> : null,
       ]}
     />
   );
@@ -204,7 +204,7 @@ const EndNet: ComponentType<{ step: number }> = ({ step }) => {
 const EndTrain: ComponentType<{ step: number }> = ({ step }) => {
   const sent = ['어느', '날', '토끼', '가', '길', '을', '잃었다'];
   const dist = useMemo(() => nextDist(START_CTX), []);
-  const ring = ['예측', '오차', '기울기', '업데이트'];
+  const ring = ['예측', '오차·손실', '기울기', '업데이트'];
   const RX = 760, RY = 222, RR = 136;
   return (
     <Layout
@@ -225,7 +225,7 @@ const EndTrain: ComponentType<{ step: number }> = ({ step }) => {
           <Fade show={step >= 1}>
             <text x={104} y={200} textAnchor="end" fill={MUTED} fontSize={19}>모델의 예측</text>
             <Bars dist={dist.slice(0, 4)} y={230} pick />
-            <Badge cx={120} cy={420} anchor="start" label={`예측 "${show(dist[0].w)}"  vs  정답 "${sent[4]}"  →  오차`} color={ORANGE} size={21} />
+            <Badge cx={120} cy={420} anchor="start" label={`정답 "${sent[4]}"에 준 확률로 손실 계산`} color={ORANGE} size={21} />
           </Fade>
           {/* 네 단계 고리 */}
           <Fade show={step >= 2}>
@@ -240,18 +240,19 @@ const EndTrain: ComponentType<{ step: number }> = ({ step }) => {
                 </g>
               );
             })}
-            <text x={RX} y={RY + 10} textAnchor="middle" fill={TEXT} fontSize={24} fontWeight={700}>4B와 같음</text>
+            <text x={RX} y={RY - 9} textAnchor="middle" fill={TEXT} fontSize={22} fontWeight={700}><tspan x={RX}>학습의</tspan><tspan x={RX} dy={30}>기본 흐름</tspan></text>
           </Fade>
           <Fade show={step >= 3}>
-            <Badge cx={RX} cy={RY + RR + 52} label="파라미터 30억 개를 동시에, 단어 수조 개로 반복" color={ORANGE} fill={ORANGE_BG} size={21} />
+            <Badge cx={RX} cy={RY + RR + 52} label="많은 문장으로 예측과 업데이트를 반복" color={ORANGE} fill={ORANGE_BG} size={21} />
           </Fade>
         </Svg>
       }
       lines={[
         step === 0 ? <>어떻게 배웠나. 인터넷의 문장을 가져와 앞 네 단어만 보여 주고 다음 단어를 가리면 문제가 됨.</> : null,
-        step === 1 ? <>정답은 문장에 이미 있음. 사람이 답을 달 필요가 없음. 모델은 "{'숲'}"을 골랐는데 정답은 "길". 이 차이가 <Hot>오차</Hot>.</> : null,
-        step === 2 ? <>그다음은 4B 그대로. 오차 → 기울기 → 업데이트. 뉴런 하나에서 한 것을 뉴런 수십억 개에 동시에 함.</> : null,
-        step === 3 ? <>문장 수조 개로 이 네 단계를 반복한 결과가 ChatGPT. 하는 일은 끝까지 "다음 단어 맞히기"임.</> : null,
+        step === 1 ? <>정답은 문장 속의 "길". 후보 목록에 "길"이 없음.</> : null,
+        step === 1 ? <>정답에 준 확률이 낮을수록 <Hot>손실</Hot>이 커짐. 오차 e = ŷ − y처럼 단어끼리 빼지는 않음.</> : null,
+        step === 2 ? <>손실에서 기울기를 구하고 파라미터를 업데이트함. <Key>오늘 손으로 계산한 학습의 흐름</Key>이 이어짐.</> : null,
+        step === 3 ? <>이것이 언어 모델의 <Key>사전학습</Key>. ChatGPT는 여기에 지시를 따르고 답변을 개선하는 추가 학습도 거침.</> : null,
       ]}
     />
   );
@@ -266,6 +267,8 @@ const End3B: ComponentType<{ step: number }> = ({ step }) => {
     { n: 3_000_000_000, label: '3B 모델', sub: 'B = billion, 10억' },
   ];
   const ox = 80, oy = 366, maxH = 290, maxLog = Math.log10(3e9);
+  // 활동지 끝-1의 두 빈칸(오늘 고친 개수, 3B의 개수)은 질문 단계(0, 4) 다음에 막대를 공개한다
+  const at = [1, 2, 3, 5];
   return (
     <Layout
       figure={
@@ -275,7 +278,7 @@ const End3B: ComponentType<{ step: number }> = ({ step }) => {
             const x = ox + 60 + i * 230;
             const h = (Math.log10(it.n) / maxLog) * maxH;
             return (
-              <Fade key={i} show={step >= i}>
+              <Fade key={i} show={step >= at[i]}>
                 <rect x={x} y={oy - h} width={120} height={h} rx={10} fill={i === items.length - 1 ? ACCENT : ACCENT_BG} stroke={ACCENT} strokeWidth={2.5} />
                 <text x={x + 60} y={oy - h - 16} textAnchor="middle" fill={i === items.length - 1 ? ACCENT : TEXT} fontSize={i === items.length - 1 ? 34 : 28} fontWeight={700}>{it.n.toLocaleString('ko-KR')}개</text>
                 <text x={x + 60} y={oy + 32} textAnchor="middle" fill={TEXT} fontSize={21} fontWeight={700}>{it.label}</text>
@@ -287,10 +290,12 @@ const End3B: ComponentType<{ step: number }> = ({ step }) => {
         </Svg>
       }
       lines={[
-        step === 0 ? <>오늘 종이로 고친 숫자는 <M>w</M>와 <M>b</M>, 2개.</> : null,
-        step === 1 ? <>1-4에서 센 작은 신경망은 11개.</> : null,
-        step === 2 ? <>손글씨 숫자를 읽는 신경망은 12,730개.</> : null,
-        step === 3 ? <>"3B 모델"은 30억 개. 숫자가 다를 뿐 하는 일은 같음. <Key>예측 → 오차 → 기울기 → 업데이트</Key>.</> : null,
+        step === 0 ? <>오늘 손으로 업데이트한 파라미터는 몇 개?</> : null,
+        step === 1 ? <><M>w</M>와 <M>b</M>, 2개.</> : null,
+        step === 2 ? <>1-4에서 센 작은 신경망은 11개.</> : null,
+        step === 3 ? <>손글씨 숫자를 읽는 신경망은 12,730개.</> : null,
+        step === 4 ? <>"3B 모델"의 B는 billion, 10억. 파라미터는 몇 개?</> : null,
+        step === 5 ? <>30억 개. 숫자가 다를 뿐 하는 일은 같음. <Key>예측 → 오차 → 기울기 → 업데이트</Key>.</> : null,
       ]}
     />
   );
@@ -299,7 +304,7 @@ const End3B: ComponentType<{ step: number }> = ({ step }) => {
 /* ───────── 5. 오늘의 핵심 키워드 (활동지 끝-2의 다섯 단어) ───────── */
 const EndFive: ComponentType<{ step: number }> = ({ step }) => {
   const words = [
-    ['예측', '입력 × 가중치 + 편향 → ReLU'],
+    ['예측', '4-B의 모델: ŷ = wx + b'],
     ['오차', 'e = 예측 − 정답'],
     ['기울기', 'dw = e·x, db = e'],
     ['학습률', 'η, 한 번에 옮기는 보폭'],
@@ -321,20 +326,22 @@ const EndFive: ComponentType<{ step: number }> = ({ step }) => {
         </div>
       }
       lines={[
-        step < 4 ? <>활동지 끝-2. 이 다섯 단어를 모두 써서 "뉴런 하나가 어떻게 학습하는가"를 4~5문장으로 적음.</> : <>오늘 여러분이 손으로 풀었던 과정이 ChatGPT 학습의 가장 기본적인 원리입니다.</>,
+        step < 4 ? <>활동지 끝-2. 이 다섯 단어를 모두 써서 "뉴런 하나가 어떻게 학습하는가"를 4~5문장으로 적음.</> : <>오늘 손으로 푼 과정이 ChatGPT 학습의 가장 기본적인 원리임.</>,
       ]}
     />
   );
 };
 
 export const END_SLIDES: SlideDef[] = [
+  { id: 'end-bridge', section: 'end', title: '글을 쓰는 AI는 무엇을 맞힐까?', steps: 1, component: EndBridge,
+    notes: ['먼저 학생의 답을 듣는다. 숫자 예측에서 다음 말 예측으로 과제가 바뀌는 연결 장면.', '다음 장은 우화 말뭉치의 n-gram 시연이다. 실제 ChatGPT의 신경망을 실행하는 것은 아니다.'] },
   { id: 'end-next', section: 'end', tag: '마무리', title: 'ChatGPT는 다음 단어를 맞히는 기계', steps: 3, component: EndNext,
     notes: ['토큰이 정확하지만 "단어"라고 설명함. 후보 막대는 앱 E4 말뭉치로 실제 계산한 값.', '"다음 단어 →"를 눌러 문장이 끝날 때까지 이어 감. ChatGPT는 1등만 고르지 않고 가끔 섞어 고르기 때문에 매번 조금 다른 글이 나옴.'] },
-  { id: 'end-net', section: 'end', tag: '마무리', title: 'ChatGPT의 내부 구조', steps: 3, component: EndNet,
-    notes: ['입력 단어를 숫자로 바꿔 넣고, 출력층은 단어마다 뉴런 하나. 1-5 그림의 입력 3·출력 2가 수천·수만으로 커진 것.'] },
-  { id: 'end-train', section: 'end', tag: '마무리', title: '배우는 방법도 4B와 같다', steps: 3, component: EndTrain,
-    notes: ['핵심: 정답이 문장 안에 이미 있어 사람이 답을 달 필요가 없음. 인터넷의 글 전체가 문제집이자 정답지.', '오차 → 기울기 → 업데이트를 30억 개 파라미터에 동시에, 수조 단어로 반복.'] },
-  { id: 'end-3b', section: 'end', tag: '끝-1', title: '3B의 의미', steps: 3, component: End3B,
+  { id: 'end-net', section: 'end', tag: '마무리', title: '오늘 배운 계산에서 언어 모델로', steps: 3, component: EndNet,
+    notes: ['이 그림은 입력·계산·출력의 공통점을 설명하는 단순화다. 실제 ChatGPT가 완전 연결 신경망을 크게 만든 것이라고 설명하지 않는다.', '토큰 번호 자체를 크기로 계산하는 것이 아니라 임베딩 벡터로 바꾼다. 어텐션 상세는 이번 덱에 포함하지 않는다.'] },
+  { id: 'end-train', section: 'end', tag: '마무리', title: '손실을 줄이며 배우는 원리가 이어진다', steps: 3, component: EndTrain,
+    notes: ['사전학습에서는 이어지는 토큰이 정답이 된다. 분류 손실을 쓰므로 4-B의 e = ŷ − y를 단어에 적용하지 않는다.', '파라미터 수와 뉴런 수를 구분한다. 3B는 다음 장에서 별도의 규모 예시로 소개한다.'] },
+  { id: 'end-3b', section: 'end', tag: '끝-1', title: '3B의 의미', steps: 5, component: End3B,
     notes: ['끝-1: 오늘 고친 파라미터 2개, 3B 모델은 30억 개. 눈금은 로그.'] },
   { id: 'end-five', section: 'end', tag: '끝-2', title: '오늘의 핵심 키워드', steps: 4, component: EndFive,
     notes: ['끝-2: 다섯 단어로 한 단계에 한 문장씩.'] },

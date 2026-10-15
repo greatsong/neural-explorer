@@ -36,3 +36,32 @@ export function fmt2(v: number) { const r = Math.round(v * 100) / 100; return (r
 // 식 안에서 더할 때 음수는 괄호로: 4 + (−3) + 0
 export const par = (v: number) => (v < 0 ? `(${fmt(v)})` : fmt(v));
 export const relu = (z: number) => Math.max(0, z);
+
+/* 활동지 표 — 옆 칸에 두고 현재 줄을 강조한다 (1-1, 4A-2, 4A-3, 4B-1) */
+export function MiniTable({ head, rows, active, title }: { head: string[]; rows: (string | null)[][]; active: number; title: string }) {
+  return (
+    <div>
+      <div className="text-[18px] text-muted mb-[8px]">{title}</div>
+      <table className="w-full text-[20px] tabular-nums border-collapse">
+        <thead><tr>{head.map((h) => <th key={h} className="text-muted font-medium text-left px-[8px] py-[4px] border-b border-border" style={{ wordBreak: 'keep-all', whiteSpace: 'pre-line' }}>{h}</th>)}</tr></thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i} className={i === active ? 'bg-accent-bg text-accent font-bold' : i < active ? 'text-text' : 'text-muted/60'}>
+              {r.map((c, j) => <td key={j} className="px-[8px] py-[5px] border-b border-border/60 whitespace-nowrap">{c ?? ''}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* 큰 식 상자 — 식은 문장 속에 묻지 않고 그림 위에 고정해 보인다 (4A-2, 4A-3) */
+export function FormulaBox({ main, sub }: { main: ReactNode; sub?: ReactNode }) {
+  return (
+    <div className="shrink-0 rounded-2xl bg-accent-bg px-[30px] py-[12px] flex items-center gap-[36px] min-h-[76px]">
+      <div className="text-[38px] font-bold text-accent tabular-nums whitespace-nowrap">{main}</div>
+      {sub && <div className="lec-fade text-[34px] font-semibold text-text tabular-nums whitespace-nowrap">{sub}</div>}
+    </div>
+  );
+}

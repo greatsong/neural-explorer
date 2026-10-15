@@ -37,17 +37,34 @@ const Goals: ComponentType<{ step: number }> = ({ step }) => (
 );
 
 /* ───────── 섹션 간지 ───────── */
-function divider(id: string, section: SectionId, no: string, q: string): SlideDef {
+function divider(id: string, section: SectionId, no: string, q: string, figure?: ReactNode): SlideDef {
   const C: ComponentType<{ step: number }> = () => (
     <div className="h-full flex flex-col items-center justify-center text-center">
       <div className="text-[28px] text-accent font-bold mb-[20px]">{no}</div>
       <div className="text-[64px] font-bold leading-tight tracking-tight whitespace-pre-line">{q}</div>
+      {figure && <div className="mt-[36px]">{figure}</div>}
     </div>
   );
   return { id, section, title: '', steps: 0, component: C };
 }
+// #1 간지 그림: 1-5 딥러닝 그림과 같은 모양(3 → 4 → 4 → 3 → 2)을 설명 없이 동그라미와 선만 보여 준다
+function NetSketch() {
+  const sizes = [3, 4, 4, 3, 2];
+  const X = [80, 270, 460, 650, 840];
+  const ys = (n: number) => Array.from({ length: n }, (_, i) => 160 + (i - (n - 1) / 2) * 72);
+  return (
+    <svg viewBox="0 0 920 320" className="w-[860px] h-auto">
+      {sizes.slice(0, -1).map((a, l) => ys(a).map((y1, i) => ys(sizes[l + 1]).map((y2, j) => (
+        <line key={`${l}${i}${j}`} x1={X[l] + 26} y1={y1} x2={X[l + 1] - 26} y2={y2} stroke={MUTED} strokeWidth={1.8} strokeOpacity={0.4} />
+      ))))}
+      {sizes.map((n, l) => ys(n).map((y, i) => (
+        <circle key={`${l}${i}`} cx={X[l]} cy={y} r={26} fill={l === 0 ? BG : ACCENT_BG} stroke={l === 0 ? MUTED : ACCENT} strokeWidth={2.4} />
+      )))}
+    </svg>
+  );
+}
 export const DIVIDERS = {
-  neuron: divider('div-1', 'neuron', '#1', '동그라미와 선은\n어떤 의미일까?'),
+  neuron: divider('div-1', 'neuron', '#1', '동그라미와 선은\n어떤 의미일까요?', <NetSketch />),
   forward: divider('div-2', 'forward', '#2', '입력 → 뉴럴넷 → 출력,\n계산은 어떻게 흐를까?'),
   loss: divider('div-3', 'loss', '#3', '파라미터가 적절한 값으로\n학습되었는지 판단하려면?'),
   gd: divider('div-4', 'gd', '#4', '오차를 줄이는 알고리즘,\n경사하강법'),
@@ -57,40 +74,47 @@ export const DIVIDERS = {
 /* ───────── 1-2 편향이 더해지면 ───────── */
 const Bias: ComponentType<{ step: number }> = ({ step }) => {
   const x1 = 2, x2 = 3, w1 = 1, w2 = 1;
-  const b = step === 0 ? 0 : step === 1 ? 3 : -7;
+  // b = +3, −7을 각각 "z는?"(질문) → 공개로 나누고, 끝에 활동지 "b가 하는 일을 한 줄로"를 묻는다
+  const s = Math.min(step, 6);
+  const b = s === 0 ? 0 : s <= 2 ? 3 : -7;
+  const ask = s === 1 || s === 3;
   const z = w1 * x1 + w2 * x2 + b;
   return (
     <Layout
       figure={
         <NeuronFigure
           detail
+          swap
           inputs={[{ name: 'x₁', value: x1 }, { name: 'x₂', value: x2 }]}
           weights={[{ name: 'w₁', value: w1, product: '1 × 2 = 2' }, { name: 'w₂', value: w2, product: '1 × 3 = 3' }]}
-          bias={{ value: b, hot: step >= 1, prev: step === 1 ? 0 : step === 2 ? 3 : null }}
-          z={{ value: z, show: true, hot: step >= 1 }}
+          bias={{ value: b, hot: s >= 1, prev: s === 1 || s === 2 ? 0 : s === 3 || s === 4 ? 3 : null }}
+          z={{ value: z, show: !ask, hot: s >= 1, ask }}
           relu={{ show: false }}
           yhat={{ show: false }}
-          flow={step >= 1 && step <= 2 ? 'sum' : 'none'}
+          flow={s >= 1 && s <= 4 ? 'sum' : 'none'}
         />
       }
       lines={[
-        step === 0 ? <>가중치 부분은 <M>1·2 + 1·3 = 5</M>로 늘 같음. <M>b = 0</M>이면 <M>z = 5</M>.</> : null,
-        step === 1 ? <><M>b = +3</M>이면 <M>z = 5 + 3 = 8</M>. 입력과 상관없이 기본 점수를 올림.</> : null,
-        step === 2 ? <><M>b = −7</M>이면 <M>z = 5 + (−7) = −2</M>. 기본 점수를 내림. z가 음수가 됨.</> : null,
-        step === 3 ? <>편향 <M>b</M>는 입력과 상관없이 더하는 값. 뉴런 자체의 기본 점수임.</> : null,
+        s === 0 ? <>가중치 부분은 <M>1·2 + 1·3 = 5</M>로 늘 같음. 시범 줄은 <M>b = 0</M>이라 <M>z = 5</M>.</> : null,
+        s === 1 ? <><M>b = +3</M>이면 <M>z</M>는?</> : null,
+        s === 2 ? <><M>z = 5 + 3 = 8</M>. 입력과 상관없이 <M>z</M>를 3만큼 올림.</> : null,
+        s === 3 ? <><M>b = −7</M>이면 <M>z</M>는?</> : null,
+        s === 4 ? <><M>z = 5 + (−7) = −2</M>. <M>z</M>를 7만큼 내려 음수가 됨.</> : null,
+        s === 5 ? <><M>b</M>가 하는 일을 한 줄로 쓴다면?</> : null,
+        s === 6 ? <>편향 <M>b</M>는 입력과 상관없이 <M>z</M>에 더하는 값. 양수면 <M>z</M>를 올리고 음수면 내림.</> : null,
       ]}
     />
   );
 };
 
 /* ───────── 1-3 ReLU ───────── */
-function ReluGraph({ show }: { show: boolean }) {
+function ReluGraph({ show, table = 0 }: { show: boolean; table?: 0 | 1 | 2 }) {
   const pts = [-4, -1, 0, 2.5, 7];
   const ox = 70, oy = 230, w = 180, h = 170;
   const sx = (z: number) => ox + ((z + 5) / 13) * w;
   const sy = (v: number) => oy - (v / 8) * h;
   return (
-    <svg viewBox="0 0 300 300" className="w-full">
+    <svg viewBox="0 0 300 372" className="w-full">
       <text x={150} y={28} textAnchor="middle" fill={TEXT} fontSize={20} fontWeight={700}>ReLU(z) = max(0, z)</text>
       <line x1={ox - 10} y1={oy} x2={ox + w + 10} y2={oy} stroke={MUTED} strokeWidth={1.5} />
       <line x1={sx(0)} y1={oy + 8} x2={sx(0)} y2={oy - h - 8} stroke={MUTED} strokeWidth={1.5} />
@@ -109,10 +133,23 @@ function ReluGraph({ show }: { show: boolean }) {
         })}
       </g>
       <text x={150} y={280} textAnchor="middle" fill={MUTED} fontSize={15}>음수는 0으로, 양수는 그대로</text>
+      {/* 활동지 1-3 표: 질문 단계(table 1)는 시범 칸만, 공개 단계(table 2)는 전부 */}
+      <g className="lec-fade" style={{ opacity: table ? 1 : 0 }}>
+        <text x={14} y={326} fill={MUTED} fontSize={16}>z</text>
+        <text x={14} y={360} fill={MUTED} fontSize={16}>ReLU(z)</text>
+        <line x1={10} y1={336} x2={292} y2={336} stroke={MUTED} strokeOpacity={0.4} />
+        {pts.map((z, i) => (
+          <g key={z}>
+            <text x={112 + i * 44} y={326} textAnchor="middle" fill={TEXT} fontSize={17} fontWeight={700}>{z}</text>
+            <text x={112 + i * 44} y={360} textAnchor="middle" fill={i === 0 || table === 2 ? (Math.max(0, z) === 0 ? ORANGE : ACCENT) : MUTED} fontSize={17} fontWeight={700}>{i === 0 || table === 2 ? Math.max(0, z) : '?'}</text>
+          </g>
+        ))}
+      </g>
     </svg>
   );
 }
 const Relu: ComponentType<{ step: number }> = ({ step }) => {
+  // ŷ와 활동지 1-3 표의 값은 질문 단계(0, 3) 다음 단계에서 공개한다
   const x1 = 2, x2 = 3, w1 = 1, w2 = 1, b = -7;
   const z = w1 * x1 + w2 * x2 + b, y = Math.max(0, z);
   return (
@@ -129,13 +166,14 @@ const Relu: ComponentType<{ step: number }> = ({ step }) => {
           flow={step === 1 ? 'out' : 'none'}
         />
       }
-      aside={<div className={`lec-fade ${step >= 2 ? '' : 'opacity-0'}`}><ReluGraph show={step >= 3} /></div>}
+      aside={<div className={`lec-fade ${step >= 2 ? '' : 'opacity-0'}`}><ReluGraph show={step >= 4} table={step >= 4 ? 2 : step >= 3 ? 1 : 0} /></div>}
       asideWidth={440}
       lines={[
-        step === 0 ? <>1-2에서 <M>b = −7</M>일 때 <M>z = −2</M>, 음수였음. 이 <M>z</M>를 ReLU에 통과시킴.</> : null,
+        step === 0 ? <>1-2에서 <M>b = −7</M>일 때 <M>z = −2</M>, 음수였음. 이 <M>z</M>를 ReLU에 통과시키면 <M>ŷ</M>는?</> : null,
         step === 1 ? <>ReLU는 <Key>음수를 0으로</Key> 내보냄. <M>ŷ = ReLU(−2) = 0</M>.</> : null,
         step === 2 ? <>ReLU(z) = max(0, z). 0과 z 중 큰 쪽. 그래프는 0에서 한 번 꺾임.</> : null,
-        step === 3 ? <>1-3 표. <M>z = −4, −1, 0, 2.5, 7</M> → <M>0, 0, 0, 2.5, 7</M>. 양수는 그대로.</> : null,
+        step === 3 ? <>1-3 표. <M>z = −4, −1, 0, 2.5, 7</M>이면 ReLU(z)는?</> : null,
+        step === 4 ? <><M>0, 0, 0, 2.5, 7</M>. 음수는 0, 양수는 그대로.</> : null,
       ]}
     />
   );
@@ -154,63 +192,93 @@ const Params1: ComponentType<{ step: number }> = ({ step }) => {
   const IX = 160, IY = [120, 220, 320];
   const HX = 480, HY = [170, 270];
   const OX = 780, OY = 220;
+  // 0·1단계: 활동지 1-4 표의 시범 줄(뉴런 하나 = 선 2 + 뉴런 1). 2단계부터 3 × 2 × 1을 "몇 개?"(질문) → 공개로 센다
+  const s = Math.min(step, 9);
+  const one = s <= 1;
+  const hotIn = s === 2 || s === 3, hotOut = s === 4 || s === 5, hotN = s === 6 || s === 7;
   return (
     <Layout
       figure={
         <Svg>
-          {HY.map((hy, j) => IY.map((iy, i) => (
-            <line key={`${j}${i}`} x1={IX + 34} y1={iy} x2={HX - 44} y2={hy} stroke={step === 1 ? ORANGE : MUTED} strokeWidth={step === 1 ? 4 : 2.5} strokeOpacity={step === 1 ? 0.9 : 0.5} />
-          )))}
-          {HY.map((hy, j) => <line key={j} x1={HX + 44} y1={hy} x2={OX - 44} y2={OY} stroke={step === 2 ? ORANGE : MUTED} strokeWidth={step === 2 ? 4 : 2.5} strokeOpacity={step === 2 ? 0.9 : 0.5} />)}
-          {IY.map((iy, i) => <Node key={i} cx={IX} cy={iy} r={34} label={`x${['₁', '₂', '₃'][i]}`} muted />)}
-          {HY.map((hy, j) => <Node key={j} cx={HX} cy={hy} r={44} hot={step === 3} />)}
-          <Node cx={OX} cy={OY} r={44} hot={step === 3} />
-          <text x={IX} y={390} textAnchor="middle" fill={MUTED} fontSize={19}>입력 3</text>
-          <text x={HX} y={390} textAnchor="middle" fill={MUTED} fontSize={19}>은닉 2</text>
-          <text x={OX} y={390} textAnchor="middle" fill={MUTED} fontSize={19}>출력 1</text>
-          <Fade show={step >= 1}><Badge cx={(IX + HX) / 2} cy={60} label="선 3 × 2 = 6" color={ORANGE} fill={ORANGE_BG} size={24} /></Fade>
-          <Fade show={step >= 2}><Badge cx={(HX + OX) / 2} cy={60} label="선 2 × 1 = 2" color={ORANGE} fill={ORANGE_BG} size={24} /></Fade>
-          <Fade show={step >= 3}><Badge cx={(HX + OX) / 2} cy={410} label="입력을 뺀 뉴런 3 → 편향 3" color={ORANGE} fill={ORANGE_BG} size={24} /></Fade>
-          <Fade show={step >= 4}>
-            <rect x={840} y={150} width={150} height={140} rx={14} fill={SURFACE} stroke={ACCENT} strokeWidth={2} />
-            <text x={915} y={190} textAnchor="middle" fill={MUTED} fontSize={19}>가중치 8</text>
-            <text x={915} y={220} textAnchor="middle" fill={MUTED} fontSize={19}>+ 편향 3</text>
-            <text x={915} y={266} textAnchor="middle" fill={ACCENT} fontSize={30} fontWeight={700}>= 11개</text>
-          </Fade>
+          {one ? (
+            <g>
+              {[170, 270].map((iy, i) => <line key={i} x1={IX + 34} y1={iy} x2={HX - 44} y2={220} stroke={s === 1 ? ORANGE : MUTED} strokeWidth={s === 1 ? 4 : 2.5} strokeOpacity={s === 1 ? 0.9 : 0.5} />)}
+              {[170, 270].map((iy, i) => <Node key={i} cx={IX} cy={iy} r={34} label={`x${['₁', '₂'][i]}`} muted />)}
+              <Node cx={HX} cy={220} r={44} hot={s === 1} />
+              <text x={IX} y={390} textAnchor="middle" fill={MUTED} fontSize={19}>입력 2</text>
+              <text x={HX} y={390} textAnchor="middle" fill={MUTED} fontSize={19}>뉴런 하나</text>
+              <Fade show={s === 1}>
+                <Badge cx={(IX + HX) / 2} cy={110} label="선 2" color={ORANGE} fill={ORANGE_BG} size={24} />
+                <Badge cx={HX} cy={330} label="뉴런 1 → 편향 1" color={ORANGE} fill={ORANGE_BG} size={24} />
+                <rect x={640} y={150} width={190} height={140} rx={14} fill={SURFACE} stroke={ACCENT} strokeWidth={2} />
+                <text x={735} y={190} textAnchor="middle" fill={MUTED} fontSize={19}>가중치 2</text>
+                <text x={735} y={220} textAnchor="middle" fill={MUTED} fontSize={19}>+ 편향 1</text>
+                <text x={735} y={266} textAnchor="middle" fill={ACCENT} fontSize={30} fontWeight={700}>= 3개</text>
+              </Fade>
+            </g>
+          ) : (
+            <g>
+              {HY.map((hy, j) => IY.map((iy, i) => (
+                <line key={`${j}${i}`} x1={IX + 34} y1={iy} x2={HX - 44} y2={hy} stroke={hotIn ? ORANGE : MUTED} strokeWidth={hotIn ? 4 : 2.5} strokeOpacity={hotIn ? 0.9 : 0.5} />
+              )))}
+              {HY.map((hy, j) => <line key={j} x1={HX + 44} y1={hy} x2={OX - 44} y2={OY} stroke={hotOut ? ORANGE : MUTED} strokeWidth={hotOut ? 4 : 2.5} strokeOpacity={hotOut ? 0.9 : 0.5} />)}
+              {IY.map((iy, i) => <Node key={i} cx={IX} cy={iy} r={34} label={`x${['₁', '₂', '₃'][i]}`} muted />)}
+              {HY.map((hy, j) => <Node key={j} cx={HX} cy={hy} r={44} hot={hotN} />)}
+              <Node cx={OX} cy={OY} r={44} hot={hotN} />
+              <text x={IX} y={390} textAnchor="middle" fill={MUTED} fontSize={19}>입력 3</text>
+              <text x={HX} y={390} textAnchor="middle" fill={MUTED} fontSize={19}>은닉 2</text>
+              <text x={OX} y={390} textAnchor="middle" fill={MUTED} fontSize={19}>출력 1</text>
+              <Fade show={s >= 3}><Badge cx={(IX + HX) / 2} cy={60} label="선 3 × 2 = 6" color={ORANGE} fill={ORANGE_BG} size={24} /></Fade>
+              <Fade show={s >= 5}><Badge cx={(HX + OX) / 2} cy={60} label="선 2 × 1 = 2" color={ORANGE} fill={ORANGE_BG} size={24} /></Fade>
+              <Fade show={s >= 7}><Badge cx={(HX + OX) / 2} cy={420} label="입력을 뺀 뉴런 3 → 편향 3" color={ORANGE} fill={ORANGE_BG} size={24} /></Fade>
+              <Fade show={s >= 9}>
+                <rect x={840} y={150} width={150} height={140} rx={14} fill={SURFACE} stroke={ACCENT} strokeWidth={2} />
+                <text x={915} y={190} textAnchor="middle" fill={MUTED} fontSize={19}>가중치 8</text>
+                <text x={915} y={220} textAnchor="middle" fill={MUTED} fontSize={19}>+ 편향 3</text>
+                <text x={915} y={266} textAnchor="middle" fill={ACCENT} fontSize={30} fontWeight={700}>= 11개</text>
+              </Fade>
+            </g>
+          )}
         </Svg>
       }
       lines={[
-        step === 0 ? <>파라미터 = 학습으로 값이 정해지는 숫자, 곧 가중치와 편향 전부. 선 하나가 가중치 하나, 입력을 뺀 뉴런 하나마다 편향 하나.</> : null,
-        step === 1 ? <>입력 → 은닉 선. 앞층 3 × 뒤층 2 = <M>6</M>개. 겹쳐 지나가는 선도 따로 셈.</> : null,
-        step === 2 ? <>은닉 → 출력 선. 2 × 1 = <M>2</M>개. 선은 모두 8개.</> : null,
-        step === 3 ? <>뉴런은 은닉 2 + 출력 1 = <M>3</M>개. 입력 동그라미는 값이 들어오는 자리라 편향이 없음.</> : null,
-        step === 4 ? <>파라미터 = 8 + 3 = <Key>11개</Key>. 이 11개의 숫자가 학습으로 정해짐.</> : null,
+        s === 0 ? <>파라미터 = 학습으로 값이 정해지는 숫자, 곧 가중치와 편향 전부. 선 하나가 가중치 하나, 입력을 뺀 뉴런 하나마다 편향 하나.</> : null,
+        s === 1 ? <>시범 줄. 뉴런 하나는 선 2개, 뉴런 1개. 파라미터 = 가중치 + 편향이므로 <M>2 + 1 = 3</M>개.</> : null,
+        s === 2 ? <>3 × 2 × 1 신경망. 입력 → 은닉 선은 몇 개?</> : null,
+        s === 3 ? <>앞층 3 × 뒤층 2 = <M>6</M>개. 겹쳐 지나가는 선도 따로 셈.</> : null,
+        s === 4 ? <>은닉 → 출력 선은 몇 개?</> : null,
+        s === 5 ? <>2 × 1 = <M>2</M>개. 선은 모두 8개.</> : null,
+        s === 6 ? <>입력을 뺀 뉴런은 몇 개?</> : null,
+        s === 7 ? <>은닉 2 + 출력 1 = <M>3</M>개. 입력 동그라미는 값이 들어오는 자리라 편향이 없음.</> : null,
+        s === 8 ? <>파라미터는 모두 몇 개?</> : null,
+        s === 9 ? <>파라미터 = 8 + 3 = <Key>11개</Key>. 이 11개의 숫자가 학습으로 정해짐.</> : null,
       ]}
     />
   );
 };
 
 /* ───────── 1-4 파라미터 세기 ② 784 → 16 → 10 ───────── */
-function colYs(ellipsis: boolean) {
-  const top = 70, gap = 44;
-  return Array.from({ length: 6 }, (_, i) => top + i * gap + (ellipsis && i >= 3 ? 40 : 0));
+// 784 → 16 → 10으로 갈수록 그리는 동그라미 수와 간격을 줄여 층이 점점 낮아 보이게 한다. 가운데 ⋮ 자리를 비운다
+const COL_CY = 200;
+function colYs(n: number, gap: number) {
+  const eg = gap + 28;
+  const top = COL_CY - ((n - 2) * gap + eg) / 2;
+  return Array.from({ length: n }, (_, i) => top + i * gap + (i >= n / 2 ? eg - gap : 0));
 }
-function Column({ x, r, label, show, ellipsis }: { x: number; r: number; label: string; show?: boolean; ellipsis?: boolean }) {
-  const ys = colYs(!!ellipsis);
+function Column({ x, r, ys, label, show }: { x: number; r: number; ys: number[]; label: string; show?: boolean }) {
   return (
     <g>
       {ys.map((y, i) => <circle key={i} cx={x} cy={y} r={r} fill={show ? ACCENT_BG : BG} stroke={show ? ACCENT : MUTED} strokeWidth={2} />)}
-      {ellipsis && <text x={x} y={70 + 3 * 44 + 6} textAnchor="middle" fill={MUTED} fontSize={26}>⋮</text>}
-      <text x={x} y={ys[5] + 44} textAnchor="middle" fill={TEXT} fontSize={22} fontWeight={700}>{label}</text>
+      <text x={x} y={COL_CY + 9} textAnchor="middle" fill={MUTED} fontSize={26}>⋮</text>
+      <text x={x} y={ys[ys.length - 1] + r + 30} textAnchor="middle" fill={TEXT} fontSize={22} fontWeight={700}>{label}</text>
     </g>
   );
 }
 // 두 열의 그려진 동그라미를 모두 잇는 선 다발 (실제 선은 훨씬 많다는 것을 ⋮로 표시)
-function Bundle({ x1, x2, r1, r2, hot }: { x1: number; x2: number; r1: number; r2: number; hot: boolean }) {
-  const ys = colYs(true);
+function Bundle({ x1, x2, r1, r2, ys1, ys2, hot }: { x1: number; x2: number; r1: number; r2: number; ys1: number[]; ys2: number[]; hot: boolean }) {
   return (
     <g>
-      {ys.map((a, i) => ys.map((b, j) => (
+      {ys1.map((a, i) => ys2.map((b, j) => (
         <line key={`${i}${j}`} x1={x1 + r1} y1={a} x2={x2 - r2} y2={b} stroke={hot ? ORANGE : MUTED} strokeWidth={hot ? 1.6 : 1.1} strokeOpacity={hot ? 0.6 : 0.28} />
       )))}
     </g>
@@ -218,19 +286,22 @@ function Bundle({ x1, x2, r1, r2, hot }: { x1: number; x2: number; r1: number; r
 }
 const Params2: ComponentType<{ step: number }> = ({ step }) => {
   const X = [200, 500, 800];
+  const Y = [colYs(8, 36), colYs(6, 34), colYs(4, 34)];
+  // 선·편향·합계를 각각 "몇 개?"(질문) → 공개로 센다
+  const s = Math.min(step, 8);
   return (
     <Layout
       figure={
         <Svg>
-          <Bundle x1={X[0]} x2={X[1]} r1={16} r2={18} hot={step === 1} />
-          <Bundle x1={X[1]} x2={X[2]} r1={18} r2={18} hot={step === 2} />
-          <Column x={X[0]} r={16} label="입력 784" ellipsis />
-          <Column x={X[1]} r={18} label="은닉 16" ellipsis show={step === 3} />
-          <Column x={X[2]} r={18} label="출력 10" ellipsis show={step === 3} />
-          <Fade show={step >= 1}><Badge cx={(X[0] + X[1]) / 2} cy={36} label="선 784 × 16 = 12,544" color={ORANGE} fill={ORANGE_BG} size={23} /></Fade>
-          <Fade show={step >= 2}><Badge cx={(X[1] + X[2]) / 2} cy={36} label="선 16 × 10 = 160" color={ORANGE} fill={ORANGE_BG} size={23} /></Fade>
-          <Fade show={step >= 3}><Badge cx={(X[1] + X[2]) / 2} cy={410} label="뉴런 16 + 10 = 26 → 편향 26" color={ORANGE} fill={ORANGE_BG} size={23} /></Fade>
-          <Fade show={step >= 4}>
+          <Bundle x1={X[0]} x2={X[1]} r1={14} r2={17} ys1={Y[0]} ys2={Y[1]} hot={s === 1 || s === 2} />
+          <Bundle x1={X[1]} x2={X[2]} r1={17} r2={17} ys1={Y[1]} ys2={Y[2]} hot={s === 3 || s === 4} />
+          <Column x={X[0]} r={14} ys={Y[0]} label="입력 784" />
+          <Column x={X[1]} r={17} ys={Y[1]} label="은닉 16" show={s === 5 || s === 6} />
+          <Column x={X[2]} r={17} ys={Y[2]} label="출력 10" show={s === 5 || s === 6} />
+          <Fade show={s >= 2}><Badge cx={(X[0] + X[1]) / 2} cy={36} label="선 784 × 16 = 12,544" color={ORANGE} fill={ORANGE_BG} size={23} /></Fade>
+          <Fade show={s >= 4}><Badge cx={(X[1] + X[2]) / 2} cy={36} label="선 16 × 10 = 160" color={ORANGE} fill={ORANGE_BG} size={23} /></Fade>
+          <Fade show={s >= 6}><Badge cx={(X[1] + X[2]) / 2} cy={410} label="뉴런 16 + 10 = 26 → 편향 26" color={ORANGE} fill={ORANGE_BG} size={23} /></Fade>
+          <Fade show={s >= 8}>
             <rect x={870} y={120} width={120} height={160} rx={14} fill={SURFACE} stroke={ACCENT} strokeWidth={2} />
             <text x={930} y={156} textAnchor="middle" fill={MUTED} fontSize={17}>12,544</text>
             <text x={930} y={182} textAnchor="middle" fill={MUTED} fontSize={17}>+ 160</text>
@@ -240,11 +311,15 @@ const Params2: ComponentType<{ step: number }> = ({ step }) => {
         </Svg>
       }
       lines={[
-        step === 0 ? <>손글씨 숫자(28 × 28 = 784 픽셀)를 읽는 신경망. 선을 다 그릴 수 없음.</> : null,
-        step === 1 ? <>앞층의 모든 뉴런이 뒤층의 모든 뉴런과 이어지니 선의 개수 = 앞층 × 뒤층. <M>784 × 16 = 12,544</M>.</> : null,
-        step === 2 ? <><M>16 × 10 = 160</M>. 선은 모두 12,704개.</> : null,
-        step === 3 ? <>편향은 입력을 뺀 뉴런 수. <M>16 + 10 = 26</M>.</> : null,
-        step === 4 ? <>파라미터 <Key>12,730개</Key>. 1-4 ①의 11개보다 천 배가 넘음. 앱 C2의 화면과 같은 수.</> : null,
+        s === 0 ? <>손글씨 숫자(28 × 28 = 784 픽셀)를 읽는 신경망. 선을 다 그릴 수 없음.</> : null,
+        s === 1 ? <>앞층의 모든 뉴런이 뒤층의 모든 뉴런과 이어짐. 입력 → 은닉 선은 몇 개?</> : null,
+        s === 2 ? <>선의 개수 = 앞층 × 뒤층. <M>784 × 16 = 12,544</M>.</> : null,
+        s === 3 ? <>은닉 → 출력 선은 몇 개?</> : null,
+        s === 4 ? <><M>16 × 10 = 160</M>. 선은 모두 12,704개.</> : null,
+        s === 5 ? <>편향은 몇 개?</> : null,
+        s === 6 ? <>편향은 입력을 뺀 뉴런 수. <M>16 + 10 = 26</M>.</> : null,
+        s === 7 ? <>파라미터는 모두 몇 개?</> : null,
+        s === 8 ? <>파라미터 <Key>12,730개</Key>. 1-4 ①의 11개보다 천 배가 넘음.</> : null,
       ]}
     />
   );
@@ -256,42 +331,53 @@ const DeepFigure: ComponentType<{ step: number }> = ({ step }) => {
   const X = [100, 275, 450, 625, 800];
   const ys = (n: number) => Array.from({ length: n }, (_, i) => 215 + (i - (n - 1) / 2) * 76);
   const edges = sizes.slice(0, -1).map((a, i) => a * sizes[i + 1]); // 12, 16, 12, 6
+  // 활동지 1-5의 질문(은닉층 몇 층, 층마다 뉴런, 뉴런 합, 선 합, 파라미터)을 하나씩 "몇 개?"(질문) → 공개
+  const s = Math.min(step, 10);
+  const hotN = s >= 3 && s <= 6, hotL = s === 7 || s === 8;
   return (
     <Layout
       figure={
         <Svg>
           {sizes.slice(0, -1).map((a, l) => ys(a).map((y1, i) => ys(sizes[l + 1]).map((y2, j) => (
-            <line key={`${l}${i}${j}`} x1={X[l] + 26} y1={y1} x2={X[l + 1] - 26} y2={y2} stroke={step === 3 ? ORANGE : MUTED} strokeWidth={1.6} strokeOpacity={step === 3 ? 0.55 : 0.3} />
+            <line key={`${l}${i}${j}`} x1={X[l] + 26} y1={y1} x2={X[l + 1] - 26} y2={y2} stroke={hotL ? ORANGE : MUTED} strokeWidth={1.6} strokeOpacity={hotL ? 0.55 : 0.3} />
           ))))}
           {sizes.map((n, l) => ys(n).map((y, i) => (
-            <circle key={`${l}${i}`} cx={X[l]} cy={y} r={26} fill={l === 0 ? BG : ACCENT_BG} stroke={l === 0 ? MUTED : (step === 2 ? ORANGE : ACCENT)} strokeWidth={step === 2 && l > 0 ? 3.5 : 2.2} />
+            <circle key={`${l}${i}`} cx={X[l]} cy={y} r={26} fill={l === 0 ? BG : ACCENT_BG} stroke={l === 0 ? MUTED : (hotN ? ORANGE : ACCENT)} strokeWidth={hotN && l > 0 ? 3.5 : 2.2} />
           )))}
           <text x={X[0]} y={395} textAnchor="middle" fill={MUTED} fontSize={20}>입력 3</text>
-          <Fade show={step >= 1}>
+          <Fade show={s >= 1}>
             <rect x={X[1] - 60} y={40} width={X[3] - X[1] + 120} height={30} rx={8} fill={ACCENT_BG} />
-            <text x={(X[1] + X[3]) / 2} y={62} textAnchor="middle" fill={ACCENT} fontSize={20} fontWeight={700}>은닉층 3층</text>
-            <text x={X[4]} y={395} textAnchor="middle" fill={step >= 2 ? ORANGE : MUTED} fontSize={step >= 2 ? 22 : 20} fontWeight={step >= 2 ? 700 : 400}>{step >= 2 ? '출력 2개' : '출력'}</text>
+            <text x={(X[1] + X[3]) / 2} y={62} textAnchor="middle" fill={ACCENT} fontSize={20} fontWeight={700}>{s >= 2 ? '은닉층 3층' : '은닉층'}</text>
+            <text x={X[4]} y={395} textAnchor="middle" fill={s >= 4 ? ORANGE : MUTED} fontSize={s >= 4 ? 22 : 20} fontWeight={s >= 4 ? 700 : 400}>{s >= 4 ? '출력 2개' : '출력'}</text>
           </Fade>
-          <Fade show={step >= 2}>
+          <Fade show={s >= 4}>
             {[4, 4, 3].map((n, i) => <text key={i} x={X[i + 1]} y={395} textAnchor="middle" fill={ORANGE} fontSize={22} fontWeight={700}>{n}개</text>)}
+          </Fade>
+          <Fade show={s >= 6}>
             <Badge cx={992} cy={60} anchor="end" label="뉴런 13" color={ORANGE} fill={ORANGE_BG} size={22} />
           </Fade>
-          <Fade show={step >= 3}>
+          <Fade show={s >= 8}>
             {edges.map((e, i) => <Badge key={i} cx={(X[i] + X[i + 1]) / 2} cy={428} label={`${sizes[i]} × ${sizes[i + 1]} = ${e}`} color={ORANGE} fill={ORANGE_BG} size={19} />)}
             <Badge cx={992} cy={100} anchor="end" label="선 46" color={ORANGE} fill={ORANGE_BG} size={22} />
           </Fade>
-          <Fade show={step >= 4}>
+          <Fade show={s >= 10}>
             <Badge cx={992} cy={142} anchor="end" label="파라미터 59" color={ACCENT} fill={ACCENT_BG} size={22} />
           </Fade>
         </Svg>
       }
       lines={[
-        step === 0 ? <>딥러닝을 소개할 때 자주 보는 그림. 맨 왼쪽 열이 입력, 맨 오른쪽 열이 출력.</> : null,
-        step === 1 ? <>그 사이가 <Key>은닉층</Key>(히든 레이어). 여기서는 3층. 밖에서 값이 보이지 않아 붙은 이름.</> : null,
-        step === 2 ? <>층마다 뉴런 <M>4, 4, 3, 2</M>개. 입력을 뺀 뉴런은 모두 <M>13</M>개.</> : null,
-        step === 3 ? <>선은 옆 열끼리만 잇고 곱해서 더함. <M>3×4 + 4×4 + 4×3 + 3×2 = 46</M>.</> : null,
-        step === 4 ? <>파라미터 = 선 46 + 뉴런 13 = <Key>59개</Key>.</> : null,
-        step === 4 ? <>은닉층을 여러 층 쌓은 신경망이 깊은 신경망, 이를 학습시키는 방법이 <Key>딥러닝</Key>.</> : null,
+        s === 0 ? <>딥러닝을 소개할 때 자주 보는 그림. 맨 왼쪽 열이 입력, 맨 오른쪽 열이 출력. 시범: 입력은 <M>3</M>개.</> : null,
+        s === 1 ? <>그 사이가 <Key>은닉층</Key>(히든 레이어). 은닉층은 몇 층?</> : null,
+        s === 2 ? <><M>3</M>층. 밖에서 값이 보이지 않아 붙은 이름.</> : null,
+        s === 3 ? <>층마다 인공 뉴런은 몇 개?</> : null,
+        s === 4 ? <>입력 다음 열부터 <M>4, 4, 3, 2</M>개.</> : null,
+        s === 5 ? <>입력을 뺀 인공 뉴런은 모두 몇 개?</> : null,
+        s === 6 ? <><M>4 + 4 + 3 + 2 = 13</M>개.</> : null,
+        s === 7 ? <>선은 모두 몇 개? 선은 옆 열끼리만 이어짐.</> : null,
+        s === 8 ? <><M>3×4 + 4×4 + 4×3 + 3×2 = 46</M>.</> : null,
+        s === 9 ? <>파라미터는 모두 몇 개?</> : null,
+        s === 10 ? <>파라미터 = 선 46 + 뉴런 13 = <Key>59개</Key>.</> : null,
+        s === 10 ? <>은닉층을 여러 층 쌓은 신경망이 깊은 신경망, 이를 학습시키는 방법이 <Key>딥러닝</Key>.</> : null,
       ]}
     />
   );
@@ -301,14 +387,14 @@ export const GOAL_SLIDE: SlideDef = { id: 'goals', section: 'neuron', title: '�
   notes: ['활동지 첫 쪽의 학습 목표 네 개. "3B 모델"의 B는 billion, 10억. 무엇이 10억 개인지 세션1 끝에서 센다.'] };
 
 export const NEURON_EXTRA: SlideDef[] = [
-  { id: 'a1-bias', section: 'neuron', tag: '1-2', title: '편향이 더해지면', formula: 'z = w₁·x₁ + w₂·x₂ + b', steps: 3, component: Bias,
-    notes: ['w₁ = w₂ = 1로 두면 가중치 부분은 늘 5. b를 0, 3, −7로 바꾸면 z가 5, 8, −2.', '앱 A1의 b 슬라이더는 −3까지라 −7은 종이로만 계산한다.'] },
-  { id: 'a1-relu', section: 'neuron', tag: '1-3', title: '활성화 함수 ReLU', formula: 'ŷ = ReLU(z) = max(0, z)', steps: 3, component: Relu,
+  { id: 'a1-bias', section: 'neuron', tag: '1-2', title: '편향이 더해지면', formula: 'z = w₁·x₁ + w₂·x₂ + b', steps: 6, component: Bias,
+    notes: ['w₁ = w₂ = 1로 두면 가중치 부분은 늘 5. b를 0, 3, −7로 바꾸면 z가 5, 8, −2. "z는?"에서 멈추고 학생이 계산한 뒤 넘깁니다.', '앱 A1의 b 슬라이더는 −3까지라 −7은 종이로만 계산한다.'] },
+  { id: 'a1-relu', section: 'neuron', tag: '1-3', title: '활성화 함수 ReLU', formula: 'ŷ = ReLU(z) = max(0, z)', steps: 4, component: Relu,
     notes: ['1-2의 b = −7에서 z = −2가 ReLU를 지나 0. ReLU(0)은 0과 0 중 큰 쪽이라 0.'] },
-  { id: 'a1-params1', section: 'neuron', tag: '1-4', title: '파라미터 세기 ① 3 × 2 × 1', steps: 4, component: Params1,
-    notes: ['선 하나가 가중치 하나, 입력을 뺀 동그라미 하나가 편향 하나. 교차하는 선을 하나로 보는 학생이 있으니 선마다 번호를 붙이며 세게 한다.'] },
-  { id: 'a1-params2', section: 'neuron', tag: '1-4', title: '파라미터 세기 ② 784 → 16 → 10', steps: 4, component: Params2,
+  { id: 'a1-params1', section: 'neuron', tag: '1-4', title: '파라미터 세기 ① 뉴런 하나, 3 × 2 × 1', steps: 9, component: Params1,
+    notes: ['0·1단계는 활동지 1-4 표의 시범 줄(뉴런 하나 = 3)입니다. 이어서 "몇 개?"에서 멈추고 학생이 센 뒤 넘깁니다.', '선 하나가 가중치 하나, 입력을 뺀 동그라미 하나가 편향 하나. 교차하는 선을 하나로 보는 학생이 있으니 선마다 번호를 붙이며 세게 한다.'] },
+  { id: 'a1-params2', section: 'neuron', tag: '1-4', title: '파라미터 세기 ② 784 → 16 → 10', steps: 8, component: Params2,
     notes: ['선을 다 그릴 수 없으니 앞층 × 뒤층으로 센다. 784 × 10으로 바로 곱하는 실수에 주의. 앱 C2(#/c2?hidden=16)의 12,730과 같다.'] },
-  { id: 'a1-deep', section: 'neuron', tag: '1-5', title: '딥러닝 그림 읽기', steps: 4, component: DeepFigure,
+  { id: 'a1-deep', section: 'neuron', tag: '1-5', title: '딥러닝 그림 읽기', steps: 10, component: DeepFigure,
     notes: ['은닉층 3층, 뉴런 13개, 선 46개, 파라미터 59개. 층 수를 묻는 관례는 자료마다 달라서 "은닉층이 몇 층인가"로 묻는다.', '앱 C2(#/c2?hidden=16,16,16)로 세 층이 되면 파라미터 13,274.'] },
 ];

@@ -51,7 +51,7 @@ export interface NeuronFigureProps {
   inputs: InputSpec[];
   weights: WeightSpec[];
   bias: { value?: number | null; badge?: string; hot?: boolean; prev?: number | null; show?: boolean };
-  z?: { value?: number | null; show?: boolean; hot?: boolean };
+  z?: { value?: number | null; show?: boolean; hot?: boolean; ask?: boolean }; // ask: 아직 묻는 중이라 "z = ?"로
   relu?: { show?: boolean; hot?: boolean };
   yhat?: { value?: number | null; show?: boolean; hot?: boolean };
   flow?: 'none' | 'inputs' | 'sum' | 'out'; // 순전파 흐름 강조 단계
@@ -59,6 +59,10 @@ export interface NeuronFigureProps {
   back?: BackSpec;
   symbolic?: boolean; // 값 대신 기호만 (유도 화면)
   detail?: boolean;   // 자세히 보기: 큰 원 안에 Σ의 덧셈과 ReLU 과정을 그대로 적음 (1-1 ~ 1-3, 4B-1)
+  activation?: 'relu' | 'linear'; // 4-B는 활성화를 생략한 선형 모델
+  sumSymbol?: { wx?: boolean; b?: boolean }; // 값이 처음 나올 때 Σ 안을 먼저 기호(w₁·x₁, b)로 보여 준다 (1-1)
+  sumExpr?: boolean; // 질문 단계: Σ 안을 곱한 결과 대신 "1·2 + 1·3"처럼 숫자 식으로 보여 준다
+  swap?: boolean; // 곱셈 배지와 Σ 줄이 바뀔 때 새로 떠오르게 한다 (식 → 숫자)
   children?: ReactNode; // 추가 주석 레이어
 }
 
@@ -119,12 +123,13 @@ type Geom = { NX: number; NY: number; NR: number; BX: number; BY: number; BR: nu
 // 자세히 보기: 왼쪽 반원에 "4 / + 3 / + 0 / ─ / z = 7", 오른쪽 반원에 "max(0, z) / max(0, 7) / = 7"
 function DetailInside({ G, p }: { G: Geom; p: NeuronFigureProps }) {
   const LX = G.NX - 58, RX = G.NX + 58;
-  const known = !p.symbolic && p.weights.every((w, i) => w.value !== null && w.value !== undefined && p.inputs[i]?.value !== null && p.inputs[i]?.value !== undefined);
+  const known = !p.symbolic && !p.sumSymbol?.wx && p.weights.every((w, i) => w.value !== null && w.value !== undefined && p.inputs[i]?.value !== null && p.inputs[i]?.value !== undefined);
   const bVal = p.bias.value;
-  const bKnown = !p.symbolic && bVal !== null && bVal !== undefined;
+  const bKnown = !p.symbolic && !p.sumSymbol?.b && bVal !== null && bVal !== undefined;
   const zVal = p.z?.value;
   const zKnown = !!p.z?.show && !p.symbolic && zVal !== null && zVal !== undefined;
-  const terms = p.weights.map((w, i) => (known ? fmt((w.value as number) * (p.inputs[i].value as number)) : `${w.name}·${p.inputs[i]?.name ?? 'x'}`));
+  const expr = (w: WeightSpec, i: number) => `${(w.value as number) < 0 ? `(${fmt(w.value)})` : fmt(w.value)}·${fmt(p.inputs[i].value)}`;
+  const terms = p.weights.map((w, i) => (known ? (p.sumExpr ? expr(w, i) : fmt((w.value as number) * (p.inputs[i].value as number))) : `${w.name}·${p.inputs[i]?.name ?? 'x'}`));
   const par = (t: string) => (t.startsWith('−') ? `(${t})` : t);
   const lines = [terms[0], ...terms.slice(1).map((t) => `+ ${par(t)}`), bKnown ? `+ ${(bVal as number) < 0 ? `(${fmt(bVal)})` : fmt(bVal)}` : '+ b'];
   const sumHot = p.flow === 'sum' || !!p.z?.hot;
@@ -136,12 +141,12 @@ function DetailInside({ G, p }: { G: Geom; p: NeuronFigureProps }) {
     <g>
       <text x={LX} y={G.NY - 62} textAnchor="middle" fill={ACCENT} fontSize={30} fontWeight={700}>Σ</text>
       {lines.map((t, i) => (
-        <text key={i} x={LX} y={y0 + i * dy} textAnchor="middle" fontSize={21} fontWeight={600}
+        <text key={p.swap ? `${i}${t}` : i} className={p.swap ? 'lec-swap' : undefined} x={LX} y={y0 + i * dy} textAnchor="middle" fontSize={21} fontWeight={600}
           fill={i === lines.length - 1 ? (p.bias.hot ? ACCENT : TEXT) : TEXT}>{t}</text>
       ))}
       <line x1={LX - 46} y1={y0 + lines.length * dy - 14} x2={LX + 46} y2={y0 + lines.length * dy - 14} stroke={sumHot ? ACCENT : MUTED} strokeWidth={2} />
-      <text x={LX} y={y0 + lines.length * dy + 14} textAnchor="middle" fill={sumHot || zKnown ? ACCENT : MUTED} fontSize={23} fontWeight={700}>
-        {zKnown ? `z = ${fmt(zVal)}` : 'z'}
+      <text key={p.swap ? `z${zKnown}` : 'z'} className={p.swap ? 'lec-swap' : undefined} x={LX} y={y0 + lines.length * dy + 14} textAnchor="middle" fill={sumHot || zKnown ? ACCENT : MUTED} fontSize={23} fontWeight={700}>
+        {zKnown ? `z = ${fmt(zVal)}` : p.z?.ask ? 'z = ?' : 'z'}
       </text>
       <g opacity={reluOn ? 1 : 0.3}>
         <text x={RX - 6} y={G.NY - 56} textAnchor="middle" fill={ACCENT} fontSize={22} fontWeight={700}>ReLU</text>
@@ -218,7 +223,7 @@ export function NeuronFigure(p: NeuronFigureProps) {
                 markerEnd={hot ? (col === RED ? undefined : 'url(#lec-fwd)') : 'url(#lec-fwd-m)'} />
               {w && <Badge cx={mx} cy={my + off} label={wLabel} color={hot ? col : MUTED} size={22} />}
               <Fade show={!!w?.product}>
-                {w?.product && <Badge cx={px} cy={py + (n === 1 ? 40 : (i === 0 ? -po : po))} label={w.product} color={col} fill={col === RED ? '#fff1f2' : ACCENT_BG} size={23} />}
+                {w?.product && <g key={p.swap ? w.product : 'product'} className={p.swap ? 'lec-swap' : undefined}><Badge cx={px} cy={py + (n === 1 ? 40 : (i === 0 ? -po : po))} label={w.product} color={col} fill={col === RED ? '#fff1f2' : ACCENT_BG} size={23} /></g>}
               </Fade>
             </g>
           );
@@ -245,7 +250,7 @@ export function NeuronFigure(p: NeuronFigureProps) {
         {p.detail ? <DetailInside G={G} p={p} /> : (
           <>
             <text x={G.NX - 34} y={G.NY + 14} textAnchor="middle" fill={ACCENT} fontSize={40} fontWeight={700} opacity={p.flow === 'sum' || p.z?.hot ? 1 : 0.85}>Σ</text>
-            <text x={G.NX + 36} y={G.NY + 8} textAnchor="middle" fill={p.relu?.hot ? ACCENT : ACCENT} fontSize={21} fontWeight={700} opacity={p.relu?.show === false ? 0.25 : 1}>ReLU</text>
+            <text x={G.NX + 36} y={G.NY + 8} textAnchor="middle" fill={ACCENT} fontSize={21} fontWeight={700} opacity={p.relu?.show === false ? 0.25 : 1}>{p.activation === 'linear' ? '그대로' : 'ReLU'}</text>
           </>
         )}
         <text x={p.detail ? G.NX : G.NX + G.NR - 6} y={G.NY - G.NR - (p.detail ? 14 : 8)} textAnchor={p.detail ? "middle" : "start"} fill={MUTED} fontSize={19}>인공 뉴런</text>

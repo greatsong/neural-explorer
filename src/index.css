@@ -5,6 +5,14 @@
 @tailwind components;
 @tailwind utilities;
 
+.lecture-seek { appearance: none; height: 30px; cursor: pointer; background: transparent; }
+.lecture-seek::-webkit-slider-runnable-track { height: 10px; background: linear-gradient(to right, rgb(var(--color-accent)) var(--lecture-progress), rgb(var(--color-accent-bg)) var(--lecture-progress)); border-radius: 6px; }
+.lecture-seek::-webkit-slider-thumb { appearance: none; width: 24px; height: 24px; margin-top: -7px; border: 3px solid white; border-radius: 50%; background: rgb(var(--color-accent)); box-shadow: 0 0 0 1px rgb(var(--color-accent)); }
+.lecture-seek::-moz-range-track { height: 10px; background: linear-gradient(to right, rgb(var(--color-accent)) var(--lecture-progress), rgb(var(--color-accent-bg)) var(--lecture-progress)); border-radius: 6px; }
+.lecture-seek::-moz-range-thumb { width: 18px; height: 18px; border: 3px solid white; border-radius: 50%; background: rgb(var(--color-accent)); box-shadow: 0 0 0 1px rgb(var(--color-accent)); }
+.lecture-seek:focus-visible { outline: 2px solid rgb(var(--color-accent)); outline-offset: 4px; border-radius: 8px; }
+[data-lecture-player]:fullscreen { width: 100vw; height: 100vh; }
+
 @layer base {
   :root {
     --color-bg: 255 255 255;
@@ -98,11 +106,22 @@ html.present [data-present-svg] [data-present-keep] { font-size: 10px; }
 /* ── 특강 슬라이드(#/lecture) ──
    lec-fade: 요소가 켜지고 꺼질 때 부드럽게. lec-flow: 순전파로 강조된 선이 흐르는 느낌. lec-dash: 역전파 점선 흐름. */
 .lec-fade { transition: opacity 0.35s ease; }
+.lec-swap { animation: bp-in 0.45s ease-out both; }
 .lec-back { transition: opacity 0.4s ease; }
 .lec-flow { stroke-dasharray: 14 10; animation: lec-flow 0.9s linear infinite; }
 @keyframes lec-flow { to { stroke-dashoffset: -24; } }
 .lec-dash { animation: lec-dash 1s linear infinite; }
 @keyframes lec-dash { to { stroke-dashoffset: -21; } }
 .lec-root input[type=range] { height: 28px; }
-.lec-slide-in { animation: lec-slide-in 0.35s ease; }
-@keyframes lec-slide-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.lec-slide-page { animation: lec-slide-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.lec-slide-forward { --lec-slide-offset: 36px; }
+.lec-slide-back { --lec-slide-offset: -36px; }
+@keyframes lec-slide-enter {
+  from { opacity: 0; transform: translateX(var(--lec-slide-offset)); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lec-slide-page { animation: none; }
+  .lec-fade { transition: none; }
+  .lec-swap { animation: none; }
+}
