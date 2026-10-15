@@ -39,6 +39,7 @@ def ws_for(tag):
     else: keys = [t]
     return '\n'.join(items.get(k, '') for k in keys)
 
+SOLO = {(51,5),(51,7),(56,8),(68,9)}  # 혼자 풀기(2분): 51장 e²·MSE, 56장 step 2 새 b, 68장 4B-4 업데이트
 def is_question(cap): return cap.rstrip().endswith('?') or cap.rstrip().endswith('는?') or '나머지는' in cap
 
 def solar(prompt, system):
@@ -55,11 +56,13 @@ def solar(prompt, system):
             print('  솔라 오류', e); time.sleep(5)
     return ''
 
-SYSTEM = """당신은 중학교 2학년 90분 특강 「손으로 풀어보는 딥러닝의 원리」의 교사 스크립트를 쓰는 강사입니다. 교사는 프로젝터로 슬라이드를 한 클릭씩 넘기고, 학생은 종이 활동지에 손으로 계산합니다. 웹앱 실습은 없습니다.
+SYSTEM = """당신은 중학교 2학년 90분 특강 「손으로 풀어보는 딥러닝의 원리」의 교사 스크립트를 쓰는 강사입니다. 교사는 프로젝터로 슬라이드를 한 클릭씩 넘기고, 학생은 종이 활동지를 앞에 두고 교사와 함께 계산합니다. 웹앱 실습은 없습니다.
+진행 방식(함께 풀기): 시간이 90분뿐이라 학생에게 혼자 풀 시간을 주지 않습니다. 질문 단계에서 교사가 묻고, 학생이 입으로 답하면 바로 다음 클릭으로 답을 공개합니다. 학생은 공개된 값을 활동지 칸에 받아 적습니다. 예외로 "(혼자 풀기 2분)"이라고 표시된 단계에서만 학생이 활동지 칸을 직접 계산할 2분을 줍니다.
 규칙:
 - 교사 말은 합쇼체(~합니다, ~입니다). 짧고 또렷하게. 은유·과장 없이. 대시(—) 연결 금지. "견주다"·"쓰다"(사용 의미) 금지.
 - 화면에 적힌 숫자·기호·식만 말합니다. 설계서에 없는 수치나 사실을 지어내지 않습니다.
-- 질문 단계(캡션이 물음표로 끝남)에서는 발문을 던지고 학생이 활동지 칸을 계산할 시간을 줍니다. 공개 단계에서는 답을 확인하며 짧게 설명합니다.
+- 질문 단계(캡션이 물음표로 끝남)에서는 발문을 던지고 학생이 답을 말하게 한 뒤 바로 공개합니다. "계산할 시간을 주겠습니다", "칸을 채워 보십시오" 같은 말은 (혼자 풀기 2분) 단계에서만 씁니다. 공개 단계에서는 답을 확인하며 짧게 설명합니다.
+- 동작 줄에서 활동지를 언급할 때는 "공개한 값을 활동지 ○○ 칸에 적게 한다"처럼 받아 적기로 씁니다. (혼자 풀기 2분) 단계에서만 "활동지 ○○ 칸을 2분 동안 계산하게 한다"로 씁니다.
 - 화면의 문장을 그대로 읽지 말고 교사가 학생에게 말하듯 풀어 말합니다. 식 상자의 계산 줄("= (−2) − 0.5 × (−3)" 같은 것)은 문장으로 읽지 않고 "식 상자에 대입한 식이 보입니다"처럼 가리킵니다.
 - 그 장의 화면에 아직 나오지 않은 계산 결과(뒤 장에서 학생이 계산할 값)는 활동지 원문에 있더라도 말하지 않습니다.
 - 단계 표시는 반드시 [0], [1], [2]처럼 대괄호 안에 숫자만 씁니다. "반응:" 줄은 한 줄에 "학생 말 | 원인 | 교사 대응" 순서로 적고, 머리글은 쓰지 않습니다.
@@ -70,7 +73,8 @@ def brief(sl):
     lines.append("클릭 단계별 화면 문장:")
     for st in sl['steps']:
         caps = ' / '.join(st['caps']) if st['caps'] else '(설명 문장 없음)'
-        lines.append(f"  [{st['k']}] {'(질문·멈춤) ' if any(is_question(c) for c in st['caps']) else ''}{caps}")
+        q = any(is_question(c) for c in st['caps']); mark = '(혼자 풀기 2분) ' if (sl['n'], st['k']) in SOLO else ('(질문·함께 풀기: 묻고 바로 공개) ' if q else '')
+        lines.append(f"  [{st['k']}] {mark}{caps}")
     extra = [t for t in sl['steps'][-1]['all'] if len(t) > 1][:60]
     lines.append("마지막 단계에 화면에 보이는 그 밖의 글자(표·배지): " + ' | '.join(extra)[:900])
     if sl['notes']: lines.append("발표자 노트(교사용 메모): " + ' / '.join(sl['notes']))
@@ -161,7 +165,10 @@ for sl in slides:
         for st in sl['steps']:
             caps = '<br>'.join(esc(c) for c in st['caps']) or '<span class="dim">(그림만)</span>'
             q = any(is_question(c) for c in st['caps'])
-            frag.append(f'<tr><td>{st["k"]}</td><td>{caps}</td><td>{"멈추고 계산" if q else "공개·설명"}</td></tr>')
+            solo = (n, st['k']) in SOLO
+            cell = '<b>혼자 풀기 2분</b>' if solo else ('함께 풀기' if q else '공개·설명')
+            trcls = ' class="solo"' if solo else ''
+            frag.append(f'<tr{trcls}><td>{st["k"]}</td><td>{caps}</td><td>{cell}</td></tr>')
         frag.append('</table>')
     if sl['script']:
         frag.append(render_script(sl['script'], sl['tag']))
@@ -209,19 +216,37 @@ p{{margin-bottom:6pt}} ul{{padding-left:20pt;margin:4pt 0 8pt}} li{{margin-botto
 .tb.steps td:first-child{{width:9%;text-align:center}} .tb.steps td:last-child{{width:16%;color:#444}}
 .slide{{break-inside:avoid-page}}
 @media print{{@page{{size:A4;margin:12mm 10mm 14mm}} body{{font-size:9.6pt;padding:0;max-width:none}} .tb th,.lh .tlab,.sc .lab,h3 .num{{-webkit-print-color-adjust:exact;print-color-adjust:exact}} .sc{{-webkit-print-color-adjust:exact;print-color-adjust:exact}}}}
+.solo td{{background:#e8f7ec}}.solo b{{color:#15803d}}.box90{{border:2px solid #16a34a;border-radius:8px;padding:12px 16px;margin:16px 0;background:#f0fdf4}}.box90 table{{font-size:14px;border-collapse:collapse}}.box90 td,.box90 th{{border:1px solid #e5e7eb;padding:4px 10px}}
 </style></head><body>
 <header class="lh">
-<div><span class="tlab">교사용</span><span class="lab">NEURAL EXPLORER · 슬라이드별 스크립트 (2026-10-15)</span></div>
+<div><span class="tlab">교사용</span><span class="lab">NEURAL EXPLORER · 슬라이드별 스크립트 (2026-10-16, 함께 풀기)</span></div>
 <h1>손으로 풀어보는 딥러닝의 원리</h1>
 <div class="sub">슬라이드 웹앱(78장)과 활동지 v2를 함께 사용하는 교사 발화 · 클릭 단계별</div>
 </header>
 <h2>읽는 법</h2>
 <ul>
-<li>장마다 <strong>화면에 나오는 문장</strong>을 클릭 순서대로 표에 적었다. "멈추고 계산"은 학생이 활동지 칸을 채울 시간을 주는 단계, "공개·설명"은 다음 클릭에서 답을 보이는 단계다.</li>
+<li>장마다 <strong>화면에 나오는 문장</strong>을 클릭 순서대로 표에 적었다. "함께 풀기"는 교사가 묻고 학생이 답을 말하면 바로 공개하는 단계, "혼자 풀기 2분"(초록 줄, 세 군데)은 학생이 활동지 칸을 직접 계산하는 단계, "공개·설명"은 답을 보이며 설명하는 단계다.</li>
 <li><strong>교사</strong>는 말할 내용, <strong>발문</strong>은 묻고 기다릴 질문, <strong>동작</strong>은 교사가 할 일이다. 번호는 그 장의 클릭 번호(0은 처음 화면)다.</li>
 <li>1~33장은 세종특강 원본 도입부라 원본 덱의 노트를 그대로 적었다. 34~75장의 교사 발화는 설계서를 바탕으로 솔라 프로4가 집필했고, 숫자는 화면·활동지와 대조했다.</li>
 <li>슬라이드 주소: <span class="mono">https://neural-explorer.vercel.app/#/lecture/N</span> (N은 장 번호). 오프라인은 번들의 index.html. 다음 →/←, 전체 화면 F, 발표자 노트 N.</li>
 </ul>
+<div class="box90"><h2>함께 풀기 운영안 (2026-10-16)</h2>
+<p>학생에게 혼자 풀 시간을 주지 않고 교사와 함께 풉니다. 질문 단계에서 교사가 묻고 학생이 답을 말하면 바로 다음 클릭으로 공개하며, 학생은 공개된 값을 활동지에 받아 적습니다. 예외로 세 군데만 2분씩 혼자 계산합니다.</p>
+<ul>
+<li><b>혼자 풀기 2분 (초록 줄)</b>: 51장 클릭 5·7(오차 제곱의 합과 MSE), 56장 클릭 8(step 2의 새 b), 68장 클릭 9(4B-4 새 w·b). 세션 3·4-A·4-B의 핵심 계산 하나씩입니다.</li>
+<li><b>12·16장 영상은 1분씩만</b> 틀고 요약합니다.</li>
+<li>48장 활성화 랩, 60장 입력 하나 실험, 66장 뉴런 그림 유도, 69장 도전 step은 시간이 남을 때만 합니다.</li>
+</ul>
+<table><tr><th>구간</th><th>클릭</th><th>예상</th></tr>
+<tr><td>도입 1~35장 (영상 1분씩)</td><td>40</td><td>14분</td></tr>
+<tr><td>세션 1 인공 뉴런 36~43장</td><td>60</td><td>12분</td></tr>
+<tr><td>세션 2 순전파 44~48장</td><td>29</td><td>7분</td></tr>
+<tr><td>세션 3 오차와 손실 49~51장 (+혼자 2분)</td><td>21</td><td>7분</td></tr>
+<tr><td>세션 4-A 경사하강법 52~57장 (+혼자 2분)</td><td>68</td><td>20분</td></tr>
+<tr><td>세션 4-B 기울기·업데이트 58~69장 (+혼자 2분)</td><td>68</td><td>16분</td></tr>
+<tr><td>마무리 70~78장</td><td>28</td><td>6분</td></tr>
+<tr><td><b>합계</b></td><td>314</td><td><b>약 82분</b> (여유 8분)</td></tr></table>
+<p>추정 근거: 화면 문장을 소리 내어 읽는 시간(초당 5자) + 클릭마다 2초 + 질문 단계마다 학생이 답하는 15초 + 혼자 풀기 2분 × 3. 교사가 설명을 덧붙이면 그만큼 늘어나므로 여유 8분 안에서 조절합니다.</p></div>
 {''.join(body)}
 </body></html>'''
 open(OUT, 'w', encoding='utf-8').write(doc)
