@@ -83,7 +83,7 @@ DIRECTIVES = {
  74:['클릭 0~5를 화면과 맞춘다: [0] 파라미터 몇 개? 묻는다 → [1] 2를 끝-1 첫 빈칸에 적게 한다 → [2] 11 설명 → [3] "직접 세지는 않았지만 12,730개" 제공 → [4] 3B는 몇 개? 묻는다 → [5] 30억을 둘째 빈칸에 적게 하고 정리. 끝-1의 빈칸은 2와 30억 둘뿐이다. 11과 12,730은 적게 하지 않는다. 흐름 칸은 없다. [5] 교사 줄을 반드시 쓴다.'],
  75:['공식을 회상시키는 질문 네 개를 하지 않는다. 발문 없음. "오늘 계산한 선형 모델을 예로 들어 다섯 단어를 모두 사용해 자기 말로 설명하세요. 4분 동안 씁니다"로 운영한다. 동작: 끝-2에 4분 쓰게 한다.'],
 }
-BUDGET = {53:600,54:450,55:450,56:650,57:600,38:450,41:400,43:350,47:500}  # 교사 줄 합계 상한(공백 제외 글자)
+BUDGET = {53:400,54:300,55:350,56:500,57:450,38:450,41:400,43:350,47:500,34:120,35:200}  # 교사 줄 합계 상한(공백 제외 글자)
 def is_question(cap): return cap.rstrip().endswith('?') or cap.rstrip().endswith('는?') or '나머지는' in cap
 
 def solar(prompt, system):
@@ -155,6 +155,16 @@ for sl in slides:
             cache[key] = solar(b, SYSTEM)
             json.dump(cache, open(CACHE, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
         text = cache[key]
+        # 분량 상한 초과 시 압축 패스(최대 2회)
+        if n in BUDGET and not DRY:
+            def say_len(t): return sum(len(re.sub(r'\s', '', m)) for m in re.findall(r'^\[k?\d+\]\s*교사\s*:\s*(.*)$', t, re.M))
+            for _ in range(2):
+                L = say_len(text)
+                if L <= BUDGET[n]: break
+                print(f'  압축 {n}: {L}자 → 상한 {BUDGET[n]}자')
+                text = solar(f"아래 교사 스크립트의 '교사:' 줄만 줄이십시오. 모든 교사: 줄의 글자 수 합계(공백 제외)가 {BUDGET[n]}자 이내가 되게 합니다. 각 교사: 줄은 한 문장이 원칙이고, 숫자·기호·식은 바꾸지 않으며, 발문:·동작:·반응 줄과 단계 번호·형식은 그대로 둡니다. 장별 운영 지시에 '남긴다'고 한 연결 설명은 짧게라도 남깁니다. 출력은 스크립트 전체(같은 형식)만.\n\n" + text, "당신은 교사 스크립트를 분량에 맞게 줄이는 편집자입니다. 요청한 형식만 출력합니다.") or text
+            cache[key] = text
+            json.dump(cache, open(CACHE, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
         # 수치 검증: 발화의 숫자가 화면·활동지에 없으면 경고
         shown = set()
         for st in sl['steps']:
@@ -225,9 +235,17 @@ for sl in slides:
     if sl['script']:
         frag.append(render_script(sl['script'], sl['tag']))
     elif sl['notes']:
+        body = [t for t in sl['notes'] if not t.startswith('원본:')]
         for t in sl['notes']:
             if t.startswith('원본:'): frag.append(f'<p class="meta">{esc(t)}</p>')
-            else: frag.append(f'<div class="sc say"><span class="lab">교사</span>{esc(t)}</div>')
+        if body:
+            key = f'intro{n}'
+            if key not in cache or not cache[key]:
+                print('솔라 요약', n)
+                cache[key] = solar("다음은 특강 도입부 슬라이드의 발표자 노트입니다. 교사가 이 장에서 말할 내용을 합쇼체 한두 문장(공백 포함 70자 이내)으로 줄여 주세요. 인물 이력·연도 나열·수상 목록은 빼고 수업과 이어지는 핵심만 남깁니다. 은유·과장 없이. 출력은 그 문장만.\n\n노트:\n" + ' / '.join(body)[:1500], "당신은 중학교 특강 교사 스크립트를 짧게 다듬는 편집자입니다. 요청한 문장만 출력합니다.")
+                json.dump(cache, open(CACHE, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+            frag.append(f'<div class="sc say"><span class="lab">교사</span>{esc(cache[key].strip())}</div>')
+            frag.append(f'<p class="meta dim">원본 노트: {esc(" / ".join(body))[:600]}</p>')
     else:
         frag.append('<p class="meta dim">화면만 보여 주고 넘어간다.</p>')
     frag.append('</section>')
