@@ -37,7 +37,7 @@ export function OriginalPage({ page, video, step = 0 }: { page: number; video?: 
 }
 
 export function FutureBook() {
-  return <div className="h-full flex flex-col gap-[16px] pt-[12px]"><p className="text-[30px] font-semibold">이세돌의 질문으로 돌아가 봅시다. 우리가 배운 원리는 어떤 변화를 만들까요?</p><img src={asset('future-book.png')} className="w-full flex-1 min-h-0 object-contain" alt="먼저 온 미래 책 이미지와 정재승의 추천 글"/></div>;
+  return <div className="h-full flex flex-col gap-[16px] pt-[12px]"><p className="text-[30px] font-semibold">우리는 10년 전 알파고 사건 이후의 바둑계의 변화를 타산지석 삼아야 합니다.</p><img src={asset('future-book.png')} className="w-full flex-1 min-h-0 object-contain" alt="먼저 온 미래 책 이미지와 정재승의 추천 글"/></div>;
 }
 export function CareerList() {
   return <div className="h-full flex flex-col gap-[12px] pt-[10px]"><p className="text-[30px] font-semibold">2016년에 내다본 직업의 미래. 지금 보면 어떤 생각이 드나요?</p><img src={asset('careers-2016.png')} className="w-full flex-1 min-h-0 object-contain" alt="한국고용정보원 2016년 자료: 인공지능 대체 가능성이 낮거나 높다고 본 직업 목록"/><p className="text-[20px] text-muted">2016년의 전망 자료를 보며, 여러분의 관심 분야에서 어떤 일을 만들고 싶은지 생각해 보세요.</p></div>;
