@@ -65,10 +65,11 @@ function NetSketch() {
 }
 export const DIVIDERS = {
   neuron: divider('div-1', 'neuron', '#1', '동그라미와 선,\n이 연결은 무엇을 뜻할까?', <NetSketch />),
-  forward: divider('div-2', 'forward', '#2', '딥러닝,\n무엇을 학습하는 걸까?'),
-  loss: divider('div-3', 'loss', '#3', '잘 학습되었다는 건\n어떻게 정의할까?'),
-  gd: divider('div-4', 'gd', '#4', '기계 스스로 오차를 줄여 가는 알고리즘,\n경사하강법'),
-  grad: divider('div-5', 'grad', '#5', '기울기는 어떻게 구하고,\n파라미터를 어떻게 업데이트할까?'),
+  learn: divider('div-learn', 'neuron', '#2', '딥러닝,\n무엇을 학습하는 걸까?'),
+  forward: divider('div-2', 'forward', '#3', '뉴런을 이으면\n값은 어떻게 흐를까?'),
+  loss: divider('div-3', 'loss', '#4', '잘 학습되었다는 건\n어떻게 정의할까?'),
+  gd: divider('div-4', 'gd', '#5', '기계 스스로 오차를 줄여 가는 알고리즘,\n경사하강법'),
+  grad: divider('div-5', 'grad', '#6', '기울기는 어떻게 구하고,\n파라미터를 어떻게 업데이트할까?'),
 };
 
 /* ───────── 1-2 편향이 더해지면 ───────── */
@@ -391,6 +392,7 @@ export const NEURON_EXTRA: SlideDef[] = [
     notes: ['w₁ = w₂ = 1로 두면 가중치 부분은 늘 5. b를 0, 3, −7로 바꾸면 z가 5, 8, −2. "z는?"에서 멈추고 학생이 계산한 뒤 넘깁니다.', '앱 A1의 b 슬라이더는 −3까지라 −7은 종이로만 계산한다.'] },
   { id: 'a1-relu', section: 'neuron', tag: '1-3', title: '활성화 함수 ReLU', formula: 'ŷ = ReLU(z) = max(0, z)', steps: 4, component: Relu,
     notes: ['1-2의 b = −7에서 z = −2가 ReLU를 지나 0. ReLU(0)은 0과 0 중 큰 쪽이라 0.'] },
+  DIVIDERS.learn,
   { id: 'a1-params1', section: 'neuron', tag: '1-4', title: '파라미터 세기 ① 뉴런 하나, 3 × 2 × 1', steps: 9, component: Params1,
     notes: ['0·1단계는 활동지 1-4 표의 시범 줄(뉴런 하나 = 3)입니다. 이어서 "몇 개?"에서 멈추고 학생이 센 뒤 넘깁니다.', '선 하나가 가중치 하나, 입력을 뺀 동그라미 하나가 편향 하나. 교차하는 선을 하나로 보는 학생이 있으니 선마다 번호를 붙이며 세게 한다.'] },
   { id: 'a1-params2', section: 'neuron', tag: '1-4', title: '파라미터 세기 ② 784 → 16 → 10', steps: 8, component: Params2,
