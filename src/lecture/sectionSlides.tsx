@@ -270,7 +270,7 @@ const ETA_CALC: (string | null)[] = [
   null, null, '−2 − 0.05 × (−3) = −2 + 0.15 = −1.85', null, '10 step 뒤 b ≈ −0.8',
   '−2 − 0.5 × (−3) = −2 + 1.5 = −0.5',
   null, '−2 − 2 × (−3) = −2 + 6 = 4', '4 − 2 × 3 = ?', '4 − 2 × 3 = −2', '−2 → 4 → −2 → 4',
-  null, '−2 − 2.5 × (−3) = −2 + 7.5 = 5.5', '5.5 − 2.5 × 4.5 = ?', '5.5 − 2.5 × 4.5 = −5.75', '−5.75 → 11.1 → …',
+  null, '−2 − 2.5 × (−3) = −2 + 7.5 = 5.5', '5.5 − 2.5 × 4.5 = ?', '5.5 − 2.5 × 4.5 = −5.75', '−5.75 → 약 11.1 → …',
   null, null,
 ];
 const GdEta: ComponentType<{ step: number }> = ({ step }) => {
@@ -298,7 +298,7 @@ const GdEta: ComponentType<{ step: number }> = ({ step }) => {
         <FormulaBox main={<>새 b = −2 − η × (−3)</>} sub={ETA_CALC[s] ? <>{ETA_CALC[s]}</> : undefined} />
         <div className="flex-1 min-h-0"><LossCurveB path={path} badgeAt={path.length > 1 ? 1 : 0} pointLabels={pointLabels}
           pathLabel={k < 0 ? undefined : `η = ${etas[k]}${named ? ` · ${names[k]}` : ''}`}
-          note={s === 15 ? '다음 b = 11.1, 그래프 밖' : s >= 17 ? '남은 거리: 출발 3 → η = 2.0 뒤 3, η = 2.5 뒤 4.5' : undefined} /></div>
+          note={s === 15 ? '다음 b ≈ 11.1, 그래프 밖' : s >= 17 ? '남은 거리: 출발 3 → η = 2.0 뒤 3, η = 2.5 뒤 4.5' : undefined} /></div>
       </div>}
       lines={[
         s === 0 ? <>모두 <M>b = −2</M>에서 출발. 바닥 1까지 남은 거리 3. 오차 <M>e = −2 − 1 = −3</M>이라 기울기 <M>−3</M>.</> : null,
@@ -320,7 +320,7 @@ const GdEta: ComponentType<{ step: number }> = ({ step }) => {
         s === 12 ? <>남은 거리(1과의 차이) <M>5.5 − 1 = 4.5</M>. 출발 때 3보다 늘었음.</> : null,
         s === 13 ? <>계속 가면? <M>b = 5.5</M>에서 오차 <M>e = 5.5 − 1 = 4.5</M>, 기울기 <Hot>4.5</Hot>. 새 <M>b</M>는?</> : null,
         s === 14 ? <>새 <M>b = 5.5 − 2.5 × 4.5 = 5.5 − 11.25 = −5.75</M>.</> : null,
-        s === 15 ? <>그다음은 <M>11.1</M>, 그래프 밖. 갈수록 멀어짐. <Key>발산</Key>.</> : null,
+        s === 15 ? <>그다음은 <M>11.125</M>, 약 11.1로 그래프 밖. 갈수록 멀어짐. <Key>발산</Key>.</> : null,
         s === 16 ? <><M>η = 2.0</M>에서 남은 거리는 출발 때와 같나? <M>η = 2.5</M>에서는 줄었나, 늘었나?</> : null,
         s === 17 ? <><M>η = 2.0</M>은 3 그대로라 <Key>같음</Key>. <M>η = 2.5</M>는 3 → 4.5로 <Key>늘었음</Key>. 학습률은 실험으로 정함.</> : null,
       ]}

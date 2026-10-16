@@ -251,7 +251,7 @@ const GradSymbols: ComponentType<{ step: number }> = ({ step }) => {
         />
       }
       lines={[
-        step === 0 ? <>오차 <M>e</M>가 <M>L</M>에서 출발해 거꾸로 흐름. <M>L → ŷ</M> 구간의 변화율은 <M>e</M>.</> : null,
+        step === 0 ? <><M>ŷ</M>에 대한 <M>L</M>의 기울기 <M>e</M>를 구해 앞쪽으로 거꾸로 전달함.</> : null,
         step === 1 ? <>선형 모델이라 뉴런은 그대로 통과. 지나는 곳마다 변화율을 곱함.</> : null,
         step === 2 ? <><M>w</M> 선에서 <M>x</M>를 곱해 <Hot>dw = e·x</Hot>.</> : null,
         step === 3 ? <><M>b</M> 선에서 1을 곱해 <Hot>db = e</Hot>. 연결된 변화율을 곱하는 것이 <Key>연쇄법칙</Key>.</> : null,

@@ -74,7 +74,7 @@ export const GraphBridge: ComponentType<{ step: number }> = ({ step }) => {
     s === 11 ? <>세 결과. <M>b = 3 → e = 2</M>, <M>b = −2 → e = −3</M>, <M>b = 1 → e = 0</M>.</> : null,
     s === 11 ? <>오차 <Key>e = b − 1</Key>. b가 1보다 얼마나 큰지가 오차. 1보다 작으면 음수.</> : null,
     s === 12 ? <>다섯 점의 e가 모두 같으니 <M>MSE = e²</M>, <Key>L = ½e² = ½(b − 1)²</Key>.</> : null,
-    s === 12 ? <>점들을 이으면 손실 곡선. 바닥은 <M>b = 1</M>.</> : null,
+    s === 12 ? <>이 식의 그래프가 손실 곡선. 바닥은 <M>b = 1</M>.</> : null,
   ]} figure={<div className="h-full flex flex-col justify-center">
     <div className="grid grid-cols-2 gap-[24px]">
       <div className="rounded-2xl border border-border p-[16px]">
@@ -124,7 +124,7 @@ export const GradSetup: ComponentType<{ step: number }> = ({ step }) => (
     step === 2 ? <>4-B는 ReLU 없는 <Key>선형 모델</Key> <M>ŷ = wx + b</M>로 계산함.</> : null,
     step === 2 ? <>이 문제에서는 <M>z</M>가 0 이상이라 ReLU를 붙여도 값이 같음.</> : null,
     step === 3 ? <>앞 실험에서 <Key>예측값의 변화 = 입력 x × 가중치의 변화</Key>.</> : null,
-    step === 3 ? <>이제 손실 <M>L</M>은 얼마나 변하는지, 곧 기울기를 구함.</> : null,
+    step === 3 ? <>이제 <M>w</M>나 <M>b</M>에 대한 손실 <M>L</M>의 기울기, 곧 변화 비율을 구함.</> : null,
   ]} figure={<div className="h-full flex flex-col justify-center gap-[26px]">
     <div className="grid grid-cols-2 gap-[32px]">
       <div className="rounded-2xl border border-border p-[32px]">

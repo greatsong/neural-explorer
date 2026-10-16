@@ -77,7 +77,7 @@ function ChainGraph({ step, values, children, compact }: { step: number; values?
           <Big x={335} y={372} text="×" size={34} />
           <Frac cx={430} cy={360} top="∂ŷ" bot="∂w" size={34} />
           <rect x={560} y={330} width={420} height={62} rx={12} fill={BG} stroke={MUTED} strokeOpacity={0.4} />
-          <text x={770} y={370} textAnchor="middle" fill={MUTED} fontSize={22}>∂ = 다른 값은 두고 이 값만 바꿀 때의 변화율</text>
+          <text x={770} y={370} textAnchor="middle" fill={MUTED} fontSize={22}>∂L/∂w = 다른 값은 두고 w만 바꿀 때 L의 변화율</text>
         </Fade>
       )}
       {children}
@@ -112,7 +112,7 @@ const GChain: ComponentType<{ step: number }> = ({ step }) => (
   <Layout
     figure={<ChainGraph step={step} />}
     lines={[
-      step === 0 ? <>기울기(변화율)는 <M>w</M>나 <M>b</M>를 조금 바꿀 때 <M>L</M>이 바뀌는 정도임. <M>w</M>는 <M>L</M>을 직접 바꾸지 않음.</> : null,
+      step === 0 ? <>기울기(변화율)는 다른 값은 두고 <M>w</M>나 <M>b</M>만 아주 조금 바꿀 때 <M>L</M>이 변하는 비율임. <M>w</M>는 <M>L</M>을 직접 바꾸지 않음.</> : null,
       step === 1 ? <><M>w</M>가 <M>ŷ</M>을 바꾸고, <M>ŷ</M>이 <M>L</M>을 바꿈. 두 단계.</> : null,
       step === 2 ? <>단계마다 변화율 하나. 기호 <Key>∂</Key>로 씀.</> : null,
       step === 3 ? <>연결된 변화율은 <Key>곱함</Key>. <Key>연쇄법칙</Key>. 이제 둘을 각각 구함.</> : null,
