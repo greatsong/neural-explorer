@@ -183,7 +183,7 @@ const GPred: ComponentType<{ step: number }> = ({ step }) => {
       }
       lines={[
         step === 0 ? <>예측값 <M>ŷ</M>을 <M>w</M>에 대해, 그리고 <M>b</M>에 대해 미분함.</> : null,
-        step === 1 ? <><M>w</M>에 대해 미분하면 w 앞에 곱해진 <Hot>x</Hot>가 남음. 4B-1에서 본 '입력이 곱해짐'과 같은 결과임.</> : null,
+        step === 1 ? <><M>w</M>에 대해 미분하면 w 앞에 곱해진 <Hot>x</Hot>가 남음. 입력이 클수록 w의 변화가 예측을 더 크게 바꿈.</> : null,
         step === 2 ? <><M>b</M>에 대해 미분하면 <Hot>1</Hot>. b는 입력과 무관하게 더해지기 때문임.</> : null,
       ]}
     />

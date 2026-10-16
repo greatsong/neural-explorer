@@ -121,9 +121,10 @@ export const GradSetup: ComponentType<{ step: number }> = ({ step }) => (
   <Layout lines={[
     step === 0 ? <>지금까지는 <Key>b만</Key> 고쳤음. 이제 <Key>w와 b를 함께</Key> 고침.</> : null,
     step === 1 ? <>계산을 따라가기 쉽게 점은 <M>(3, 7)</M> 하나만 사용. 출발은 <M>w = 0, b = 0</M>.</> : null,
+    step === 1 ? <>활동지 4B-1 실험은 오늘 건너뜀. 식을 먼저 보고 4B-2부터 계산함.</> : null,
     step === 2 ? <>4-B는 ReLU 없는 <Key>선형 모델</Key> <M>ŷ = wx + b</M>로 계산함.</> : null,
     step === 2 ? <>이 문제에서는 <M>z</M>가 0 이상이라 ReLU를 붙여도 값이 같음.</> : null,
-    step === 3 ? <>앞 실험에서 <Key>예측값의 변화 = 입력 x × 가중치의 변화</Key>.</> : null,
+    step === 3 ? <><M>w</M>와 <M>b</M> 둘 다 손실에 영향을 줌. 각각의 <Key>기울기</Key>가 필요함.</> : null,
     step === 3 ? <>이제 <M>w</M>나 <M>b</M>에 대한 손실 <M>L</M>의 기울기, 곧 변화 비율을 구함.</> : null,
   ]} figure={<div className="h-full flex flex-col justify-center gap-[26px]">
     <div className="grid grid-cols-2 gap-[32px]">
