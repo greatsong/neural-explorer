@@ -33,7 +33,7 @@ export const SECTIONS: { id: SectionId; label: string }[] = [
   { id: 'forward', label: '순전파' },
   { id: 'loss', label: '오차와 손실' },
   { id: 'gd', label: '경사하강법' },
-  { id: 'grad', label: '기울기와 업데이트' },
+  { id: 'grad', label: '오차 역전파' },
   { id: 'end', label: '언어 모델' },
   { id: 'future', label: '여러분의 미래' },
 ];
