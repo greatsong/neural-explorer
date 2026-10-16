@@ -77,7 +77,7 @@ function ChainGraph({ step, values, children, compact }: { step: number; values?
           <Big x={335} y={372} text="×" size={34} />
           <Frac cx={430} cy={360} top="∂ŷ" bot="∂w" size={34} />
           <rect x={560} y={330} width={420} height={62} rx={12} fill={BG} stroke={MUTED} strokeOpacity={0.4} />
-          <text x={770} y={370} textAnchor="middle" fill={MUTED} fontSize={22}>∂L/∂w = 다른 값은 두고 w만 바꿀 때 L의 변화율</text>
+          <text x={770} y={369} textAnchor="middle" fill={MUTED} fontSize={19}>∂L/∂w = 다른 값은 두고 w만 바꿀 때 L의 변화율</text>
         </Fade>
       )}
       {children}
