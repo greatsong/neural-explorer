@@ -281,7 +281,7 @@ const TeX = ({ tex, size = 30 }: { tex: string; size?: number }) => (
   <div style={{ fontSize: size }} dangerouslySetInnerHTML={{ __html: katex.renderToString(tex, { throwOnError: false, displayMode: true }) }} />
 );
 const CARDS: { tex: string; text: string }[] = [
-  { tex: String.raw`L = \tfrac12 e^2 = \tfrac12(\hat y - y)^2`, text: '한 점의 손실. ½은 뒤에서 2와 지워지게 하는 장치' },
+  { tex: String.raw`L = \tfrac12 e^2 = \tfrac12(\hat y - y)^2`, text: '한 점의 손실. ½은 수식을 깔끔하게 만들기 위한 장치' },
   { tex: String.raw`\frac{\partial L}{\partial w} = \frac{\partial L}{\partial \hat y}\cdot\frac{\partial \hat y}{\partial w}`, text: 'w → ŷ → L. 두 비율을 곱함' },
   { tex: String.raw`\frac{\partial L}{\partial \hat y} = \tfrac12\cdot 2(\hat y - y) = e`, text: 'ŷ이 조금 변할 때 L은? ½과 2가 지워져 e' },
   { tex: String.raw`\frac{\partial \hat y}{\partial w} = \frac{\partial (wx+b)}{\partial w} = x`, text: 'w가 조금 변할 때 ŷ은? wx는 x배, b는 무관' },
@@ -292,7 +292,7 @@ const CARDS: { tex: string; text: string }[] = [
 const GDeriveCards: ComponentType<{ step: number }> = ({ step }) => (
   <Layout
     lines={[
-      step === 0 ? <>손실은 <M>L = ½e² = ½(ŷ − y)²</M>. ½은 제곱에서 나오는 2와 지워지게 하는 장치.</> : null,
+      step === 0 ? <>손실은 <M>L = ½e² = ½(ŷ − y)²</M>. ½은 수식을 깔끔하게 만들기 위한 장치.</> : null,
       step === 1 ? <><M>w</M>가 조금 변할 때 <M>L</M>은 얼마나 변할까?</> : null,
       step === 1 ? <>= (<M>ŷ</M>이 변할 때 <M>L</M>은 얼마나) × (<M>w</M>가 변할 때 <M>ŷ</M>은 얼마나)</> : null,
       step === 2 ? <><M>ŷ</M>이 조금 변할 때 <M>L</M>은 얼마나 변하나? ½과 2가 지워져 오차 <Hot>e</Hot>.</> : null,
