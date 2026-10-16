@@ -187,7 +187,7 @@ export const EndBridge: ComponentType<{ step: number }> = ({ step }) => (
       <div className="text-[32px] text-accent mt-[28px]">정답은 숫자 7</div>
     </div>
     <div className="rounded-2xl border-2 border-accent bg-accent-bg/40 p-[40px] w-[670px]">
-      <div className="text-[26px] text-muted mb-[28px]">다음 말을 예측하는 모델</div>
+      <div className="text-[26px] text-muted mb-[28px]">다음 단어를 예측하는 모델</div>
       <div className="text-[43px] font-bold">어느 날 토끼가 → ?</div>
       <div className="text-[32px] text-accent mt-[28px]">{step >= 1 ? '정답은 원래 문장에 이어지는 말' : '무엇을 정답으로 삼을까?'}</div>
     </div>

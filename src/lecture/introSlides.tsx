@@ -70,6 +70,7 @@ export const DIVIDERS = {
   loss: divider('div-3', 'loss', '#4', '잘 학습되었다는 건\n어떻게 정의할까?'),
   gd: divider('div-4', 'gd', '#5', '기계 스스로 오차를 줄여 가는 알고리즘,\n경사하강법'),
   grad: divider('div-6', 'grad', '#6', '오차는 어떻게 거꾸로 흘러\nw와 b를 업데이트할까?\n오차 역전파'),
+  lm: divider('div-7', 'end', '#7', '글을 쓰는 AI는\n무엇을 맞히도록 배울까?\n언어 모델'),
 };
 
 /* ───────── 1-2 편향이 더해지면 ───────── */

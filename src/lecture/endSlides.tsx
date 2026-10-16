@@ -334,7 +334,7 @@ const EndFive: ComponentType<{ step: number }> = ({ step }) => {
 
 export const END_SLIDES: SlideDef[] = [
   { id: 'end-bridge', section: 'end', title: '글을 쓰는 AI는 무엇을 맞힐까?', steps: 1, component: EndBridge,
-    notes: ['먼저 학생의 답을 듣는다. 숫자 예측에서 다음 말 예측으로 과제가 바뀌는 연결 장면.', '다음 장은 우화 말뭉치의 n-gram 시연이다. 실제 ChatGPT의 신경망을 실행하는 것은 아니다.'] },
+    notes: ['먼저 학생의 답을 듣는다. 숫자 예측에서 다음 단어 예측으로 과제가 바뀌는 연결 장면.', '다음 장은 우화 말뭉치의 n-gram 시연이다. 실제 ChatGPT의 신경망을 실행하는 것은 아니다.'] },
   { id: 'end-next', section: 'end', tag: '마무리', title: 'ChatGPT는 다음 단어를 맞히는 기계', steps: 3, component: EndNext,
     notes: ['토큰이 정확하지만 "단어"라고 설명함. 후보 막대는 앱 E4 말뭉치로 실제 계산한 값.', '"다음 단어 →"를 눌러 문장이 끝날 때까지 이어 감. ChatGPT는 1등만 고르지 않고 가끔 섞어 고르기 때문에 매번 조금 다른 글이 나옴.'] },
   { id: 'end-net', section: 'end', tag: '마무리', title: '오늘 배운 계산에서 언어 모델로', steps: 3, component: EndNet,
