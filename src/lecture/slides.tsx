@@ -413,7 +413,6 @@ export const SLIDES: SlideDef[] = [
   ...LOSS_SLIDES,
   DIVIDERS.gd,
   ...GD_SLIDES,
-  DIVIDERS.grad,
   // 1안(2026-10-15): 4B-1 실험(입력 둘) → 입력 하나로 확장 → "이제 점 (3, 7) 하나" 전환 → 유도
   { id: 'b1-experiment', section: 'grad', tag: '4B-1', title: '같은 양만큼 가중치를 올리면', formula: 'z = w₁·x₁ + w₂·x₂ + b', steps: 6, component: B1Experiment,
     notes: ['활동지의 두 사례를 "z와 늘어난 양은?"에서 멈추고 학생이 계산한 뒤 공개한다. 아직 dw 공식을 말하지 않는다.', '다음 장에서는 입력 1, 2, 3을 비교하고 입력 4를 예상해 규칙을 스스로 찾는다.'] },
