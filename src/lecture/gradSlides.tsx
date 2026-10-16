@@ -286,7 +286,7 @@ const CARDS: { tex: string; text: string }[] = [
   { tex: String.raw`\frac{\partial L}{\partial \hat y} = \tfrac12\cdot 2(\hat y - y) = e`, text: 'ŷ이 조금 변할 때 L은? ½과 2가 지워져 e' },
   { tex: String.raw`\frac{\partial \hat y}{\partial w} = \frac{\partial (wx+b)}{\partial w} = x`, text: 'w가 조금 변할 때 ŷ은? wx는 x배, b는 무관' },
   { tex: String.raw`\frac{\partial L}{\partial w} = e \cdot x \;\;\Rightarrow\;\; dw = e \cdot x`, text: '곱하면 끝' },
-  { tex: String.raw`\frac{\partial L}{\partial b} = e\cdot 1 = e \;\;\Rightarrow\;\; db = e`, text: 'b가 변하면 ŷ도 같은 양만큼. 비율 1' },
+  { tex: String.raw`\frac{\partial L}{\partial b} = \frac{\partial L}{\partial \hat y}\cdot\frac{\partial \hat y}{\partial b} = e \cdot \frac{\partial (wx+b)}{\partial b} = e \cdot 1 = e`, text: 'b도 같은 길. b가 변하면 ŷ도 같은 양만큼 변하니 비율 1. 그래서 db = e' },
   { tex: String.raw`dw = e \cdot x, \qquad db = e`, text: '활동지 4-B 상자의 식. 이제 숫자만 넣음' },
 ];
 const GDeriveCards: ComponentType<{ step: number }> = ({ step }) => (
@@ -306,7 +306,7 @@ const GDeriveCards: ComponentType<{ step: number }> = ({ step }) => (
         <div key={i} className={`rounded-2xl border-2 px-[22px] py-[6px] flex items-center gap-[18px] overflow-hidden transition-opacity duration-300 ${i > step ? 'opacity-0' : i === step ? 'border-accent bg-accent-bg/40' : 'border-border opacity-80'}`}>
           <div className={`shrink-0 w-[34px] h-[34px] rounded-full flex items-center justify-center text-[18px] font-bold ${i === step ? 'bg-accent text-white' : 'bg-accent-bg text-accent'}`}>{i + 1}</div>
           <div className="min-w-0 flex-1">
-            <TeX tex={c.tex} size={i === 6 ? 30 : 23} />
+            <TeX tex={c.tex} size={i === 6 ? 30 : i === 5 ? 20 : 23} />
             <div className="text-[18px] text-muted leading-tight -mt-[6px]">{c.text}</div>
           </div>
         </div>
