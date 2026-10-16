@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>특강 시간 체크포인트</title>
+<style>
+  :root { --ink:#1f2937; --mute:#6b7280; --line:#e5e7eb; --ok:#15803d; --warn:#b45309; --bad:#b91c1c; --bg:#fff; --card:#f8fafc; }
+  @media (prefers-color-scheme: dark) { :root { --ink:#f3f4f6; --mute:#9ca3af; --line:#374151; --bg:#111827; --card:#1f2937; } }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:16px; font-family: -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; color:var(--ink); background:var(--bg); font-size:17px; line-height:1.5; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:var(--mute); font-size:14px; margin-bottom:14px; }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+  label { font-size:15px; color:var(--mute); }
+  input[type=time] { font-size:20px; padding:6px 10px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); }
+  button { font-size:15px; padding:8px 12px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); }
+  table { width:100%; border-collapse:collapse; margin:8px 0 16px; }
+  th, td { padding:9px 6px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+  th { font-size:13px; color:var(--mute); font-weight:600; }
+  td.n { width:52px; font-variant-numeric: tabular-nums; color:var(--mute); }
+  td.t { width:74px; font-variant-numeric: tabular-nums; font-weight:700; font-size:19px; }
+  td.e { width:62px; font-variant-numeric: tabular-nums; color:var(--mute); }
+  tr.main td.p { font-weight:700; }
+  tr.sub td { color:var(--mute); font-size:15px; }
+  tr.sub td.t { font-weight:500; font-size:16px; }
+  tr.now td { background: rgba(21,128,61,.10); }
+  .box { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:14px; }
+  .box h2 { font-size:15px; margin:0 0 8px; color:var(--mute); }
+  .verdict { font-size:22px; font-weight:800; margin:6px 0; }
+  .ok { color:var(--ok); } .warn { color:var(--warn); } .bad { color:var(--bad); }
+  ul { margin:6px 0 0 18px; padding:0; } li { margin:3px 0; }
+  select { font-size:16px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); max-width:100%; }
+  .clock { font-size:15px; color:var(--mute); }
+</style>
+</head>
+<body>
+<h1>손으로 풀어보는 딥러닝의 원리 · 시간 체크포인트</h1>
+<div class="sub">간지에 도착한 순간의 시각이 아래 표와 같으면 정상 페이스. 계획 총 80분.</div>
+
+<div class="row">
+  <label for="start">시작 시각</label>
+  <input type="time" id="start" value="14:50">
+  <button id="nowBtn">지금 시작</button>
+  <span class="clock" id="clock"></span>
+</div>
+
+<div class="box">
+  <h2>지금 어디까지 왔나</h2>
+  <div class="row">
+    <select id="where"></select>
+    <button id="checkBtn">확인</button>
+  </div>
+  <div class="verdict" id="verdict">간지에 도착하면 그 지점을 고르고 확인</div>
+  <div id="advice"></div>
+</div>
+
+<table>
+  <thead><tr><th>장</th><th>지점</th><th>경과</th><th>시각</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+
+<div class="box">
+  <h2>뒤처질 때 줄이는 순서</h2>
+  <ul>
+    <li>59장 학습률 η 비교를 두 경우만 보고 넘어감 (−3분)</li>
+    <li>69장 학습 시연은 '업데이트 5회'만 두 번 누르고 넘어감 (−1분)</li>
+    <li>68장 사전학습 설명을 말로 요약하고 넘어감 (−1분)</li>
+    <li>4-B(61~65장)는 줄이지 않음</li>
+  </ul>
+  <h2 style="margin-top:10px">앞서갈 때</h2>
+  <ul>
+    <li>51장 활성화 함수 실험실(활성화 랩)을 수업 맨 끝에 함</li>
+  </ul>
+</div>
+
+<script>
+// [장, 지점, 경과 분, 주요 체크포인트 여부]
+const CP = [
+  [1,  '표지 · 수업 시작', 0, true],
+  [36, '#1 간지 · 활동지 1 시작', 20, true],
+  [41, '#2 간지 · 1-4 파라미터 세기', 25, false],
+  [47, '#3 간지 · 활동지 2 시작', 30, true],
+  [52, '#4 간지 · 활동지 3 시작', 35, true],
+  [55, '#5 간지 · 4-A 시작', 41, true],
+  [58, '4A-2 업데이트 식', 47, false],
+  [60, '#6 간지 · 4-B 시작', 55, true],
+  [64, '4B-2 한 step', 61, false],
+  [66, '#7 간지 · 마무리 시작', 72, true],
+  [72, '먼저 온 미래', 77, false],
+  [75, '감사합니다 · 끝', 80, true],
+];
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+function startMin() { const [h, m] = $('start').value.split(':').map(Number); return h * 60 + m; }
+function clockStr(min) { min = ((min % 1440) + 1440) % 1440; return pad(Math.floor(min / 60)) + ':' + pad(min % 60); }
+function render() {
+  const s = startMin();
+  $('rows').innerHTML = CP.map(([n, p, e, main], i) =>
+    `<tr class="${main ? 'main' : 'sub'}" data-i="${i}"><td class="n">${n}장</td><td class="p">${p}</td><td class="e">+${e}분</td><td class="t">${clockStr(s + e)}</td></tr>`
+  ).join('');
+  try { localStorage.setItem('cp-start', $('start').value); localStorage.setItem('cp-start-set', '1450'); } catch (e) {}
+}
+function tick() {
+  const d = new Date();
+  $('clock').textContent = '현재 ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+function check() {
+  const i = Number($('where').value);
+  const [n, p, e] = CP[i];
+  const d = new Date();
+  const now = d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+  const diff = now - (startMin() + e);
+  const r = Math.round(diff);
+  const v = $('verdict'), a = $('advice');
+  document.querySelectorAll('#rows tr').forEach(tr => tr.classList.toggle('now', Number(tr.dataset.i) === i));
+  if (Math.abs(diff) < 1.5) { v.className = 'verdict ok'; v.textContent = '정상 페이스'; a.textContent = ''; }
+  else if (diff < 0) { v.className = 'verdict ok'; v.textContent = `${-r}분 앞섬`; a.textContent = -r >= 5 ? '여유 있음. 끝에 활성화 랩(51장) 가능.' : ''; }
+  else if (diff < 5) { v.className = 'verdict warn'; v.textContent = `${r}분 늦음`; a.textContent = '아직 괜찮음. 다음 구간에서 질문 받는 시간만 줄임.'; }
+  else { v.className = 'verdict bad'; v.textContent = `${r}분 늦음`; a.textContent = n < 59 ? '59장 학습률 비교를 줄일 것.' : n < 69 ? '67·68장 언어 모델 설명을 말로 요약할 것.' : '72·73장 메시지를 짧게 할 것.'; }
+}
+$('where').innerHTML = CP.map(([n, p], i) => `<option value="${i}">${n}장 · ${p}</option>`).join('');
+try { const v = localStorage.getItem('cp-start'); if (v && localStorage.getItem('cp-start-set') === '1450') $('start').value = v; } catch (e) {}
+$('start').addEventListener('input', render);
+$('nowBtn').addEventListener('click', () => { const d = new Date(); $('start').value = pad(d.getHours()) + ':' + pad(d.getMinutes()); render(); });
+$('checkBtn').addEventListener('click', check);
+render(); tick(); setInterval(tick, 1000);
+</script>
+</body>
+</html>

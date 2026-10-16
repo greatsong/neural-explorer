@@ -112,6 +112,9 @@ html.present [data-present-svg] [data-present-keep] { font-size: 10px; }
 @keyframes lec-flow { to { stroke-dashoffset: -24; } }
 .lec-dash { animation: lec-dash 1s linear infinite; }
 @keyframes lec-dash { to { stroke-dashoffset: -21; } }
+/* lec-pulse: 업데이트 순간 주황 점선이 출력 쪽에서 입력 쪽으로 거꾸로 흐르며 사라진다(역전파). 층마다 animation-delay로 순서를 둔다. */
+.lec-pulse { stroke-dasharray: 10 8; stroke-dashoffset: 0; opacity: 0; animation: lec-pulse 0.9s ease-out both; }
+@keyframes lec-pulse { 0% { opacity: 0; stroke-dashoffset: 0; } 15% { opacity: 1; } 80% { opacity: 0.6; } 100% { opacity: 0; stroke-dashoffset: 72; } }
 .lec-root input[type=range] { height: 28px; }
 .lec-slide-page { animation: lec-slide-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both; }
 .lec-slide-forward { --lec-slide-offset: 36px; }
@@ -124,4 +127,5 @@ html.present [data-present-svg] [data-present-keep] { font-size: 10px; }
   .lec-slide-page { animation: none; }
   .lec-fade { transition: none; }
   .lec-swap { animation: none; }
+  .lec-pulse { animation: none; opacity: 0; }
 }
