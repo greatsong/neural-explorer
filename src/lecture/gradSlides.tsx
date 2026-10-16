@@ -263,7 +263,7 @@ const GdDeriveB: ComponentType<{ step: number }> = ({ step }) => {
 export const GD_DERIVE_B: SlideDef = { id: 'gd-derive-b', section: 'gd', tag: '4-A', title: '식으로 확인한다: 손실을 미분하면 오차', formula: 'L = ½e²', steps: 5, component: GdDeriveB,
   notes: ['(2026-10-15 결정으로 덱에서 뺌. 4-A는 숫자로만 다루고 유도는 4-B에서.) L = ½e²을 미분하면 e. 53장에서 e = b − 1이므로 b의 기울기도 e입니다(b가 1 커지면 e도 1 커짐).', '63장(손실을 ŷ에 대해 미분)과 같은 모양이라 4-B 유도의 예고가 됩니다. "미분"은 "곡선의 기울기를 구하는 계산"으로만 소개합니다.'] };
 
-export const GRAD_DERIVE_SLIDES: SlideDef[] = [
+export const GRAD_DERIVE_SLIDES_OLD: SlideDef[] = [
   { id: 'g-chain', section: 'grad', tag: '4-B', title: 'w → ŷ → L, 연결된 변화율을 곱한다', steps: 3, component: GChain,
     notes: ['가중치가 손실을 바로 바꾸는 것이 아니라 예측값을 거쳐 바꿈. 그래서 변화율 둘을 곱함.', '∂는 "다른 값은 고정하고 이 값만 바꿀 때의 변화율". 고등학교 과정이라고 단정하지 않음.'] },
   { id: 'g-loss', section: 'grad', tag: '4-B', title: '손실을 미분하면 오차', steps: 3, component: GLoss,
@@ -272,4 +272,49 @@ export const GRAD_DERIVE_SLIDES: SlideDef[] = [
     notes: ['x와 b를 고정하고 w에 대해 미분하면 wx의 계수 x만 남음. b에 대해서는 1.'] },
   { id: 'g-connect', section: 'grad', tag: '4-B', title: '연결하면 dw = e·x, db = e', steps: 5, component: GConnect,
     notes: ['앞에서 구한 e와 x를 연쇄법칙에 넣음. b는 1을 곱하니 e 그대로.', '이 다음 장에서 4-B 식 상자가 처음 등장함.'] },
+];
+
+
+/* ───────── 2026-10-16 단순화: 뉴럴 익스플로러 C1 유도 카드 수준. 일곱 장 카드가 클릭마다 하나씩 나타난다 ───────── */
+import katex from 'katex';
+const TeX = ({ tex, size = 30 }: { tex: string; size?: number }) => (
+  <div style={{ fontSize: size }} dangerouslySetInnerHTML={{ __html: katex.renderToString(tex, { throwOnError: false, displayMode: true }) }} />
+);
+const CARDS: { tex: string; text: string }[] = [
+  { tex: String.raw`L = \tfrac12 e^2 = \tfrac12(\hat y - y)^2`, text: '한 점의 손실. ½은 뒤에서 2와 지워지게 하는 장치' },
+  { tex: String.raw`\frac{\partial L}{\partial w} = \frac{\partial L}{\partial \hat y}\cdot\frac{\partial \hat y}{\partial w}`, text: 'w → ŷ → L. 두 비율을 곱함' },
+  { tex: String.raw`\frac{\partial L}{\partial \hat y} = \tfrac12\cdot 2(\hat y - y) = e`, text: 'ŷ이 조금 변할 때 L은? ½과 2가 지워져 e' },
+  { tex: String.raw`\frac{\partial \hat y}{\partial w} = \frac{\partial (wx+b)}{\partial w} = x`, text: 'w가 조금 변할 때 ŷ은? wx는 x배, b는 무관' },
+  { tex: String.raw`\frac{\partial L}{\partial w} = e \cdot x \;\;\Rightarrow\;\; dw = e \cdot x`, text: '곱하면 끝' },
+  { tex: String.raw`\frac{\partial L}{\partial b} = e\cdot 1 = e \;\;\Rightarrow\;\; db = e`, text: 'b가 변하면 ŷ도 같은 양만큼. 비율 1' },
+  { tex: String.raw`dw = e \cdot x, \qquad db = e`, text: '활동지 4-B 상자의 식. 이제 숫자만 넣음' },
+];
+const GDeriveCards: ComponentType<{ step: number }> = ({ step }) => (
+  <Layout
+    lines={[
+      step === 0 ? <>손실은 <M>L = ½e² = ½(ŷ − y)²</M>. ½은 제곱에서 나오는 2와 지워지게 하는 장치.</> : null,
+      step === 1 ? <><M>w</M>가 조금 변할 때 <M>L</M>은 얼마나 변할까?</> : null,
+      step === 1 ? <>= (<M>ŷ</M>이 변할 때 <M>L</M>은 얼마나) × (<M>w</M>가 변할 때 <M>ŷ</M>은 얼마나)</> : null,
+      step === 2 ? <><M>ŷ</M>이 조금 변할 때 <M>L</M>은 얼마나 변하나? ½과 2가 지워져 오차 <Hot>e</Hot>.</> : null,
+      step === 3 ? <><M>w</M>가 조금 변할 때 <M>ŷ</M>은 얼마나 변하나? <M>wx</M>는 <Hot>x</Hot>배, <M>b</M>는 <M>w</M>와 무관.</> : null,
+      step === 4 ? <>둘을 곱함. <Key>dw = e · x</Key>.</> : null,
+      step === 5 ? <><M>b</M>는 <M>ŷ</M>을 같은 양만큼 바꾸니 비율 1. <Key>db = e</Key>.</> : null,
+      step === 6 ? <>활동지 4-B 상자의 식. 이제 숫자만 넣으면 됨.</> : null,
+    ]}
+    figure={<div className="h-full grid grid-cols-2 grid-rows-4 grid-flow-col gap-x-[28px] gap-y-[14px]">
+      {CARDS.map((c, i) => (
+        <div key={i} className={`rounded-2xl border-2 px-[22px] py-[6px] flex items-center gap-[18px] overflow-hidden transition-opacity duration-300 ${i > step ? 'opacity-0' : i === step ? 'border-accent bg-accent-bg/40' : 'border-border opacity-80'}`}>
+          <div className={`shrink-0 w-[34px] h-[34px] rounded-full flex items-center justify-center text-[18px] font-bold ${i === step ? 'bg-accent text-white' : 'bg-accent-bg text-accent'}`}>{i + 1}</div>
+          <div className="min-w-0 flex-1">
+            <TeX tex={c.tex} size={i === 6 ? 30 : 23} />
+            <div className="text-[18px] text-muted leading-tight -mt-[6px]">{c.text}</div>
+          </div>
+        </div>
+      ))}
+    </div>}
+  />
+);
+export const GRAD_DERIVE_SLIDES: SlideDef[] = [
+  { id: 'g-derive-cards', section: 'grad', tag: '4-B', title: '기울기 식은 어떻게 나올까?', formula: 'dw = e·x,  db = e', steps: 6, component: GDeriveCards,
+    notes: ['오늘은 흐름만 듣는다고 말하고 빠르게 지나간다. 목표는 활동지 4-B 상자의 식 dw = e·x, db = e가 "그런가 보다 / 아 그렇구나"가 되는 것.', '핵심 문장: w가 조금 변할 때 L이 얼마나 변하나 = (ŷ이 변할 때 L이 얼마나) × (w가 변할 때 ŷ이 얼마나). 앞 괄호가 e, 뒤 괄호가 x. b는 뒤 괄호가 1.'] },
 ];
