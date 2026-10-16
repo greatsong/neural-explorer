@@ -269,23 +269,28 @@ const OneStep: ComponentType<{ step: number }> = ({ step }) => {
   const w1 = w0 - eta * dw, b1 = b0 - eta * db;
   const yhat1 = w1 * x + b1, e1 = yhat1 - y, L1 = 0.5 * e1 * e1;
   // 질문 → 공개. ③ 기울기와 ④ 업데이트는 식 상자를 띄운 채 값을 넣은 식(질문) → 결과(공개)로 간다 (2026-10-15 사용자 지시)
-  const s = Math.min(step, 14);
-  const after = s >= 11;                 // 4B-5 확인부터는 업데이트한 w, b
-  const w = s >= 10 ? w1 : w0, b = s >= 10 ? b1 : b0;
+  // 2026-10-16: 오차·손실을 식 → 생각 → 숫자로 나눠 단계 2~7로 확장(e, e², L). 그 뒤는 옛 번호 o = s − 4
+  const s = Math.min(step, 18);
+  const o = s < 3 ? s : s <= 7 ? 3 : s - 4;
+  const after = o >= 11;                 // 4B-5 확인부터는 업데이트한 w, b
+  const w = o >= 10 ? w1 : w0, b = o >= 10 ? b1 : b0;
   const yhat = after ? yhat1 : yhat0;
-  const yShown = (s >= 1 && s <= 10) || s >= 12;
-  const errShown = (s >= 3 && s <= 10) || s >= 12;
-  const back: BackSpec | undefined = s >= 4 && s <= 10 ? {
-    stage: 4, dimForward: s <= 8, atY: `× (${fmt(e0)})`, atRelu: '그대로', atW: ['× 3'], atB: '× 1',
-    dw: s >= 6 ? ['dw = −21'] : undefined, db: s >= 6 ? 'db = −7' : undefined,
+  const yShown = (o >= 1 && o <= 10) || o >= 12;
+  const errShown = (o >= 3 && o <= 10) || o >= 12;
+  const lossShown = (s >= 7 && o <= 10) || o >= 12;
+  const back: BackSpec | undefined = o >= 4 && o <= 10 ? {
+    stage: 4, dimForward: o <= 8, atY: `× (${fmt(e0)})`, atRelu: '그대로', atW: ['× 3'], atB: '× 1',
+    dw: o >= 6 ? ['dw = −21'] : undefined, db: o >= 6 ? 'db = −7' : undefined,
   } : undefined;
-  const fwdHot = s === 1 || s === 12;
-  const paramHot = s === 0 || s === 9 || s === 10 || s === 11;
+  const fwdHot = o === 1 || o === 12;
+  const paramHot = o === 0 || o === 9 || o === 10 || o === 11;
   // 식 상자: ③ 기울기(4~8), ④ 업데이트(9~10)
-  const box = s >= 4 && s <= 8
-    ? { main: <>dw = e · x,  db = e</>, sub: s === 5 ? <>dw = (−7) × 3,  db = (−7)</> : s >= 6 ? <>dw = (−7) × 3 = <Hot>−21</Hot>,  db = <Hot>−7</Hot></> : undefined }
-    : s >= 9 && s <= 10
-    ? { main: <>새 w = w − η · dw,  새 b = b − η · db</>, sub: s === 9 ? <>새 w = 0 − 0.05 × (−21),  새 b = 0 − 0.05 × (−7)</> : <>새 w = 0 + 1.05 = <Hot>1.05</Hot>,  새 b = 0 + 0.35 = <Hot>0.35</Hot></> }
+  const box = s >= 2 && s <= 7
+    ? { main: <>e = ŷ − y,  L = ½e²</>, sub: s === 2 ? <>e = 0 − 7 = ?</> : s === 3 ? <>e = 0 − 7 = <Hot>−7</Hot></> : s === 4 ? <>e² = (−7)² = ?</> : s === 5 ? <>e² = (−7)² = <Hot>49</Hot></> : s === 6 ? <>L = ½ × 49 = ?</> : <>L = ½ × 49 = <Hot>24.5</Hot></> }
+    : o >= 4 && o <= 8
+    ? { main: <>dw = e · x,  db = e</>, sub: o === 5 ? <>dw = (−7) × 3,  db = (−7)</> : o >= 6 ? <>dw = (−7) × 3 = <Hot>−21</Hot>,  db = <Hot>−7</Hot></> : undefined }
+    : o >= 9 && o <= 10
+    ? { main: <>새 w = w − η · dw,  새 b = b − η · db</>, sub: o === 9 ? <>새 w = 0 − 0.05 × (−21),  새 b = 0 − 0.05 × (−7)</> : <>새 w = 0 + 1.05 = <Hot>1.05</Hot>,  새 b = 0 + 0.35 = <Hot>0.35</Hot></> }
     : null;
   return (
     <Layout
@@ -296,12 +301,12 @@ const OneStep: ComponentType<{ step: number }> = ({ step }) => {
             <NeuronFigure
               inputs={[{ name: 'x', value: x }]}
               activation="linear"
-              weights={[{ name: 'w', value: w, prev: s === 10 ? w0 : null, hot: paramHot }]}
-              bias={{ value: b, prev: s === 10 ? b0 : null, hot: paramHot }}
+              weights={[{ name: 'w', value: w, prev: o === 10 ? w0 : null, hot: paramHot }]}
+              bias={{ value: b, prev: o === 10 ? b0 : null, hot: paramHot }}
               z={{ value: w * x + b, show: fwdHot, hot: fwdHot }}
               yhat={{ value: yhat, show: yShown, hot: fwdHot }}
               flow={fwdHot ? 'out' : 'none'}
-              loss={{ show: s >= 2, y, e: errShown ? `e = ${fmt(after ? e1 : e0)}` : null, L: errShown ? `L = ${fmt(after ? L1 : L0)}` : null }}
+              loss={{ show: o >= 2, y, e: errShown ? `e = ${fmt(after ? e1 : e0)}` : null, L: lossShown ? `L = ${fmt(after ? L1 : L0)}` : null }}
               back={back}
             />
           </div>
@@ -310,24 +315,28 @@ const OneStep: ComponentType<{ step: number }> = ({ step }) => {
       lines={[
         s === 0 ? <>4B-2 <Key>예측</Key>. 출발은 <M>w = 0, b = 0</M>. 예측값 <M>ŷ</M>는?</> : null,
         s === 1 ? <><M>ŷ = 0·3 + 0 = 0</M>. 아직 아무것도 배우지 않은 뉴런.</> : null,
-        s === 2 ? <>4B-2 <Key>오차</Key>. 정답은 <M>y = 7</M>. 오차 <M>e</M>는?</> : null,
-        s === 3 ? <><M>e = 0 − 7 = −7</M>, <M>e² = 49</M>. 손실 <M>L = ½ × 49 = 24.5</M>.</> : null,
-        s === 4 ? <>4B-3 <Key>기울기</Key>. 식은 앞에서 유도한 <M>dw = e · x</M>, <M>db = e</M>. 화살표를 따라 w 쪽은 × 3, b 쪽은 × 1.</> : null,
-        s === 5 ? <>식에 <M>e = −7</M>, <M>x = 3</M>을 넣음. <M>dw = (−7) × 3</M>, <M>db = −7</M>. 직접 계산하면?</> : null,
-        s === 6 ? <><Hot>dw = (−7) × 3 = −21</Hot>, <Hot>db = −7</Hot>.</> : null,
-        s === 7 ? <><M>dw</M>, <M>db</M>의 부호는? 손실을 줄이려면 <M>w</M>와 <M>b</M>를 키워야 할까, 줄여야 할까?</> : null,
-        s === 8 ? <><M>dw</M>, <M>db</M>가 모두 음수. 기울기의 <Key>반대 부호 방향</Key>으로 감.</> : null,
-        s === 8 ? <>기울기가 음수(−)이니 <M>w</M>와 <M>b</M>를 <Key>키워야</Key>(+) 함.</> : null,
-        s === 9 ? <>4B-4 <Key>업데이트</Key>. 식 <M>새 w = w − η·dw</M>, <M>새 b = b − η·db</M>에 <M>η = 0.05</M>를 넣음.</> : null,
-        s === 9 ? <>곱셈 먼저. 새 <M>w</M>, <M>b</M>는?</> : null,
-        s === 10 ? <>곱셈 먼저. <M>0.05 × (−21) = −1.05</M>, <M>0.05 × (−7) = −0.35</M>.</> : null,
-        s === 10 ? <>새 <M>w = 0 − (−1.05) = 0 + 1.05 = 1.05</M>, 새 <M>b = 0 + 0.35 = 0.35</M>. 음수를 빼면 더하기가 됨.</> : null,
-        s === 11 ? <>4B-5 <Key>확인</Key>. 새 <M>w, b</M>로 다시 예측하면 손실은?</> : null,
-        s === 12 ? <><M>ŷ = 1.05·3 + 0.35 = 3.5</M>, <M>e = −3.5</M>, <M>e² = 12.25</M>, <M>L = 6.125</M>.</> : null,
-        s === 12 ? <>손실이 24.5에서 <Hot>6.125</Hot>로 줄었음.</> : null,
-        s === 13 ? <>정리. 고치는 방향은 기울기와 같은 방향일까, 반대 방향일까? 고치는 양은?</> : null,
-        s === 14 ? <>기울기의 <Key>반대 방향</Key>으로, <Key>η × 기울기의 크기</Key>만큼. 예측 → 오차·손실 → 기울기 → 업데이트의 반복이 학습.</> : null,
-        s === 14 ? <>점이 여러 개일 때는 점마다 기울기를 구해 평균함.</> : null,
+        s === 2 ? <>4B-2 <Key>오차</Key>. 식은 <M>e = ŷ − y</M>. 예측 <M>ŷ = 0</M>, 정답 <M>y = 7</M>. <M>e</M>는?</> : null,
+        s === 3 ? <><M>e = 0 − 7 = −7</M>. 예측이 정답보다 7 작음.</> : null,
+        s === 4 ? <>오차의 제곱 <M>e² = (−7)²</M>은?</> : null,
+        s === 5 ? <><M>e² = 49</M>. 제곱하면 음수가 사라짐.</> : null,
+        s === 6 ? <>손실 <M>L = ½e² = ½ × 49</M>은?</> : null,
+        s === 7 ? <><M>L = 24.5</M>. 이 손실을 줄이는 것이 목표.</> : null,
+        o === 4 ? <>4B-3 <Key>기울기</Key>. 식은 앞에서 유도한 <M>dw = e · x</M>, <M>db = e</M>. 화살표를 따라 w 쪽은 × 3, b 쪽은 × 1.</> : null,
+        o === 5 ? <>식에 <M>e = −7</M>, <M>x = 3</M>을 넣음. <M>dw = (−7) × 3</M>, <M>db = −7</M>. 직접 계산하면?</> : null,
+        o === 6 ? <><Hot>dw = (−7) × 3 = −21</Hot>, <Hot>db = −7</Hot>.</> : null,
+        o === 7 ? <><M>dw</M>, <M>db</M>의 부호는? 손실을 줄이려면 <M>w</M>와 <M>b</M>를 키워야 할까, 줄여야 할까?</> : null,
+        o === 8 ? <><M>dw</M>, <M>db</M>가 모두 음수. 기울기의 <Key>반대 부호 방향</Key>으로 감.</> : null,
+        o === 8 ? <>기울기가 음수(−)이니 <M>w</M>와 <M>b</M>를 <Key>키워야</Key>(+) 함.</> : null,
+        o === 9 ? <>4B-4 <Key>업데이트</Key>. 식 <M>새 w = w − η·dw</M>, <M>새 b = b − η·db</M>에 <M>η = 0.05</M>를 넣음.</> : null,
+        o === 9 ? <>곱셈 먼저. 새 <M>w</M>, <M>b</M>는?</> : null,
+        o === 10 ? <>곱셈 먼저. <M>0.05 × (−21) = −1.05</M>, <M>0.05 × (−7) = −0.35</M>.</> : null,
+        o === 10 ? <>새 <M>w = 0 − (−1.05) = 0 + 1.05 = 1.05</M>, 새 <M>b = 0 + 0.35 = 0.35</M>. 음수를 빼면 더하기가 됨.</> : null,
+        o === 11 ? <>4B-5 <Key>확인</Key>. 새 <M>w, b</M>로 다시 예측하면 손실은?</> : null,
+        o === 12 ? <><M>ŷ = 1.05·3 + 0.35 = 3.5</M>, <M>e = −3.5</M>, <M>e² = 12.25</M>, <M>L = 6.125</M>.</> : null,
+        o === 12 ? <>손실이 24.5에서 <Hot>6.125</Hot>로 줄었음.</> : null,
+        o === 13 ? <>정리. 고치는 방향은 기울기와 같은 방향일까, 반대 방향일까? 고치는 양은?</> : null,
+        o === 14 ? <>기울기의 <Key>반대 방향</Key>으로, <Key>η × 기울기의 크기</Key>만큼. 예측 → 오차·손실 → 기울기 → 업데이트의 반복이 학습.</> : null,
+        o === 14 ? <>점이 여러 개일 때는 점마다 기울기를 구해 평균함.</> : null,
       ]}
     />
   );
@@ -421,7 +430,7 @@ export const SLIDES: SlideDef[] = [
   // 2026-10-16 사용자 결정: '같은 것을 뉴런 그림으로 보면'(grad-symbols, GradSymbols)은 덱에서 뺌
   { id: 'grad-formula', section: 'grad', tag: '4-B', title: '4-B에서 쓰는 식', steps: 4, component: GradFormula,
     notes: ['식은 유도가 끝난 뒤에 처음 보여 줌. 학생은 이 상자를 보며 4B-2부터 4B-5까지 종이로 계산함.'] },
-  { id: 'a5-one-step', section: 'grad', tag: '4B-2 ~ 4B-5', title: '한 step', formula: 'dw = e·x,  db = e,  새 w = w − η·dw,  새 b = b − η·db', steps: 14, component: OneStep,
+  { id: 'a5-one-step', section: 'grad', tag: '4B-2 ~ 4B-5', title: '한 step', formula: 'dw = e·x,  db = e,  새 w = w − η·dw,  새 b = b − η·db', steps: 18, component: OneStep,
     notes: ['예측 → 오차 → 기울기 → 업데이트 → 확인. "ŷ는?", "e는?" 같은 질문 단계에서 멈추고 학생이 활동지 4B-2~4B-5를 계산한 뒤 넘깁니다.', '손실 24.5 → 6.125.'] },
   { id: 'a5-repeat', section: 'grad', tag: '도전', title: '반복하면 학습', formula: 'dw = e·x,  db = e,  새 w = w − η·dw,  새 b = b − η·db', steps: 6, component: Repeat,
     notes: ['도전 문항의 두 번째 step(w 1.575, b 0.525)을 확인한 뒤 자동 학습을 켭니다. w ≈ 2.1, b ≈ 0.7에서 멈춥니다.'] },

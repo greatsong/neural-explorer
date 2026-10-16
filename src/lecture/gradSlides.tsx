@@ -280,15 +280,21 @@ import katex from 'katex';
 const TeX = ({ tex, size = 30 }: { tex: string; size?: number }) => (
   <div style={{ fontSize: size }} dangerouslySetInnerHTML={{ __html: katex.renderToString(tex, { throwOnError: false, displayMode: true }) }} />
 );
-const CARDS: { tex: string; text: string }[] = [
-  { tex: String.raw`L = \tfrac12 e^2 = \tfrac12(\hat y - y)^2`, text: '한 점의 손실. ½은 수식을 깔끔하게 만들기 위한 장치' },
-  { tex: String.raw`\frac{\partial L}{\partial w} = \frac{\partial L}{\partial \hat y}\cdot\frac{\partial \hat y}{\partial w}`, text: 'w → ŷ → L. 두 비율을 곱함' },
-  { tex: String.raw`\frac{\partial L}{\partial \hat y} = \tfrac12\cdot 2(\hat y - y) = e`, text: 'ŷ이 조금 변할 때 L은? ½과 2가 지워져 e' },
-  { tex: String.raw`\frac{\partial \hat y}{\partial w} = \frac{\partial (wx+b)}{\partial w} = x`, text: 'w가 조금 변할 때 ŷ은? wx는 x배, b는 무관' },
-  { tex: String.raw`\frac{\partial L}{\partial w} = e \cdot x \;\;\Rightarrow\;\; dw = e \cdot x`, text: '곱하면 끝' },
-  { tex: String.raw`\frac{\partial L}{\partial b} = \frac{\partial L}{\partial \hat y}\cdot\frac{\partial \hat y}{\partial b} = e \cdot \frac{\partial (wx+b)}{\partial b} = e \cdot 1 = e`, text: 'b도 같은 길. b가 변하면 ŷ도 같은 양만큼 변하니 비율 1. 그래서 db = e' },
-  { tex: String.raw`dw = e \cdot x, \qquad db = e`, text: '활동지 4-B 상자의 식. 이제 숫자만 넣음' },
-];
+const OR = (t: string, on: boolean) => (on ? String.raw`\textcolor{#ea580c}{${t}}` : t);
+// 카드 5(step 4)에서는 앞서 유도한 e(카드 3)와 x(카드 4)를, 카드 6(step 5)에서는 e를 주황으로 비춘다
+const cards = (step: number): { tex: string; text: string }[] => {
+  const s4 = step === 4, s5 = step === 5;
+  return [
+    { tex: String.raw`L = \tfrac12 e^2 = \tfrac12(\hat y - y)^2`, text: '한 점의 손실. ½은 수식을 깔끔하게 만들기 위한 장치' },
+    { tex: String.raw`\frac{\partial L}{\partial w} = \frac{\partial L}{\partial \hat y}\cdot\frac{\partial \hat y}{\partial w}`, text: 'w → ŷ → L. 두 비율을 곱함' },
+    { tex: String.raw`\frac{\partial L}{\partial \hat y} = \tfrac12\cdot 2(\hat y - y) = ` + OR('e', s4 || s5), text: 'ŷ이 조금 변할 때 L은? ½과 2가 지워져 e' },
+    { tex: String.raw`\frac{\partial \hat y}{\partial w} = \frac{\partial (wx+b)}{\partial w} = ` + OR('x', s4), text: 'w가 조금 변할 때 ŷ은? wx는 x배, b는 무관' },
+    { tex: String.raw`\frac{\partial L}{\partial w} = ` + OR('e', s4) + String.raw` \cdot ` + OR('x', s4) + String.raw` \;\;\Rightarrow\;\; dw = ` + OR('e', s4) + String.raw` \cdot ` + OR('x', s4), text: '곱하면 끝' },
+    { tex: String.raw`\frac{\partial L}{\partial b} = \frac{\partial L}{\partial \hat y}\cdot\frac{\partial \hat y}{\partial b} = ` + OR('e', s5) + String.raw` \cdot \frac{\partial (wx+b)}{\partial b} = ` + OR('e', s5) + String.raw` \cdot 1 = ` + OR('e', s5), text: 'b도 같은 길. b가 변하면 ŷ도 같은 양만큼 변하니 비율 1. 그래서 db = e' },
+    { tex: String.raw`dw = e \cdot x, \qquad db = e`, text: '기울기 식 완성. 활동지 4-B 상자의 넷째 줄' },
+    { tex: String.raw`\text{새 } w = w - \eta \cdot dw, \qquad \text{새 } b = b - \eta \cdot db`, text: '업데이트. 기울기의 반대 방향으로 η × 기울기만큼. η = 0.05' },
+  ];
+};
 const GDeriveCards: ComponentType<{ step: number }> = ({ step }) => (
   <Layout
     lines={[
@@ -299,14 +305,15 @@ const GDeriveCards: ComponentType<{ step: number }> = ({ step }) => (
       step === 3 ? <><M>w</M>가 조금 변할 때 <M>ŷ</M>은 얼마나 변하나? <M>wx</M>는 <Hot>x</Hot>배, <M>b</M>는 <M>w</M>와 무관.</> : null,
       step === 4 ? <>둘을 곱함. <Key>dw = e · x</Key>.</> : null,
       step === 5 ? <><M>b</M>는 <M>ŷ</M>을 같은 양만큼 바꾸니 비율 1. <Key>db = e</Key>.</> : null,
-      step === 6 ? <>활동지 4-B 상자의 식. 이제 숫자만 넣으면 됨.</> : null,
+      step === 6 ? <>기울기 식 완성. <Key>dw = e · x, db = e</Key>.</> : null,
+      step === 7 ? <>업데이트는 4-A와 같은 식. 활동지 4-B 상자의 식이 모두 나왔음. 이제 숫자만 넣으면 됨.</> : null,
     ]}
     figure={<div className="h-full grid grid-cols-2 grid-rows-4 grid-flow-col gap-x-[28px] gap-y-[14px]">
-      {CARDS.map((c, i) => (
+      {cards(step).map((c, i) => (
         <div key={i} className={`rounded-2xl border-2 px-[22px] py-[6px] flex items-center gap-[18px] overflow-hidden transition-opacity duration-300 ${i > step ? 'opacity-0' : i === step ? 'border-accent bg-accent-bg/40' : 'border-border opacity-80'}`}>
           <div className={`shrink-0 w-[34px] h-[34px] rounded-full flex items-center justify-center text-[18px] font-bold ${i === step ? 'bg-accent text-white' : 'bg-accent-bg text-accent'}`}>{i + 1}</div>
           <div className="min-w-0 flex-1">
-            <TeX tex={c.tex} size={i === 6 ? 30 : i === 5 ? 20 : 23} />
+            <TeX tex={c.tex} size={i === 6 ? 28 : i === 7 ? 24 : i === 5 ? 20 : 23} />
             <div className="text-[18px] text-muted leading-tight -mt-[6px]">{c.text}</div>
           </div>
         </div>
@@ -315,6 +322,6 @@ const GDeriveCards: ComponentType<{ step: number }> = ({ step }) => (
   />
 );
 export const GRAD_DERIVE_SLIDES: SlideDef[] = [
-  { id: 'g-derive-cards', section: 'grad', tag: '4-B', title: '기울기 식은 어떻게 나올까?', formula: 'dw = e·x,  db = e', steps: 6, component: GDeriveCards,
+  { id: 'g-derive-cards', section: 'grad', tag: '4-B', title: '기울기 식은 어떻게 나올까?', formula: 'dw = e·x,  db = e', steps: 7, component: GDeriveCards,
     notes: ['오늘은 흐름만 듣는다고 말하고 빠르게 지나간다. 목표는 활동지 4-B 상자의 식 dw = e·x, db = e가 "그런가 보다 / 아 그렇구나"가 되는 것.', '핵심 문장: w가 조금 변할 때 L이 얼마나 변하나 = (ŷ이 변할 때 L이 얼마나) × (w가 변할 때 ŷ이 얼마나). 앞 괄호가 e, 뒤 괄호가 x. b는 뒤 괄호가 1.'] },
 ];
