@@ -16,6 +16,7 @@ export interface SlideDef {
   section: SectionId;
   tag?: string;      // 활동지 문항 번호 (작게)
   title: string;
+  titleAt?: (step: number) => string; // 클릭 단계에 따라 제목을 바꿀 때 (예: 한 step의 역전파 → 경사 하강법)
   sub?: string;
   formula?: string;  // 제목 줄 오른쪽에 띄우는 그 장의 식
   steps: number;     // 클릭 단계 수 (0..steps)
@@ -434,7 +435,7 @@ export const SLIDES: SlideDef[] = [
   // 2026-10-16 사용자 결정: '같은 것을 뉴런 그림으로 보면'(grad-symbols, GradSymbols)은 덱에서 뺌
   { id: 'grad-formula', section: 'grad', tag: '4-B', title: '4-B에서 쓰는 식', steps: 4, component: GradFormula,
     notes: ['식은 유도가 끝난 뒤에 처음 보여 줌. 학생은 이 상자를 보며 4B-2부터 4B-5까지 종이로 계산함.'] },
-  { id: 'a5-one-step', section: 'grad', tag: '4B-2 ~ 4B-5', title: '한 step', formula: 'dw = e·x,  db = e,  새 w = w − η·dw,  새 b = b − η·db', steps: 20, component: OneStep,
+  { id: 'a5-one-step', section: 'grad', tag: '4B-2 ~ 4B-5', title: '한 step', titleAt: (k) => k <= 7 ? '한 step · 예측과 오차' : k <= 12 ? '한 step · 오차 역전파' : k <= 16 ? '한 step · 경사 하강법' : '한 step · 확인', formula: 'dw = e·x,  db = e,  새 w = w − η·dw,  새 b = b − η·db', steps: 20, component: OneStep,
     notes: ['예측 → 오차 → 기울기 → 업데이트 → 확인. "ŷ는?", "e는?" 같은 질문 단계에서 멈추고 학생이 활동지 4B-2~4B-5를 계산한 뒤 넘깁니다.', '손실 24.5 → 6.125.'] },
   { id: 'a5-repeat', section: 'grad', tag: '도전', title: '반복하면 학습', formula: 'dw = e·x,  db = e,  새 w = w − η·dw,  새 b = b − η·db', steps: 6, component: Repeat,
     notes: ['도전 문항의 두 번째 step(w 1.575, b 0.525)을 확인한 뒤 자동 학습을 켭니다. w ≈ 2.1, b ≈ 0.7에서 멈춥니다.'] },
