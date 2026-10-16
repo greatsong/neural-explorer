@@ -138,7 +138,7 @@ const LossMse: ComponentType<{ step: number }> = ({ step }) => (
 );
 
 /* ───────── 4-A 손실에 ½을 곱하는 이유 (4A-1 다음) ───────── */
-const GdHalf: ComponentType<{ step: number }> = ({ step }) => {
+export const GdHalf: ComponentType<{ step: number }> = ({ step }) => {
   // 0 표(b = −2, e = −3) → 1 접선 위 두 점으로 기울기 읽기 질문 → 2 −3 = e 공개 → 3·4 b = 3에서도 확인(2 = e) → 5 b = 1(0 = e)
   // → 6·7 ½이 없으면(−6, 2배) → 8 결론. 우연이 아님은 세 점으로 보이고, 항상 그런 이유(식)는 4-B 유도에서.
   const s = Math.min(step, 8);
@@ -237,8 +237,9 @@ const GdUpdate: ComponentType<{ step: number }> = ({ step }) => {
         <div className="flex-1 min-h-0"><LossCurveB path={seq.slice(0, n + 1)} pathLabel="η = 0.5" note={s >= 15 ? '이동 거리 1.5 → 0.75 → 0.375' : undefined} /></div>
       </div>}
       lines={[
-        s === 0 ? <><M>b</M>를 고치는 식. <Key>새 b = 지금 b − η × 기울기</Key>.</> : null,
-        s === 1 ? <>54장의 규칙: 기울기의 <Key>반대 부호 방향</Key>(−면 +, +면 −)으로 가면 손실이 줄어듦.</> : null,
+        s === 0 ? <>방향은 정해졌음. <Key>기울기의 반대</Key>. 그럼 얼마만큼 이동해야 할까?</> : null,
+        s === 0 ? <>그 보폭을 정하는 수가 <Hot>η</Hot>(에타), <Key>학습률</Key>. 식은 <M>새 b = 지금 b − η × 기울기</M>.</> : null,
+        s === 1 ? <>앞 장의 규칙: 기울기의 <Key>반대 부호 방향</Key>(−면 +, +면 −)으로 가면 손실이 줄어듦.</> : null,
         s === 1 ? <>반대 방향으로 가려고 기울기를 <Hot>뺌</Hot>. 그래서 식에 빼기.</> : null,
         s === 2 ? <><Hot>η</Hot>(에타)는 <Key>학습률</Key>. 그 방향으로 가는 보폭을 정함. 이동 거리 = η × 기울기의 크기.</> : null,
         s === 2 ? <>η가 클수록 보폭이 큼. 여기서는 <M>η = 0.5</M>.</> : null,
@@ -257,7 +258,7 @@ const GdUpdate: ComponentType<{ step: number }> = ({ step }) => {
         s === 15 ? <>1에 <Key>가까워짐</Key>. 기울기의 크기가 <M>3 → 1.5 → 0.75</M>로 작아져서</> : null,
         s === 15 ? <>이동 거리도 <M>1.5 → 0.75 → 0.375</M>로 <Key>작아짐</Key>.</> : null,
         s === 16 ? <>식에 빼기가 들어 있는 이유는? 기울기가 음수일 때 새 <M>b</M>는 어느 쪽으로 움직였나?</> : null,
-        s === 17 ? <>54장 규칙대로 기울기의 <Key>반대 방향</Key>으로 가려고 뺌.</> : null,
+        s === 17 ? <>앞 장 규칙대로 기울기의 <Key>반대 방향</Key>으로 가려고 뺌.</> : null,
         s === 17 ? <>기울기가 음수(−)이면 빼기가 더하기가 되어 오른쪽(+ 방향, 바닥 쪽)으로 감.</> : null,
       ]}
     />
@@ -350,9 +351,7 @@ export const GD_SLIDES: SlideDef[] = [
   GRAPH_BRIDGE,
   { id: 'gd-tangent', section: 'gd', tag: '4A-1', title: '접선의 방향과 기울기 부호', steps: 8, component: GdTangent,
     notes: ['앱 A3 b 모드에서 b = −2, 3, 1로 옮겨 접선을 확인. 슬라이더는 방향키로 0.05씩.'] },
-  { id: 'gd-intro', section: 'gd', tag: '4-A', title: '손실에 ½을 곱하는 이유', formula: 'L = ½ × MSE', steps: 8, component: GdHalf,
-    notes: ['옆 칸은 53장 표(b = −2, 3, 1 순으로 바뀜). 접선 기울기는 접선 위 두 점의 좌표를 읽어 세로 ÷ 가로로 구합니다. b = −2 하나로는 우연일 수 있으니 b = 3, 1에서도 확인해 세 점 모두 기울기 = 오차임을 보입니다.', '½을 곱하지 않으면 기울기가 모두 2배. ½을 곱하면 b의 기울기가 오차 e와 같아져 4-B의 식(db = e)이 간단해집니다. 식으로 구하는 것(미분)은 4-B의 dw·db 유도에서 한 번에 합니다.'] },
-  { id: 'gd-update', section: 'gd', tag: '4A-2', title: '업데이트 식으로 세 step', formula: '새 b = 지금 b − η × 기울기', steps: 17, component: GdUpdate,
+  { id: 'gd-update', section: 'gd', tag: '4A-2', title: '기울기의 반대 방향으로, 얼마만큼 이동해야 할까?', formula: '새 b = 지금 b − η × 기울기', steps: 17, component: GdUpdate,
     notes: ['앱 A3 "한 step 진행"을 세 번 누르면 현재 b가 −0.5, 0.25, 0.625로 종이와 같이 움직임.', '절댓값 손실이면 바닥에서 뾰족해 이동 거리가 저절로 줄지 않음.'] },
   { id: 'gd-eta', section: 'gd', tag: '4A-3', title: '보폭 η를 바꾸면', formula: '새 b = −2 − η × (−3)', steps: 17, component: GdEta,
     notes: ['앱 A3 칩 네 개: 느림 → 수렴 → 진동 → 발산. 발산은 점선이 그래프 윗변을 따라 오감.'] },
