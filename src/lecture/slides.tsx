@@ -439,6 +439,7 @@ export const SLIDES: SlideDef[] = [
   DIVIDERS.gd,
   ...GD_SLIDES,
   // 2026-10-16 사용자 결정: 4B-1 실험 두 장(B1Experiment, WEIGHT_PATTERN)은 덱에서 뺌. 유도(62~65장)를 먼저 하고 활동지 4B-1은 건너뛴다.
+  DIVIDERS.grad,
   GRAD_SETUP,
   ...GRAD_DERIVE_SLIDES,
   // 2026-10-16 사용자 결정: '같은 것을 뉴런 그림으로 보면'(grad-symbols, GradSymbols)은 덱에서 뺌
