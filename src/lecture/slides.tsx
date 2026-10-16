@@ -234,7 +234,7 @@ const GradFormula: ComponentType<{ step: number }> = ({ step }) => {
 };
 
 /* ───────── 더 알아보기. 기호로 쓰면 ───────── */
-const GradSymbols: ComponentType<{ step: number }> = ({ step }) => {
+export const GradSymbols: ComponentType<{ step: number }> = ({ step }) => {
   // 오차가 L에서 출발해 거꾸로 흐르는 길을 한 구간씩 보인다 (1: L→ŷ, 2: 뉴런 통과, 3: w, 4: b)
   const back: BackSpec = {
     stage: Math.min(step, 3) + 1, dimForward: true,
@@ -418,8 +418,7 @@ export const SLIDES: SlideDef[] = [
   // 2026-10-16 사용자 결정: 4B-1 실험 두 장(B1Experiment, WEIGHT_PATTERN)은 덱에서 뺌. 유도(62~65장)를 먼저 하고 활동지 4B-1은 건너뛴다.
   GRAD_SETUP,
   ...GRAD_DERIVE_SLIDES,
-  { id: 'grad-symbols', section: 'grad', tag: '4-B', title: '같은 것을 뉴런 그림으로 보면', steps: 3, component: GradSymbols,
-    notes: ['앞의 연결 그래프를 익숙한 뉴런 그림으로 짧게 확인하는 선택 장면. 학생이 충분히 이해했다면 넘어간다.', '4-B는 활성화를 생략한 선형 모델이다.'] },
+  // 2026-10-16 사용자 결정: '같은 것을 뉴런 그림으로 보면'(grad-symbols, GradSymbols)은 덱에서 뺌
   { id: 'grad-formula', section: 'grad', tag: '4-B', title: '4-B에서 쓰는 식', steps: 4, component: GradFormula,
     notes: ['식은 유도가 끝난 뒤에 처음 보여 줌. 학생은 이 상자를 보며 4B-2부터 4B-5까지 종이로 계산함.'] },
   { id: 'a5-one-step', section: 'grad', tag: '4B-2 ~ 4B-5', title: '한 step', formula: 'dw = e·x,  db = e,  새 w = w − η·dw,  새 b = b − η·db', steps: 14, component: OneStep,
