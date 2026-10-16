@@ -421,7 +421,8 @@ const Repeat: ComponentType<{ step: number }> = ({ step }) => {
 };
 
 export const SLIDES: SlideDef[] = [
-  ...OPENING_SLIDES,
+  // 2026-10-17 사용자 결정: 원본 36장 '지천지지 승내가전'은 도입에서 빼고 '먼저 온 미래' 앞으로 옮김
+  ...OPENING_SLIDES.filter((s) => s.id !== 'source-36'),
   { id: 'cover', section: 'neuron', title: '', steps: 0, component: Cover },
   GOAL_SLIDE,
   DIVIDERS.neuron,
@@ -451,5 +452,6 @@ export const SLIDES: SlideDef[] = [
     notes: ['도전 문항의 두 번째 step(w 1.575, b 0.525)을 확인한 뒤 자동 학습을 켭니다. w ≈ 2.1, b ≈ 0.7에서 멈춥니다.'] },
   DIVIDERS.lm,
   ...END_SLIDES,
+  ...OPENING_SLIDES.filter((s) => s.id === 'source-36').map((s) => ({ ...s, section: 'future' as const })),
   ...CLOSING_SLIDES,
 ];

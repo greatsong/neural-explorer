@@ -63,14 +63,14 @@
 <div class="box">
   <h2>뒤처질 때 줄이는 순서</h2>
   <ul>
-    <li>59장 학습률 η 비교를 두 경우만 보고 넘어감 (−3분)</li>
-    <li>69장 학습 시연은 '업데이트 5회'만 두 번 누르고 넘어감 (−1분)</li>
+    <li>58장 학습률 η 비교를 두 경우만 보고 넘어감 (−3분)</li>
+    <li>68장 학습 시연은 '업데이트 5회'만 두 번 누르고 넘어감 (−1분)</li>
     <li>68장 사전학습 설명을 말로 요약하고 넘어감 (−1분)</li>
     <li>4-B(61~65장)는 줄이지 않음</li>
   </ul>
   <h2 style="margin-top:10px">앞서갈 때</h2>
   <ul>
-    <li>51장 활성화 함수 실험실(활성화 랩)을 수업 맨 끝에 함</li>
+    <li>50장 활성화 랩을 수업 맨 끝에 함</li>
   </ul>
 </div>
 
@@ -78,16 +78,16 @@
 // [장, 지점, 경과 분, 주요 체크포인트 여부]
 const CP = [
   [1,  '표지 · 수업 시작', 0, true],
-  [36, '#1 간지 · 활동지 1 시작', 20, true],
-  [41, '#2 간지 · 1-4 파라미터 세기', 25, false],
-  [47, '#3 간지 · 활동지 2 시작', 30, true],
-  [52, '#4 간지 · 활동지 3 시작', 35, true],
-  [55, '#5 간지 · 4-A 시작', 41, true],
-  [58, '4A-2 업데이트 식', 47, false],
-  [60, '#6 간지 · 4-B 시작', 55, true],
-  [64, '4B-2 한 step', 61, false],
-  [66, '#7 간지 · 마무리 시작', 72, true],
-  [73, '먼저 온 미래', 77, false],
+  [35, '#1 간지 · 활동지 1 시작', 20, true],
+  [40, '#2 간지 · 1-4 파라미터 세기', 25, false],
+  [46, '#3 간지 · 활동지 2 시작', 30, true],
+  [51, '#4 간지 · 활동지 3 시작', 35, true],
+  [54, '#5 간지 · 4-A 시작', 41, true],
+  [57, '4A-2 업데이트 식', 47, false],
+  [59, '#6 간지 · 4-B 시작', 55, true],
+  [63, '4B-2 한 step', 61, false],
+  [65, '#7 간지 · 마무리 시작', 72, true],
+  [72, '지천지지 · 먼저 온 미래', 77, false],
   [76, '감사합니다 · 끝', 80, true],
 ];
 const $ = id => document.getElementById(id);
@@ -117,7 +117,7 @@ function check() {
   if (Math.abs(diff) < 1.5) { v.className = 'verdict ok'; v.textContent = '정상 페이스'; a.textContent = ''; }
   else if (diff < 0) { v.className = 'verdict ok'; v.textContent = `${-r}분 앞섬`; a.textContent = -r >= 5 ? '여유 있음. 끝에 활성화 랩(51장) 가능.' : ''; }
   else if (diff < 5) { v.className = 'verdict warn'; v.textContent = `${r}분 늦음`; a.textContent = '아직 괜찮음. 다음 구간에서 질문 받는 시간만 줄임.'; }
-  else { v.className = 'verdict bad'; v.textContent = `${r}분 늦음`; a.textContent = n < 59 ? '59장 학습률 비교를 줄일 것.' : n < 69 ? '67·68장 언어 모델 설명을 말로 요약할 것.' : '73·74장 메시지를 짧게 할 것.'; }
+  else { v.className = 'verdict bad'; v.textContent = `${r}분 늦음`; a.textContent = n < 58 ? '58장 학습률 비교를 줄일 것.' : n < 68 ? '66·67장 언어 모델 설명을 말로 요약할 것.' : '72·74장 메시지를 짧게 할 것.'; }
 }
 $('where').innerHTML = CP.map(([n, p], i) => `<option value="${i}">${n}장 · ${p}</option>`).join('');
 try { const v = localStorage.getItem('cp-start'); if (v && localStorage.getItem('cp-start-set') === '1450') $('start').value = v; } catch (e) {}
