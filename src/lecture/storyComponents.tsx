@@ -39,8 +39,15 @@ export function OriginalPage({ page, video, step = 0 }: { page: number; video?: 
 export function FutureBook() {
   return <div className="h-full flex flex-col gap-[16px] pt-[12px]"><p className="text-[30px] font-semibold">우리는 10년 전 알파고 사건 이후의 바둑계의 변화를 타산지석 삼아야 합니다.</p><img src={asset('future-book.png')} className="w-full flex-1 min-h-0 object-contain" alt="먼저 온 미래 책 이미지와 정재승의 추천 글"/></div>;
 }
-export function CareerList() {
-  return <div className="h-full flex flex-col gap-[12px] pt-[10px]"><p className="text-[30px] font-semibold">2016년에 내다본 직업의 미래. 지금 보면 어떤 생각이 드나요?</p><img src={asset('careers-2016.png')} className="w-full flex-1 min-h-0 object-contain" alt="한국고용정보원 2016년 자료: 인공지능 대체 가능성이 낮거나 높다고 본 직업 목록"/><p className="text-[20px] text-muted">2016년의 전망 자료를 보며, 여러분의 관심 분야에서 어떤 일을 만들고 싶은지 생각해 보세요.</p></div>;
+export function CareerList({ step = 0 }: { step?: number }) {
+  // 두 질문(대체불가능한 직업 / 사라질 직업)은 클릭 1에서 나타난다. 그 전에는 흰 덮개로 가린다.
+  const cover = (left: string, width: string) => <div className="absolute bg-white" style={{ left, width, top: '0.8%', height: '5.6%' }} />;
+  return <div className="h-full flex flex-col gap-[12px] pt-[10px]"><p className="text-[30px] font-semibold">2016년에 내다본 직업의 미래. 지금 보면 어떤 생각이 드나요?</p>
+    <div className="relative flex-1 min-h-0 self-center aspect-[16/9] max-w-full">
+      <img src={asset('careers-2016.png')} className="w-full h-full object-contain" alt="한국고용정보원 2016년 자료: 인공지능 대체 가능성이 낮거나 높다고 본 직업 목록"/>
+      {step < 1 && cover('31.5%', '19%')}
+      {step < 1 && cover('50.5%', '18.5%')}
+    </div><p className="text-[20px] text-muted">2016년의 전망 자료를 보며, 여러분의 관심 분야에서 어떤 일을 만들고 싶은지 생각해 보세요.</p></div>;
 }
 export function ClosingMessage() {
   return <div className="h-full flex flex-col items-center justify-center gap-[30px]">
