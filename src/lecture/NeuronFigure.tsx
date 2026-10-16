@@ -26,7 +26,7 @@ export interface WeightSpec {
   prev?: number | null;  // 업데이트 전 값 (있으면 "0 → 1.05")
 }
 export interface BackSpec {
-  // 역전파 화살표를 몇 구간까지 그릴지. 0 없음, 1 L→ŷ, 2 ŷ→뉴런(ReLU 통과), 3 뉴런→w, 4 뉴런→b
+  // 역전파 화살표를 몇 구간까지 그릴지. 0 없음, 1 L→ŷ, 2 ŷ→뉴런(ReLU 통과), 3 뉴런→b, 4 뉴런→w (2026-10-16: b 먼저)
   stage: number;
   atY?: string;    // L→ŷ 구간 배지 (예: "× e", "× (−7)")
   atRelu?: string; // ReLU 통과 배지 (예: "그대로")
@@ -383,8 +383,8 @@ function BackArrows({
           {back.atRelu && <Badge cx={(NX + NR + YX - YR) / 2} cy={NY - 36} label={back.atRelu} color={ORANGE} fill={ORANGE_BG} size={20} />}
         </>
       ))}
-      {/* 3: 뉴런 → 입력 선 (w) */}
-      {seg(3, (
+      {/* 4: 뉴런 → 입력 선 (w) */}
+      {seg(4, (
         <>
           {Array.from({ length: n }).map((_, i) => {
             const y = inputY(n, i);
@@ -409,8 +409,8 @@ function BackArrows({
           })}
         </>
       ))}
-      {/* 4: 뉴런 → b */}
-      {seg(4, (
+      {/* 3: 뉴런 → b */}
+      {seg(3, (
         <>
           <line x1={NX + 22} y1={NY + NR + 10} x2={BX + 22} y2={BY - BR - 6} stroke={ORANGE} strokeWidth={3.5} strokeDasharray="8 6" markerEnd="url(#lec-back)" className="lec-dash" />
           {back.atB && <Badge cx={BX + 52} cy={(NY + NR + BY - BR) / 2} anchor="start" label={back.atB} color={ORANGE} fill={ORANGE_BG} size={21} />}

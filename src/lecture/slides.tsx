@@ -270,8 +270,9 @@ const OneStep: ComponentType<{ step: number }> = ({ step }) => {
   const yhat1 = w1 * x + b1, e1 = yhat1 - y, L1 = 0.5 * e1 * e1;
   // 질문 → 공개. ③ 기울기와 ④ 업데이트는 식 상자를 띄운 채 값을 넣은 식(질문) → 결과(공개)로 간다 (2026-10-15 사용자 지시)
   // 2026-10-16: 오차·손실을 식 → 생각 → 숫자로 나눠 단계 2~7로 확장(e, e², L). 그 뒤는 옛 번호 o = s − 4
-  const s = Math.min(step, 18);
-  const o = s < 3 ? s : s <= 7 ? 3 : s - 4;
+  const s = Math.min(step, 20);
+  const o = s < 3 ? s : s <= 7 ? 3 : s <= 10 ? 4 : s - 6;
+  const bstage = s === 8 ? 1 : s === 9 ? 3 : 4; // 기울기 단계: L→ŷ, 그다음 b, 그다음 w
   const after = o >= 11;                 // 4B-5 확인부터는 업데이트한 w, b
   const w = o >= 10 ? w1 : w0, b = o >= 10 ? b1 : b0;
   const yhat = after ? yhat1 : yhat0;
@@ -280,7 +281,7 @@ const OneStep: ComponentType<{ step: number }> = ({ step }) => {
   const lossShown = (s >= 7 && o <= 10) || o >= 12;
   const back: BackSpec | undefined = o >= 4 && o <= 10 ? {
     // 2026-10-16 사용자 지시: 구간 배율(× (−7), 그대로, × 3, × 1) 대신 식 자체를 화살표에 적는다
-    stage: 4, dimForward: o <= 8, atY: '∂L/∂ŷ = e = −7', atW: ['∂L/∂w = e · x = (−7) × 3'], atB: '∂L/∂b = e = −7',
+    stage: o === 4 ? bstage : 4, dimForward: o <= 8, atY: '∂L/∂ŷ = e = −7', atW: ['∂L/∂w = e · x = (−7) × 3'], atB: '∂L/∂b = e = −7',
     dw: o >= 6 ? ['dw = −21'] : undefined, db: o >= 6 ? 'db = −7' : undefined,
   } : undefined;
   const fwdHot = o === 1 || o === 12;
@@ -322,8 +323,9 @@ const OneStep: ComponentType<{ step: number }> = ({ step }) => {
         s === 5 ? <><M>e² = 49</M>. 제곱하면 음수가 사라짐.</> : null,
         s === 6 ? <>손실 <M>L = ½e² = ½ × 49</M>은?</> : null,
         s === 7 ? <><M>L = 24.5</M>. 이 손실을 줄이는 것이 목표.</> : null,
-        o === 4 ? <>4B-3 <Key>기울기</Key>. 거꾸로 가며 구간마다 <Key>변화율을 곱함</Key>.</> : null,
-        o === 4 ? <><M>∂L/∂ŷ = e = −7</M>,  <M>∂L/∂w = e · x = (−7) × 3</M>,  <M>∂L/∂b = e = −7</M>.</> : null,
+        s === 8 ? <>4B-3 <Key>기울기</Key>. 오차가 거꾸로 흐름. 먼저 <M>L → ŷ</M>: <M>∂L/∂ŷ = e = −7</M>.</> : null,
+        s === 9 ? <><M>b</M>로 흘러감. <M>b</M>가 변하면 <M>ŷ</M>도 같은 양만큼. <M>∂L/∂b = e × 1 = −7</M>.</> : null,
+        s === 10 ? <><M>w</M>로 흘러감. <M>w</M>가 변하면 <M>ŷ</M>은 <M>x</M>배. <M>∂L/∂w = e × x = (−7) × 3</M>.</> : null,
         o === 5 ? <><M>dw = ∂L/∂w = (−7) × 3</M>, <M>db = ∂L/∂b = −7</M>. 직접 계산하면?</> : null,
         o === 6 ? <><Hot>dw = (−7) × 3 = −21</Hot>, <Hot>db = −7</Hot>.</> : null,
         o === 7 ? <><M>dw</M>, <M>db</M>의 부호는? 손실을 줄이려면 <M>w</M>와 <M>b</M>를 키워야 할까, 줄여야 할까?</> : null,
@@ -432,7 +434,7 @@ export const SLIDES: SlideDef[] = [
   // 2026-10-16 사용자 결정: '같은 것을 뉴런 그림으로 보면'(grad-symbols, GradSymbols)은 덱에서 뺌
   { id: 'grad-formula', section: 'grad', tag: '4-B', title: '4-B에서 쓰는 식', steps: 4, component: GradFormula,
     notes: ['식은 유도가 끝난 뒤에 처음 보여 줌. 학생은 이 상자를 보며 4B-2부터 4B-5까지 종이로 계산함.'] },
-  { id: 'a5-one-step', section: 'grad', tag: '4B-2 ~ 4B-5', title: '한 step', formula: 'dw = e·x,  db = e,  새 w = w − η·dw,  새 b = b − η·db', steps: 18, component: OneStep,
+  { id: 'a5-one-step', section: 'grad', tag: '4B-2 ~ 4B-5', title: '한 step', formula: 'dw = e·x,  db = e,  새 w = w − η·dw,  새 b = b − η·db', steps: 20, component: OneStep,
     notes: ['예측 → 오차 → 기울기 → 업데이트 → 확인. "ŷ는?", "e는?" 같은 질문 단계에서 멈추고 학생이 활동지 4B-2~4B-5를 계산한 뒤 넘깁니다.', '손실 24.5 → 6.125.'] },
   { id: 'a5-repeat', section: 'grad', tag: '도전', title: '반복하면 학습', formula: 'dw = e·x,  db = e,  새 w = w − η·dw,  새 b = b − η·db', steps: 6, component: Repeat,
     notes: ['도전 문항의 두 번째 step(w 1.575, b 0.525)을 확인한 뒤 자동 학습을 켭니다. w ≈ 2.1, b ≈ 0.7에서 멈춥니다.'] },
