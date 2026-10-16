@@ -279,7 +279,8 @@ const OneStep: ComponentType<{ step: number }> = ({ step }) => {
   const errShown = (o >= 3 && o <= 10) || o >= 12;
   const lossShown = (s >= 7 && o <= 10) || o >= 12;
   const back: BackSpec | undefined = o >= 4 && o <= 10 ? {
-    stage: 4, dimForward: o <= 8, atY: `× (${fmt(e0)})`, atRelu: '그대로', atW: ['× 3'], atB: '× 1',
+    // 2026-10-16 사용자 지시: 구간 배율(× (−7), 그대로, × 3, × 1) 대신 식 자체를 화살표에 적는다
+    stage: 4, dimForward: o <= 8, atY: '∂L/∂ŷ = e = −7', atW: ['∂L/∂w = e · x = (−7) × 3'], atB: '∂L/∂b = e = −7',
     dw: o >= 6 ? ['dw = −21'] : undefined, db: o >= 6 ? 'db = −7' : undefined,
   } : undefined;
   const fwdHot = o === 1 || o === 12;

@@ -368,7 +368,7 @@ function BackArrows({
       {lossOn && seg(1, (
         <>
           <line x1={LX - LR - 2} y1={NY + yOff} x2={YX + YR + 10} y2={NY + yOff} stroke={ORANGE} strokeWidth={3.5} strokeDasharray="8 6" markerEnd="url(#lec-back)" className="lec-dash" />
-          {back.atY && <Badge cx={(YX + LX) / 2} cy={NY + yOff + 34} label={back.atY} color={ORANGE} fill={ORANGE_BG} size={22} />}
+          {back.atY && <Badge cx={(YX + LX) / 2} cy={NY + yOff + (back.atY.length > 8 ? 80 : 34)} label={back.atY} color={ORANGE} fill={ORANGE_BG} size={22} />}
         </>
       ))}
       {!lossOn && seg(1, (
