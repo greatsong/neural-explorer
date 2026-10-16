@@ -69,7 +69,7 @@ export const DIVIDERS = {
   forward: divider('div-2', 'forward', '#3', '뉴런을 이으면\n값은 어떻게 흐를까?'),
   loss: divider('div-3', 'loss', '#4', '잘 학습되었다는 건\n어떻게 정의할까?'),
   gd: divider('div-4', 'gd', '#5', '기계 스스로 오차를 줄여 가는 알고리즘,\n경사하강법'),
-  grad: divider('div-6', 'grad', '#6', '오차는 어떻게 거꾸로 흘러\nw와 b를 업데이트할까? 오차 역전파'),
+  grad: divider('div-6', 'grad', '#6', '오차는 어떻게 거꾸로 흘러\nw와 b를 업데이트할까?\n오차 역전파'),
 };
 
 /* ───────── 1-2 편향이 더해지면 ───────── */
