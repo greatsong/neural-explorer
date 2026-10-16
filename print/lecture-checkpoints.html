@@ -87,8 +87,8 @@ const CP = [
   [60, '#6 간지 · 4-B 시작', 55, true],
   [64, '4B-2 한 step', 61, false],
   [66, '#7 간지 · 마무리 시작', 72, true],
-  [72, '먼저 온 미래', 77, false],
-  [75, '감사합니다 · 끝', 80, true],
+  [73, '먼저 온 미래', 77, false],
+  [76, '감사합니다 · 끝', 80, true],
 ];
 const $ = id => document.getElementById(id);
 const pad = n => String(n).padStart(2, '0');
@@ -117,7 +117,7 @@ function check() {
   if (Math.abs(diff) < 1.5) { v.className = 'verdict ok'; v.textContent = '정상 페이스'; a.textContent = ''; }
   else if (diff < 0) { v.className = 'verdict ok'; v.textContent = `${-r}분 앞섬`; a.textContent = -r >= 5 ? '여유 있음. 끝에 활성화 랩(51장) 가능.' : ''; }
   else if (diff < 5) { v.className = 'verdict warn'; v.textContent = `${r}분 늦음`; a.textContent = '아직 괜찮음. 다음 구간에서 질문 받는 시간만 줄임.'; }
-  else { v.className = 'verdict bad'; v.textContent = `${r}분 늦음`; a.textContent = n < 59 ? '59장 학습률 비교를 줄일 것.' : n < 69 ? '67·68장 언어 모델 설명을 말로 요약할 것.' : '72·73장 메시지를 짧게 할 것.'; }
+  else { v.className = 'verdict bad'; v.textContent = `${r}분 늦음`; a.textContent = n < 59 ? '59장 학습률 비교를 줄일 것.' : n < 69 ? '67·68장 언어 모델 설명을 말로 요약할 것.' : '73·74장 메시지를 짧게 할 것.'; }
 }
 $('where').innerHTML = CP.map(([n, p], i) => `<option value="${i}">${n}장 · ${p}</option>`).join('');
 try { const v = localStorage.getItem('cp-start'); if (v && localStorage.getItem('cp-start-set') === '1450') $('start').value = v; } catch (e) {}

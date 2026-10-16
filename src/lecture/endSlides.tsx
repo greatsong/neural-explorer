@@ -255,35 +255,66 @@ const EndTrain: ComponentType<{ step: number }> = ({ step }) => {
   );
 };
 
-/* ───────── 4. 3B의 의미 ───────── */
+/* ───────── 4. 3B의 의미 — 앞에서 다룬 신경망 그림 세 개와 3B ───────── */
+function MiniNode({ cx, cy, r, label, muted }: { cx: number; cy: number; r: number; label?: string; muted?: boolean }) {
+  return (
+    <g>
+      <circle cx={cx} cy={cy} r={r} fill={muted ? BG : ACCENT_BG} stroke={muted ? MUTED : ACCENT} strokeWidth={2.2} />
+      {label && <text x={cx} y={cy + 7} textAnchor="middle" fill={muted ? TEXT : ACCENT} fontSize={19} fontWeight={700}>{label}</text>}
+    </g>
+  );
+}
+const Count = ({ x, y, n, show, big }: { x: number; y: number; n: string; show: boolean; big?: boolean }) => (
+  <g>
+    <rect x={x - 78} y={y - 26} width={156} height={52} rx={12} fill={SURFACE} stroke={ACCENT} strokeWidth={2} />
+    <text x={x} y={y + 10} textAnchor="middle" fill={ACCENT} fontSize={big ? 30 : 28} fontWeight={700}>{show ? n : '?'}</text>
+  </g>
+);
 const End3B: ComponentType<{ step: number }> = ({ step }) => {
-  const items = [
-    { n: 2, label: '4-B의 뉴런 하나', sub: 'w, b' },
-    { n: 11, label: '1-4의 3 × 2 × 1', sub: '가중치 8 + 편향 3' },
-    { n: 12730, label: '1-4의 784-16-10', sub: '손글씨 숫자' },
-    { n: 3_000_000_000, label: '3B 모델', sub: 'B = billion, 10억' },
-  ];
-  const ox = 80, oy = 366, maxH = 290, maxLog = Math.log10(3e9);
-  // 활동지 끝-1의 두 빈칸(오늘 고친 개수, 3B의 개수)은 질문 단계(0, 4) 다음에 막대를 공개한다
-  const at = [1, 1, 1, 2];
+  const ys = (n: number, gap: number, cy: number) => Array.from({ length: n }, (_, i) => cy + (i - (n - 1) / 2) * gap);
+  const CY = 190, LY = 300, NY = 360;
+  const P = [125, 375, 625, 875];
+  const c1 = ys(6, 30, CY), c2 = ys(4, 30, CY), c3 = ys(3, 30, CY);
   return (
     <Layout
       figure={
         <Svg>
-          <line x1={ox} y1={oy} x2={980} y2={oy} stroke={MUTED} strokeWidth={2} />
-          {items.map((it, i) => {
-            const x = ox + 60 + i * 230;
-            const h = (Math.log10(it.n) / maxLog) * maxH;
-            return (
-              <Fade key={i} show={step >= at[i]}>
-                <rect x={x} y={oy - h} width={120} height={h} rx={10} fill={i === items.length - 1 ? ACCENT : ACCENT_BG} stroke={ACCENT} strokeWidth={2.5} />
-                <text x={x + 60} y={oy - h - 16} textAnchor="middle" fill={i === items.length - 1 ? ACCENT : TEXT} fontSize={i === items.length - 1 ? 34 : 28} fontWeight={700}>{it.n.toLocaleString('ko-KR')}개</text>
-                <text x={x + 60} y={oy + 32} textAnchor="middle" fill={TEXT} fontSize={21} fontWeight={700}>{it.label}</text>
-                <text x={x + 60} y={oy + 58} textAnchor="middle" fill={MUTED} fontSize={18}>{it.sub}</text>
-              </Fade>
-            );
-          })}
-          <text x={ox} y={60} fill={MUTED} fontSize={19}>학습으로 값이 정해지는 숫자(파라미터)의 개수 · 눈금은 10배마다 한 칸</text>
+          {/* (a) 4-B의 뉴런 하나: x → 뉴런 → ŷ */}
+          <line x1={P[0] - 80 + 16} y1={CY} x2={P[0] - 30} y2={CY} stroke={MUTED} strokeOpacity={0.6} strokeWidth={2.5} />
+          <line x1={P[0] + 30} y1={CY} x2={P[0] + 80 - 16} y2={CY} stroke={MUTED} strokeOpacity={0.6} strokeWidth={2.5} />
+          <MiniNode cx={P[0] - 80} cy={CY} r={16} label="x" muted />
+          <MiniNode cx={P[0]} cy={CY} r={30} label="Σ" />
+          <MiniNode cx={P[0] + 80} cy={CY} r={16} label="ŷ" muted />
+          <text x={P[0] - 40} y={CY - 24} textAnchor="middle" fill={MUTED} fontSize={17}>w</text>
+          <text x={P[0]} y={CY + 56} textAnchor="middle" fill={MUTED} fontSize={17}>b</text>
+          <text x={P[0]} y={NY} textAnchor="middle" fill={TEXT} fontSize={20} fontWeight={700}>4-B의 뉴런 하나</text>
+          <Count x={P[0]} y={LY} n="2개" show={step >= 1} />
+
+          {/* (b) 1-4 ① 3 × 2 × 1 */}
+          {ys(2, 56, CY).map((hy, j) => ys(3, 56, CY).map((iy, i) => <line key={`${j}${i}`} x1={P[1] - 72 + 14} y1={iy} x2={P[1] - 18} y2={hy} stroke={MUTED} strokeOpacity={0.5} strokeWidth={2} />))}
+          {ys(2, 56, CY).map((hy, j) => <line key={j} x1={P[1] + 18} y1={hy} x2={P[1] + 72 - 18} y2={CY} stroke={MUTED} strokeOpacity={0.5} strokeWidth={2} />)}
+          {ys(3, 56, CY).map((iy, i) => <MiniNode key={i} cx={P[1] - 72} cy={iy} r={14} muted />)}
+          {ys(2, 56, CY).map((hy, j) => <MiniNode key={j} cx={P[1]} cy={hy} r={18} />)}
+          <MiniNode cx={P[1] + 72} cy={CY} r={18} />
+          <text x={P[1]} y={NY} textAnchor="middle" fill={TEXT} fontSize={20} fontWeight={700}>1-4의 3 × 2 × 1</text>
+          <Count x={P[1]} y={LY} n="11개" show={step >= 1} />
+
+          {/* (c) 1-4 ② 784 → 16 → 10 */}
+          {c1.map((a, i) => c2.map((b, j) => <line key={`a${i}${j}`} x1={P[2] - 70 + 9} y1={a} x2={P[2] - 9} y2={b} stroke={MUTED} strokeOpacity={0.3} strokeWidth={1.1} />))}
+          {c2.map((a, i) => c3.map((b, j) => <line key={`b${i}${j}`} x1={P[2] + 9} y1={a} x2={P[2] + 70 - 9} y2={b} stroke={MUTED} strokeOpacity={0.3} strokeWidth={1.1} />))}
+          {c1.map((y, i) => <circle key={i} cx={P[2] - 70} cy={y} r={9} fill={BG} stroke={MUTED} strokeWidth={1.8} />)}
+          {c2.map((y, i) => <circle key={i} cx={P[2]} cy={y} r={9} fill={ACCENT_BG} stroke={ACCENT} strokeWidth={1.8} />)}
+          {c3.map((y, i) => <circle key={i} cx={P[2] + 70} cy={y} r={9} fill={ACCENT_BG} stroke={ACCENT} strokeWidth={1.8} />)}
+          <text x={P[2]} y={NY} textAnchor="middle" fill={TEXT} fontSize={20} fontWeight={700}>1-4의 784 → 16 → 10</text>
+          <Count x={P[2]} y={LY} n="12,730개" show={step >= 1} />
+
+          {/* (d) 3B */}
+          <text x={P[3]} y={CY + 22} textAnchor="middle" fill={step >= 2 ? ORANGE : MUTED} fontSize={76} fontWeight={800}>3B</text>
+          <text x={P[3]} y={CY + 60} textAnchor="middle" fill={MUTED} fontSize={18}>B = billion, 10억</text>
+          <text x={P[3]} y={NY} textAnchor="middle" fill={TEXT} fontSize={20} fontWeight={700}>"3B 모델"</text>
+          <Count x={P[3]} y={LY} n="30억 개" show={step >= 2} big />
+
+          <text x={40} y={50} fill={MUTED} fontSize={19}>학습으로 값이 정해지는 숫자(파라미터)의 개수 = 가중치 + 편향</text>
         </Svg>
       }
       lines={[
@@ -292,6 +323,34 @@ const End3B: ComponentType<{ step: number }> = ({ step }) => {
         step === 1 ? <>"3B 모델"의 B는 billion, 10억. 그럼 파라미터는 몇 개?</> : null,
         step === 2 ? <>30억 개. 모델 구조와 계산식은 달라도 흐름은 이어짐. <Key>예측 → 오차·손실 → 기울기 → 업데이트</Key>.</> : null,
       ]}
+    />
+  );
+};
+
+/* ───────── 4b. 끝-2 예시 답 — 다섯 단어를 이은 문장 ───────── */
+const EndAnswer: ComponentType<{ step: number }> = () => {
+  const K = ({ children }: { children: ReactNode }) => <span className="font-bold text-accent">{children}</span>;
+  const rows: [ReactNode, string][] = [
+    [<>뉴런은 입력에 가중치를 곱하고 편향을 더해 <K>예측</K>을 만든다.</>, 'ŷ = wx + b'],
+    [<>예측에서 정답을 빼 <K>오차</K>를 구한다.</>, 'e = ŷ − y'],
+    [<>오차로 w와 b에 대한 손실의 <K>기울기</K>를 구한다.</>, 'dw = e · x, db = e'],
+    [<>기울기의 반대 방향으로 <K>학습률</K>만큼 w와 b를 <K>업데이트</K>한다.</>, '새 w = w − η · dw, 새 b = b − η · db'],
+    [<>이것을 반복하면 손실이 줄고 예측이 정답에 가까워진다.</>, '한 step씩, 여러 번'],
+  ];
+  return (
+    <Layout
+      figure={
+        <div className="h-full flex flex-col justify-center gap-[22px] px-[20px]">
+          {rows.map(([t, f], i) => (
+            <div key={i} className="flex items-center gap-[20px]">
+              <div className="w-[44px] h-[44px] rounded-full bg-accent text-white text-[24px] font-bold flex items-center justify-center shrink-0">{i + 1}</div>
+              <div className="text-[34px] leading-snug text-text flex-1">{t}</div>
+              <div className="text-[24px] text-muted tabular-nums w-[380px] shrink-0 text-right">{f}</div>
+            </div>
+          ))}
+        </div>
+      }
+      lines={[<>끝-2 예시 답. 다섯 단어를 순서대로 이으면 "뉴런 하나가 어떻게 학습하는가"가 됨.</>]}
     />
   );
 };
@@ -321,7 +380,7 @@ const EndFive: ComponentType<{ step: number }> = ({ step }) => {
         </div>
       }
       lines={[
-        <>활동지 끝-2는 집에서 과제. 이 다섯 단어를 모두 써서 "뉴런 하나가 어떻게 학습하는가"를 4~5문장으로 적음.</>,
+        <>활동지 끝-2는 집에서 과제. 이 다섯 단어를 모두 써서 "뉴런 하나가 어떻게 학습하는가"를 4~5문장으로 적음. 예시 답은 다음 장.</>,
         <>오늘 손으로 푼 과정이 ChatGPT 학습의 가장 기본적인 원리임.</>,
       ]}
     />
@@ -336,7 +395,9 @@ export const END_SLIDES: SlideDef[] = [
   { id: 'end-train-demo', section: 'end', tag: '마무리', title: '업데이트를 반복하면 그럴듯한 확률이 된다', steps: 1, component: EndTrainDemo,
     notes: ['실제 계산: 입력 16 → 6 → 6 → 7 신경망, 교차 엔트로피 손실, η = 1.2. 학습 전에는 출력 가중치가 0이라 모든 칸이 같은 확률.', '정답 비율(주황 눈금)은 앞 장의 n-gram 모델을 temperature 1.5로 계산한 값. 손실은 정답 비율 자체의 불확실성 때문에 0이 아닌 값(약 1.3)에서 안정됨. 그 외 칸은 나머지 단어 전부의 합.'] },
   { id: 'end-3b', section: 'end', tag: '끝-1', title: '3B의 의미', steps: 2, component: End3B,
-    notes: ['끝-1: 오늘 고친 파라미터 2개, 3B 모델은 30억 개. 눈금은 로그.'] },
+    notes: ['끝-1: 오늘 고친 파라미터 2개, 3B 모델은 30억 개. 그림은 4-B 뉴런·1-4 ①·1-4 ②를 다시 보여 주는 것이라 교사가 말로 설명.'] },
   { id: 'end-five', section: 'end', tag: '끝-2', title: '오늘의 핵심 키워드', steps: 0, component: EndFive,
     notes: ['끝-2는 과제로 안내. 다섯 단어를 한 번에 보여 줌.'] },
+  { id: 'end-answer', section: 'end', tag: '끝-2', title: '뉴런 하나는 어떻게 학습하는가 · 예시 답', steps: 0, component: EndAnswer,
+    notes: ['끝-2의 예시 답. 4B-5 "한 step 정리" 순서와 같음. 학생 답은 표현이 달라도 다섯 단어가 이 순서로 이어지면 됨.'] },
 ];

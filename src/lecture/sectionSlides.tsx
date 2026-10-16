@@ -73,9 +73,9 @@ const PG = {
 };
 const FwPlayground: ComponentType<{ step: number }> = ({ step }) => {
   const scenes = [
-    { k: 'a', t: '장면 ①', d: '뉴런 1개 + Linear', r: '경계가 직선 하나. 동심원을 나누지 못함.' },
-    { k: 'b', t: '장면 ②', d: '은닉층 1층(뉴런 4개) + Linear', r: '활성화 함수가 없으면 여전히 직선. 2-3의 왼쪽과 같음.' },
-    { k: 'c', t: '장면 ③', d: '은닉층 1층(뉴런 4개) + ReLU', r: '경계가 꺾이며 원을 둘러쌈. 파라미터는 가중치 2×4 + 4×1 = 12개와 편향 5개를 더해 17개.' },
+    { k: 'a', t: '실습 ①', d: '뉴런 1개 + Linear', r: '경계가 직선 하나. 동심원을 나누지 못함.' },
+    { k: 'b', t: '실습 ②', d: '은닉층 1층(뉴런 4개) + Linear', r: '활성화 함수가 없으면 여전히 직선. 2-3의 왼쪽과 같음.' },
+    { k: 'c', t: '실습 ③', d: '은닉층 1층(뉴런 4개) + ReLU', r: '경계가 꺾이며 원을 둘러쌈. 파라미터는 가중치 2×4 + 4×1 = 12개와 편향 5개를 더해 17개.' },
   ] as const;
   return (
     <Layout
@@ -336,7 +336,7 @@ export const FORWARD_SLIDES: SlideDef[] = [
     notes: ['1-4에서 파라미터 11개를 센 신경망. 실선은 h₁, 점선은 h₂. 편향은 선 위가 아니라 뉴런 옆 b에서 읽음.'] },
   { id: 'fw-relu', section: 'forward', tag: '2-3', title: 'ReLU를 빼면 직선뿐', formula: 'h = ReLU(2x − 1),  ŷ = ReLU(h − 3)', steps: 9, component: FwRelu,
     notes: ['왼쪽은 직선, 오른쪽은 꺾인 선. 꺾인 선을 모으면 곡선 모양도 만들 수 있음. 바로 플레이그라운드에서 봄.'] },
-  { id: 'fw-playground', section: 'forward', title: '활성화 함수 실험실 세 장면', steps: 2, component: FwPlayground,
+  { id: 'fw-playground', section: 'forward', title: '활성화 랩 실습하기', steps: 2, component: FwPlayground,
     notes: ['Neural Explorer의 활성화 함수 실험실(activation-lab.vercel.app)을 엽니다. 데이터셋 동심원. 장면 ① 뉴런 1개 Linear → 직선. 장면 ② 4개 Linear → 여전히 직선. 장면 ③ 4개 ReLU → 경계가 꺾이며 원을 둘러쌈.', '주소의 설정값을 랩이 읽도록 랩 쪽 코드를 고쳐야 바로 열립니다(아직 배포 전이면 랩에서 동심원·Linear/ReLU·1층·1개/4개를 직접 고릅니다). 장면 ③ 파라미터: 선 12 + 편향 5 = 17.'] },
 ];
 
