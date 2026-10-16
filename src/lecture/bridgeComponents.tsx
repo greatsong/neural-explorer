@@ -74,7 +74,7 @@ export const GraphBridge: ComponentType<{ step: number }> = ({ step }) => {
     s === 11 ? <>세 결과. <M>b = 3 → e = 2</M>, <M>b = −2 → e = −3</M>, <M>b = 1 → e = 0</M>.</> : null,
     s === 11 ? <>오차 <Key>e = b − 1</Key>. b가 1보다 얼마나 큰지가 오차. 1보다 작으면 음수.</> : null,
     s === 12 ? <>다섯 점의 e가 모두 같으니 <M>MSE = e²</M>, <Key>L = ½e² = ½(b − 1)²</Key>.</> : null,
-    s === 12 ? <>이 식의 그래프가 손실 곡선. 바닥은 <M>b = 1</M>.</> : null,
+    s === 12 ? <>이 식의 그래프가 손실 곡선. 바닥은 <M>b = 1</M>. 이 곡선에서 <M>b</M>의 기울기는 <Key>b − 1 = e</Key>(이유는 4-B에서).</> : null,
   ]} figure={<div className="h-full flex flex-col justify-center">
     <div className="grid grid-cols-2 gap-[24px]">
       <div className="rounded-2xl border border-border p-[16px]">

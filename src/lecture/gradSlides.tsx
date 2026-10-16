@@ -292,7 +292,7 @@ const cards = (step: number): { tex: string; text: string }[] => {
     { tex: String.raw`\frac{\partial L}{\partial w} = ` + OR('e', s4) + String.raw` \cdot ` + OR('x', s4) + String.raw` \;\;\Rightarrow\;\; dw = ` + OR('e', s4) + String.raw` \cdot ` + OR('x', s4), text: '곱하면 끝' },
     { tex: String.raw`\frac{\partial L}{\partial b} = \frac{\partial L}{\partial \hat y}\cdot\frac{\partial \hat y}{\partial b} = ` + OR('e', s5) + String.raw` \cdot \frac{\partial (wx+b)}{\partial b} = ` + OR('e', s5) + String.raw` \cdot 1 = ` + OR('e', s5), text: 'b도 같은 길. b가 변하면 ŷ도 같은 양만큼 변하니 비율 1. 그래서 db = e' },
     { tex: String.raw`dw = e \cdot x, \qquad db = e`, text: '기울기 식 완성. 활동지 4-B 상자의 넷째 줄' },
-    { tex: String.raw`\text{새 } w = w - \eta \cdot dw, \qquad \text{새 } b = b - \eta \cdot db`, text: '업데이트. 기울기의 반대 방향으로 η × 기울기만큼. η = 0.05' },
+    { tex: String.raw`\text{새 } w = w - \eta \cdot dw, \qquad \text{새 } b = b - \eta \cdot db`, text: '업데이트. 기울기의 반대 방향으로 η × 기울기의 크기만큼. η = 0.05' },
   ];
 };
 const GDeriveCards: ComponentType<{ step: number }> = ({ step }) => (
