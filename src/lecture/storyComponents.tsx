@@ -55,3 +55,13 @@ export function ClosingMessage() {
     <p className="text-[64px] font-bold leading-[1.5] tracking-tight">아톰과 비트가 연결된 새로운 세상을 창조할<br/><span style={{ color: 'rgba(255,255,255,0.72)' }}>여러분의 미래를 응원합니다! :)</span></p>
   </div>;
 }
+
+// 2026-10-16: 맨 마지막 장. 1장 표지 이미지 그대로에 "감사합니다 :)"만 제목 아래에 얹는다.
+export function ThanksCover() {
+  return <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgb(107, 70, 255)' }}>
+    <div className="relative h-full aspect-video max-w-full">
+      <img src={asset('source/slide-01.png')} className="h-full w-full object-contain" alt="AI 시대의 지피지기 표지"/>
+      <div className="absolute left-0 w-full text-center text-white font-bold" style={{ top: '56%', fontSize: '48px', letterSpacing: '-0.01em' }}>감사합니다 :)</div>
+    </div>
+  </div>;
+}
