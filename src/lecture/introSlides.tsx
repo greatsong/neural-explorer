@@ -18,13 +18,13 @@ const GOALS = [
   ['③', '오차와 손실을 계산하고, 오차를 제곱하는 이유를 설명할 수 있음.'],
   ['④', '기울기를 구해 파라미터를 한 step 고치고, 손실이 줄어드는 것을 확인할 수 있음.'],
 ];
-const Goals: ComponentType<{ step: number }> = ({ step }) => (
+const Goals: ComponentType<{ step: number }> = () => (
   <Layout
     figure={
       <div className="h-full flex items-center">
         <div className="grid grid-cols-2 gap-[22px] w-full">
-          {GOALS.map(([n, t], i) => (
-            <div key={n} className={`lec-fade rounded-2xl border-2 px-[28px] py-[26px] ${i <= step ? 'border-accent bg-accent-bg/40 opacity-100' : 'border-border opacity-25'}`}>
+          {GOALS.map(([n, t]) => (
+            <div key={n} className="rounded-2xl border-2 px-[28px] py-[26px] border-accent bg-accent-bg/40">
               <div className="text-[30px] font-bold text-accent mb-[8px]">{n}</div>
               <div className="text-[25px] leading-snug">{t}</div>
             </div>
@@ -383,7 +383,7 @@ const DeepFigure: ComponentType<{ step: number }> = ({ step }) => {
   );
 };
 
-export const GOAL_SLIDE: SlideDef = { id: 'goals', section: 'neuron', title: '학습 목표', steps: 3, component: Goals,
+export const GOAL_SLIDE: SlideDef = { id: 'goals', section: 'neuron', title: '학습 목표', steps: 0, component: Goals,
   notes: ['활동지 첫 쪽의 학습 목표 네 개. "3B 모델"의 B는 billion, 10억. 무엇이 10억 개인지 세션1 끝에서 센다.'] };
 
 export const NEURON_EXTRA: SlideDef[] = [
