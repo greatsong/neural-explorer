@@ -202,7 +202,7 @@ export const EndNet: ComponentType<{ step: number }> = ({ step }) => {
 
 /* ───────── 3. 학습도 같은 네 단계 ───────── */
 const EndTrain: ComponentType<{ step: number }> = ({ step }) => {
-  const sent = ['어느', '날', '토끼', '가', '길', '을', '잃었다'];
+  const sent = ['어느', '날', '토끼', '가', '숲', '으로', '갔다'];
   const dist = useMemo(() => nextDist(START_CTX), []);
   const ring = ['예측', '오차·손실', '기울기', '업데이트'];
   const RX = 760, RY = 222, RR = 136;
@@ -247,8 +247,8 @@ const EndTrain: ComponentType<{ step: number }> = ({ step }) => {
         </Svg>
       }
       lines={[
-        step === 0 ? <>인터넷의 문장에서 앞 네 단어만 보여 주고 다음 단어를 가리면 문제가 됨. 정답은 문장 속의 "길".</> : null,
-        step === 0 ? <>정답에 준 확률이 낮을수록 <Hot>손실</Hot>이 커짐. 막대는 상위 4개뿐이고 "길"은 그 아래에 있음. 오차 e = ŷ − y처럼 단어끼리 빼지는 않음.</> : null,
+        step === 0 ? <>인터넷의 문장에서 앞 네 단어만 보여 주고 다음 단어를 가리면 문제가 됨. 정답은 문장 속의 "숲".</> : null,
+        step === 0 ? <>정답 "숲"에 준 확률 66%. 이 확률이 낮을수록 <Hot>손실</Hot>이 커지고, 100%가 아니면 0이 아님. e = ŷ − y처럼 단어끼리 빼지는 않음.</> : null,
         step === 1 ? <>손실에서 기울기를 구하고 파라미터를 업데이트함. 많은 글에서 이것을 반복하는 것이 <Key>사전학습</Key>. ChatGPT는 그 뒤 추가 학습도 거침.</> : null,
       ]}
     />
