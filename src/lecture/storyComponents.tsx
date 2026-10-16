@@ -50,11 +50,8 @@ export function CareerList({ step = 0 }: { step?: number }) {
     </div><p className="text-[20px] text-muted">2016년의 전망 자료를 보며, 여러분의 관심 분야에서 어떤 일을 만들고 싶은지 생각해 보세요.</p></div>;
 }
 export function ClosingMessage() {
-  return <div className="h-full flex flex-col items-center justify-center gap-[30px]">
-    <div className="w-full grid grid-cols-2 gap-[40px]">
-      <img src={asset('future-book.png')} className="w-full h-[355px] object-contain" alt="먼저 온 미래 책과 추천 글"/>
-      <img src={asset('careers-2016.png')} className="w-full h-[355px] object-contain" alt="직업의 미래를 생각해 보는 2016년 직업 전망 리스트"/>
-    </div>
-    <p className="text-center text-[47px] font-bold leading-[1.55] tracking-tight">아톰과 비트가 연결된 새로운 세상을 창조할<br/><span className="text-accent">여러분의 미래를 응원합니다! :)</span></p>
+  // 2026-10-16: 1장(원본 표지)과 같은 보라 전면에 응원 문구만. 머리글·제목은 fullBleed로 숨긴다.
+  return <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white" style={{ background: 'rgb(106, 70, 255)' }}>
+    <p className="text-[64px] font-bold leading-[1.5] tracking-tight">아톰과 비트가 연결된 새로운 세상을 창조할<br/><span style={{ color: 'rgba(255,255,255,0.72)' }}>여러분의 미래를 응원합니다! :)</span></p>
   </div>;
 }

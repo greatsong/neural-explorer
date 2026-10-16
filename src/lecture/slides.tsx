@@ -15,6 +15,7 @@ export interface SlideDef {
   id: string;
   section: SectionId;
   tag?: string;      // 활동지 문항 번호 (작게)
+  tagAt?: (step: number) => string; // 클릭 단계에 따라 활동지 문항이 바뀔 때 (예: 한 step의 4B-2 → 4B-5)
   title: string;
   titleAt?: (step: number) => string; // 클릭 단계에 따라 제목을 바꿀 때 (예: 한 step의 역전파 → 경사 하강법)
   sub?: string;
@@ -23,6 +24,7 @@ export interface SlideDef {
   component: ComponentType<{ step: number }>;
   notes?: string[];
   sourcePage?: number; // 원본 도입 페이지는 이미지와 내장 영상을 온전히 표시
+  fullBleed?: boolean; // 머리글·제목 없이 화면 전체를 쓰는 장(마지막 보라 표지)
 }
 export type SectionId = 'opening' | 'neuron' | 'forward' | 'loss' | 'gd' | 'grad' | 'end' | 'future';
 export const SECTIONS: { id: SectionId; label: string }[] = [
@@ -272,8 +274,8 @@ const OneStep: ComponentType<{ step: number }> = ({ step }) => {
   // 질문 → 공개. ③ 기울기와 ④ 업데이트는 식 상자를 띄운 채 값을 넣은 식(질문) → 결과(공개)로 간다 (2026-10-15 사용자 지시)
   // 2026-10-16: 오차·손실을 식 → 생각 → 숫자로 나눠 단계 2~7로 확장(e, e², L). 그 뒤는 옛 번호 o = s − 4
   // 확인(4B-5)도 ŷ → e → L 순으로 나눔: s 17~21 (v = 0..4). 그 뒤 정리는 s 22·23
-  const s = Math.min(step, 24);
-  const o = s < 3 ? s : s <= 7 ? 3 : s <= 10 ? 4 : s <= 16 ? s - 6 : s === 17 ? 11 : s <= 22 ? 12 : s - 10;
+  const s = Math.min(step, 23);
+  const o = s < 3 ? s : s <= 7 ? 3 : s <= 10 ? 4 : s <= 16 ? s - 6 : s === 17 ? 11 : s <= 22 ? 12 : 14; // 23 = 정리(답만)
   const v = s >= 17 && s <= 22 ? s - 17 : -1; // 확인: z? → z → ŷ → e → L? → L
   const bstage = s === 8 ? 1 : s === 9 ? 3 : 4; // 기울기 단계: L→ŷ, 그다음 b, 그다음 w
   const after = o >= 11;                 // 4B-5 확인부터는 업데이트한 w, b
@@ -347,7 +349,6 @@ const OneStep: ComponentType<{ step: number }> = ({ step }) => {
         v === 3 ? <>오차 <M>e = 3.5 − 7 = −3.5</M>. 아까 −7의 절반.</> : null,
         v === 4 ? <>손실 <M>L = ½ × (−3.5)² = ½ × 12.25</M>는?</> : null,
         v === 5 ? <><M>L = 6.125</M>. 손실이 <M>24.5</M>에서 <Hot>6.125</Hot>로, 한 step에 4분의 1.</> : null,
-        o === 13 ? <>정리. 고치는 방향은 기울기와 같은 방향일까, 반대 방향일까? 고치는 양은?</> : null,
         o === 14 ? <>기울기의 <Key>반대 방향</Key>으로, <Key>η × 기울기의 크기</Key>만큼. 예측 → 오차·손실 → 기울기 → 업데이트의 반복이 학습.</> : null,
         o === 14 ? <>점이 여러 개일 때는 점마다 기울기를 구해 평균함.</> : null,
       ]}
@@ -443,7 +444,7 @@ export const SLIDES: SlideDef[] = [
   // 2026-10-16 사용자 결정: '같은 것을 뉴런 그림으로 보면'(grad-symbols, GradSymbols)은 덱에서 뺌
   { id: 'grad-formula', section: 'grad', tag: '4-B', title: '4-B에서 쓰는 식', steps: 4, component: GradFormula,
     notes: ['식은 유도가 끝난 뒤에 처음 보여 줌. 학생은 이 상자를 보며 4B-2부터 4B-5까지 종이로 계산함.'] },
-  { id: 'a5-one-step', section: 'grad', tag: '4B-2 ~ 4B-5', title: '한 step', titleAt: (k) => k <= 7 ? '한 step · 예측과 오차' : k <= 12 ? '한 step · 오차 역전파' : k <= 16 ? '한 step · 경사 하강법' : k <= 22 ? '한 step · 확인' : '한 step · 정리', formula: 'dw = e·x,  db = e,  새 w = w − η·dw,  새 b = b − η·db', steps: 24, component: OneStep,
+  { id: 'a5-one-step', section: 'grad', tag: '4B-2 ~ 4B-5', tagAt: (k) => k <= 7 ? '4B-2' : k <= 12 ? '4B-3' : k <= 16 ? '4B-4' : '4B-5', title: '한 step', titleAt: (k) => k <= 7 ? '한 step · 예측과 오차' : k <= 12 ? '한 step · 오차 역전파' : k <= 16 ? '한 step · 경사 하강법' : k <= 22 ? '한 step · 확인' : '한 step · 정리', formula: 'dw = e·x,  db = e,  새 w = w − η·dw,  새 b = b − η·db', steps: 23, component: OneStep,
     notes: ['예측 → 오차 → 기울기 → 업데이트 → 확인. "ŷ는?", "e는?" 같은 질문 단계에서 멈추고 학생이 활동지 4B-2~4B-5를 계산한 뒤 넘깁니다.', '손실 24.5 → 6.125.'] },
   { id: 'a5-repeat', section: 'grad', tag: '도전', title: '반복하면 학습', formula: 'dw = e·x,  db = e,  새 w = w − η·dw,  새 b = b − η·db', steps: 6, component: Repeat,
     notes: ['도전 문항의 두 번째 step(w 1.575, b 0.525)을 확인한 뒤 자동 학습을 켭니다. w ≈ 2.1, b ≈ 0.7에서 멈춥니다.'] },

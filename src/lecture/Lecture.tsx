@@ -129,7 +129,7 @@ export function Lecture() {
         }} />
 
         {/* 머리: 섹션 진행 바 */}
-        {!slide.sourcePage && <header className="absolute left-0 right-0 top-0 h-[64px] px-[56px] flex items-center justify-between pointer-events-none">
+        {!slide.sourcePage && !slide.fullBleed && <header className="absolute left-0 right-0 top-0 h-[64px] px-[56px] flex items-center justify-between pointer-events-none">
           <div className="flex items-center gap-[6px] text-[16px]">
             {SECTIONS.map((s, i) => (
               <div key={s.id} className="flex items-center gap-[6px]">
@@ -144,14 +144,14 @@ export function Lecture() {
         </header>}
 
         {/* 본문 */}
-        <main key={index} data-slide-id={slide.id} data-transition={direction > 0 ? 'forward' : direction < 0 ? 'back' : 'initial'} className={`absolute left-0 right-0 z-10 pointer-events-none ${direction ? `lec-slide-page ${direction > 0 ? 'lec-slide-forward' : 'lec-slide-back'}` : ''} ${slide.sourcePage ? 'top-0 bottom-[56px]' : 'top-[64px] bottom-[64px] px-[56px]'}`}>
+        <main key={index} data-slide-id={slide.id} data-transition={direction > 0 ? 'forward' : direction < 0 ? 'back' : 'initial'} className={`absolute left-0 right-0 z-10 pointer-events-none ${direction ? `lec-slide-page ${direction > 0 ? 'lec-slide-forward' : 'lec-slide-back'}` : ''} ${slide.sourcePage || slide.fullBleed ? 'top-0 bottom-[56px]' : 'top-[64px] bottom-[64px] px-[56px]'}`}>
           <div className="h-full flex flex-col pointer-events-none [&_input]:pointer-events-auto [&_button]:pointer-events-auto [&_a]:pointer-events-auto [&_video]:pointer-events-auto">
-            {!slide.sourcePage && <div className="flex items-baseline gap-[18px] mt-[6px] mb-[4px]">
-              {slide.tag && (
+            {!slide.sourcePage && !slide.fullBleed && <div className="flex items-baseline gap-[18px] mt-[6px] mb-[4px]">
+              {(slide.tagAt ? slide.tagAt(step) : slide.tag) && (() => { const t = slide.tagAt ? slide.tagAt(step) : slide.tag!; return (
                 <span className="text-[22px] font-bold text-accent bg-accent-bg px-[14px] py-[3px] rounded-md whitespace-nowrap">
-                  {/^[0-9끝도]/.test(slide.tag) ? `활동지 ${slide.tag}` : slide.tag}
+                  {/^[0-9끝도]/.test(t) ? `활동지 ${t}` : t}
                 </span>
-              )}
+              ); })()}
               <h1 className="text-[40px] font-bold tracking-tight leading-tight m-0">{slide.titleAt ? slide.titleAt(step) : slide.title}</h1>
               {slide.sub && <span className="text-[22px] text-muted">{slide.sub}</span>}
               {slide.formula && (
