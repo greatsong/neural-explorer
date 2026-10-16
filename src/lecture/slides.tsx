@@ -288,7 +288,7 @@ const OneStep: ComponentType<{ step: number }> = ({ step }) => {
   const box = s >= 2 && s <= 7
     ? { main: <>e = ŷ − y,  L = ½e²</>, sub: s === 2 ? <>e = 0 − 7 = ?</> : s === 3 ? <>e = 0 − 7 = <Hot>−7</Hot></> : s === 4 ? <>e² = (−7)² = ?</> : s === 5 ? <>e² = (−7)² = <Hot>49</Hot></> : s === 6 ? <>L = ½ × 49 = ?</> : <>L = ½ × 49 = <Hot>24.5</Hot></> }
     : o >= 4 && o <= 8
-    ? { main: <>dw = e · x,  db = e</>, sub: o === 5 ? <>dw = (−7) × 1 × 3,  db = (−7) × 1 × 1</> : o >= 6 ? <>dw = (−7) × 3 = <Hot>−21</Hot>,  db = <Hot>−7</Hot></> : undefined }
+    ? { main: <>dw = e · x,  db = e</>, sub: o === 5 ? <>dw = (−7) × 3,  db = (−7)</> : o >= 6 ? <>dw = (−7) × 3 = <Hot>−21</Hot>,  db = <Hot>−7</Hot></> : undefined }
     : o >= 9 && o <= 10
     ? { main: <>새 w = w − η · dw,  새 b = b − η · db</>, sub: o === 9 ? <>새 w = 0 − 0.05 × (−21),  새 b = 0 − 0.05 × (−7)</> : <>새 w = 0 + 1.05 = <Hot>1.05</Hot>,  새 b = 0 + 0.35 = <Hot>0.35</Hot></> }
     : null;
@@ -322,8 +322,8 @@ const OneStep: ComponentType<{ step: number }> = ({ step }) => {
         s === 6 ? <>손실 <M>L = ½e² = ½ × 49</M>은?</> : null,
         s === 7 ? <><M>L = 24.5</M>. 이 손실을 줄이는 것이 목표.</> : null,
         o === 4 ? <>4B-3 <Key>기울기</Key>. 거꾸로 가며 구간마다 <Key>변화율을 곱함</Key>.</> : null,
-        o === 4 ? <><M>L→ŷ</M>은 <M>e = −7</M>, <M>ŷ→z</M>는 그대로(× 1), <M>z→w</M>는 <M>x = 3</M>, <M>z→b</M>는 1.</> : null,
-        o === 5 ? <>경로를 따라 곱함. <M>dw = (−7) × 1 × 3</M>, <M>db = (−7) × 1 × 1</M>. 직접 계산하면?</> : null,
+        o === 4 ? <><M>∂L/∂ŷ = e = −7</M>,  <M>∂L/∂w = e · x = (−7) × 3</M>,  <M>∂L/∂b = e = −7</M>.</> : null,
+        o === 5 ? <><M>dw = ∂L/∂w = (−7) × 3</M>, <M>db = ∂L/∂b = −7</M>. 직접 계산하면?</> : null,
         o === 6 ? <><Hot>dw = (−7) × 3 = −21</Hot>, <Hot>db = −7</Hot>.</> : null,
         o === 7 ? <><M>dw</M>, <M>db</M>의 부호는? 손실을 줄이려면 <M>w</M>와 <M>b</M>를 키워야 할까, 줄여야 할까?</> : null,
         o === 8 ? <><M>dw</M>, <M>db</M>가 모두 음수. 기울기의 <Key>반대 부호 방향</Key>으로 감.</> : null,
