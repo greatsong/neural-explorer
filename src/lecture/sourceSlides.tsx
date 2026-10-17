@@ -16,12 +16,12 @@ const pages = [
   {
     "page": 3,
     "video": null,
-    "notes": ""
+    "notes": "유튜브 영상 썸네일(xJ_mb64Bxk8). 2026-10-17 책 소개와 순서를 바꿈."
   },
   {
     "page": 4,
     "video": null,
-    "notes": ""
+    "notes": "책 소개(교사 고해상도 이미지)."
   },
   {
     "page": 5,
