@@ -431,7 +431,7 @@ export const SLIDES: SlideDef[] = [
   { id: 'a1-negative', section: 'neuron', tag: '1-1', title: '가중치를 바꾸면', formula: 'z = w₁·x₁ + w₂·x₂ + b', steps: 8, component: A1Negative,
     notes: ['활동지 1-1 표의 둘째~넷째 줄은 w를 먼저 보이고 "z는?"에서 멈춥니다. 학생이 계산한 뒤 다음 단계에서 공개합니다. 7·8단계는 활동지 관찰 문항입니다.', '가중치는 그 입력이 결과에 미치는 영향의 크기입니다. 슬라이더로 다른 값도 보여 줄 수 있고 "활동지 값으로"로 돌아옵니다.'] },
   ...NEURON_EXTRA,
-  // 딥시크 V4 기사(원본 37·38장)를 도입부에 그대로 두고, 1-5 딥러닝 그림 읽기 뒤에 한 번 더 보여 준다(파라미터 수 → 284B → 끝-1의 3B로 이어짐)
+  // MS MAI-베이스-2 기사(원본 37·38장 자리, 2026-10-17 AI타임스 '2.8조 매개변수')를 도입부에 그대로 두고, 1-5 딥러닝 그림 읽기 뒤에 한 번 더 보여 준다(파라미터 수 2조 8000억 → 끝-1의 3B로 이어짐). 딥시크 기사 원본은 private/source-backup/
   ...OPENING_SLIDES.filter((s) => s.id === 'source-37' || s.id === 'source-38').map((s) => ({ ...s, id: s.id + '-again', section: 'neuron' as const })),
   DIVIDERS.forward,
   ...FORWARD_SLIDES,
